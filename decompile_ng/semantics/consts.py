@@ -395,6 +395,8 @@ TABLE_DIRECT = {
                               # When a call statement contains only a named_expr (:=)
                               # the named_expr should have parenthesis around it.
                               (0, PRECEDENCE["named_expr"]-1)),
+    "expr_stmt":	    ( "%|%c\n",
+                              (0, "expr") ),
     "break":	            ( "%|break\n", ),
     "continue":	            ( "%|continue\n", ),
 

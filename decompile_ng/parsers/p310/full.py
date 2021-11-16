@@ -35,11 +35,11 @@ class Python310Parser(Python310LambdaParser):
         stmts ::= sstmt+
         """
 
-    def p_call_stmt(self, args):
+    def p_eval_mode(self, args):
         """
         # eval-mode compilation.  Single-mode interactive compilation
         # adds another rule.
-        call_stmt ::= expr POP_TOP
+        expr_stmt ::= expr POP_TOP
         """
 
     def p_stmt_loop(self, args):
@@ -137,6 +137,7 @@ class Python310Parser(Python310LambdaParser):
         else_suite ::= returns
 
         stmt ::= classdef
+        stmt ::= expr_stmt
         stmt ::= call_stmt
 
         stmt ::= ifstmt
