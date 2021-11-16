@@ -1,5 +1,5 @@
 #!/bin/bash
-PACKAGE=decompyle3
+PACKAGE=decompile_ng
 
 # FIXME put some of the below in a common routine
 function finish {

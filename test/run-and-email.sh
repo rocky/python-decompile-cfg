@@ -28,7 +28,7 @@ MAIN="test_pyenvlib.py"
 
 USER=${USER:-rocky}
 EMAIL=${EMAIL:-rb@dustyfeet.com}
-WHAT="decompyle3 ${MAIN}"
+WHAT="decompile_ng ${MAIN}"
 MAX_TESTS=${MAX_TESTS:-800}
 export BATCH=1
 
@@ -88,4 +88,4 @@ typeset -i RUN_ENDTIME=$(date +%s)
 (( time_diff =  RUN_ENDTIME - RUN_STARTTIME))
 elapsed_time=$(displaytime $time_diff)
 echo "Run complete in ${elapsed_time}." >> $MAILBODY
-cat $MAILBODY | mail -s "$HOST decompyle3 $MAIN finished; ${elapsed_time}." ${EMAIL}
+cat $MAILBODY | mail -s "$HOST decompile_ng $MAIN finished; ${elapsed_time}." ${EMAIL}

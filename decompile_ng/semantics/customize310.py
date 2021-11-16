@@ -1,0 +1,200 @@
+#  Copyright (c) 2019-2021 by Rocky Bernstein
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""Isolate Python 3.8 version-specific semantic actions here.
+"""
+
+########################
+# Python 3.10+ changes
+#######################
+
+from decompyle3.semantics.consts import PRECEDENCE, TABLE_DIRECT
+
+
+def customize_for_version310(self, version):
+
+    # FIXME: pytest doesn't add proper keys in testing. Reinstate after we have fixed pytest.
+    # for lhs in 'for forelsestmt forelselaststmt '
+    #             'forelselaststmtc tryfinally310'.split():
+    #     del TABLE_DIRECT[lhs]
+
+    TABLE_DIRECT.update(
+        {
+            "async_for_stmt310": (
+                "%|async for %c in %c:\n%+%c%-%-\n\n",
+                (2, "store"),
+                (0, "expr"),
+                (3, "for_block"),
+            ),
+            "async_forelse_stmt310": (
+                "%|async for %c in %c:\n%+%c%-%|else:\n%+%c%-\n\n",
+                (2, "store"),
+                (0, "expr"),
+                (3, "for_block"),
+                (-1, "else_suite"),
+            ),
+            "async_with_stmt310": ("%|async with %c:\n%+%|%c%-", (0, "expr"), 7),
+            "async_with_as_stmt310": (
+                "%|async with %c as %c:\n%+%|%c%-",
+                (0, "expr"),
+                (6, "store"),
+                (7, "suite_stmts"),
+            ),
+            "c_forelsestmt310": (
+                "%|for %c in %c:\n%+%c%-%|else:\n%+%c%-\n\n",
+                (2, "store"),
+                (0, "expr"),
+                (3, "for_block"),
+                -1,
+            ),
+            "except_cond1a": ("%|except %c:\n", (1, "expr"),),
+            "except_cond_as": (
+                "%|except %c as %c:\n",
+                (1, "expr"),
+                (-2, "STORE_FAST"),
+            ),
+            "except_handler310": ("%c", (2, "except_stmts")),
+            "except_handler310a": ("%c", (-2, "stmts")),
+            "except_handler310c": (
+                "%c%+%c%-",
+                (1, "except_cond1a"),
+                (2, "except_stmts"),
+            ),
+            "except_handler_as": (
+                "%c%+\n%+%c%-",
+                (1, "except_cond_as"),
+                (2, "tryfinallystmt"),
+            ),
+            "except_ret310a": ("return %c", (4, "expr")),
+            # Note: there is a suite_stmts_opt which seems
+            # to be bookkeeping which is not expressed in source code
+            "except_ret310": ("%|return %c\n", (1, "expr")),
+            "for310": (
+                "%|for %c in %c:\n%+%c%-\n\n",
+                (2, "store"),
+                (0, "expr"),
+                (3, "for_block"),
+            ),
+            "forelsestmt310": (
+                "%|for %c in %c:\n%+%c%-%|else:\n%+%c%-\n\n",
+                (2, "store"),
+                (0, "expr"),
+                (3, "for_block"),
+                -1,
+            ),
+            "forelselaststmt310": (
+                "%|for %c in %c:\n%+%c%-%|else:\n%+%c%-",
+                (2, "store"),
+                (0, "expr"),
+                (3, "for_block"),
+                -2,
+            ),
+            "forelselaststmtc310": (
+                "%|for %c in %c:\n%+%c%-%|else:\n%+%c%-\n\n",
+                (2, "store"),
+                (0, "expr"),
+                (3, "for_block"),
+                -2,
+            ),
+            "ifpoplaststmtc": ("%|if %c:\n%+%c%-", (0, "testexpr"), (2, "c_stmts")),
+            "pop_return": ("%|return %c\n", (1, "ret_expr")),
+            "popb_return": ("%|return %c\n", (0, "ret_expr")),
+            "pop_ex_return": ("%|return %c\n", (0, "ret_expr")),
+            "whilestmt310": (
+                "%|while %c:\n%+%c%-\n\n",
+                (1, "testexpr"),
+                (2, ("c_stmts", "pass")),
+            ),
+            "whileTruestmt310": ("%|while True:\n%+%c%-\n\n", (1, "c_stmts", "pass"),),
+            "try_elsestmtl310": (
+                "%|try:\n%+%c%-%c%|else:\n%+%c%-",
+                (1, "suite_stmts_opt"),
+                (3, "except_handler310"),
+                (5, "else_suitec"),
+            ),
+            "try_except310": (
+                "%|try:\n%+%c\n%-%|except:\n%+%c%-\n\n",
+                (2, ("suite_stmts_opt", "suite_stmts")),
+                (3, ("except_handler310a", "except_handler310b", "except_handler310c")),
+            ),
+            "try_except310r": (
+                "%|try:\n%+%c\n%-%|except:\n%+%c%-\n\n",
+                (1, "return_except"),
+                (2, "except_handler310b"),
+            ),
+            "try_except_as": (
+                "%|try:\n%+%c%-\n%|%-%c\n\n",
+                (-4, "suite_stmts"),  # Go from the end because of POP_BLOCK variation
+                (-3, "except_handler_as"),
+            ),
+            "try_except_ret310": (
+                "%|try:\n%+%c%-\n%|except:\n%+%|%c%-\n\n",
+                (1, "returns"),
+                (2, "except_ret310a"),
+            ),
+            "try_except_ret310a": (
+                "%|try:\n%+%c%-%c\n\n",
+                (1, "returns"),
+                (2, "except_handler310c"),
+            ),
+            "tryfinally310rstmt": (
+                "%|try:\n%+%c%-%|finally:\n%+%c%-\n\n",
+                (0, "sf_pb_call_returns"),
+                (-1, ("ss_end_finally", "suite_stmts")),
+            ),
+            "tryfinally310rstmt2": (
+                "%|try:\n%+%c%-%|finally:\n%+%c%-\n\n",
+                (4, "returns"),
+                -2,
+                "ss_end_finally",
+            ),
+            "tryfinally310rstmt3": (
+                "%|try:\n%+%|return %c%-\n%|finally:\n%+%c%-\n\n",
+                (1, "expr"),
+                (-1, "ss_end_finally"),
+            ),
+            "tryfinally310rstmt4": (
+                "%|try:\n%+%c%-\n%|finally:\n%+%c%-\n\n",
+                (1, "suite_stmts_opt"),
+                (5, "suite_stmts_return"),
+            ),
+            "tryfinally310stmt": (
+                "%|try:\n%+%c%-%|finally:\n%+%c%-\n\n",
+                (1, "suite_stmts_opt"),
+                (6, "suite_stmts_opt"),
+            ),
+            "tryfinally310astmt": (
+                "%|try:\n%+%c%-%|finally:\n%+%c%-\n\n",
+                (2, "suite_stmts_opt"),
+                (8, "suite_stmts_opt"),
+            ),
+            "named_expr": (  # AKA "walrus operator"
+                "%c := %p",
+                (2, "store"),
+                (0, "expr", PRECEDENCE["named_expr"] - 1),
+            ),
+        }
+    )
+
+    def suite_stmts_return(node):
+        if len(node) > 1:
+            assert len(node) == 2
+            self.template_engine(
+                ("%c\n%|return %c", (0, "suite_stmts"), (1, "expr")), node
+            )
+        else:
+            self.template_engine(("%|return %c", (0, "expr")), node)
+        self.prune()
+
+    self.n_suite_stmts_return = suite_stmts_return

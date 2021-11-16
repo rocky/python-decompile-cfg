@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 import sys
 
-"""Setup script for the 'decompyle3' distribution."""
+"""Setup script for the 'decompile_ng' distribution."""
 
 SYS_VERSION = sys.version_info[0:2]
-if SYS_VERSION < (3, 7):
+if SYS_VERSION < (3, 10):
     mess = f"\nThis package is not supported for Python version {sys.version[0:3]}."
-    mess += "\nFor earlier versions, use uncompyle6."
+    mess += "\nFor earlier versions, use decompile3 or uncompyle6."
     print(mess)
     raise Exception(mess)
 

@@ -1,4 +1,4 @@
-from decompyle3 import code_deparse
+from decompile_ng import code_deparse
 
 from io import StringIO
 
@@ -49,7 +49,7 @@ def test_single_mode() -> None:
             continue
 
         if deparsed.text != (expr + "\n"):
-            from decompyle3.show import maybe_show_tree
+            from decompile_ng.show import maybe_show_tree
             deparsed.showast = {"Full": True}
             maybe_show_tree(deparsed, deparsed.ast)
         assert deparsed.text == expr + "\n"
@@ -71,7 +71,7 @@ def test_eval_mode():
             continue
 
         if deparsed.text != expr:
-            from decompyle3.show import maybe_show_tree
+            from decompile_ng.show import maybe_show_tree
             deparsed.showast = {"Full": True}
             maybe_show_tree(deparsed, deparsed.ast)
         assert deparsed.text == expr
@@ -93,7 +93,7 @@ def test_lambda_mode():
             assert False, expr
             continue
         if deparsed.text != expr:
-            from decompyle3.show import maybe_show_tree
+            from decompile_ng.show import maybe_show_tree
             deparsed.showast = {"Full": True}
             maybe_show_tree(deparsed, deparsed.ast)
         assert deparsed.text == expr

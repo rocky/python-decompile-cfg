@@ -22,7 +22,7 @@ from __future__ import print_function
 import os, time, re, shutil, sys
 from fnmatch import fnmatch
 
-from decompyle3 import main
+from decompile_ng import main
 import xdis.magics as magics
 
 # ----- configure this for your needs
@@ -65,8 +65,9 @@ for vers in TEST_VERSIONS:
     else:
         if vers == "native":
             short_vers = os.path.basename(sys.path[-1])
-            from xdis import PYTHON_VERSION
-            PYC = (f"*.cpython-{int(PYTHON_VERSION * 10)}.pyc",)
+            from xdis.version_info import version_tuple_to_str
+            version = version_tuple_to_str(end=2)
+            PYC = f"*.cpython-{version}.pyc"
             test_options[vers] = (sys.path[-1], PYC, short_vers)
         else:
             short_vers = vers[:3]

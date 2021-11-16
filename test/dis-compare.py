@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Mode: -*- python -*-
 #
-# Copyright (c) 2015 by Rocky Bernstein <rb@dustyfeet.com>
+# Copyright (c) 2015, 2021 by Rocky Bernstein <rb@dustyfeet.com>
 #
 from __future__ import print_function
 
@@ -22,9 +22,10 @@ Usage: %s [OPTIONS]... FILE
 
 usage_short = "Usage: %s [OPTIONS]... FILE" % program
 
-import decompyle3
-from decompyle3 import PYTHON_VERSION_STR, check_python_version
-from decompyle3.disas import disco
+import decompile_ng
+from decompile_ng import check_python_version
+from decompile_ng.disas import disco
+from xdis.version_info import version_tuple_to_str
 
 def inst_fmt(inst):
     if inst.starts_line:
@@ -83,8 +84,8 @@ files = [
     ]
 
 for base in files:
-    filename = "bytecode_%s/%s.pyc" % (PYTHON_VERSION_STR, base)
-    version, timestamp, magic_int, co = decompyle3.load_module(filename)
+    filename = f"bytecode_{version_tuple_to_str()/{base}s.pyc"
+    version, timestamp, magic_int, co = decompile_ng.load_module(filename)
     ok = True
 
     if type(co) == list:

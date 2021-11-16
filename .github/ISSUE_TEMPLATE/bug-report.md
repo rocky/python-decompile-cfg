@@ -1,11 +1,11 @@
 ---
 name: Bug report
-about: Tell us about decompyle3 bugs
+about: Tell us about decompile_ng bugs
 
 ---
 
 <!-- __Note:__ Bugs are not for asking questions about a problem you
-are trying to solve that involve the use of decompyle3 along the way,
+are trying to solve that involve the use of decompile_ng along the way,
 although I may be more tolerent of this if you sponsor the project.
 
 Also, the unless you are a sponsor of the project, it may take a
@@ -54,7 +54,7 @@ output you got in describing how to reproduce the bug:
 or give a complete console log with input and output
 
 ```console
-$ decompyle3 <command-line-options>
+$ decompile_ng <command-line-options>
 ...
 $
 ```
@@ -75,7 +75,7 @@ can add that too.
 
 Please modify for your setup
 
-- Decompyle3 version: output from  `decompyle3 --version` or `pip show decompyle3`
+- Decompile_Ng version: output from  `decompile_ng --version` or `pip show decompile_ng`
 - Python version for the version of Python the byte-compiled the file: `python -c "import sys; print(sys.version)"` where `python` is the correct Cpython or Pypy binary.
 - OS and Version: [e.g. Ubuntu bionic]
 

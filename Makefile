@@ -53,7 +53,7 @@ distcheck:
 
 #: Remove .pyc files
 clean_pyc:
-	( cd decompyle3 && $(RM) -f *.pyc */*.pyc )
+	( cd decompile_ng && $(RM) -f *.pyc */*.pyc )
 
 #: Create source tarball
 sdist:
@@ -62,7 +62,7 @@ sdist:
 
 #: Static type checking
 type-check:
-	mypy decompyle3
+	mypy decompile_ng
 
 #: Style check. Set env var LINT to pyflakes, flake, or flake8
 lint: flake8
@@ -73,7 +73,7 @@ check-rst:
 
 #: Lint program
 flake8:
-	$(LINT) decompyle3
+	$(LINT) decompile_ng
 
 #: Create binary egg distribution
 bdist_egg:

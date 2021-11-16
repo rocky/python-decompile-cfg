@@ -1,8 +1,7 @@
-import re
-from decompyle3.parsers.p37.lambda_expr import Python37LambdaParser
+from decompyle3.parsers.p37.lambda_expr import Python310LambdaParser
 
 def test_grammar():
-    p = Python37LambdaParser()
+    p = Python310LambdaParser()
     # p.dump_grammar()
     p.check_grammar()
 

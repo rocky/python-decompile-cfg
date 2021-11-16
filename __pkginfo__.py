@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""decompyle3 packaging information"""
+"""decompile_ng packaging information"""
 
 # To the extent possible we make this file look more like a
 # configuration file rather than code like setup.py. I find putting
@@ -23,7 +23,7 @@
 
 # Things that change more often go here.
 copyright = """
-Copyright (C) 2015-2021 Rocky Bernstein <rb@dustyfeet.com>.
+Copyright (C) 2021 Rocky Bernstein <rb@dustyfeet.com>.
 """
 
 classifiers = [
@@ -31,8 +31,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.10",
     "Topic :: Software Development :: Debuggers",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
@@ -42,19 +41,19 @@ author = "Rocky Bernstein, Hartmut Goebel, John Aycock, and others"
 author_email = "rb@dustyfeet.com"
 entry_points = {
     "console_scripts": [
-        "decompyle3=decompyle3.bin.decompile:main_bin",
-        "py3disassemble=decompyle3.bin.py3disassemble:main",
+        "decompile-ng=decompile_ng.bin.decompile:main_bin",
+        "disassemble-ng=decompile_ng.bin.disassemble:main",
     ]
 }
 ftp_url = None
-install_requires = ["spark-parser >= 1.8.9, < 1.9.0", "xdis >= 6.0.2,<6.1.0"]
+install_requires = ["spark-parser >= 1.8.9, < 1.9.0", "xdis >= 6.0.3,<6.1.0"]
 
 license = "GPL3"
 mailing_list = "python-debugger@googlegroups.com"
-modname = "decompyle3"
+modname = "decompile_ng"
 py_modules = None
 short_desc = "Python cross-version byte-code decompiler"
-web = "https://github.com/rocky/python-decompyle3/"
+web = "https://github.com/rocky/python-decompile_ng/"
 
 # tracebacks in zip files are funky and not debuggable
 zip_safe = True
@@ -77,4 +76,4 @@ def read(*rnames):
 
 # Get info from files; set: long_description and VERSION
 long_description = read("README.rst") + "\n"
-exec(read("decompyle3/version.py"))
+exec(read("decompile_ng/version.py"))
