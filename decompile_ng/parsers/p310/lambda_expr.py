@@ -16,7 +16,6 @@
 Python 3.10 lambda parser in the Earley-algorithm grammar
 """
 
-from decompile_ng.parsers.main import PythonParserSingle, nop_func, ParserError
 from decompile_ng.parsers.p310.base import Python310BaseParser
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 
@@ -30,7 +29,11 @@ class Python310LambdaParser(Python310BaseParser):
 
     def p_lambda(self, args):
         """
-        lambda_start       ::= return_lambda LAMBDA_MARKER
+        lambda_start       ::= DOM_START BB_START
+                               return_lambda
+                               BB_END DOM_END
+                               LAMBDA_MARKER
+
         return_lambda      ::= expr RETURN_VALUE_LAMBDA
         return_lambda      ::= if_exp_lambda
         return_lambda      ::= if_exp_lambda2

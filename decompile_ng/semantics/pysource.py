@@ -2147,13 +2147,26 @@ class SourceWalker(GenericASTTraversal, object):
         # "return None". However you can't issue a "return" statement in
         # main. So as the old cigarette slogan goes: I'd rather switch (the token stream)
         # than fight (with the grammar to not emit "return None").
+
+        # Also return DOM_START BB_START and BB_END DOM_END
         if self.hide_internal:
+            assert len(tokens) >= 4
+            assert tokens[0] == "DOM_START"
+            del tokens[0]
+            assert tokens[0] == "BB_START"
+            del tokens[0]
+            assert tokens[-1] == "DOM_END"
+            del tokens[-1]
+            assert tokens[-1] == "BB_END"
+            del tokens[-1]
+
             if len(tokens) >= 2 and not noneInNames:
                 if tokens[-1].kind in ("RETURN_VALUE", "RETURN_VALUE_LAMBDA"):
                     # Python 3.4's classes can add a "return None" which is
                     # invalid syntax.
-                    if tokens[-2].kind == "LOAD_CONST":
-                        if isTopLevel or tokens[-2].pattr is None:
+                    load_const = tokens[-2]
+                    if load_const.kind == "LOAD_CONST":
+                        if isTopLevel or load_const.pattr is None:
                             del tokens[-2:]
                         else:
                             tokens.append(Token("RETURN_LAST"))

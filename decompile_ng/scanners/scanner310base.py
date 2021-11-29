@@ -31,6 +31,11 @@ Finally we save token information.
 
 from typing import Any, Dict, List, Set
 
+from control_flow.augment_disasm import augment_instructions
+from control_flow.bb import basic_blocks
+from control_flow.cfg import ControlFlowGraph
+from control_flow.dominators import DominatorTree, dfs_forest, build_dom_set
+
 from xdis import iscode, instruction_size, Instruction
 from xdis.bytecode import _get_const_info
 
@@ -44,12 +49,15 @@ import sys
 
 globals().update(op3.opmap)
 
+def get_jump_val(jump_arg: int, version: tuple) -> int:
+    return jump_arg * 2 if version[:2] >= (3, 10)  else jump_arg
 
 class Scanner310Base(Scanner):
     def __init__(self, version: float, show_asm=None, debug=False, is_pypy=False):
         super(Scanner310Base, self).__init__(version, show_asm, is_pypy)
         self.debug = debug
         self.is_pypy = is_pypy
+        self.version = version
 
         # Create opcode classification sets
         # Note: super initilization above initializes self.opc
@@ -164,7 +172,7 @@ class Scanner310Base(Scanner):
 
     def ingest(self, co, classname=None, code_objects={}, show_asm=None):
         """
-        Pick out tokens from an decompyle3 code object, and transform them,
+        Pick out tokens from an decompile_ng code object, and transform them,
         returning a list of decompyle3 Token's.
 
         The transformations are made to assist the deparsing grammar.
@@ -186,6 +194,54 @@ class Scanner310Base(Scanner):
             assert j == len(tokens)
             return j
 
+
+        bb_mgr = basic_blocks(co)
+        for bb in bb_mgr.bb_list:
+            print("\t", bb)
+        cfg = ControlFlowGraph(bb_mgr)
+        name = co.co_name
+        if co.co_name.startswith("<"):
+            name = name[1:]
+        if co.co_name.endswith(">"):
+            name = name[:-1]
+        try:
+            dot_path = '/tmp/flow-%s.dot' % name
+            png_path = '/tmp/flow-%s.png' % name
+            open(dot_path, 'w').write(cfg.graph.to_dot(False))
+            print("%s written" % dot_path)
+            import os
+            os.system("dot -Tpng %s > %s" % (dot_path, png_path))
+            dt = DominatorTree(cfg)
+            cfg.dom_tree = dt.tree(False)
+            dfs_forest(cfg.dom_tree, False)
+            build_dom_set(cfg.dom_tree, False)
+            dot_path = '/tmp/flow-dom-%s.dot' % name
+            png_path = '/tmp/flow-dom-%s.png' % name
+            open(dot_path, 'w').write(cfg.dom_tree.to_dot())
+            print("%s written" % dot_path)
+            os.system("dot -Tpng %s > %s" % (dot_path, png_path))
+
+            cfg.pdom_tree = dt.tree(True)
+            dfs_forest(cfg.pdom_tree, True)
+            build_dom_set(cfg.pdom_tree, True)
+            dot_path = '/tmp/flow-pdom-%s.dot' % name
+            png_path = '/tmp/flow-pdom-%s.png' % name
+            open(dot_path, 'w').write(cfg.pdom_tree.to_dot())
+            print("%s written" % dot_path)
+            os.system("dot -Tpng %s > %s" % (dot_path, png_path))
+
+            print('=' * 30)
+            self.insts = augment_instructions(co, cfg, self.opc.version_tuple)
+            for inst in self.insts:
+                print(inst.disassemble(self.opc))
+
+        except:
+            import traceback
+            traceback.print_exc()
+            print("Unexpected error:", sys.exc_info()[0])
+            print("%s had an error" % name)
+            return ""
+
         if not show_asm:
             show_asm = self.show_asm
 
@@ -194,7 +250,7 @@ class Scanner310Base(Scanner):
         # show_asm = 'both'
         if show_asm in ("both", "before"):
             for instr in bytecode.get_instructions(co):
-                print(instr.disassemble())
+                print(instr.disassemble(self.opc))
 
         # "customize" is in the process of going away here
         customize = {}
@@ -228,7 +284,8 @@ class Scanner310Base(Scanner):
                     next_inst.opname == "LOAD_GLOBAL"
                     and next_inst.argval == "AssertionError"
                 ):
-                    raise_idx = self.offset2inst_index[self.prev_op[inst.argval]]
+                    jump_val = get_jump_val(inst.argval, self.version)
+                    raise_idx = self.offset2inst_index[self.prev_op[jump_val]]
                     raise_inst = self.insts[raise_idx]
                     if raise_inst.opname.startswith("RAISE_VARARGS"):
                         self.load_asserts.add(next_inst.offset)
@@ -239,38 +296,40 @@ class Scanner310Base(Scanner):
         # there are these EXTENDED_ARG instructions - way more than
         # before 3.6. These parsing a lot of pain.
 
-        # To simplify things we want to untangle this. We also
-        # do this loop before we compute jump targets.
-        for i, inst in enumerate(self.insts):
+        # # To simplify things we want to untangle this. We also
+        # # do this loop before we compute jump targets.
+        # for i, inst in enumerate(self.insts):
 
-            # One artifact of the "too-small" operand problem, is that
-            # some backward jumps, are turned into forward jumps to another
-            # "extended arg" backward jump to the same location.
-            if inst.opname == "JUMP_FORWARD":
-                jump_inst = self.insts[self.offset2inst_index[inst.argval]]
-                if jump_inst.has_extended_arg and jump_inst.opname.startswith("JUMP"):
-                    # Create comination of the jump-to instruction and
-                    # this one. Keep the position information of this instruction,
-                    # but the operator and operand properties come from the other
-                    # instruction
-                    self.insts[i] = Instruction(
-                        jump_inst.opname,
-                        jump_inst.opcode,
-                        jump_inst.optype,
-                        jump_inst.inst_size,
-                        jump_inst.arg,
-                        jump_inst.argval,
-                        jump_inst.argrepr,
-                        jump_inst.has_arg,
-                        inst.offset,
-                        inst.starts_line,
-                        inst.is_jump_target,
-                        inst.has_extended_arg,
-                    )
+        #     # One artifact of the "too-small" operand problem, is that
+        #     # some backward jumps, are turned into forward jumps to another
+        #     # "extended arg" backward jump to the same location.
+        #     if inst.opname == "JUMP_FORWARD":
+        #         from trepan.api import debug; debug()
+        #         jump_val = get_jump_val(inst.argval, self.version)
+        #         jump_inst = self.insts[self.offset2inst_index[jump_val]]
+        #         if jump_inst.has_extended_arg and jump_inst.opname.startswith("JUMP"):
+        #             # Create comination of the jump-to instruction and
+        #             # this one. Keep the position information of this instruction,
+        #             # but the operator and operand properties come from the other
+        #             # instruction
+        #             self.insts[i] = Instruction(
+        #                 jump_inst.opname,
+        #                 jump_inst.opcode,
+        #                 jump_inst.optype,
+        #                 jump_inst.inst_size,
+        #                 jump_inst.arg,
+        #                 jump_inst.argval,
+        #                 jump_inst.argrepr,
+        #                 jump_inst.has_arg,
+        #                 inst.offset,
+        #                 inst.starts_line,
+        #                 inst.is_jump_target,
+        #                 inst.has_extended_arg,
+        #             )
 
         # Get jump targets
         # Format: {target offset: [jump offsets]}
-        jump_targets = self.find_jump_targets(show_asm)
+        # jump_targets = self.find_jump_targets(show_asm)
         # print("XXX2", jump_targets)
 
         last_op_was_break = False
@@ -287,43 +346,43 @@ class Scanner310Base(Scanner):
                 if i + 1 < n and self.insts[i + 1].opcode != self.opc.MAKE_FUNCTION:
                     continue
 
-            if inst.offset in jump_targets:
-                jump_idx = 0
-                # We want to process COME_FROMs to the same offset to be in *descending*
-                # offset order so we have the larger range or biggest instruction interval
-                # last. (I think they are sorted in increasing order, but for safety
-                # we sort them). That way, specific COME_FROM tags will match up
-                # properly. For example, a "loop" with an "if" nested in it should have the
-                # "loop" tag last so the grammar rule matches that properly.
-                for jump_offset in sorted(jump_targets[inst.offset], reverse=True):
-                    come_from_name = "COME_FROM"
+            # if inst.offset in jump_targets:
+            #     jump_idx = 0
+            #     # We want to process COME_FROMs to the same offset to be in *descending*
+            #     # offset order so we have the larger range or biggest instruction interval
+            #     # last. (I think they are sorted in increasing order, but for safety
+            #     # we sort them). That way, specific COME_FROM tags will match up
+            #     # properly. For example, a "loop" with an "if" nested in it should have the
+            #     # "loop" tag last so the grammar rule matches that properly.
+            #     for jump_offset in sorted(jump_targets[inst.offset], reverse=True):
+            #         come_from_name = "COME_FROM"
 
-                    opname = self.opname_for_offset(jump_offset)
-                    if opname == "EXTENDED_ARG":
-                        k = xdis.next_offset(op, self.opc, jump_offset)
-                        opname = self.opname_for_offset(k)
+            #         opname = self.opname_for_offset(jump_offset)
+            #         if opname == "EXTENDED_ARG":
+            #             k = xdis.next_offset(op, self.opc, jump_offset)
+            #             opname = self.opname_for_offset(k)
 
-                    if opname.startswith("SETUP_"):
-                        come_from_type = opname[len("SETUP_") :]
-                        come_from_name = "COME_FROM_%s" % come_from_type
-                        pass
-                    elif inst.offset in self.except_targets:
-                        come_from_name = "COME_FROM_EXCEPT_CLAUSE"
-                    j = tokens_append(
-                        j,
-                        Token(
-                            come_from_name,
-                            jump_offset,
-                            repr(jump_offset),
-                            offset="%s_%s" % (inst.offset, jump_idx),
-                            has_arg=True,
-                            opc=self.opc,
-                            has_extended_arg=False,
-                        ),
-                    )
-                    jump_idx += 1
-                    pass
-                pass
+            #         if opname.startswith("SETUP_"):
+            #             come_from_type = opname[len("SETUP_") :]
+            #             come_from_name = "COME_FROM_%s" % come_from_type
+            #             pass
+            #         elif inst.offset in self.except_targets:
+            #             come_from_name = "COME_FROM_EXCEPT_CLAUSE"
+            #         j = tokens_append(
+            #             j,
+            #             Token(
+            #                 come_from_name,
+            #                 jump_offset,
+            #                 repr(jump_offset),
+            #                 offset="%s_%s" % (inst.offset, jump_idx),
+            #                 has_arg=True,
+            #                 opc=self.opc,
+            #                 has_extended_arg=False,
+            #             ),
+            #         )
+            #         jump_idx += 1
+            #         pass
+            #     pass
 
             pattr = inst.argrepr
             opname = inst.opname
@@ -507,65 +566,6 @@ class Scanner310Base(Scanner):
                 print(t.format(line_prefix=""))
             print()
         return tokens, customize
-
-    def find_jump_targets(self, debug: str) -> dict:
-        """
-        Detect all offsets in a byte code which are jump targets
-        where we might insert a COME_FROM instruction.
-
-        Return the list of offsets.
-
-        Return the list of offsets. An instruction can be jumped
-        to in from multiple instructions.
-        """
-        code = self.code
-        n = len(code)
-        self.structs = [{"type": "root", "start": 0, "end": n - 1}]
-
-        # All loop entry points
-        self.loops: List[int] = []
-
-        # Map fixed jumps to their real destination
-        self.fixed_jumps: Dict[int, int] = {}
-        self.except_targets = {}
-        self.ignore_if: Set[int] = set()
-        self.build_statement_indices()
-
-        # Containers filled by detect_control_flow()
-        self.not_continue: Set[int] = set()
-        self.return_end_ifs: Set[int] = set()
-        self.setup_loop_targets = {}  # target given setup_loop offset
-        self.setup_loops = {}  # setup_loop offset given target
-
-        targets = {}
-        for i, inst in enumerate(self.insts):
-            offset = inst.offset
-            op = inst.opcode
-
-            # FIXME: this code is going to get removed.
-            # Determine structures and fix jumps in Python versions
-            # since 2.3
-            self.detect_control_flow(offset, targets, i)
-
-            if inst.has_arg:
-                # FIXME: fix grammar so we don't have to exclude FOR_ITER
-                if inst.is_jump() and op != self.opc.FOR_ITER:
-                    label = inst.argval
-                else:
-                    label = self.fixed_jumps.get(offset)
-
-                if label is not None and label != -1:
-                    targets[label] = targets.get(label, []) + [offset]
-
-            pass  # for loop
-
-        # DEBUG:
-        if debug in ("both", "after"):
-            import pprint as pp
-
-            pp.pprint(self.structs)
-
-        return targets
 
     def build_statement_indices(self):
         code = self.code
@@ -901,16 +901,25 @@ class Scanner310Base(Scanner):
 if __name__ == "__main__":
     from xdis.version_info import PYTHON_VERSION_TRIPLE, version_tuple_to_str
 
-    if PYTHON_VERSION_TRIPLE >= (3, 10):
+    unsupported_version = False
+    if len(sys.argv) > 1:
+        from xdis.load import load_module
+        version_tuple, ts, maghic_int, co, is_pypy, source_size, sip_hash = load_module(sys.argv[1])
+        if version_tuple[:2] not in ((3, 10),):
+            unsupported_version = True
+
+    else:
         import inspect
 
         co = inspect.currentframe().f_code  # type: ignore
 
-        tokens, customize = Scanner310Base(PYTHON_VERSION_TRIPLE).ingest(co)
-        for t in tokens:
-            print(t)
+    if PYTHON_VERSION_TRIPLE[:2] < (3, 10):
+        unsupported_version = True
     else:
+        tokens, customize = Scanner310Base(PYTHON_VERSION_TRIPLE).ingest(co, show_asm="both")
+
+    if unsupported_version:
         print(
-            f"Need to be Python 3.10 or greater to demo; I am version {version_tuple_to_str()}."
+            f"Need to be Python 3.10 to demo; I am version {version_tuple_to_str()}."
         )
     pass

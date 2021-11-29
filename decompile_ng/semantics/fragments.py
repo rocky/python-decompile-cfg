@@ -14,7 +14,7 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Creates Python source code from an decompyle3 parse tree,
+Creates Python source code from an decompile_ng parse tree,
 and indexes fragments which can be accessed by instruction offset
 address.
 
@@ -67,18 +67,18 @@ from __future__ import print_function
 
 import re
 
-import decompyle3.parsers.main as python_parser
-from decompyle3.semantics import pysource
-from decompyle3.scanner import Token, Code, get_scanner
-from decompyle3.semantics.check_ast import checker
+import decompile_ng.parsers.main as python_parser
+from decompile_ng.semantics import pysource
+from decompile_ng.scanner import Token, Code, get_scanner
+from decompile_ng.semantics.check_ast import checker
 
-from decompyle3.show import maybe_show_asm, maybe_show_tree
+from decompile_ng.show import maybe_show_asm, maybe_show_tree
 
-from decompyle3.parsers.treenode import SyntaxTree
+from decompile_ng.parsers.treenode import SyntaxTree
 
-from decompyle3.semantics.pysource import ParserError, StringIO
+from decompile_ng.semantics.pysource import ParserError, StringIO
 
-from decompyle3.semantics.consts import (
+from decompile_ng.semantics.consts import (
     INDENT_PER_LEVEL,
     NONE,
     PRECEDENCE,
@@ -88,8 +88,8 @@ from decompyle3.semantics.consts import (
     PASS,
 )
 
-from decompyle3.semantics.customize import customize_for_version
-from decompyle3.semantics.make_function36 import make_function36
+from decompile_ng.semantics.customize import customize_for_version
+from decompile_ng.semantics.make_function36 import make_function36
 
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 from spark_parser.ast import GenericASTTraversalPruningException
@@ -2070,7 +2070,7 @@ def deparsed_find(tup, deparsed, code):
     if (name, last_i) in deparsed.offsets.keys():
         nodeInfo = deparsed.offsets[name, last_i]
     else:
-        from decompyle3.scanner import get_scanner
+        from decompile_ng.scanner import get_scanner
 
         scanner = get_scanner(deparsed.version)
         co = code.co_code

@@ -14,13 +14,8 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from decompile_ng.parsers.main import PythonParser, PythonParserSingle, nop_func
-from decompyle3.parsers.treenode import SyntaxTree
+from decompile_ng.parsers.treenode import SyntaxTree
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
-from decompile_ng.parsers.reducecheck import (
-    break_check,
-    for310_check,
-    pop_return_check
-)
 
 class Python310BaseParser(PythonParser):
     def __init__(self, debug_parser=PARSER_DEFAULT_DEBUG, compile_mode="exec"):

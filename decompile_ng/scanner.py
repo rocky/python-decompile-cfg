@@ -102,7 +102,6 @@ class Scanner(object):
 
         bytecode = Bytecode(co, self.opc)
         self.build_prev_op()
-        self.insts = self.remove_extended_args(list(bytecode))
         self.lines = self.build_lines_data(co)
         self.offset2inst_index = {}
         for i, inst in enumerate(self.insts):

@@ -18,8 +18,8 @@
 import re
 from spark_parser.ast import GenericASTTraversalPruningException
 from xdis import co_flags_is_async, iscode
-from decompyle3.scanners.tok import Token
-from decompyle3.semantics.consts import (
+from decompile_ng.scanners.tok import Token
+from decompile_ng.semantics.consts import (
     PRECEDENCE,
     TABLE_DIRECT,
     TABLE_R,

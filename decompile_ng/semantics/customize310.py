@@ -19,7 +19,7 @@
 # Python 3.10+ changes
 #######################
 
-from decompyle3.semantics.consts import PRECEDENCE, TABLE_DIRECT
+from decompile_ng.semantics.consts import PRECEDENCE, TABLE_DIRECT
 
 
 def customize_for_version310(self, version):

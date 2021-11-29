@@ -38,6 +38,7 @@ def test_grammar():
     )
     unused_rhs.add("classdefdeco1")
     unused_rhs.add("tryelsestmtc")
+    unused_rhs.add("call_stmt")
 
     assert expect_lhs == set(lhs)
     assert unused_rhs == set(rhs)

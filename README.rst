@@ -1,7 +1,5 @@
-|TravisCI| |CircleCI| |Pypi Installs|
-
-odecompile_ng
-==========
+decompile_ng
+============
 
 A native Python cross-version decompiler and fragment decompiler.
 A reworking of uncompyle6_.
