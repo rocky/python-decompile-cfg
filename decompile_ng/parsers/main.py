@@ -30,7 +30,6 @@ Note however all of this is imported from the __init__ module
 import sys
 
 from xdis import iscode
-from xdis.version_info import version_tuple_to_str
 from spark_parser import GenericASTBuilder, DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 from decompile_ng.show import maybe_show_asm
 
@@ -65,7 +64,7 @@ class PythonLambdaParser(GenericASTBuilder):
             "_come_froms",
             "and_parts",
             "attributes",
-            "come_froms",
+            "doms_end",
             "exprlist",
             "kvlist",
             "kwargs",

@@ -27,14 +27,25 @@ class Python310LambdaParser(Python310BaseParser):
         named_expr        ::= expr DUP_TOP store
         """
 
+    def p_dom(self, args):
+        """
+        dom_start     ::= DOM_START BB_START
+        dom_start_opt ::= dom_start?
+        dom_end       ::= BB_END DOM_END
+        dom_end_opt   ::= dom_end?
+        bb_doms_end      ::= BB_END doms_end
+        doms_end      ::= DOM_END+
+        dom_end_opt   ::= dom_end?
+        """
+
     def p_lambda(self, args):
         """
         lambda_start       ::= DOM_START BB_START
                                return_lambda
-                               BB_END DOM_END
+                               dom_end_opt
                                LAMBDA_MARKER
 
-        return_lambda      ::= expr RETURN_VALUE_LAMBDA
+        return_lambda      ::= dom_start_opt expr dom_start_opt RETURN_VALUE_LAMBDA bb_doms_end
         return_lambda      ::= if_exp_lambda
         return_lambda      ::= if_exp_lambda2
         return_lambda      ::= if_exp_not_lambda
@@ -135,10 +146,12 @@ class Python310LambdaParser(Python310BaseParser):
         #  erroneously into:
         #     i and (j or k)
 
-        or        ::= expr_jitop expr come_from_opt
+        or        ::= expr_jitop
+                      dom_start
+                      expr
+                      dom_end_opt
 
-
-        or        ::= expr_pjit expr COME_FROM
+        or        ::= expr_pjit expr BB_END
         or_expr   ::= expr JUMP_IF_TRUE expr COME_FROM
 
         jitop_come_from_expr ::= JUMP_IF_TRUE_OR_POP _come_froms expr
@@ -399,8 +412,8 @@ class Python310LambdaParser(Python310BaseParser):
         expr_pjif                  ::= expr POP_JUMP_IF_FALSE
         expr_pjit                  ::= expr POP_JUMP_IF_TRUE
         expr_pjitt                 ::= expr pjump_ift
-        expr_jifop                 ::= expr JUMP_IF_FALSE_OR_POP
-        expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP
+        expr_jifop                 ::= expr JUMP_IF_FALSE_OR_POP BB_END
+        expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP BB_END
         expr_pjiff                 ::= expr pjump_iff
         expr_pjift                 ::= expr pjump_ift
 

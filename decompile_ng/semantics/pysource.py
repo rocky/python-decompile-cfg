@@ -480,17 +480,18 @@ class SourceWalker(GenericASTTraversal, object):
     # Python 3.x can have be dead code as a result of its optimization?
     # So we'll add a # at the end of the return lambda so the rest is ignored
     def n_return_lambda(self, node):
-        if 1 <= len(node) <= 2:
-            self.preorder(node[0])
+        if 2 <= len(node) <= 3:
+            self.preorder(node[1])
             self.prune()
         else:
             # We can't comment out like above because there may be a trailing ')'
             # that needs to be written
-            assert len(node) == 3 and node[2] in (
+            opt_offset = 1 if node[0].kind == "dom_start_opt" else 0
+            assert len(node) == 4+opt_offset and node[2+opt_offset].kind in (
                 "RETURN_VALUE_LAMBDA",
                 "LAMBDA_MARKER",
             )
-            self.preorder(node[0])
+            self.preorder(node[opt_offset])
             self.prune()
 
     def n_return(self, node):
@@ -2157,8 +2158,8 @@ class SourceWalker(GenericASTTraversal, object):
             del tokens[0]
             assert tokens[-1] == "DOM_END"
             del tokens[-1]
-            assert tokens[-1] == "BB_END"
-            del tokens[-1]
+            if tokens[-1] == "BB_END":
+                del tokens[-1]
 
             if len(tokens) >= 2 and not noneInNames:
                 if tokens[-1].kind in ("RETURN_VALUE", "RETURN_VALUE_LAMBDA"):

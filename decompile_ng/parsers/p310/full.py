@@ -32,9 +32,9 @@ class Python310Parser(Python310LambdaParser):
     def p_start(self, args):
         """
         # The start or goal symbol
-        stmts ::= DOM_START BB_START
+        stmts ::= dom_start
                   sstmt_plus
-                  BB_END DOM_END
+                  dom_end_opt
         sstmt_plus ::= sstmt+
         """
 
