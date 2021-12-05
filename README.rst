@@ -2,24 +2,25 @@ decompile_ng
 ============
 
 A native Python cross-version decompiler and fragment decompiler.
-A reworking of uncompyle6_.
+A reworking of decompyle3_.
 
 
 Introduction
 ------------
 
 *decompile_ng* translates Python bytecode back into equivalent Python
-source code. It accepts bytecodes from Python version 3.7 on.
+source code. It accepts Python version 3.10 bytecode.
 
-For decompilation of older Python bytecode see uncompyle6_.
+For decompilation of older Python bytecode see decompyle3_.
 
 Why this?
 ---------
 
-Uncompyle6 is awesome, but it has has a fundamental problem in the way
-it handles control flow. In the early days of Python when there was
-little optimization and code was generated in a very template-oriented
-way, figuring out control flow-structures could be done by simply looking at code patterns.
+Decompyle3 and uncompyle6 are awesome, but they still have a
+fundamental problem in the way it handles control flow. In the early
+days of Python when there was little optimization and code was
+generated in a very template-oriented way, figuring out control
+flow-structures could be done by simply looking at code patterns.
 
 Over the years more code optimization, specifically around handling
 jumps has made it harder to support detecting control flow strictly
@@ -45,20 +46,12 @@ However it is clear that even this isn't enough. Control flow needs
 to be addressed by using dominators and reverse-dominators which
 the python-control-flow_ project can give.
 
-This hasn't started yet. It is a lot of work. And currently there
-isn't any funding for this or the other decompiler. So it may take
-time and is on the back burner. And if it were worked on, I expect it
-will be a while before an approach using control flow is as good as
-this is for Python 3.7. But if decompilation is to have a future
-and work in Python 3.9, I think this work is necessary.
-
-
 Requirements
 ------------
 
 The code here can be run on Python versions 3.7 or later. The bytecode
 files it can read have been tested on Python bytecodes from versions
-3.7 and later.
+3.10.
 
 Installation
 ------------
@@ -102,27 +95,6 @@ For usage help:
 ::
 
    $ decompile_ng -h
-
-Verification
-------------
-
-If you want Python syntax verification of the correctness of the
-decompilation process, add the `--syntax-verify` option. However since
-Python syntax changes, you should use this option if the bytecode is
-the right bytecode for the Python interpreter that will be checking
-the syntax.
-
-You can also cross compare the results with another python decompiler
-like unpyc37_ . Since they work differently, bugs here often aren't in
-that, and vice versa.
-
-There is an interesting class of these programs that is readily
-available give stronger verification: those programs that when run
-test themselves. Our test suite includes these.
-
-And Python comes with another a set of programs like this: its test
-suite for the standard library. We have some code in `test/stdlib` to
-facilitate this kind of checking too.
 
 Known Bugs/Restrictions
 -----------------------
