@@ -302,11 +302,12 @@ TABLE_DIRECT = {
     "designList":	    ( "%c = %c", 0, -1 ),
     "and":          	(
         "%c and %c",
-        (0,  ("and_parts", "expr", "expr_pjif", "expr_jifop_cfs", "not")),
-        (1,  ("expr", "expr_pjif", "expr_jifop_cfs")),
+        (0,  ("expr_jifop",)),
+        (2,  ("expr",)),
     ),
     "ret_and":        	( "%c and %c", 0, 2 ),
     "and2":          	( "%c", 3 ),
+
     "or":           	( "%c or %c",
                          (0, ("expr", "expr_jitop")),
                          (2, "expr") ),

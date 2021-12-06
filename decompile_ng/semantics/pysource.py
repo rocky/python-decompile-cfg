@@ -1808,6 +1808,8 @@ class SourceWalker(GenericASTTraversal, object):
                             % (node.kind, arg, index[1], node[index[0]].kind)
                         )
                     else:
+                        if not node[index[0]] in index[1]:
+                            from trepan.api import debug; debug()
                         assert node[index[0]] in index[1], (
                             "at %s[%d], expected to be in '%s' node; got '%s'"
                             % (node.kind, arg, index[1], node[index[0]].kind)

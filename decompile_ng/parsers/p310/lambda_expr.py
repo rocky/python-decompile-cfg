@@ -74,7 +74,7 @@ class Python310LambdaParser(Python310BaseParser):
         opt_lambda_marker  ::= LAMBDA_MARKER?
         """
 
-    def p_and_or_not(self, args):
+    def p_bool_ops(self, args):
         """
         # Note: reduction-rule checks are needed for many of the below;
         # the rules in of themselves are not sufficient.
@@ -85,6 +85,25 @@ class Python310LambdaParser(Python310BaseParser):
         # that often need to be checked in the control structure. This is for example
         # how we determine the difference between some "if not (not a or b) versus
         # "if a and b".
+
+        # FIXME: make sure the is handled even though we no longer havec "come_from_opt"
+        # Note: in the "or below", if "come_from_opt" becomes
+        # _come_froms, then we will need to write a check to make sure
+        # *all* of the COME_FROMs are associated with the
+        # "or".
+        #
+        # Otherwise, in 3.8 we may turn:
+        #     i and j or k # i == i and (j or k)
+        #  erroneously into:
+        #     i and (j or k)
+
+        or  ::= expr_jitop
+                dom_start
+                expr
+
+        and ::= expr_jifop
+                dom_start
+                expr
 
         # FIXME: this is some sort of bool_not or not_cond. Figure out how to have
         # it not appear in arbitrary expr's
@@ -99,11 +118,6 @@ class Python310LambdaParser(Python310BaseParser):
         and_cond     ::= and_parts expr_pjif _come_froms
         and_cond     ::= testfalse expr_pjif _come_froms
         and_not_cond ::= and_not
-
-        # FIXME: Investigate - We don't do the below because these rules prevent the "and_cond" from
-        #        trigering.
-        # and      ::= and_parts expr
-        # and      ::= not expr
 
         nand       ::= and_parts expr_pjit  come_froms
         c_nand     ::= and_parts expr_pjitt come_froms
@@ -124,9 +138,6 @@ class Python310LambdaParser(Python310BaseParser):
         # The semantic rules for "and" require expr-like things in positions 0 and 1,
         # thus the use of expr_jifop_cfs below.
 
-        expr_jifop_cfs ::= expr JUMP_IF_FALSE_OR_POP _come_froms
-        and            ::= expr_jifop_cfs expr _come_froms
-
         or_and         ::= expr_jitop expr come_from_opt JUMP_IF_FALSE_OR_POP expr _come_froms
         or_and1        ::= or_parts and_parts come_froms
         and_or         ::= expr_jifop expr come_from_opt JUMP_IF_TRUE_OR_POP expr _come_froms
@@ -145,21 +156,6 @@ class Python310LambdaParser(Python310BaseParser):
         or        ::= or_parts   expr
         or        ::= expr_pjit  expr COME_FROM
         or        ::= expr_pjit  expr jump_if_false_cf
-
-        # FIXME: make sure the is handled even though we no longer havec "come_from_opt"
-        # Note: in the "or below", if "come_from_opt" becomes
-        # _come_froms, then we will need to write a check to make sure
-        # *all* of the COME_FROMs are associated with the
-        # "or".
-        #
-        # Otherwise, in 3.8 we may turn:
-        #     i and j or k # i == i and (j or k)
-        #  erroneously into:
-        #     i and (j or k)
-
-        or  ::= expr_jitop
-                dom_start
-                expr
 
         or_expr   ::= expr JUMP_IF_TRUE expr COME_FROM
 
@@ -334,6 +330,7 @@ class Python310LambdaParser(Python310BaseParser):
         # One thing that distinguishes Boolean expressions from other kinds of expressions is that
         # they have basic block and dominator pseudo instructions
         bool_op ::= or bb_doms_end_opt
+        bool_op ::= and bb_doms_end_opt
 
         # Python 3.3+ adds yield from.
         expr          ::= yield_from
@@ -414,7 +411,7 @@ class Python310LambdaParser(Python310BaseParser):
 
         """
 
-    def p_37conditionals(self, args):
+    def p_conditionals(self, args):
         """
         expr                       ::= if_exp37
         bool_op                    ::= and_cond
