@@ -194,6 +194,12 @@ TABLE_DIRECT = {
     'UNARY_POSITIVE':           ( '+',),
     'UNARY_NEGATIVE':           ( '-',),
     'UNARY_INVERT':             ( '~'),
+    'UNARY_NOT':                ( 'not', ),
+
+
+    'bool_op_compound_prefix': ( '%c(%c)',
+                                 (3, 'unary_operator'),
+                                 (0, 'bool_op') ),
 
     # unary_op (formerly "unary_expr") is the Python AST UnaryOp
     'unary_op':                ( '%c%c',

@@ -326,11 +326,25 @@ class Python310LambdaParser(Python310BaseParser):
         expr ::= yield
         expr ::= attribute37
         expr ::= bool_op
+        expr ::= bool_op_compound
 
         # One thing that distinguishes Boolean expressions from other kinds of expressions is that
         # they have basic block and dominator pseudo instructions
         bool_op ::= or bb_doms_end_opt
         bool_op ::= and bb_doms_end_opt
+
+        # A "bool_op_compound" is a boolean with a nonbranching unary or binary operator at the end.
+        # For example, in: "not a and b", the "not" is at the end after "a and b" and is non-branching.
+        # But it appears at the beginning in source code.
+        # In contrast, in  "(a and b) + 1": the plus is at the end and it is non-branching. And
+        # it appears at the the end in source code
+
+        bool_op_compound ::= bool_op_compound_prefix
+        # bool_op_compound ::= bool_op_compound_suffix
+
+        bool_op_compound_prefix ::= bool_op DOM_START BB_START unary_operator
+        # bool_op_compound_suffix ::= bool_op DOM_START BB_START binary_...?
+
 
         # Python 3.3+ adds yield from.
         expr          ::= yield_from
@@ -360,6 +374,7 @@ class Python310LambdaParser(Python310BaseParser):
         unary_operator    ::= UNARY_POSITIVE
         unary_operator    ::= UNARY_NEGATIVE
         unary_operator    ::= UNARY_INVERT
+        unary_operator    ::= UNARY_NOT
 
         unary_not         ::= expr UNARY_NOT
 
