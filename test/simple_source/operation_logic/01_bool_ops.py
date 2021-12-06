@@ -8,3 +8,4 @@ lambda: a or b or c
 lambda: a or b or c or d
 lambda: a and b
 lambda: a and b and c
+lambda: not a
