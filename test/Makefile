@@ -1,10 +1,6 @@
 PHONY=check clean dist distclean test test-unit test-functional rmChangeLog clean_pyc nosetests \
-      check-bytecode-1  check-bytecode-1.3 check-bytecode-1.4 check-bytecode-1.5 \
-      check-bytecode-2 check-bytecode-3 check-bytecode-3-short \
-      check-bytecode-2.2 check-byteocde-2.3 check-bytecode-2.4 \
-      check-short check-2.6 check-2.7 check-3.0 check-3.1 check-3.2 check-3.3 \
-      check-3.4 check-3.5 check-3.6 check-3.7 check-5.6 5.6 5.8 \
-      grammar-coverage-3.7
+      check-bytecode-3 check-bytecode-3-short \
+      grammar-coverage-3.10
 
 GIT2CL ?= git2cl
 PYTHON ?= python
@@ -26,51 +22,26 @@ check:
 	$(PYTHON) -V && PYTHON_VERSION=`$(PYTHON) -V 2>&1 | cut -d ' ' -f 2 | cut -d'.' -f1,2 | head -1`; \
 	$(MAKE) check-$(PYTHON_VERSION)
 
-#: Run working tests from Python 3.7
-check-3.7: check-bytecode
-	$(PYTHON) test_pythonlib.py --bytecode-3.7-run --verify-run
-	$(PYTHON) test_pythonlib.py --bytecode-3.7 --syntax-verify $(COMPILE)
-
-#: Run working tests from Python 3.8
-check-3.8: check-bytecode
-	$(PYTHON) test_pythonlib.py --bytecode-3.8-run --verify-run
-	$(PYTHON) test_pythonlib.py --bytecode-3.8 --syntax-verify $(COMPILE)
-
-check-3.9: check-bytecode
-	@echo "Note that we do not support decompiling Python 3.9 bytecode - no 3.9 tests run"
-
+#: Run working tests from Python 3.10
 check-3.10: check-bytecode
-	@echo "Note that we do not support decompiling Python 3.10 bytecode - no 3.10 tests run"
+
+#	$(PYTHON) test_pythonlib.py --bytecode-3.10-run --verify-run
+#	$(PYTHON) test_pythonlib.py --bytecode-3.10 --syntax-verify $(COMPILE)
 
 #: Check deparsing bytecode 3.x only
 check-bytecode-3:
 	$(PYTHON) test_pythonlib.py \
-	--bytecode-3.7 --bytecode-3.8
+	--bytecode-3.10
 
 #: Check deparsing bytecode on all Python 2 and Python 3 versions
 check-bytecode: check-bytecode-3
 
-# FIXME
-#: pypy3.8-7.3.7
-7.3:
-
-
 #: Get grammar coverage for Python 3.7
-grammar-coverage-3.7:
+grammar-coverage-3.10:
 	rm $(COVER_DIR)/spark-grammar-3.7.cover || /bin/true
-	SPARK_PARSER_COVERAGE=$(COVER_DIR)/spark-grammar-3.7.cover $(PYTHON) test_pythonlib.py --bytecode-3.7-run --verify-run
-	SPARK_PARSER_COVERAGE=$(COVER_DIR)/spark-grammar-3.7.cover $(PYTHON) test_pythonlib.py --bytecode-3.7 --syntax-verify $(COMPILE)
-	SPARK_PARSER_COVERAGE=$(COVER_DIR)/spark-grammar-3.7.cover $(PYTHON) test_pyenvlib.py --3.7.3 --max=1000
-
-#: Check deparsing Python 3.7
-check-bytecode-3.7:
-	$(PYTHON) test_pythonlib.py --bytecode-3.7-run --verify-run
-	$(PYTHON) test_pythonlib.py --bytecode-3.7 --syntax-verify
-
-#: Check deparsing Python 3.8
-check-bytecode-3.8:
-	$(PYTHON) test_pythonlib.py --bytecode-3.8-run --verify-run
-	$(PYTHON) test_pythonlib.py --bytecode-3.8 --syntax-verify
+	SPARK_PARSER_COVERAGE=$(COVER_DIR)/spark-grammar-3.10.cover $(PYTHON) test_pythonlib.py --bytecode-3.10-run --verify-run
+	SPARK_PARSER_COVERAGE=$(COVER_DIR)/spark-grammar-3.10.cover $(PYTHON) test_pythonlib.py --bytecode-3.10 --syntax-verify $(COMPILE)
+	SPARK_PARSER_COVERAGE=$(COVER_DIR)/spark-grammar-3.10.cover $(PYTHON) test_pyenvlib.py --3.10.0 --max=1000
 
 clean: clean-py-dis clean-dis clean-unverified
 

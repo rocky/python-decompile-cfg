@@ -28,4 +28,4 @@ for path in py_source:
     print("byte-compiling %s to %s" % (path, cfile))
     py_compile.compile(path, cfile, optimize=optimize)
     if isinstance(version, str) or version >= (2, 6, 0):
-        os.system("../bin/decompile_ng -a -t %s" % cfile)
+        os.system("../bin/decompile-ng -a -t %s" % cfile)
