@@ -14,6 +14,8 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 Python 3.10 lambda parser in the Earley-algorithm grammar
+
+Lambda's encompass expressions but don't have statements
 """
 
 from decompile_ng.parsers.p310.base import Python310BaseParser
@@ -27,15 +29,18 @@ class Python310LambdaParser(Python310BaseParser):
         named_expr        ::= expr DUP_TOP store
         """
 
+    # Dominator and basic block pseudo operations needed
+    # to assist control flow
     def p_dom(self, args):
         """
-        dom_start     ::= DOM_START BB_START
-        dom_start_opt ::= dom_start?
-        dom_end       ::= BB_END DOM_END
-        dom_end_opt   ::= dom_end?
-        bb_doms_end      ::= BB_END doms_end
-        doms_end      ::= DOM_END+
-        dom_end_opt   ::= dom_end?
+        dom_start       ::= DOM_START BB_START
+        dom_start_opt   ::= dom_start?
+        dom_end         ::= BB_END DOM_END
+        dom_end_opt     ::= dom_end?
+        bb_doms_end     ::= BB_END doms_end
+        bb_doms_end_opt ::= bb_doms_end?
+        doms_end        ::= DOM_END+
+        dom_end_opt     ::= dom_end?
         """
 
     def p_lambda(self, args):
@@ -45,7 +50,12 @@ class Python310LambdaParser(Python310BaseParser):
                                dom_end_opt
                                LAMBDA_MARKER
 
-        return_lambda      ::= dom_start_opt expr dom_start_opt RETURN_VALUE_LAMBDA bb_doms_end
+        return_lambda      ::= dom_start_opt
+                               expr
+                               dom_start_opt
+                               RETURN_VALUE_LAMBDA
+                               bb_doms_end
+
         return_lambda      ::= if_exp_lambda
         return_lambda      ::= if_exp_lambda2
         return_lambda      ::= if_exp_not_lambda
@@ -136,6 +146,7 @@ class Python310LambdaParser(Python310BaseParser):
         or        ::= expr_pjit  expr COME_FROM
         or        ::= expr_pjit  expr jump_if_false_cf
 
+        # FIXME: make sure the is handled even though we no longer havec "come_from_opt"
         # Note: in the "or below", if "come_from_opt" becomes
         # _come_froms, then we will need to write a check to make sure
         # *all* of the COME_FROMs are associated with the
@@ -146,12 +157,10 @@ class Python310LambdaParser(Python310BaseParser):
         #  erroneously into:
         #     i and (j or k)
 
-        or        ::= expr_jitop
-                      dom_start
-                      expr
-                      dom_end_opt
+        or  ::= expr_jitop
+                dom_start
+                expr
 
-        or        ::= expr_pjit expr BB_END
         or_expr   ::= expr JUMP_IF_TRUE expr COME_FROM
 
         jitop_come_from_expr ::= JUMP_IF_TRUE_OR_POP _come_froms expr
@@ -313,8 +322,6 @@ class Python310LambdaParser(Python310BaseParser):
         expr ::= bin_op
         expr ::= call
         expr ::= compare
-        expr ::= or
-        expr ::= or_expr
         expr ::= subscript
         expr ::= subscript2
         expr ::= unary_not
@@ -322,6 +329,11 @@ class Python310LambdaParser(Python310BaseParser):
         expr ::= not
         expr ::= yield
         expr ::= attribute37
+        expr ::= bool_op
+
+        # One thing that distinguishes Boolean expressions from other kinds of expressions is that
+        # they have basic block and dominator pseudo instructions
+        bool_op ::= or bb_doms_end_opt
 
         # Python 3.3+ adds yield from.
         expr          ::= yield_from
