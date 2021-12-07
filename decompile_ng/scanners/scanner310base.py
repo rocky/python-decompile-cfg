@@ -29,14 +29,14 @@ For example:
 Finally we save token information.
 """
 
-from typing import Any, Dict, List, Set
+from typing import Any, Dict
 
 from control_flow.augment_disasm import augment_instructions
 from control_flow.bb import basic_blocks
 from control_flow.cfg import ControlFlowGraph
 from control_flow.dominators import DominatorTree, dfs_forest, build_dom_set
 
-from xdis import iscode, instruction_size, Instruction
+from xdis import iscode, instruction_size
 from xdis.bytecode import _get_const_info
 
 from decompile_ng.scanner import Token, Scanner
@@ -196,8 +196,9 @@ class Scanner310Base(Scanner):
 
 
         bb_mgr = basic_blocks(co)
-        for bb in bb_mgr.bb_list:
-            print("\t", bb)
+        if show_asm in ("both", "before"):
+            for bb in bb_mgr.bb_list:
+                print("\t", bb)
         cfg = ControlFlowGraph(bb_mgr)
         name = co.co_name
         if co.co_name.startswith("<"):
@@ -205,35 +206,40 @@ class Scanner310Base(Scanner):
         if co.co_name.endswith(">"):
             name = name[:-1]
         try:
-            dot_path = '/tmp/flow-%s.dot' % name
-            png_path = '/tmp/flow-%s.png' % name
-            open(dot_path, 'w').write(cfg.graph.to_dot(False))
-            print("%s written" % dot_path)
-            import os
-            os.system("dot -Tpng %s > %s" % (dot_path, png_path))
+            if show_asm in ("both", "before"):
+                dot_path = '/tmp/flow-%s.dot' % name
+                png_path = '/tmp/flow-%s.png' % name
+                open(dot_path, 'w').write(cfg.graph.to_dot(False))
+                print("%s written" % dot_path)
+                import os
+                os.system("dot -Tpng %s > %s" % (dot_path, png_path))
             dt = DominatorTree(cfg)
             cfg.dom_tree = dt.tree(False)
             dfs_forest(cfg.dom_tree, False)
             build_dom_set(cfg.dom_tree, False)
-            dot_path = '/tmp/flow-dom-%s.dot' % name
-            png_path = '/tmp/flow-dom-%s.png' % name
-            open(dot_path, 'w').write(cfg.dom_tree.to_dot())
-            print("%s written" % dot_path)
-            os.system("dot -Tpng %s > %s" % (dot_path, png_path))
+            if show_asm in ("both", "before"):
+                dot_path = '/tmp/flow-dom-%s.dot' % name
+                png_path = '/tmp/flow-dom-%s.png' % name
+                open(dot_path, 'w').write(cfg.dom_tree.to_dot())
+                print("%s written" % dot_path)
+                os.system("dot -Tpng %s > %s" % (dot_path, png_path))
 
+            # FIXME? Do we need reverse dominators?
             cfg.pdom_tree = dt.tree(True)
             dfs_forest(cfg.pdom_tree, True)
             build_dom_set(cfg.pdom_tree, True)
-            dot_path = '/tmp/flow-pdom-%s.dot' % name
-            png_path = '/tmp/flow-pdom-%s.png' % name
-            open(dot_path, 'w').write(cfg.pdom_tree.to_dot())
-            print("%s written" % dot_path)
-            os.system("dot -Tpng %s > %s" % (dot_path, png_path))
+            if show_asm in ("both", "before"):
+                dot_path = '/tmp/flow-pdom-%s.dot' % name
+                png_path = '/tmp/flow-pdom-%s.png' % name
+                open(dot_path, 'w').write(cfg.pdom_tree.to_dot())
+                print("%s written" % dot_path)
+                os.system("dot -Tpng %s > %s" % (dot_path, png_path))
 
-            print('=' * 30)
             self.insts = augment_instructions(co, cfg, self.opc.version_tuple)
-            for inst in self.insts:
-                print(inst.disassemble(self.opc))
+            if show_asm in ("both", "before"):
+                print('=' * 30)
+                for inst in self.insts:
+                    print(inst.disassemble(self.opc))
 
         except:
             import traceback
@@ -345,44 +351,6 @@ class Scanner310Base(Scanner):
                 # parameters
                 if i + 1 < n and self.insts[i + 1].opcode != self.opc.MAKE_FUNCTION:
                     continue
-
-            # if inst.offset in jump_targets:
-            #     jump_idx = 0
-            #     # We want to process COME_FROMs to the same offset to be in *descending*
-            #     # offset order so we have the larger range or biggest instruction interval
-            #     # last. (I think they are sorted in increasing order, but for safety
-            #     # we sort them). That way, specific COME_FROM tags will match up
-            #     # properly. For example, a "loop" with an "if" nested in it should have the
-            #     # "loop" tag last so the grammar rule matches that properly.
-            #     for jump_offset in sorted(jump_targets[inst.offset], reverse=True):
-            #         come_from_name = "COME_FROM"
-
-            #         opname = self.opname_for_offset(jump_offset)
-            #         if opname == "EXTENDED_ARG":
-            #             k = xdis.next_offset(op, self.opc, jump_offset)
-            #             opname = self.opname_for_offset(k)
-
-            #         if opname.startswith("SETUP_"):
-            #             come_from_type = opname[len("SETUP_") :]
-            #             come_from_name = "COME_FROM_%s" % come_from_type
-            #             pass
-            #         elif inst.offset in self.except_targets:
-            #             come_from_name = "COME_FROM_EXCEPT_CLAUSE"
-            #         j = tokens_append(
-            #             j,
-            #             Token(
-            #                 come_from_name,
-            #                 jump_offset,
-            #                 repr(jump_offset),
-            #                 offset="%s_%s" % (inst.offset, jump_idx),
-            #                 has_arg=True,
-            #                 opc=self.opc,
-            #                 has_extended_arg=False,
-            #             ),
-            #         )
-            #         jump_idx += 1
-            #         pass
-            #     pass
 
             pattr = inst.argrepr
             opname = inst.opname
