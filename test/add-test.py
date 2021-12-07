@@ -5,7 +5,7 @@ import os, sys, py_compile
 from xdis.version_info import version_tuple_to_str
 
 assert (2 <= len(sys.argv) <= 4)
-version = version_tuple_to_str(end=2)
+version = version_tuple_to_str(end=2, delimiter="")
 if sys.argv[1] in ("--run", "-r"):
     suffix = "_run"
     py_source = sys.argv[2:]
@@ -23,10 +23,12 @@ except:
 for path in py_source:
     short = os.path.basename(path)
     if hasattr(sys, "pypy_version_info"):
-        cfile = "bytecode_pypy%s%s/%s" % (version, suffix, short) + "c"
+        version = version_tuple_to_str(end=2, delimiter="")
+        bytecode = f"bytecode_pypy{version}{suffix}/{short}py{version}.pyc"
     else:
-        cfile = "bytecode_%s%s/%s" % (version, suffix, short) + "c"
-    print("byte-compiling %s to %s" % (path, cfile))
-    py_compile.compile(path, cfile, optimize=optimize)
+        version = version_tuple_to_str(end=2)
+        bytecode = f"bytecode_{version}{suffix}/{short}.pyc"
+    print(f"byte-compiling {path} to {bytecode}")
+    py_compile.compile(path, bytecode, optimize=optimize)
     if isinstance(version, str) or version >= (2, 6, 0):
-        os.system("../bin/decompile-ng -a -t %s" % cfile)
+        os.system(f"../bin/decompile-ng -a -T {bytecode}")

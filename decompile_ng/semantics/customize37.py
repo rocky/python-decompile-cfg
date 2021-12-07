@@ -54,12 +54,6 @@ def customize_for_version37(self, version):
 
     TABLE_DIRECT.update(
         {
-            "and_or_expr": (
-                "%c and %c or %c",
-                (0, "and_parts"),
-                (1, "expr"),
-                (2, "jitop_come_from_expr"),
-            ),
             "or_and": (
                 "%c or (%c and %c)",
                 (0, "expr_jitop"),
@@ -300,11 +294,6 @@ def customize_for_version37(self, version):
                 (0, "and_parts", PRECEDENCE["and"] - 1),
                 (1, "expr_pjif"),
             ),
-            "and_parts": (
-                "%P and %c",
-                (0, -1, "and ", PRECEDENCE["and"]),
-                (1, "expr_pjif"),
-            ),
             "nand": ("not (%c and %c)", (0, "and_parts"), (1, ("expr", "expr_pjit")),),
             "c_nand": ("not (%c and %c)", (0, "and_parts"), (1, "expr_pjitt"),),
             "or_parts": (
@@ -351,14 +340,15 @@ def customize_for_version37(self, version):
         }
     )
 
-    # FIXME: we should be able to compress this into a single template
+    # FIXME: Can we to compress this into a single template?
     def n_and_parts(node):
-        if len(node) == 1:
-            self.template_engine(("%c", (0, "expr_pjif")), node)
-            self.prune()
-        else:
-            self.default(node)
-            pass
+        self.template_engine(("%c", (0, "expr_pjif")), node[0])
+        if len(node) != 1:
+            self.write(" ")
+            for n in node[1:]:
+                self.default(n)
+                pass
+        self.prune()
         return
 
     self.n_and_parts = n_and_parts
@@ -374,8 +364,6 @@ def customize_for_version37(self, version):
         return
 
     self.n_or_parts = n_or_parts
-
-    self.n_and_parts = n_and_parts
 
     def n_assert_invert(node):
         testtrue = node[0]

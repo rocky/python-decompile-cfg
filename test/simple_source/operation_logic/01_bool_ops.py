@@ -17,3 +17,6 @@ lambda: not (a and b)
 
 lambda: (a and b) + 1
 lambda: a and (b + 1)
+
+lambda: (a and b) or c
+lambda: (a and b and c) or d

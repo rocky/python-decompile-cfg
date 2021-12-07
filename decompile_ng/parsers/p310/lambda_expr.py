@@ -105,11 +105,14 @@ class Python310LambdaParser(Python310BaseParser):
                 dom_start
                 expr
 
-        # FIXME: this is some sort of bool_not or not_cond. Figure out how to have
-        # it not appear in arbitrary expr's
-        not        ::= expr_pjit
+        and_part   ::= expr_pjif
+                       dom_start
+        and_parts  ::= and_part+
 
-        and_parts  ::= expr_pjif+
+        jitop_expr  ::= JUMP_IF_TRUE_OR_POP bb_doms_end dom_start expr
+        and_or_expr ::= and_parts expr jitop_expr bb_doms_end
+
+        #### Below not gone over
 
         # Note: "and" like "nor" might not have a trailing "come_from".
         #       "nand" and "or", in contrast, *must* have at least one "come_from".
@@ -157,10 +160,7 @@ class Python310LambdaParser(Python310BaseParser):
         or        ::= expr_pjit  expr COME_FROM
         or        ::= expr_pjit  expr jump_if_false_cf
 
-        or_expr   ::= expr JUMP_IF_TRUE expr COME_FROM
-
-        jitop_come_from_expr ::= JUMP_IF_TRUE_OR_POP _come_froms expr
-        and_or_expr  ::= and_parts expr jitop_come_from_expr COME_FROM
+        or_expr ::= expr JUMP_IF_TRUE expr COME_FROM
         """
 
     def p_come_froms(self, args):
@@ -433,8 +433,8 @@ class Python310LambdaParser(Python310BaseParser):
         bool_op                    ::= and_not_cond
         bool_op                    ::= and POP_JUMP_IF_TRUE expr
 
-        expr_pjif                  ::= expr POP_JUMP_IF_FALSE
-        expr_pjit                  ::= expr POP_JUMP_IF_TRUE
+        expr_pjif                  ::= expr POP_JUMP_IF_FALSE BB_END
+        expr_pjit                  ::= expr POP_JUMP_IF_TRUE BB_END
         expr_pjitt                 ::= expr pjump_ift
         expr_jifop                 ::= expr JUMP_IF_FALSE_OR_POP BB_END
         expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP BB_END

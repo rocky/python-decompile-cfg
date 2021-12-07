@@ -185,17 +185,27 @@ TABLE_DIRECT = {
     'INPLACE_AND':              ( '&=' ,),
     'INPLACE_OR':               ( '|=' ,),
     'INPLACE_XOR':              ( '^=' ,),
-
-    # bin_op (formerly "binary_expr") is the Python AST BinOp
-    'bin_op':                  ( '%c %c %c', 0,
-                                (-1, 'binary_operator'),
-                                ( 1, 'expr' ) ),
-
     'UNARY_POSITIVE':           ( '+',),
     'UNARY_NEGATIVE':           ( '-',),
     'UNARY_INVERT':             ( '~'),
     'UNARY_NOT':                ( 'not', ),
 
+    "and_or_expr": (
+        "%c and %c or %c",
+        (0, "and_parts"),
+        (1, "expr"),
+        (2, "jitop_expr"),
+        ),
+
+    "and_part": (
+        "and %p",
+        (0, "expr_pjif", PRECEDENCE["and"]),
+        ),
+
+    # bin_op (formerly "binary_expr") is the Python AST BinOp
+    'bin_op':                  ( '%c %c %c', 0,
+                                (-1, 'binary_operator'),
+                                ( 1, 'expr' ) ),
 
     'bool_op_compound_prefix': ( '%c(%c)',
                                  (3, 'unary_operator'),
