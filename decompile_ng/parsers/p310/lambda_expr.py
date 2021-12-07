@@ -153,19 +153,19 @@ class Python310LambdaParser(Python310BaseParser):
         or_expr ::= expr JUMP_IF_TRUE expr COME_FROM
         """
 
-    def p_come_froms(self, args):
-        """
-        # Zero or one COME_FROM
-        # And/or expressions have this
-        come_from_opt ::= COME_FROM?
+    # def p_come_froms(self, args):
+    #     """
+    #     # Zero or one COME_FROM
+    #     # And/or expressions have this
+    #     come_from_opt ::= COME_FROM?
 
-        # One or more COME_FROMs - joins of tryelse's have this
-        come_froms    ::= COME_FROM+
+    #     # One or more COME_FROMs - joins of tryelse's have this
+    #     come_froms    ::= COME_FROM+
 
-        # Zero or more COME_FROMs - loops can have this
-        _come_froms   ::= COME_FROM*
-        _come_froms   ::= COME_FROM_LOOP
-        """
+    #     # Zero or more COME_FROMs - loops can have this
+    #     _come_froms   ::= COME_FROM*
+    #     _come_froms   ::= COME_FROM_LOOP
+    #     """
 
     def p_jump(self, args):
         """
@@ -557,10 +557,11 @@ if __name__ == "__main__":
     from decompile_ng.parsers.dump import dump_and_check
     p = Python310LambdaParser()
     modified_tokens = set(
-        """JUMP_BACK CONTINUE RETURN_END_IF COME_FROM
-           LOAD_GENEXPR LOAD_ASSERT LOAD_SETCOMP LOAD_DICTCOMP LOAD_CLASSNAME
+        """JUMP_BACK CONTINUE RETURN_END_IF BB_END BB_START DOM_END DOM_START
+
+LOAD_GENEXPR LOAD_ASSERT LOAD_SETCOMP LOAD_DICTCOMP LOAD_CLASSNAME
            LAMBDA_MARKER RETURN_LAST
         """.split()
         )
 
-    dump_and_check(p, (3, 8), modified_tokens)
+    dump_and_check(p, (3, 10), modified_tokens)

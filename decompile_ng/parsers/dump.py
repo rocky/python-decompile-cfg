@@ -20,13 +20,13 @@ def dump_and_check(p, version: float, modified_tokens: set) -> None:
     print("=" * 50, "\n")
 
     p.check_grammar()
-    from decompile_ng import PYTHON_VERSION, IS_PYPY
+    from xdis.version_info import PYTHON_VERSION_TRIPLE, IS_PYPY
 
-    if PYTHON_VERSION == version:
+    if PYTHON_VERSION_TRIPLE[:2] == version:
         lhs, rhs, tokens, right_recursive, dup_rhs = p.check_sets()
         from decompile_ng.scanner import get_scanner
 
-        s = get_scanner(PYTHON_VERSION, IS_PYPY)
+        s = get_scanner(PYTHON_VERSION_TRIPLE[:2], IS_PYPY)
         modified_tokens = set(
                 """JUMP_BACK CONTINUE RETURN_END_IF COME_FROM
                LOAD_GENEXPR LOAD_ASSERT LOAD_SETCOMP LOAD_DICTCOMP LOAD_CLASSNAME
