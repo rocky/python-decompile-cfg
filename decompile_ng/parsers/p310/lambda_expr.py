@@ -340,10 +340,10 @@ class Python310LambdaParser(Python310BaseParser):
         # it appears at the the end in source code
 
         bool_op_compound ::= bool_op_compound_prefix
-        # bool_op_compound ::= bool_op_compound_suffix
+        bool_op_compound ::= bool_op_compound_suffix
 
         bool_op_compound_prefix ::= bool_op DOM_START BB_START unary_operator
-        # bool_op_compound_suffix ::= bool_op DOM_START BB_START binary_...?
+        bool_op_compound_suffix ::= bool_op DOM_START BB_START expr binary_operator
 
 
         # Python 3.3+ adds yield from.

@@ -6,10 +6,14 @@ lambda: a
 lambda: a or b
 lambda: a or b or c
 lambda: a or b or c or d
+
 lambda: a and b
 lambda: a and b and c
+lambda: a and b and c and d
+
 lambda: not a
 lambda: (not a) and b
 lambda: not (a and b)
-# lambda: (a and b) + 1
-# lambda: a and (b + 1)
+
+lambda: (a and b) + 1
+lambda: a and (b + 1)

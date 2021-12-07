@@ -201,6 +201,11 @@ TABLE_DIRECT = {
                                  (3, 'unary_operator'),
                                  (0, 'bool_op') ),
 
+    'bool_op_compound_suffix': ( '(%c) %c %c',
+                                 (0, 'bool_op'),
+                                 (4, 'binary_operator'),
+                                 (3, 'expr') ),
+
     # unary_op (formerly "unary_expr") is the Python AST UnaryOp
     'unary_op':                ( '%c%c',
                                  (1, 'unary_operator'),
