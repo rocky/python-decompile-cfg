@@ -54,12 +54,6 @@ def customize_for_version37(self, version):
 
     TABLE_DIRECT.update(
         {
-            "or_and": (
-                "%c or (%c and %c)",
-                (0, "expr_jitop"),
-                (1, "expr"),
-                (4, "expr"),
-            ),
             "or_and1": ("%c or (%c)", (0, "or_parts"), (1, "and_parts"),),
             "and_not": ("%c and not %c", (0, "expr_pjif"), (1, "expr_pjit")),
             "and_cond": (
@@ -349,12 +343,13 @@ def customize_for_version37(self, version):
 
     # FIXME: we should be able to compress this into a single template
     def n_or_parts(node):
-        if len(node) == 1:
-            self.template_engine(("%c", (0, "expr_pjit")), node)
-            self.prune()
-        else:
-            self.default(node)
-            pass
+        self.template_engine(("%c", (0, "expr_pjit")), node[0])
+        if len(node) != 1:
+            self.write(" ")
+            for n in node[1:]:
+                self.default(n)
+                pass
+        self.prune()
         return
 
     self.n_or_parts = n_or_parts

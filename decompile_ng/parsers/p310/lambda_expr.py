@@ -79,24 +79,6 @@ class Python310LambdaParser(Python310BaseParser):
         # Note: reduction-rule checks are needed for many of the below;
         # the rules in of themselves are not sufficient.
 
-        # Nonterminals that end in "_cond" are used in "conditions":
-        # used for testing in control structures where the test is important and
-        # the value popped. Conditions also generally have non-local COME_FROMs
-        # that often need to be checked in the control structure. This is for example
-        # how we determine the difference between some "if not (not a or b) versus
-        # "if a and b".
-
-        # FIXME: make sure the is handled even though we no longer havec "come_from_opt"
-        # Note: in the "or below", if "come_from_opt" becomes
-        # _come_froms, then we will need to write a check to make sure
-        # *all* of the COME_FROMs are associated with the
-        # "or".
-        #
-        # Otherwise, in 3.8 we may turn:
-        #     i and j or k # i == i and (j or k)
-        #  erroneously into:
-        #     i and (j or k)
-
         or  ::= expr_jitop
                 dom_start
                 expr
@@ -114,11 +96,21 @@ class Python310LambdaParser(Python310BaseParser):
         or_part    ::= expr_pjit dom_start
         or_parts   ::= or_part+
 
+        jifop_expr  ::= JUMP_IF_FALSE_OR_POP bb_doms_end dom_start expr
+        or_and     ::= or_parts expr jifop_expr
+
         #### Below not gone over
 
         # Note: "and" like "nor" might not have a trailing "come_from".
         #       "nand" and "or", in contrast, *must* have at least one "come_from".
         not_or       ::= and_parts expr_pjif _come_froms
+
+        # Nonterminals that end in "_cond" are used in "conditions":
+        # used for testing in control structures where the test is important and
+        # the value popped. Conditions also generally have non-local COME_FROMs
+        # that often need to be checked in the control structure. This is for example
+        # how we determine the difference between some "if not (not a or b) versus
+        # "if a and b".
 
         and_cond     ::= and_parts expr_pjif _come_froms
         and_cond     ::= testfalse expr_pjif _come_froms
@@ -141,7 +133,6 @@ class Python310LambdaParser(Python310BaseParser):
         # The semantic rules for "and" require expr-like things in positions 0 and 1,
         # thus the use of expr_jifop_cfs below.
 
-        or_and         ::= expr_jitop expr come_from_opt JUMP_IF_FALSE_OR_POP expr _come_froms
         or_and1        ::= or_parts and_parts come_froms
         # and_or         ::= expr_jifop expr come_from_opt JUMP_IF_TRUE_OR_POP expr _come_froms
 
@@ -156,7 +147,6 @@ class Python310LambdaParser(Python310BaseParser):
 
         # For "or", keep index 0 and 1 be the two expressions.
 
-        or        ::= or_parts   expr
         or        ::= expr_pjit  expr COME_FROM
         or        ::= expr_pjit  expr jump_if_false_cf
 
@@ -312,7 +302,6 @@ class Python310LambdaParser(Python310BaseParser):
         expr ::= LOAD_NAME
         expr ::= LOAD_STR
         expr ::= and
-        expr ::= or_and
         expr ::= bin_op
         expr ::= call
         expr ::= compare
@@ -331,6 +320,7 @@ class Python310LambdaParser(Python310BaseParser):
         bool_op ::= or bb_doms_end_opt
         bool_op ::= and bb_doms_end_opt
         bool_op ::= and_or bb_doms_end
+        bool_op ::= or_and bb_doms_end
 
         # A "bool_op_compound" is a boolean with a nonbranching unary or binary operator at the end.
         # For example, in: "not a and b", the "not" is at the end after "a and b" and is non-branching.
@@ -453,6 +443,7 @@ class Python310LambdaParser(Python310BaseParser):
         # A reduction check distinguishes between "and" and "and_not"
         # based on whether the POP_IF_JUMP location matches the location of the
         # POP_JUMP_IF_FALSE.
+
         and_not                    ::= expr_pjif expr_pjit
         or_and_not                 ::= expr_pjit and_not COME_FROM
 

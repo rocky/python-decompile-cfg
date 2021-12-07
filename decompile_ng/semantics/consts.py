@@ -332,9 +332,18 @@ TABLE_DIRECT = {
     "or":           	( "%c or %c",
                          (0, ("expr", "expr_jitop")),
                          (2, "expr") ),
-    "or_expr":        	(
-        "%c or %c", (0, "expr"), (2, "expr"),
-    ),
+    "or_and": (
+        "(%c or %c) and %c",
+        (0, "or_parts"),
+        (1, "expr"),
+        (2, "jifop_expr"),
+        ),
+
+    "or_part": (
+        "or %p",
+        (0, "expr_pjit", PRECEDENCE["or"]),
+        ),
+
     "ret_or":           ( "%c or %c", 0, 2 ),
     "if_exp":           (
         "%p if %c else %c",
