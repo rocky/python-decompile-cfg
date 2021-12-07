@@ -188,9 +188,9 @@ TABLE_DIRECT = {
     'UNARY_POSITIVE':           ( '+',),
     'UNARY_NEGATIVE':           ( '-',),
     'UNARY_INVERT':             ( '~'),
-    'UNARY_NOT':                ( 'not', ),
+    'UNARY_NOT':                ( 'not ', ),
 
-    "and_or_expr": (
+    "and_or": (
         "%c and %c or %c",
         (0, "and_parts"),
         (1, "expr"),

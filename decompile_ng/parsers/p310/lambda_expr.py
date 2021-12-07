@@ -105,12 +105,14 @@ class Python310LambdaParser(Python310BaseParser):
                 dom_start
                 expr
 
-        and_part   ::= expr_pjif
-                       dom_start
+        and_part   ::= expr_pjif dom_start
         and_parts  ::= and_part+
 
         jitop_expr  ::= JUMP_IF_TRUE_OR_POP bb_doms_end dom_start expr
-        and_or_expr ::= and_parts expr jitop_expr bb_doms_end
+        and_or ::= and_parts expr jitop_expr
+
+        or_part    ::= expr_pjit dom_start
+        or_parts   ::= or_part+
 
         #### Below not gone over
 
@@ -124,8 +126,6 @@ class Python310LambdaParser(Python310BaseParser):
 
         nand       ::= and_parts expr_pjit  come_froms
         c_nand     ::= and_parts expr_pjitt come_froms
-
-        or_parts  ::= expr_pjit+
 
         # Note: "nor" like "and" might not have a trailing "come_from".
         #       "nand" and "or_cond", in contrast, *must* have at least one "come_from".
@@ -143,7 +143,7 @@ class Python310LambdaParser(Python310BaseParser):
 
         or_and         ::= expr_jitop expr come_from_opt JUMP_IF_FALSE_OR_POP expr _come_froms
         or_and1        ::= or_parts and_parts come_froms
-        and_or         ::= expr_jifop expr come_from_opt JUMP_IF_TRUE_OR_POP expr _come_froms
+        # and_or         ::= expr_jifop expr come_from_opt JUMP_IF_TRUE_OR_POP expr _come_froms
 
         ## A COME_FROM is dropped off because of JUMP-to-JUMP optimization
         # and       ::= expr_pjif expr
@@ -313,8 +313,6 @@ class Python310LambdaParser(Python310BaseParser):
         expr ::= LOAD_STR
         expr ::= and
         expr ::= or_and
-        expr ::= and_or
-        expr ::= and_or_expr
         expr ::= bin_op
         expr ::= call
         expr ::= compare
@@ -325,13 +323,14 @@ class Python310LambdaParser(Python310BaseParser):
         expr ::= not
         expr ::= yield
         expr ::= attribute37
-        expr ::= bool_op
         expr ::= bool_op_compound
 
         # One thing that distinguishes Boolean expressions from other kinds of expressions is that
-        # they have basic block and dominator pseudo instructions
+        # they have basic block and dominator pseudo instructions.
+        expr    ::= bool_op
         bool_op ::= or bb_doms_end_opt
         bool_op ::= and bb_doms_end_opt
+        bool_op ::= and_or bb_doms_end
 
         # A "bool_op_compound" is a boolean with a nonbranching unary or binary operator at the end.
         # For example, in: "not a and b", the "not" is at the end after "a and b" and is non-branching.

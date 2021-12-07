@@ -61,12 +61,6 @@ def customize_for_version37(self, version):
                 (4, "expr"),
             ),
             "or_and1": ("%c or (%c)", (0, "or_parts"), (1, "and_parts"),),
-            "and_or": (
-                "%c and (%c or %c)",
-                (0, "expr_jifop"),
-                (1, "expr"),
-                (4, "expr"),
-            ),
             "and_not": ("%c and not %c", (0, "expr_pjif"), (1, "expr_pjit")),
             "and_cond": (
                 "%c and %c",
@@ -911,7 +905,7 @@ def customize_for_version37(self, version):
 
     self.n_mkfuncdeco0 = n_mkfuncdeco0
 
-    def unmapexpr(node):
+    def n_unmapexpr(node):
         last_n = node[0][-1]
         for n in node[0]:
             self.preorder(n)
@@ -922,7 +916,7 @@ def customize_for_version37(self, version):
         self.prune()
         pass
 
-    self.n_unmapexpr = unmapexpr
+    self.n_unmapexpr = n_unmapexpr
 
     # FIXME: start here
     def n_list_unpack(node):
@@ -1016,7 +1010,7 @@ def customize_for_version37(self, version):
 
     self.n_tuple_unpack = n_list_unpack
 
-    def build_unpack_tuple_with_call(node):
+    def n_build_unpack_tuple_with_call(node):
         n = node[0]
         if n == "expr":
             n = n[0]
@@ -1043,9 +1037,9 @@ def customize_for_version37(self, version):
         self.prune()
         return
 
-    self.n_build_tuple_unpack_with_call = build_unpack_tuple_with_call
+    self.n_build_tuple_unpack_with_call = n_build_unpack_tuple_with_call
 
-    def build_unpack_map_with_call(node):
+    def n_build_unpack_map_with_call(node):
         n = node[0]
         if n == "expr":
             n = n[0]
@@ -1064,9 +1058,9 @@ def customize_for_version37(self, version):
         self.prune()
         return
 
-    self.n_build_map_unpack_with_call = build_unpack_map_with_call
+    self.n_build_map_unpack_with_call = n_build_unpack_map_with_call
 
-    def call_ex_kw(node):
+    def n_call_ex_kw(node):
         """Handle CALL_FUNCTION_EX 1 (have KW) but with
         BUILD_MAP_UNPACK_WITH_CALL"""
 
@@ -1085,9 +1079,9 @@ def customize_for_version37(self, version):
 
         self.prune()
 
-    self.n_call_ex_kw = call_ex_kw
+    self.n_call_ex_kw = n_call_ex_kw
 
-    def call_ex_kw2(node):
+    def n_call_ex_kw2(node):
         """Handle CALL_FUNCTION_EX 2  (have KW) but with
         BUILD_{MAP,TUPLE}_UNPACK_WITH_CALL"""
 
@@ -1104,7 +1098,7 @@ def customize_for_version37(self, version):
 
         self.prune()
 
-    self.n_call_ex_kw2 = call_ex_kw2
+    self.n_call_ex_kw2 = n_call_ex_kw2
 
     def call_ex_kw3(node):
         """Handle CALL_FUNCTION_EX 1 (have KW) but without
@@ -1384,7 +1378,7 @@ def customize_for_version37(self, version):
     #     return
     # self.n_kwargs_only_36 = kwargs_only_36
 
-    def starred(node):
+    def n_starred(node):
         l = len(node)
         assert l > 0
         pos_args = node[0]
@@ -1414,7 +1408,7 @@ def customize_for_version37(self, version):
         self.template_engine(template, node)
         self.prune()
 
-    self.n_starred = starred
+    self.n_starred = n_starred
 
     def return_closure(node):
         # Nothing should be output here
