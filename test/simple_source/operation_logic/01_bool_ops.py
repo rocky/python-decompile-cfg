@@ -23,3 +23,5 @@ lambda: (a and b and c) or d
 
 lambda: (a or b) and c
 lambda: (a or b or c) and (d and e)
+lambda: a and (b or c) and d
+lambda: (not x) and (not y) or z
