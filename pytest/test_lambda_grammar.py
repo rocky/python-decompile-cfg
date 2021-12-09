@@ -1,4 +1,4 @@
-from decompyle3.parsers.p37.lambda_expr import Python310LambdaParser
+from decompile_ng.parsers.p310.lambda_expr import Python310LambdaParser
 
 def test_grammar():
     p = Python310LambdaParser()

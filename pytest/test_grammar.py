@@ -1,6 +1,6 @@
 import re
-from decompyle3 import PYTHON_VERSION_TRIPLE, IS_PYPY
-from decompyle3.parsers.main import get_python_parser, python_parser
+from xdis.version_info import PYTHON_VERSION_TRIPLE, IS_PYPY
+from decompile_ng.parsers.main import get_python_parser, python_parser
 
 
 def test_grammar():
