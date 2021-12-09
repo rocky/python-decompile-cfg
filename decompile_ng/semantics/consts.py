@@ -392,7 +392,7 @@ TABLE_DIRECT = {
 
     "compare_single":	    ( '%p %[-1]{pattr.replace("-", " ")} %p', (0, 19), (1, 19) ),
     "compare_chained":	    ( "%p %p", (0, 29), (1, 30)),
-    "compare_chained1":	    ( '%[3]{pattr.replace("-", " ")} %p %p', (0, 19), (-2, 19)),
+    "compare_chained1":	    ( '%[3]{pattr.replace("-", " ")} %p %p', (0, 19), (-3, 19)),
     "compare_chained2":	    ( '%[1]{pattr.replace("-", " ")} %p', (0, 19)),
 
     "c_compare_chained":    ( "%p %p", (0, 29), (1, 30)),

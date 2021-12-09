@@ -43,7 +43,16 @@ class Python310LambdaParser(Python310BaseParser):
         dom_end_opt     ::= dom_end?
         """
 
-    def p_lambda(self, args):
+    # Conditional jumps with dominator information included
+    def p_310conditional_jump(self, args):
+        """
+        jifop       ::= JUMP_IF_FALSE_OR_POP BB_END dom_start
+        jitop       ::= JUMP_IF_TRUE_OR_POP BB_END dom_start
+        jifop_expr  ::= JUMP_IF_FALSE_OR_POP bb_doms_end dom_start expr
+        jitop_expr  ::= JUMP_IF_TRUE_OR_POP bb_doms_end dom_start expr
+        """
+
+    def p_310lambda(self, args):
         """
         lambda_start       ::= DOM_START BB_START
                                return_lambda
@@ -70,7 +79,7 @@ class Python310LambdaParser(Python310BaseParser):
                                RETURN_VALUE_LAMBDA bb_doms_end return_lambda
         """
 
-    def p_bool_ops(self, args):
+    def p_310bool_ops(self, args):
         """
         # Note: reduction-rule checks are needed for many of the below;
         # the rules in of themselves are not sufficient.
@@ -86,13 +95,11 @@ class Python310LambdaParser(Python310BaseParser):
         and_part   ::= expr_pjif dom_start
         and_parts  ::= and_part+
 
-        jitop_expr  ::= JUMP_IF_TRUE_OR_POP bb_doms_end dom_start expr
         and_or ::= and_parts expr jitop_expr
 
         or_part    ::= expr_pjit dom_start
         or_parts   ::= or_part+
 
-        jifop_expr  ::= JUMP_IF_FALSE_OR_POP bb_doms_end dom_start expr
         or_and     ::= or_parts expr jifop_expr
 
         #### Below not gone over
@@ -185,10 +192,21 @@ class Python310LambdaParser(Python310BaseParser):
         # pjump              ::= pjump_ift
         """
 
-    def p_37chained(self, args):
+    def p_310chained(self, args):
         """
         # A compare_chained is two comparisions like x <= y <= z
-        compare_chained     ::= expr compare_chained1 ROT_TWO POP_TOP _come_froms
+
+        compare_chained     ::= expr compare_chained1 ROT_TWO POP_TOP
+
+        compare_chained1    ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                compare_chained1 bb_doms_end dom_start
+        compare_chained1    ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                compare_chained2 bb_doms_end dom_start
+
+        compare_chained2    ::= expr COMPARE_OP JUMP_FORWARD
+        compare_chained2    ::= expr COMPARE_OP RETURN_VALUE
+        compare_chained2    ::= expr COMPARE_OP RETURN_VALUE_LAMBDA
+
         compare_chained     ::= compare_chained37
         compare_chained     ::= compare_chained37_false
 
@@ -219,11 +237,6 @@ class Python310LambdaParser(Python310BaseParser):
         c_compare_chained37_false ::= expr c_compare_chained2_false_37
         c_compare_chained37_false ::= expr c_compare_chained1b_false_37
         c_compare_chained37_false ::= compare_chained37_false
-
-        compare_chained1           ::= expr DUP_TOP ROT_THREE COMPARE_OP JUMP_IF_FALSE_OR_POP
-                                       compare_chained1 COME_FROM
-        compare_chained1           ::= expr DUP_TOP ROT_THREE COMPARE_OP JUMP_IF_FALSE_OR_POP
-                                      compare_chained2 COME_FROM
 
         chained_parts              ::= chained_part+
         chained_part               ::= expr DUP_TOP ROT_THREE COMPARE_OP come_from_opt POP_JUMP_IF_FALSE
@@ -256,11 +269,6 @@ class Python310LambdaParser(Python310BaseParser):
                                        compare_chained2c_37 POP_TOP JUMP_FORWARD come_from_opt
         compare_chained1_false_37  ::= chained_parts
                                        compare_chained2b_false_37 POP_TOP jump COME_FROM
-
-        compare_chained2           ::= expr COMPARE_OP JUMP_FORWARD
-        compare_chained2           ::= expr COMPARE_OP JUMP_FORWARD
-        compare_chained2           ::= expr COMPARE_OP RETURN_VALUE
-        compare_chained2           ::= expr COMPARE_OP RETURN_VALUE_LAMBDA
 
         compare_chained2_false_37  ::= chained_parts
                                       compare_chained2a_false_37 POP_TOP JUMP_BACK COME_FROM
