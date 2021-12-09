@@ -143,6 +143,8 @@ class Python310Parser(Python310LambdaParser):
         stmt ::= expr_stmt
         stmt ::= call_stmt
 
+        call_stmt ::= call
+
         stmt ::= ifstmt
         stmt ::= if_or_stmt
         stmt ::= if_and_stmt
@@ -423,9 +425,6 @@ class Python310Parser(Python310LambdaParser):
 
     def p_32on(self, args):
         """
-        # Python < 3.5 no POP BLOCK
-        whileTruestmt  ::= SETUP_LOOP c_stmts_opt JUMP_BACK COME_FROM_LOOP
-
         # Python 3.5+ has jump optimization to remove the redundant
         # jump_excepts. But in 3.3 we need them added
 
@@ -441,24 +440,6 @@ class Python310Parser(Python310LambdaParser):
         kv3       ::= expr expr STORE_MAP
         """
         return
-
-    def p_33on(self, args):
-        """
-        # Python 3.5+ has jump optimization to remove the redundant
-        # jump_excepts. But in 3.3 we need them added
-
-        try_except   ::= SETUP_EXCEPT suite_stmts_opt POP_BLOCK
-                         except_handler
-                         jump_excepts come_from_except_clauses
-        c_try_except ::= SETUP_EXCEPT c_suite_stmts_opt POP_BLOCK
-                         c_except_handler
-                         jump_excepts come_from_except_clauses
-
-        try_except   ::= SETUP_EXCEPT suite_stmts_opt POP_BLOCK
-                         except_handler
-                         jump_excepts come_from_except_clauses
-
-        """
 
     def p_35on(self, args):
         """

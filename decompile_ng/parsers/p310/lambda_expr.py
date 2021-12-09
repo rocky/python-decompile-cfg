@@ -41,6 +41,9 @@ class Python310LambdaParser(Python310BaseParser):
         bb_doms_end_opt ::= bb_doms_end?
         doms_end        ::= DOM_END+
         dom_end_opt     ::= dom_end?
+
+        bb_doms_end_start_opt ::= bb_doms_end dom_start
+        bb_doms_end_start_opt ::=
         """
 
     # Conditional jumps with dominator information included
@@ -196,12 +199,13 @@ class Python310LambdaParser(Python310BaseParser):
         """
         # A compare_chained is two comparisions like x <= y <= z
 
-        compare_chained     ::= expr compare_chained1 ROT_TWO POP_TOP
+        compare_chained     ::= expr compare_chained1 ROT_TWO POP_TOP bb_doms_end_start_opt
 
+        # FIXME: simplify the compare_chain1 recursion?
         compare_chained1    ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                compare_chained1 bb_doms_end dom_start
+                                compare_chained1 bb_doms_end_start_opt
         compare_chained1    ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                compare_chained2 bb_doms_end dom_start
+                                compare_chained2 bb_doms_end_start_opt
 
         compare_chained2    ::= expr COMPARE_OP JUMP_FORWARD
         compare_chained2    ::= expr COMPARE_OP RETURN_VALUE
