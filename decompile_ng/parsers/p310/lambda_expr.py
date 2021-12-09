@@ -59,15 +59,21 @@ class Python310LambdaParser(Python310BaseParser):
         return_lambda      ::= if_exp_lambda
         return_lambda      ::= if_exp_lambda2
         return_lambda      ::= if_exp_not_lambda
+        return_lambda      ::= if_exp_not_lambda2
         return_lambda      ::= if_exp_dead_code
+
+        if_exp_lambda2     ::= and_parts return_lambda
+                               return_lambda opt_lambda_marker
+
+        if_exp_not_lambda2 ::= expr_pjit dom_start expr
+                               RETURN_VALUE_LAMBDA bb_doms_end return_lambda
+        # No gone over...
 
         return_if_lambda   ::= RETURN_END_IF_LAMBDA COME_FROM
         return_if_lambda   ::= RETURN_END_IF_LAMBDA
 
         if_exp_lambda      ::= expr_pjif expr return_if_lambda
                                return_lambda LAMBDA_MARKER
-        if_exp_lambda2     ::= and_parts return_lambda come_froms
-                               return_lambda opt_lambda_marker
         if_exp_not_lambda  ::= expr POP_JUMP_IF_TRUE expr return_if_lambda
                                return_lambda LAMBDA_MARKER
         if_exp_dead_code   ::= return_lambda return_lambda

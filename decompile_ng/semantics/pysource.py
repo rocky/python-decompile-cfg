@@ -480,18 +480,24 @@ class SourceWalker(GenericASTTraversal, object):
     # Python 3.x can have be dead code as a result of its optimization?
     # So we'll add a # at the end of the return lambda so the rest is ignored
     def n_return_lambda(self, node):
-        if 2 <= len(node) <= 3:
+
+        # Understand were non-psuedo instructions lie.
+        opt_start = 1 if node[0].kind in ("dom_start_opt", "dom_start") else 0
+        opt_end = 1 if node[-1].kind == "bb_doms_end" else 0
+
+        if 2 <= len(node) - opt_start - opt_end <= 3:
             self.preorder(node[1])
             self.prune()
         else:
             # We can't comment out like above because there may be a trailing ')'
             # that needs to be written
-            opt_offset = 1 if node[0].kind == "dom_start_opt" else 0
-            assert len(node) == 4+opt_offset and node[2+opt_offset].kind in (
-                "RETURN_VALUE_LAMBDA",
-                "LAMBDA_MARKER",
-            )
-            self.preorder(node[opt_offset])
+            if len(node) - opt_start - opt_end >= 4:
+                from trepan.api import debug; debug()
+                assert len(node) == 4+opt_start and node[2+opt_start].kind in (
+                    "RETURN_VALUE_LAMBDA",
+                    "LAMBDA_MARKER",
+                )
+            self.preorder(node[opt_start])
             self.prune()
 
     def n_return(self, node):
