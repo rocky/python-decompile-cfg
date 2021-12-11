@@ -151,6 +151,7 @@ class Python310BaseParser(PythonParser):
         # Loop over instructions adding custom grammar rules based on
         # a specific instruction seen.
 
+        is_pypy = False
         if "PyPy" in customize:
             is_pypy = True
             self.addRule(
@@ -1334,7 +1335,8 @@ class Python310ParseSingle(Python310BaseParser, PythonParserSingle):
 if __name__ == "__main__":
     # Check grammar
     from decompile_ng.parsers.dump import dump_and_check
-    p = Python310Parser()
+    from decompile_ng.parsers.p310.lambda_expr import Python310LambdaParser
+    p = Python310LambdaParser()
     modified_tokens = set(
         """JUMP_BACK CONTINUE RETURN_END_IF COME_FROM
            LOAD_GENEXPR LOAD_ASSERT LOAD_SETCOMP LOAD_DICTCOMP LOAD_CLASSNAME
