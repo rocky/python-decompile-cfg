@@ -50,7 +50,7 @@ class Python310LambdaParser(Python310BaseParser):
     def p_310conditional_jump(self, args):
         """
         jifop       ::= JUMP_IF_FALSE_OR_POP BB_END dom_start
-        jitop       ::= JUMP_IF_TRUE_OR_POP BB_END dom_start
+        # jitop       ::= JUMP_IF_TRUE_OR_POP BB_END dom_start
         jifop_expr  ::= JUMP_IF_FALSE_OR_POP bb_doms_end dom_start expr
         jitop_expr  ::= JUMP_IF_TRUE_OR_POP bb_doms_end dom_start expr
         """
@@ -123,7 +123,7 @@ class Python310LambdaParser(Python310BaseParser):
         and_not_cond ::= and_not
 
         nand       ::= and_parts expr_pjit  come_froms
-        c_nand     ::= and_parts expr_pjitt come_froms
+        c_nand     ::= and_parts expr_pjift come_froms
 
         # Note: "nor" like "and" might not have a trailing "come_from".
         #       "nand" and "or_cond", in contrast, *must* have at least one "come_from".
@@ -432,7 +432,6 @@ class Python310LambdaParser(Python310BaseParser):
 
         expr_pjif                  ::= expr POP_JUMP_IF_FALSE BB_END
         expr_pjit                  ::= expr POP_JUMP_IF_TRUE BB_END
-        expr_pjitt                 ::= expr pjump_ift
         expr_jifop                 ::= expr JUMP_IF_FALSE_OR_POP BB_END
         expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP BB_END
         expr_pjiff                 ::= expr pjump_iff

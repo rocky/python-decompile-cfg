@@ -61,7 +61,7 @@ class Scanner310(Scanner310Base):
 
 
 if __name__ == "__main__":
-    from xdis.version_info import PYTHON_VERSION_TRIPLE
+    from xdis.version_info import PYTHON_VERSION_TRIPLE, version_tuple_to_str
 
     if PYTHON_VERSION_TRIPLE[:2] == (3, 10):
         import inspect

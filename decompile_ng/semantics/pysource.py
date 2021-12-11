@@ -2125,7 +2125,7 @@ class SourceWalker(GenericASTTraversal, object):
 
         # FIXME: DRY with fragments.py
 
-        # assert isinstance(tokens[0], Token)
+        assert isinstance(tokens[0], Token)
 
         if is_lambda:
             for t in tokens:
@@ -2266,13 +2266,17 @@ def code_deparse(
     isTopLevel = co.co_name == "<module>"
     if compile_mode == "eval":
         deparsed.hide_internal = False
-    deparsed.ast = deparsed.build_ast(tokens, customize, co, isTopLevel=isTopLevel)
+    deparsed.ast = deparsed.build_ast(tokens, customize, co,
+                                      is_lambda=(compile_mode == "lambda"),
+                                      isTopLevel=isTopLevel)
 
     #### XXX workaround for profiling
     if deparsed.ast is None:
         return None
 
-    if compile_mode != "eval":
+    if compile_mode == "lambda":
+        assert deparsed.ast == "lambda_start", "Should have parsed grammar lambda_start"
+    elif compile_mode != "eval":
         assert deparsed.ast == "stmts", "Should have parsed grammar start"
     else:
         assert deparsed.ast == "eval_expr", "Should have parsed grammar start"

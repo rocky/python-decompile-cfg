@@ -44,9 +44,9 @@ def _get_outstream(outfile: str) -> Any:
 
 
 def decompile(
-    bytecode_version: str,
     co,
-    out=None,
+    bytecode_version: str=PYTHON_VERSION_TRIPLE,
+    out=sys.stdout,
     showasm=None,
     showast={},
     timestamp=None,
@@ -186,11 +186,11 @@ def decompile_file(
 
     if isinstance(co, list):
         deparsed = []
-        for con in co:
+        for bytecode in co:
             deparsed.append(
                 decompile(
+                    bytecode,
                     version,
-                    con,
                     outstream,
                     showasm,
                     showast,
@@ -206,8 +206,8 @@ def decompile_file(
     else:
         deparsed = [
             decompile(
-                version,
                 co,
+                version,
                 outstream,
                 showasm,
                 showast,
