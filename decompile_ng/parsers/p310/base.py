@@ -1310,7 +1310,7 @@ class Python310BaseParser(PythonParser):
                     self.add_unique_rule(rule, token.kind, uniq_param, customize)
 
     def reduce_is_invalid(self, rule, ast, tokens, first, last):
-        invalid = super(Python310Parser, self).reduce_is_invalid(
+        invalid = super(Python310BaseParser, self).reduce_is_invalid(
             rule, ast, tokens, first, last
         )
         if invalid:

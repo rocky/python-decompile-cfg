@@ -17,7 +17,7 @@ spark grammar for Python 3.10
 """
 
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
-from decompile_ng.parsers.main import PythonParserEval, PythonParserSingle
+from decompile_ng.parsers.main import PythonParserEval, PythonParserLambda, PythonParserSingle
 from decompile_ng.parsers.p310.lambda_expr import Python310LambdaParser
 
 
@@ -1238,13 +1238,17 @@ def info(args):
         p.dump_grammar()
 
 
+# These classes are here just to get parser doc-strings for the
+# various classes inherited properly.
 class Python310ParserSingle(Python310Parser, PythonParserSingle):
-    # FIXME: add a suitable __init__
+    pass
+
+
+class Python310ParserLambda(Python310LambdaParser, PythonParserLambda):
     pass
 
 
 class Python310ParserEval(Python310LambdaParser, PythonParserEval):
-    # FIXME: add a suitable __init__
     pass
 
 

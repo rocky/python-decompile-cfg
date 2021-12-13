@@ -2127,6 +2127,8 @@ class SourceWalker(GenericASTTraversal, object):
 
         assert isinstance(tokens[0], Token)
 
+
+        # FIXME: is_lambda handling should go somewhere else.
         if is_lambda:
             for t in tokens:
                 if t.kind == "RETURN_END_IF":
@@ -2147,6 +2149,8 @@ class SourceWalker(GenericASTTraversal, object):
                 p.offset2inst_index = self.scanner.offset2inst_index
                 ast = python_parser.parse(p, tokens, customize, is_lambda)
                 self.customize(customize)
+
+
             except (python_parser.ParserError, AssertionError) as e:
                 raise ParserError(e, tokens, self.p.debug["reduce"])
             transform_ast = self.treeTransform.transform(ast, code)

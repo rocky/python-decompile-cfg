@@ -30,6 +30,7 @@ Note however all of this is imported from the __init__ module
 import sys
 
 from xdis import iscode
+from xdis.version_info import PYTHON_VERSION_TRIPLE, IS_PYPY
 from spark_parser import GenericASTBuilder, DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 from decompile_ng.show import maybe_show_asm
 
@@ -50,7 +51,6 @@ class ParserError(Exception):
 def nop_func(self, args):
     return None
 
-
 class PythonLambdaParser(GenericASTBuilder):
     def __init__(self, SyntaxTree, start_symbol, debug_parser):
         super(PythonLambdaParser, self).__init__(SyntaxTree, start_symbol, debug_parser)
@@ -61,7 +61,6 @@ class PythonLambdaParser(GenericASTBuilder):
         #   stmts -> stmts stmt -> stmts stmt stmt ...
         # collect as stmts -> stmt stmt ...
         nt_list = [
-            "_come_froms",
             "and_parts",
             "attributes",
             "doms_end",
@@ -82,9 +81,7 @@ class PythonLambdaParser(GenericASTBuilder):
         # FIXME: optional_nt is a misnomer. It's really about there being a
         # singleton reduction that we can simplify. It also happens to be optional
         # in its other derivation
-        self.optional_nt |= frozenset(
-            ("come_froms", "suite_stmts", "c_stmts_opt", "stmt", "sstmt")
-        )
+        self.optional_nt |= frozenset(("suite_stmts", "c_stmts_opt", "stmt", "sstmt"))
 
         # Reduce singleton reductions in these nonterminals:
         # FIXME: would love to do sstmts, stmts and
@@ -109,10 +106,10 @@ class PythonLambdaParser(GenericASTBuilder):
         self, rule, opname: str, arg_count: int, customize: dict
     ) -> None:
         """Add rule to grammar, but only if it hasn't been added previously
-           opname and stack_count are used in the customize() semantic
-           the actions to add the semantic action rule. Stack_count is
-           used in custom opcodes like MAKE_FUNCTION to indicate how
-           many arguments it has. Often it is not used.
+        opname and stack_count are used in the customize() semantic
+        the actions to add the semantic action rule. Stack_count is
+        used in custom opcodes like MAKE_FUNCTION to indicate how
+        many arguments it has. Often it is not used.
         """
         if rule not in self.new_rules:
             # print("XXX ", rule) # debug
@@ -270,9 +267,10 @@ class PythonLambdaParser(GenericASTBuilder):
             return "function_def"
         if "grammar" in list and "expr" in list:
             return "expr"
-        # print >> sys.stderr, 'resolve', str(list)
         return GenericASTBuilder.resolve(self, list)
 
+class PythonEvalParserEval(PythonLambdaParser):
+    pass
 
 class PythonParser(PythonLambdaParser):
     def __init__(self, SyntaxTree, compile_mode, debug_parser):
@@ -282,19 +280,23 @@ class PythonParser(PythonLambdaParser):
         # FIXME: "eval" should be "lambda"
         elif compile_mode == "lambda":
             start_symbol = "lambda_start"
+        elif compile_mode == "expr":
+            start_symbol = "expr_start"
         elif compile_mode == "eval":
             start_symbol = "call_stmt"
         elif compile_mode == "eval_expr":
             start_symbol = "eval_expr"
         else:
             raise BaseException(
-                f'compile_mode should be either "exec", "single", "lambda", or "eval"; got {compile_mode}'
+                f'compile_mode should be either "exec", "single", "lambda", "eval_expr", or "eval"; got {compile_mode}'
             )
 
-        if compile_mode in ("eval", "expr"):
-            PythonParserEval.__init__(self, SyntaxTree, start_symbol, debug_parser)
-        else:
+        if compile_mode in ("eval", "expr", "exec"):
+            PythonParserLambda.__init__(self, SyntaxTree, start_symbol, debug_parser)
+        elif compile_mode in ("expr_start", "lambda"):
             PythonLambdaParser.__init__(self, SyntaxTree, start_symbol, debug_parser)
+        else:
+            raise BaseException(f"Unimplemented compile mode: {compile_mode}")
 
         # FIXME: customize per python parser version
 
@@ -307,7 +309,6 @@ class PythonParser(PythonLambdaParser):
             "_stmts",
             "and_parts",
             "attributes",
-            "come_froms",
             "except_stmts",
             "exprlist",
             "importlist",
@@ -320,8 +321,6 @@ class PythonParser(PythonLambdaParser):
             # Investigate
             # "c_stmts",
             "stmts",
-            # Python 3.6+
-            "come_from_loops",
             # Python 3.7+
             "importlist37",
         ]
@@ -393,9 +392,11 @@ def get_python_parser(
 
     if compile_mode == "exec":
         from decompile_ng.parsers.p310.full import Python310Parser
+
         p = Python310Parser(debug_parser)
     elif compile_mode == "lambda":
         from decompile_ng.parsers.p310.lambda_expr import Python310LambdaParser
+
         p = Python310LambdaParser(debug_parser, compile_mode=compile_mode)
         ## If the above gives a parse error, use the below to debug what grammar rule(s)
         ## need to get added
@@ -410,6 +411,9 @@ def get_python_parser(
     return p
 
 
+# The below adds a special "start" rule for the kind of thing that we want to
+# decompile
+
 class PythonParserSingle(PythonParser):
     # FIXME: Remove rules from parse37, parse38
     def p_single_start_rule(self, args):
@@ -423,30 +427,48 @@ class PythonParserSingle(PythonParser):
     pass
 
 
-class PythonParserEval(PythonLambdaParser):
-    def p_eval_start_rule(self, args):
+class PythonParserLambda(PythonLambdaParser):
+    def p_lambda_start_rule(self, args):
         """
-        # eval-mode compilation.  Eval compilation
+        # lambda-mode compilation.  Lambda compilation
         # adds another rule.
         eval_expr ::= expr RETURN_VALUE
         """
         # FIXME: add a suitable __init__
 
 
+class PythonParserExpr(PythonLambdaParser):
+    def p_expr_start_rule(self, args):
+        """
+        # eval-mode compilation.  Eval compilation
+        # adds another rule.
+        expr_start ::= expr
+        """
+
+
+class PythonParserEval(PythonLambdaParser):
+    # FIXME: add a suitable start rule
+    def p_evala_start_rule(self, args):
+        """
+        """
+
+
+
 def python_parser(
-    version: str,
     co,
+    version: str = PYTHON_VERSION_TRIPLE,
     out=sys.stdout,
     showasm=False,
     parser_debug=PARSER_DEFAULT_DEBUG,
+    compile_mode="exec",
     is_pypy=False,
     is_lambda=False,
 ):
     """
     Parse a code object to an abstract syntax tree representation.
 
-    :param version:         The python version this code is from as a float, for
-                            example 2.6, 2.7, 3.2, 3.3, 3.4, 3.5 etc.
+    :param version:         The Python version this code is from, as a tuple, e.g.
+                            (3, 10), or (3, 10, 0).
     :param co:              The code object to parse.
     :param out:             File like object to write the output to.
     :param showasm:         Flag which determines whether the disassembled and
@@ -466,7 +488,9 @@ def python_parser(
     # For heavy grammar debugging
     # parser_debug = {'rules': True, 'transition': True, 'reduce' : True,
     #                 'showstack': 'full'}
-    p = get_python_parser(version, parser_debug)
+    p = get_python_parser(
+        version, parser_debug, compile_mode=compile_mode, is_pypy=IS_PYPY
+    )
 
     # FIXME: have p.insts update in a better way
     # modularity is broken here
@@ -482,7 +506,12 @@ if __name__ == "__main__":
     def parse_test(co) -> None:
         from xdis.version_info import IS_PYPY
 
-        ast = python_parser("3.10", co, showasm=True, is_pypy=IS_PYPY)
+        # FIXME: lambda handling needs to special token fixing up.
+        testing = lambda x, y: "0" <= x <= "9" and "a" <= y <= "f"
+        ast = python_parser(
+            testing.__code__, showasm=True, compile_mode="lambda", is_pypy=IS_PYPY,
+            is_lambda=True,
+        )
         print(ast)
         return
 
