@@ -57,15 +57,10 @@ class Python310LambdaParser(Python310BaseParser):
 
     def p_310lambda(self, args):
         """
-        lambda_start       ::= DOM_START BB_START
-                               return_lambda
-                               dom_end_opt
-                               LAMBDA_MARKER
-
         return_lambda      ::= dom_start_opt
                                expr
                                dom_start_opt
-                               RETURN_VALUE_LAMBDA
+                               RETURN_VALUE
                                bb_doms_end
 
         return_lambda      ::= if_exp_lambda
@@ -75,11 +70,10 @@ class Python310LambdaParser(Python310BaseParser):
         return_lambda      ::= if_exp_dead_code
 
         if_exp_lambda2     ::= and_parts return_lambda
-                               return_lambda opt_lambda_marker
-        opt_lambda_marker  ::= LAMBDA_MARKER?
+                               return_lambda
 
         if_exp_not_lambda2 ::= expr_pjit dom_start expr
-                               RETURN_VALUE_LAMBDA bb_doms_end return_lambda
+                               RETURN_VALUE bb_doms_end return_lambda
         """
 
     def p_310bool_ops(self, args):
@@ -209,7 +203,6 @@ class Python310LambdaParser(Python310BaseParser):
 
         compare_chained2    ::= expr COMPARE_OP JUMP_FORWARD
         compare_chained2    ::= expr COMPARE_OP RETURN_VALUE
-        compare_chained2    ::= expr COMPARE_OP RETURN_VALUE_LAMBDA
 
         compare_chained     ::= compare_chained37
         compare_chained     ::= compare_chained37_false
@@ -567,7 +560,7 @@ if __name__ == "__main__":
         """JUMP_BACK CONTINUE RETURN_END_IF BB_END BB_START DOM_END DOM_START
 
 LOAD_GENEXPR LOAD_ASSERT LOAD_SETCOMP LOAD_DICTCOMP LOAD_CLASSNAME
-           LAMBDA_MARKER RETURN_LAST
+           RETURN_LAST
         """.split()
         )
 

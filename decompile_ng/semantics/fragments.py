@@ -1137,12 +1137,6 @@ class FragmentsWalker(pysource.SourceWalker, object):
         assert isinstance(tokens[0], Token)
 
         if is_lambda:
-            for t in tokens:
-                if t.kind == "RETURN_END_IF":
-                    t.kind = "RETURN_END_IF_LAMBDA"
-                elif t.kind == "RETURN_VALUE":
-                    t.kind = "RETURN_VALUE_LAMBDA"
-            tokens.append(Token("LAMBDA_MARKER"))
             try:
                 if self.p_lambda is None:
                     self.p_lambda = get_python_parser(

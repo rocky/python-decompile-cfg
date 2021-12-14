@@ -17,7 +17,12 @@ spark grammar for Python 3.10
 """
 
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
-from decompile_ng.parsers.main import PythonParserEval, PythonParserLambda, PythonParserSingle
+from decompile_ng.parsers.main import (
+    PythonParserEval,
+    PythonParserExpr,
+    PythonParserLambda,
+    PythonParserSingle,
+)
 from decompile_ng.parsers.p310.lambda_expr import Python310LambdaParser
 
 
@@ -953,6 +958,7 @@ class Python310Parser(Python310LambdaParser):
         compare_chained2 ::= expr COMPARE_OP come_froms JUMP_FORWARD
         """
 
+
 class Python310FullParser(Python310Parser, Python310LambdaParser):
     def p_310walrus(self, args):
         """
@@ -1249,6 +1255,10 @@ class Python310ParserLambda(Python310LambdaParser, PythonParserLambda):
 
 
 class Python310ParserEval(Python310LambdaParser, PythonParserEval):
+    pass
+
+
+class Python310ParserExpr(Python310LambdaParser, PythonParserExpr):
     pass
 
 

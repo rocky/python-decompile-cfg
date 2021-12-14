@@ -388,8 +388,6 @@ def get_python_parser(
     if version != (3, 10):
         raise RuntimeError(f"Unsupported Python version {version}")
 
-    import decompile_ng.parsers.p310 as parse310
-
     if compile_mode == "exec":
         from decompile_ng.parsers.p310.full import Python310Parser
 
@@ -401,10 +399,12 @@ def get_python_parser(
         ## If the above gives a parse error, use the below to debug what grammar rule(s)
         ## need to get added
         # p = parse310.Python310ParserSingle(debug_parser, compile_mode=compile_mode)
-    elif compile_mode == "eval":
-        p = parse310.Python310ParserEval(debug_parser, compile_mode="eval_expr")
+    elif compile_mode == "expr":
+        from decompile_ng.parsers.p310.full import Python310ParserExpr
+        p = Python310ParserExpr(debug_parser, compile_mode="expr")
     else:
-        p = parse310.Python310ParserSingle(debug_parser, compile_mode=compile_mode)
+        from decompile_ng.parsers.p310.full import Python310ParserSingle
+        p = Python310ParserSingle(debug_parser, compile_mode=compile_mode)
 
     p.version = version
     # p.dump_grammar() # debug
@@ -432,7 +432,9 @@ class PythonParserLambda(PythonLambdaParser):
         """
         # lambda-mode compilation.  Lambda compilation
         # adds another rule.
-        eval_expr ::= expr RETURN_VALUE
+        lambda_start       ::= DOM_START BB_START
+                               return_lambda
+                               dom_end_opt
         """
         # FIXME: add a suitable __init__
 
@@ -442,13 +444,17 @@ class PythonParserExpr(PythonLambdaParser):
         """
         # eval-mode compilation.  Eval compilation
         # adds another rule.
-        expr_start ::= expr
+        return_value_opt ::= RETURN_VALUE?
+        expr_start       ::= DOM_START BB_START
+                             expr
+                             return_value_opt
+                             dom_end
         """
 
 
 class PythonParserEval(PythonLambdaParser):
     # FIXME: add a suitable start rule
-    def p_evala_start_rule(self, args):
+    def p_eval_start_rule(self, args):
         """
         """
 
@@ -506,13 +512,26 @@ if __name__ == "__main__":
     def parse_test(co) -> None:
         from xdis.version_info import IS_PYPY
 
-        # FIXME: lambda handling needs to special token fixing up.
-        testing = lambda x, y: "0" <= x <= "9" and "a" <= y <= "f"
+        # Below we put a line break before an expression so that
+        # we can find that line and test on expression parsing
+        testing = lambda x, y: "0" <= x <= "9" and \
+        "a" <= y <= "f"
+
         ast = python_parser(
             testing.__code__, showasm=True, compile_mode="lambda", is_pypy=IS_PYPY,
             is_lambda=True,
         )
         print(ast)
+
+        test_expr = lambda x, y: x + 1
+
+        ast = python_parser(
+            test_expr.__code__, showasm=True,
+            compile_mode="expr", is_pypy=IS_PYPY,
+            is_lambda=False,
+        )
+        print(ast)
+
         return
 
     parse_test(parse_test.__code__)
