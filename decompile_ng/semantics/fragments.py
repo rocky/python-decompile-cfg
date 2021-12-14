@@ -65,6 +65,7 @@ The node position 0 will be associated with "import".
 
 import re
 
+import decompile_ng.parsers.parse_heads as heads
 import decompile_ng.parsers.main as python_parser
 from decompile_ng.parsers.main import get_python_parser
 from decompile_ng.semantics import pysource
@@ -1154,7 +1155,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
                 self.p.opc = self.scanner.opc
                 ast = python_parser.parse(self.p, tokens, customize, is_lambda)
                 self.p.insts = p_insts
-            except (python_parser.ParserError, AssertionError) as e:
+            except (heads.ParserError, AssertionError) as e:
                 raise ParserError(e, tokens, self.debug_parser.get("reduce", False))
 
             ## FIXME: So as not to remove tokens with offsets,
@@ -1197,7 +1198,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
             self.p.insts = self.scanner.insts
             ast = python_parser.parse(self.p, tokens, customize, is_lambda=is_lambda)
             self.p.insts = p_insts
-        except (python_parser.ParserError, AssertionError) as e:
+        except (heads.ParserError, AssertionError) as e:
             raise ParserError(e, tokens, self.debug_parser.get("reduce", False))
 
         maybe_show_tree(self, ast)

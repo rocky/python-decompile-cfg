@@ -1,3 +1,14 @@
+"""
+All of the specific kinds of canned parsers for Python 3.10
+
+These are derived from "compile-modes" but we have others that
+can be used to parse common part of a larger grammar.
+
+For example:
+* a basic-block expression (no branching)
+* an unadorned expression (no POP_TOP needed afterwards)
+* A non-compound statement
+"""
 from decompile_ng.parsers.p310.full import Python310Parser
 from decompile_ng.parsers.p310.lambda_expr import Python310LambdaParser
 from decompile_ng.parsers.parse_heads import (

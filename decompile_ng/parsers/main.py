@@ -16,13 +16,8 @@
 """
 Common decompile_ng parser routines. From the outside, of the module
 you'll usually import a call something here, such as:
-* python_parser(), or
-* parse()
-or import a base class such as:
-
-*ParseError(),
-* PythonLambdaParser(), or
-* PythonParser()
+* get_python_parser().parse(), or
+* python_parser() which does the above
 
 Note however all of this is imported from the __init__ module
 """

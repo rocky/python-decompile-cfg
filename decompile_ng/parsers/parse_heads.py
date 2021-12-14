@@ -1,11 +1,12 @@
-"""
-Here we have the top-level parse grammar types with their rules and the start symbols
+"""Here we have the top-level parse grammar types with their rules and the start symbols
 for them.
 
-Specific Python versions will subclass these for the specific Python version that they have.
-
+Specific Python versions such as for Python 3.10 subclass these and
+add in grammar rules that are custom to them.
 
 However at the top-level they are all the same and share the same start symbol
+and start-symbol grammar rule.
+
 """
 # The below adds a special "start" rule for the kind of thing that we want to
 # decompile

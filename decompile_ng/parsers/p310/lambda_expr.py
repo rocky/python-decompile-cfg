@@ -21,7 +21,7 @@ elsewhere.
 
 
 By leaving out the start symbol rules and name, this module and its classes can
-used as a superclass in other grammars, such as a full grammar for Python 3.10.
+be used as a superclass in other grammars, such as a full grammar for Python 3.10.
 """
 
 from decompile_ng.parsers.p310.base import Python310BaseParser

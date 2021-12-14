@@ -18,7 +18,7 @@ This contains grammar rules but not rules for the start symbol or a
 start symbol name. That is elsewhere.
 
 By leaving out the start symbol rules and name, this module and its
-classes can used as a superclass in other grammars, although
+classes be can used as a superclass in other grammars, although
 Python310Parser is probably pretty much top-level.
 """
 
