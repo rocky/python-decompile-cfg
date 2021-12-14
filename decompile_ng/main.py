@@ -21,7 +21,7 @@ from xdis.version_info import version_tuple_to_str
 from decompile_ng import IS_PYPY, PYTHON_VERSION_TRIPLE
 from decompile_ng.disas import check_object_path
 from decompile_ng.semantics import pysource
-from decompile_ng.parsers import ParserError
+from decompile_ng.parsers.parse_heads import ParserError
 from decompile_ng.version import __version__
 
 # from decompile_ng.linenumbers import line_number_mapping

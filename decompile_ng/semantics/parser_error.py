@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import decompile_ng.parsers.main as python_parser
+import decompile_ng.parsers.parse_heads as python_parser
 
 
 class ParserError(python_parser.ParserError):

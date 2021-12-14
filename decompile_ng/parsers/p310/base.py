@@ -13,13 +13,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from decompile_ng.parsers.main import PythonParser, PythonParserSingle, nop_func
+from decompile_ng.parsers.parse_heads import PythonBaseParser, PythonParserSingle, nop_func
 from decompile_ng.parsers.treenode import SyntaxTree
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 
-class Python310BaseParser(PythonParser):
-    def __init__(self, debug_parser=PARSER_DEFAULT_DEBUG, compile_mode="exec"):
-        super(Python310BaseParser, self).__init__(SyntaxTree, compile_mode=compile_mode,
+class Python310BaseParser(PythonBaseParser):
+    def __init__(self, start_symbol, debug_parser:dict=PARSER_DEFAULT_DEBUG):
+        super(Python310BaseParser, self).__init__(SyntaxTree, start_symbol=start_symbol,
                                                   debug_parser=debug_parser)
         self.new_rules = set()
 
@@ -1336,7 +1336,7 @@ if __name__ == "__main__":
     # Check grammar
     from decompile_ng.parsers.dump import dump_and_check
     from decompile_ng.parsers.p310.lambda_expr import Python310LambdaParser
-    p = Python310LambdaParser()
+    p = Python310LambdaParser("lambda_start")
     modified_tokens = set(
         """JUMP_BACK CONTINUE RETURN_END_IF COME_FROM
            LOAD_GENEXPR LOAD_ASSERT LOAD_SETCOMP LOAD_DICTCOMP LOAD_CLASSNAME

@@ -19,9 +19,11 @@ Lambda's encompass expressions but don't have statements
 """
 
 from decompile_ng.parsers.p310.base import Python310BaseParser
+from decompile_ng.parsers.parse_heads import PythonParserLambda, PythonBaseParser
+from decompile_ng.parsers.treenode import SyntaxTree
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 
-class Python310LambdaParser(Python310BaseParser):
+class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
     def p_310walrus(self, args):
         """
         # named_expr is also known as the "walrus op" :=
@@ -548,14 +550,21 @@ class Python310LambdaParser(Python310BaseParser):
         store_subscript ::= expr expr STORE_SUBSCR
         """
 
-    def __init__(self, debug_parser=PARSER_DEFAULT_DEBUG, compile_mode="lambda"):
-        super(Python310LambdaParser, self).__init__(debug_parser, compile_mode=compile_mode)
+    def __init__(self, start_symbol: str, debug_parser:dict=PARSER_DEFAULT_DEBUG):
+        PythonParserLambda.__init__(self, start_symbol, debug_parser)
+        PythonBaseParser.__init__(self, SyntaxTree, start_symbol=start_symbol,
+                         debug_parser=debug_parser)
+        self.new_rules = set()
         self.customized = {}
 
 if __name__ == "__main__":
     # Check grammar
     from decompile_ng.parsers.dump import dump_and_check
-    p = Python310LambdaParser()
+    # The start_symbol here is something from this file to check.
+    # Note that the start_symbol from parse_heads is "lambda_start"
+    # which is the same thing surrounded by dominator information.
+    # But that doesn't appear here.
+    p = Python310LambdaParser(start_symbol="return_lambda")
     modified_tokens = set(
         """JUMP_BACK CONTINUE RETURN_END_IF BB_END BB_START DOM_END DOM_START
 

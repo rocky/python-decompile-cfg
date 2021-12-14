@@ -17,7 +17,7 @@ spark grammar for Python 3.10
 """
 
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
-from decompile_ng.parsers.main import (
+from decompile_ng.parsers.parse_heads import (
     PythonParserEval,
     PythonParserExpr,
     PythonParserLambda,
@@ -27,8 +27,8 @@ from decompile_ng.parsers.p310.lambda_expr import Python310LambdaParser
 
 
 class Python310Parser(Python310LambdaParser):
-    def __init__(self, debug_parser=PARSER_DEFAULT_DEBUG, compile_mode="exec"):
-        super(Python310Parser, self).__init__(debug_parser, compile_mode=compile_mode)
+    def __init__(self, start_symbol: str, debug_parser:dict=PARSER_DEFAULT_DEBUG):
+        super(Python310Parser, self).__init__(start_symbol, debug_parser)
         self.customized = {}
 
     ###############################################

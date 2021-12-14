@@ -24,7 +24,7 @@ from xdis import (
 )
 from decompile_ng.scanner import Code
 from decompile_ng.semantics.parser_error import ParserError
-from decompile_ng.parsers.main import ParserError as ParserError2
+from decompile_ng.parsers.parse_heads import ParserError as ParserError2
 from decompile_ng.semantics.helper import (
     find_all_globals,
     find_globals_and_nonlocals,

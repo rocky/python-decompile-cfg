@@ -2272,12 +2272,21 @@ def code_deparse(
         return None
 
     if compile_mode == "lambda":
-        assert deparsed.ast == "lambda_start", "Should have parsed grammar lambda_start"
-    elif compile_mode != "eval":
-        assert deparsed.ast == "stmts", "Should have parsed grammar start"
+        expected_start = "lambda_start"
+    elif compile_mode == "eval":
+        expected_start = "expr_stmt"
+    elif compile_mode == "eval_expr":
+        expected_start = "expr_start"
+    elif compile_mode == "exec":
+        expected_start = "expr_stmt"
+    elif compile_mode in ("stmts", "single"):
+        expected_start = "stmts"
     else:
-        assert deparsed.ast == "eval_expr", "Should have parsed grammar start"
-
+        expected_start = None
+    if expected_start:
+        assert (
+            deparsed.ast == expected_start
+        ), f"Should have parsed grammar start to '{expected_start}'; got: {deparsed.ast.kind}"
     # save memory
     del tokens
 
