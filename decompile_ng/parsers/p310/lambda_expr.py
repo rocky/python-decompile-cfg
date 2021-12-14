@@ -556,12 +556,13 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         store_subscript ::= expr expr STORE_SUBSCR
         """
 
-    def __init__(self, start_symbol: str, debug_parser:dict=PARSER_DEFAULT_DEBUG):
-        PythonParserLambda.__init__(self, SyntaxTree,
-                                    debug_parser=debug_parser,
-                                    start_symbol=start_symbol)
-        PythonBaseParser.__init__(self, SyntaxTree, start_symbol=start_symbol,
-                         debug_parser=debug_parser)
+    def __init__(self, start_symbol: str, debug_parser: dict = PARSER_DEFAULT_DEBUG):
+        PythonParserLambda.__init__(
+            self, SyntaxTree, debug_parser=debug_parser, start_symbol=start_symbol
+        )
+        PythonBaseParser.__init__(
+            self, start_symbol=start_symbol, debug_parser=debug_parser
+        )
         self.new_rules = set()
         self.customized = {}
 

@@ -34,13 +34,6 @@ class Python310Parser(Python310LambdaParser):
     ###############################################
     #  Python 3.10 grammar rules with statements
     ###############################################
-    def p_eval_mode(self, args):
-        """
-        # eval-mode compilation.  Single-mode interactive compilation
-        # adds another rule.
-        expr_stmt ::= expr POP_TOP
-        """
-
     def p_stmt_loop(self, args):
         """
         #########################################################

@@ -21,7 +21,6 @@ class Python310BaseParser(PythonBaseParser):
     def __init__(self, start_symbol, debug_parser:dict=PARSER_DEFAULT_DEBUG):
         super(Python310BaseParser, self).__init__(SyntaxTree, start_symbol=start_symbol,
                                                   debug_parser=debug_parser)
-        self.new_rules = set()
 
     def add_make_function_rule(self, rule, opname, attr, customize):
         """Python 3.3 added a an addtional LOAD_STR before MAKE_FUNCTION and
