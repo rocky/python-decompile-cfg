@@ -315,6 +315,15 @@ class PythonParserLambda(PythonBaseParser):
 
 
 class PythonParserSingle(PythonBaseParser):
+    def p_single_start_rule(self, args):
+        """
+        # The start or goal symbol
+        stmts ::= dom_start
+                  sstmt_plus
+                  dom_end_opt
+        sstmt_plus ::= sstmt+
+        """
+
     def __init__(self, SyntaxTree, debug_parser, start_symbol="stmts", is_lambda=False):
         super(PythonParserSingle, self).__init__(
             SyntaxTree, start_symbol, debug_parser, is_lambda=is_lambda
@@ -325,6 +334,7 @@ class PythonParserSingle(PythonBaseParser):
 
 class PythonParser(PythonBaseParser):
     def __init__(self, SyntaxTree, compile_mode, debug_parser):
+        from trepan.api import debug; debug()
         # FIXME: go over.
         if compile_mode == "single":
             PythonParserSingle.__init__(self, SyntaxTree, debug_parser=debug_parser)

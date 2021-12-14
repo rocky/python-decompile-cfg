@@ -13,9 +13,15 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Python 3.10 lambda parser in the Earley-algorithm grammar
+Spark parser grammar for Python 3.10's Lambda's.
 
-Lambda's encompass expressions but don't have statements
+Lambda's encompass expressions but don't have statements.  This contains
+grammar rules but not rules for the start symbol or a start symbol name. That is
+elsewhere.
+
+
+By leaving out the start symbol rules and name, this module and its classes can
+used as a superclass in other grammars, such as a full grammar for Python 3.10.
 """
 
 from decompile_ng.parsers.p310.base import Python310BaseParser
@@ -551,7 +557,9 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         """
 
     def __init__(self, start_symbol: str, debug_parser:dict=PARSER_DEFAULT_DEBUG):
-        PythonParserLambda.__init__(self, start_symbol, debug_parser)
+        PythonParserLambda.__init__(self, SyntaxTree,
+                                    debug_parser=debug_parser,
+                                    start_symbol=start_symbol)
         PythonBaseParser.__init__(self, SyntaxTree, start_symbol=start_symbol,
                          debug_parser=debug_parser)
         self.new_rules = set()

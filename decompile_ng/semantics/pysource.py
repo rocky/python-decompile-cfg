@@ -2271,6 +2271,7 @@ def code_deparse(
     if deparsed.ast is None:
         return None
 
+    # FIXME use a lookup table here.
     if compile_mode == "lambda":
         expected_start = "lambda_start"
     elif compile_mode == "eval":
@@ -2278,8 +2279,8 @@ def code_deparse(
     elif compile_mode == "eval_expr":
         expected_start = "expr_start"
     elif compile_mode == "exec":
-        expected_start = "expr_stmt"
-    elif compile_mode in ("stmts", "single"):
+        expected_start = "stmts"
+    elif compile_mode == "single":
         expected_start = "stmts"
     else:
         expected_start = None

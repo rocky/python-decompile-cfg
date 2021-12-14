@@ -12,17 +12,17 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
-spark grammar for Python 3.10
+"""spark grammar for the full Python 3.10 language and comple-mode variants.
+
+This contains grammar rules but not rules for the start symbol or a
+start symbol name. That is elsewhere.
+
+By leaving out the start symbol rules and name, this module and its
+classes can used as a superclass in other grammars, although
+Python310Parser is probably pretty much top-level.
 """
 
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
-from decompile_ng.parsers.parse_heads import (
-    PythonParserEval,
-    PythonParserExpr,
-    PythonParserLambda,
-    PythonParserSingle,
-)
 from decompile_ng.parsers.p310.lambda_expr import Python310LambdaParser
 
 
@@ -34,15 +34,6 @@ class Python310Parser(Python310LambdaParser):
     ###############################################
     #  Python 3.10 grammar rules with statements
     ###############################################
-    def p_start(self, args):
-        """
-        # The start or goal symbol
-        stmts ::= dom_start
-                  sstmt_plus
-                  dom_end_opt
-        sstmt_plus ::= sstmt+
-        """
-
     def p_eval_mode(self, args):
         """
         # eval-mode compilation.  Single-mode interactive compilation
@@ -1242,24 +1233,6 @@ def info(args):
     if len(sys.argv) > 1 and sys.argv[1] == "dump":
         print("-" * 50)
         p.dump_grammar()
-
-
-# These classes are here just to get parser doc-strings for the
-# various classes inherited properly.
-class Python310ParserSingle(Python310Parser, PythonParserSingle):
-    pass
-
-
-class Python310ParserLambda(Python310LambdaParser, PythonParserLambda):
-    pass
-
-
-class Python310ParserEval(Python310LambdaParser, PythonParserEval):
-    pass
-
-
-class Python310ParserExpr(Python310LambdaParser, PythonParserExpr):
-    pass
 
 
 if __name__ == "__main__":

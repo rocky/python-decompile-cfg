@@ -70,9 +70,13 @@ def get_python_parser(
     if version != (3, 10):
         raise RuntimeError(f"Unsupported Python version {version}")
 
-    if compile_mode == "exec":
-        from decompile_ng.parsers.p310.full import Python310Parser
+    if compile_mode in ("exec"):
+        from decompile_ng.parsers.p310.heads import Python310Parser
         p = Python310Parser(start_symbol="stmt", debug_parser=debug_parser)
+    if compile_mode == "single":
+        # Note: thisis the same as "exec", but there should be *something* different.
+        from decompile_ng.parsers.p310.heads import Python310ParserSingle
+        p = Python310ParserSingle(start_symbol="stmt", debug_parser=debug_parser)
     elif compile_mode == "lambda":
         from decompile_ng.parsers.p310.lambda_expr import Python310LambdaParser
 
@@ -82,13 +86,13 @@ def get_python_parser(
         ## need to get added
         # p = parse310.Python310ParserSingle(debug_parser, compile_mode=compile_mode)
     elif compile_mode == "eval":
-        from decompile_ng.parsers.p310.full import Python310ParserExpr
+        from decompile_ng.parsers.p310.heads import Python310ParserExpr
         p = Python310ParserExpr(start_symbol="expr", debug_parser=debug_parser)
     elif compile_mode == "eval_expr":
-        from decompile_ng.parsers.p310.full import Python310ParserExpr
+        from decompile_ng.parsers.p310.heads import Python310ParserExpr
         p = Python310ParserExpr(start_symbol="expr_start", debug_parser=debug_parser)
     else:
-        from decompile_ng.parsers.p310.full import Python310ParserSingle
+        from decompile_ng.parsers.p310.heads import Python310ParserSingle
         p = Python310ParserSingle(start_symbol="stmts", debug_parser=debug_parser)
 
     p.version = version
@@ -159,14 +163,15 @@ if __name__ == "__main__":
 
         test_expr = lambda x, y: x + 1
 
-        ast = python_parser(
-            test_expr.__code__, showasm=True,
-            compile_mode="single", is_pypy=IS_PYPY,
-            is_lambda=False,
-            )
+        # from trepan.api import debug; debug()
+        # ast = python_parser(
+        #     test_expr.__code__, showasm=True,
+        #     compile_mode="eval", is_pypy=IS_PYPY,
+        #     is_lambda=False,
+        #     )
 
-        print(ast)
-        print("+" * 30)
+        # print(ast)
+        # print("+" * 30)
 
         ast = python_parser(
             test_expr.__code__, showasm=True,
