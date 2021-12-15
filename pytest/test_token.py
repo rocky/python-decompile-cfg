@@ -1,4 +1,4 @@
-from decompyle3.scanners.tok import Token
+from decompile_ng.scanners.tok import Token
 
 
 def test_token():

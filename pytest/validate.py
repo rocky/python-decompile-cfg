@@ -5,8 +5,8 @@ import subprocess
 import tempfile
 import functools
 
-# decompyle3 / xdis
-from decompyle3 import PYTHON_VERSION_TRIPLE, IS_PYPY, code_deparse
+from decompile_ng import code_deparse
+from xdis.version_info import PYTHON_VERSION_TRIPLE, IS_PYPY
 
 # TODO : I think we can get xdis to support the dis api (python 3 version) by doing something like this there
 from xdis import Bytecode, get_opcode

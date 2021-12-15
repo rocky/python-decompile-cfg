@@ -173,7 +173,7 @@ class Scanner310Base(Scanner):
     def ingest(self, co, classname=None, code_objects={}, show_asm=None):
         """
         Pick out tokens from an decompile_ng code object, and transform them,
-        returning a list of decompyle3 Token's.
+        returning a list of decompyle-ng Token's.
 
         The transformations are made to assist the deparsing grammar.
         Specificially:

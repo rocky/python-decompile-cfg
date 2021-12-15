@@ -26,7 +26,7 @@ from decompile_ng.semantics.consts import (
     INDENT_PER_LEVEL,
     maxint,
 )
-from decompyle3.semantics.helper import flatten_list, escape_string, strip_quotes
+from decompile_ng.semantics.helper import flatten_list, escape_string, strip_quotes
 
 
 def escape_format(s):
