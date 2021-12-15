@@ -32,8 +32,13 @@ class ParserError(Exception):
 
 
 class PythonBaseParser(GenericASTBuilder):
-    def __init__(self, start_symbol, debug_parser, is_lambda=False):
-        super(PythonBaseParser, self).__init__(SyntaxTree, start_symbol, debug_parser)
+    def __init__(self, debug_parser,  start_symbol, is_lambda=False):
+
+        # Note: order of debug_parser, and start_symbol is reverse from above.
+        # This is because (at least at one time), start_symbol can be defaulted
+        # in the setup, while debug_parser could have been but wasn't.
+        GenericASTBuilder.__init__(self, SyntaxTree, start_symbol, debug_parser)
+
         # FIXME: customize per python parser version
 
         # These are the non-terminals we should collect into a list.
@@ -264,10 +269,28 @@ class PythonParserEval(PythonBaseParser):
         expr_stmt ::= expr POP_TOP
         """
 
-    def __init__(self, start_symbol, debug_parser):
+    def __init__(self, debug_parser, start_symbol="call_stmt"):
         super(PythonParserEval, self).__init__(
                         start_symbol, debug_parser
         )
+
+
+class PythonParserExpr(PythonBaseParser):
+    """
+    This corresponds to a single grammar expression: "expr". It is a small
+    to parse for that might be used when larger pieces of code can't decompile.
+    """
+    def p_expr_start_rule(self, args):
+        """
+        expr_start       ::= dom_start
+                             expr
+                             return_value_opt
+                             dom_end_opt
+        return_value_opt ::= RETURN_VALUE?
+        """
+
+    def __init__(self, debug_parser, start_symbol="expr_start"):
+        super(PythonParserExpr, self).__init__(start_symbol, debug_parser)
 
 
 class PythonParserExec(PythonBaseParser):
@@ -280,9 +303,10 @@ class PythonParserExec(PythonBaseParser):
     #     stmts ::= stmt+
     #     """
 
-    def __init__(self, start_symbol, debug_parser):
+    def __init__(self, debug_parser, start_symbol="stmts"):
         super(PythonParserExec, self).__init__(
-                        start_symbol, debug_parser
+            debug_parser=debug_parser,
+            start_symbol=start_symbol
         )
 
 
@@ -294,19 +318,18 @@ class PythonParserLambda(PythonBaseParser):
         """
         # lambda-mode compilation.  Lambda compilation
         # adds another rule.
-        lambda_start       ::= DOM_START BB_START
+        lambda_start       ::= dom_start
                                return_lambda
                                dom_end_opt
         """
-        # FIXME: add a suitable __init__
 
-    def __init__(self, SyntaxTree, debug_parser, start_symbol="lambda_start"):
+    def __init__(self, debug_parser, start_symbol="lambda_start"):
         # lambda_start is the highest level nonterminal. However
         # we can pass in other nonterminals like "expr" for a different
         # parse.
         super(PythonParserLambda, self).__init__(
-            start_symbol=start_symbol,
             debug_parser=debug_parser,
+            start_symbol=start_symbol,
         )
 
 
@@ -325,10 +348,7 @@ class PythonParserSingle(PythonBaseParser):
         """
 
     def __init__(self, debug_parser, start_symbol="stmts"):
-        super(PythonParserSingle, self).__init__(
-            start_symbol, debug_parser
-        )
-
+        super(PythonParserSingle, self).__init__(debug_parser, start_symbol)
     pass
 
 

@@ -27,6 +27,14 @@ import sys
 from xdis import iscode
 from xdis.version_info import PYTHON_VERSION_TRIPLE, IS_PYPY
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
+from decompile_ng.parsers.p310.heads import (
+    Python310ParserLambda,
+    Python310ParserEval,
+    Python310ParserExec,
+    Python310ParserExpr,
+    Python310ParserSingle,
+)
+
 from decompile_ng.show import maybe_show_asm
 
 
@@ -66,28 +74,16 @@ def get_python_parser(
         raise RuntimeError(f"Unsupported Python version {version}")
 
     if compile_mode in ("exec"):
-        from decompile_ng.parsers.p310.heads import Python310ParserExec
         p = Python310ParserExec(debug_parser=debug_parser)
     if compile_mode == "single":
-        # Note: this is the same as "exec", but there should be *something* different.
-        from decompile_ng.parsers.p310.heads import Python310ParserSingle
         p = Python310ParserSingle(debug_parser=debug_parser)
     elif compile_mode == "lambda":
-        from decompile_ng.parsers.p310.lambda_expr import Python310LambdaParser
-
-        p = Python310LambdaParser(start_symbol="lambda_start",
-                                  debug_parser=debug_parser)
-        ## If the above gives a parse error, use the below to debug what grammar rule(s)
-        ## need to get added
-        # p = parse310.Python310ParserSingle(debug_parser, compile_mode=compile_mode)
+        p = Python310ParserLambda(debug_parser=debug_parser)
     elif compile_mode == "eval":
-        from decompile_ng.parsers.p310.heads import Python310ParserEval
         p = Python310ParserEval(debug_parser=debug_parser)
-    elif compile_mode == "eval_expr":
-        from decompile_ng.parsers.p310.heads import Python310ParserExpr
+    elif compile_mode == "expr":
         p = Python310ParserExpr(debug_parser=debug_parser)
     else:
-        from decompile_ng.parsers.p310.heads import Python310ParserSingle
         p = Python310ParserSingle(debug_parser=debug_parser)
 
     p.version = version
@@ -150,7 +146,10 @@ if __name__ == "__main__":
         testing = lambda x, y: "0" <= x <= "9" and "a" <= y <= "f"
 
         ast = python_parser(
-            testing.__code__, showasm=True, compile_mode="lambda", is_pypy=IS_PYPY,
+            testing.__code__,
+            showasm=True,
+            compile_mode="lambda",
+            is_pypy=IS_PYPY,
             is_lambda=True,
         )
         print(ast)
@@ -167,24 +166,27 @@ if __name__ == "__main__":
         #     "dups": False,
         #     }
 
-
-        # ast = python_parser(
-        #     test_expr.__code__, showasm=True,
-        #     compile_mode="eval", is_pypy=IS_PYPY,
-        #     is_lambda=False,
-        #     parser_debug=parser_debug,
-        #     )
-
-        # print(ast)
-        # print("+" * 30)
-
         ast = python_parser(
-            test_expr.__code__, showasm=True,
-            compile_mode="single", is_pypy=IS_PYPY,
+            test_expr.__code__,
+            showasm=True,
+            compile_mode="single",
+            is_pypy=IS_PYPY,
             is_lambda=False,
         )
         print(ast)
         print("-" * 30)
+
+        ast = python_parser(
+            test_expr.__code__,
+            showasm=True,
+            compile_mode="expr",
+            is_pypy=IS_PYPY,
+            is_lambda=False,
+            # parser_debug=parser_debug,
+        )
+
+        print(ast)
+        print("+" * 30)
         return
 
     parse_test(parse_test.__code__)

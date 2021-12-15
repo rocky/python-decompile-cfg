@@ -1939,15 +1939,30 @@ def code_deparse(
     isTopLevel = co.co_name == "<module>"
     deparsed.ast = deparsed.build_ast(tokens, customize, co, isTopLevel=isTopLevel)
 
-    assert deparsed.ast == "stmts", "Should have parsed grammar start"
+    # FIXME use a lookup table here.
+    if compile_mode == "lambda":
+        expected_start = "lambda_start"
+    elif compile_mode == "eval":
+        expected_start = "expr_stmt"
+    elif compile_mode == "expr":
+        expected_start = "expr_start"
+    elif compile_mode == "exec":
+        expected_start = "stmts"
+    elif compile_mode == "single":
+        expected_start = "stmts"
+    else:
+        expected_start = None
+    if expected_start:
+        assert (
+            deparsed.ast == expected_start
+        ), f"Should have parsed grammar start to '{expected_start}'; got: {deparsed.ast.kind}"
 
     # save memory
     del tokens
 
     # convert leading '__doc__ = "..." into doc string
-    assert deparsed.ast == "stmts"
 
-    (deparsed.mod_globs, nonlocals) = pysource.find_globals_and_nonlocals(
+    deparsed.mod_globs, nonlocals = pysource.find_globals_and_nonlocals(
         deparsed.ast, set(), set(), co, version
     )
 
