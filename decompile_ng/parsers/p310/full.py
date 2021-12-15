@@ -132,6 +132,7 @@ class Python310Parser(Python310LambdaParser):
         stmt ::= expr_stmt
         stmt ::= call_stmt
 
+        expr_stmt ::= expr POP_TOP
         call_stmt ::= call
 
         stmt ::= ifstmt

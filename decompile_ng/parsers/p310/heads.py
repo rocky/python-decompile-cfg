@@ -13,6 +13,7 @@ from decompile_ng.parsers.p310.full import Python310Parser
 from decompile_ng.parsers.p310.lambda_expr import Python310LambdaParser
 from decompile_ng.parsers.parse_heads import (
     PythonParserEval,
+    PythonParserExec,
     PythonParserLambda,
     PythonParserSingle,
 )
@@ -33,6 +34,10 @@ class Python310ParserLambda(Python310LambdaParser, PythonParserLambda):
 class Python310ParserEval(PythonParserEval, Python310LambdaParser):
     def __init__(self, debug_parser):
         PythonParserEval.__init__(self, "call_stmt", debug_parser)
+
+class Python310ParserExec(PythonParserExec, Python310Parser):
+    def __init__(self, debug_parser):
+        PythonParserExec.__init__(self, "stmts", debug_parser)
 
 # FIXME
 class Python310ParserExpr(PythonParserEval, Python310Parser):

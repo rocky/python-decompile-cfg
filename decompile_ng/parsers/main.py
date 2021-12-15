@@ -66,10 +66,10 @@ def get_python_parser(
         raise RuntimeError(f"Unsupported Python version {version}")
 
     if compile_mode in ("exec"):
-        from decompile_ng.parsers.p310.heads import Python310Parser
-        p = Python310Parser(start_symbol="stmt", debug_parser=debug_parser)
+        from decompile_ng.parsers.p310.heads import Python310ParserExec
+        p = Python310ParserExec(debug_parser=debug_parser)
     if compile_mode == "single":
-        # Note: thisis the same as "exec", but there should be *something* different.
+        # Note: this is the same as "exec", but there should be *something* different.
         from decompile_ng.parsers.p310.heads import Python310ParserSingle
         p = Python310ParserSingle(debug_parser=debug_parser)
     elif compile_mode == "lambda":

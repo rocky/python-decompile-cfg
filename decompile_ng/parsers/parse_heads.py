@@ -48,6 +48,7 @@ class PythonBaseParser(GenericASTBuilder):
             "kvlist",
             "kwargs",
             "or_parts",
+            "stmts",
         ]
         self.collect = frozenset(nt_list)
 
@@ -269,7 +270,26 @@ class PythonParserEval(PythonBaseParser):
         )
 
 
+class PythonParserExec(PythonBaseParser):
+    """
+    This corresponds to the compile-mode == "exec" of the `compile()` builtin
+    or exec() builtin function
+    """
+    # def p_exec(self, args):
+    #     """
+    #     stmts ::= stmt+
+    #     """
+
+    def __init__(self, start_symbol, debug_parser):
+        super(PythonParserExec, self).__init__(
+                        start_symbol, debug_parser
+        )
+
+
 class PythonParserLambda(PythonBaseParser):
+    """
+    This corresponds to the Python lambda definitions
+    """
     def p_lambda_start_rule(self, args):
         """
         # lambda-mode compilation.  Lambda compilation
@@ -291,6 +311,10 @@ class PythonParserLambda(PythonBaseParser):
 
 
 class PythonParserSingle(PythonBaseParser):
+    """
+    This corresponds to the compile-mode == "single"
+    in the *compile()* builtin
+    """
     def p_single_start_rule(self, args):
         """
         # The start or goal symbol
@@ -318,7 +342,7 @@ class PythonParser(PythonBaseParser):
         elif compile_mode == "eval":
             PythonParserEval.__init__(self, debug_parser=debug_parser)
         elif compile_mode == "exec":
-            PythonParserEval.__init__(self, debug_parser=debug_parser)
+            PythonParserExec.__init__(self, debug_parser=debug_parser)
         elif compile_mode == "eval_expr":
             PythonParserEval.__init__(self, debug_parser=debug_parser)
 
