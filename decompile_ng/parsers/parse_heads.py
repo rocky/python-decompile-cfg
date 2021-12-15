@@ -1,17 +1,18 @@
-"""
-Here we have the top-level parse grammar types with their rules and the start symbols
+"""Here we have the top-level parse grammar types with their rules and the start symbols
 for them.
 
-Specific Python versions will subclass these for the specific Python version that they have.
-
+Specific Python versions such as for Python 3.10 subclass these and
+add in grammar rules that are custom to them.
 
 However at the top-level they are all the same and share the same start symbol
+and start-symbol grammar rule.
+
 """
 # The below adds a special "start" rule for the kind of thing that we want to
 # decompile
 
+from decompile_ng.parsers.treenode import SyntaxTree
 from spark_parser import GenericASTBuilder
-
 
 def nop_func(self, args):
     return None
@@ -31,7 +32,7 @@ class ParserError(Exception):
 
 
 class PythonBaseParser(GenericASTBuilder):
-    def __init__(self, SyntaxTree, start_symbol, debug_parser, is_lambda=False):
+    def __init__(self, start_symbol, debug_parser, is_lambda=False):
         super(PythonBaseParser, self).__init__(SyntaxTree, start_symbol, debug_parser)
         # FIXME: customize per python parser version
 
@@ -47,6 +48,7 @@ class PythonBaseParser(GenericASTBuilder):
             "kvlist",
             "kwargs",
             "or_parts",
+            "stmts",
         ]
         self.collect = frozenset(nt_list)
 
@@ -76,6 +78,7 @@ class PythonBaseParser(GenericASTBuilder):
         self.is_lambda = is_lambda
 
         self.start_symbol = start_symbol
+        self.new_rules = set()
 
     def ast_first_offset(self, ast):
         if hasattr(ast, "offset"):
@@ -255,44 +258,38 @@ class PythonParserEval(PythonBaseParser):
     def p_eval_start_rule(self, args):
         """
         call_stmt ::= expr PRINT_EXPR
+
+        # eval-mode compilation.  Single-mode interactive compilation
+        # adds another rule.
+        expr_stmt ::= expr POP_TOP
         """
 
-    def __init__(self, SyntaxTree, debug_parser):
+    def __init__(self, start_symbol, debug_parser):
         super(PythonParserEval, self).__init__(
-            SyntaxTree, "call_start", debug_parser, is_lambda=False
+                        start_symbol, debug_parser
         )
-
-    pass
 
 
 class PythonParserExec(PythonBaseParser):
-    def __init__(self, SyntaxTree, debug_parser):
+    """
+    This corresponds to the compile-mode == "exec" of the `compile()` builtin
+    or exec() builtin function
+    """
+    # def p_exec(self, args):
+    #     """
+    #     stmts ::= stmt+
+    #     """
+
+    def __init__(self, start_symbol, debug_parser):
         super(PythonParserExec, self).__init__(
-            SyntaxTree, "stmts", debug_parser, is_lambda=False
-        )
-
-    pass
-
-
-class PythonParserExpr(PythonBaseParser):
-    def p_expr_start_rule(self, args):
-        """
-        # expr compilation.  Eval compilation
-        # adds another rule.
-        return_value_opt ::= RETURN_VALUE?
-        expr_start       ::= DOM_START BB_START
-                             expr
-                             return_value_opt
-                             dom_end
-        """
-
-    def __init__(self, SyntaxTree, debug_parser, start_symbol="expr_start"):
-        super(PythonParserExpr, self).__init__(
-            SyntaxTree, start_symbol, debug_parser, is_lambda=False
+                        start_symbol, debug_parser
         )
 
 
 class PythonParserLambda(PythonBaseParser):
+    """
+    This corresponds to the Python lambda definitions
+    """
     def p_lambda_start_rule(self, args):
         """
         # lambda-mode compilation.  Lambda compilation
@@ -308,13 +305,16 @@ class PythonParserLambda(PythonBaseParser):
         # we can pass in other nonterminals like "expr" for a different
         # parse.
         super(PythonParserLambda, self).__init__(
-            SyntaxTree,
             start_symbol=start_symbol,
             debug_parser=debug_parser,
         )
 
 
 class PythonParserSingle(PythonBaseParser):
+    """
+    This corresponds to the compile-mode == "single"
+    in the *compile()* builtin
+    """
     def p_single_start_rule(self, args):
         """
         # The start or goal symbol
@@ -324,28 +324,27 @@ class PythonParserSingle(PythonBaseParser):
         sstmt_plus ::= sstmt+
         """
 
-    def __init__(self, SyntaxTree, debug_parser, start_symbol="stmts", is_lambda=False):
+    def __init__(self, debug_parser, start_symbol="stmts"):
         super(PythonParserSingle, self).__init__(
-            SyntaxTree, start_symbol, debug_parser, is_lambda=is_lambda
+            start_symbol, debug_parser
         )
 
     pass
 
 
 class PythonParser(PythonBaseParser):
-    def __init__(self, SyntaxTree, compile_mode, debug_parser):
-        from trepan.api import debug; debug()
+    def __init__(self, compile_mode, debug_parser):
         # FIXME: go over.
         if compile_mode == "single":
-            PythonParserSingle.__init__(self, SyntaxTree, debug_parser=debug_parser)
+            PythonParserSingle.__init__(self, debug_parser=debug_parser)
         elif compile_mode == "lambda":
-            PythonParserLambda.__init__(self, SyntaxTree, debug_parser=debug_parser)
+            PythonParserLambda.__init__(self, debug_parser=debug_parser)
         elif compile_mode == "eval":
-            PythonParserEval.__init__(self, SyntaxTree, debug_parser=debug_parser)
+            PythonParserEval.__init__(self, debug_parser=debug_parser)
         elif compile_mode == "exec":
-            PythonParserExec.__init__(self, SyntaxTree, debug_parser=debug_parser)
+            PythonParserExec.__init__(self, debug_parser=debug_parser)
         elif compile_mode == "eval_expr":
-            PythonParserExpr.__init__(self, SyntaxTree, debug_parser=debug_parser)
+            PythonParserEval.__init__(self, debug_parser=debug_parser)
 
         else:
             raise BaseException(

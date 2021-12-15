@@ -18,7 +18,7 @@ This contains grammar rules but not rules for the start symbol or a
 start symbol name. That is elsewhere.
 
 By leaving out the start symbol rules and name, this module and its
-classes can used as a superclass in other grammars, although
+classes be can used as a superclass in other grammars, although
 Python310Parser is probably pretty much top-level.
 """
 
@@ -34,13 +34,6 @@ class Python310Parser(Python310LambdaParser):
     ###############################################
     #  Python 3.10 grammar rules with statements
     ###############################################
-    def p_eval_mode(self, args):
-        """
-        # eval-mode compilation.  Single-mode interactive compilation
-        # adds another rule.
-        expr_stmt ::= expr POP_TOP
-        """
-
     def p_stmt_loop(self, args):
         """
         #########################################################
@@ -139,6 +132,7 @@ class Python310Parser(Python310LambdaParser):
         stmt ::= expr_stmt
         stmt ::= call_stmt
 
+        expr_stmt ::= expr POP_TOP
         call_stmt ::= call
 
         stmt ::= ifstmt
