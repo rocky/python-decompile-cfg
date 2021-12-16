@@ -120,11 +120,6 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         jump_or_break      ::= jump
         jump_or_break      ::= BREAK_LOOP
 
-        # These are used to keep parse tree indices the same
-        # in "if"/"else" like rules.
-        jump_forward_else  ::= JUMP_FORWARD _come_froms
-        jump_forward_else  ::= come_froms jump COME_FROM
-
         pjump_ift          ::= POP_JUMP_IF_TRUE
         pjump_ift          ::= POP_JUMP_IF_TRUE_BACK
 
@@ -263,22 +258,23 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
                       bb_end_start
                       store list_iter
                       jump_back
+                      bb_doms_end_start_opt
 
         list_comp ::= BUILD_LIST_0 list_iter
 
-        list_if_not_end ::= pjump_ift _come_froms
-        list_if_not ::= expr list_if_not_end list_iter come_from_opt
-
-        list_if     ::= expr pjump_iff list_iter come_from_opt
+        list_if     ::= expr list_if_end list_iter
         list_if     ::= expr jump_if_false_cf   list_iter
-        list_if_or_not ::= expr_pjit expr_pjit COME_FROM list_iter
 
-        list_if_end ::= pjump_iff _come_froms
-        list_if     ::= expr list_if_end list_iter come_from_opt
+        list_if_end ::= pjump_iff BB_END dom_start
 
         jb_or_c ::= JUMP_BACK
         jb_or_c ::= CONTINUE
 
+        # Need to fix or remove
+        list_if     ::= expr pjump_iff list_iter come_from_opt
+        list_if_or_not ::= expr_pjit expr_pjit COME_FROM list_iter
+        list_if_not_end ::= pjump_ift _come_froms
+        list_if_not ::= expr list_if_not_end list_iter come_from_opt
 
         """
 
@@ -295,8 +291,6 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP BB_END
         expr_pjiff                 ::= expr pjump_iff
         expr_pjift                 ::= expr pjump_ift
-
-        if_exp                     ::= expr_pjif expr jump_forward_else expr come_froms
 
         if_exp37                   ::= expr expr    jf_cfs expr COME_FROM
         if_exp37                   ::= bool_op expr jf_cfs expr COME_FROM
@@ -318,7 +312,6 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         expr                       ::= if_exp_37a
         expr                       ::= if_exp_37b
         if_exp_37a                 ::= and_not expr JUMP_FORWARD come_froms expr COME_FROM
-        if_exp_37b                 ::= expr_pjif expr_pjif jump_forward_else expr
         """
 
     def p_comprehension3(self, args):
@@ -372,11 +365,6 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
     def p_expr3(self, args):
         """
         expr               ::= if_exp_not
-        if_exp_not         ::= expr POP_JUMP_IF_TRUE expr jump_forward_else expr COME_FROM
-
-        # a JUMP_FORWARD to another JUMP_FORWARD can get turned into
-        # a JUMP_ABSOLUTE with no COME_FROM
-        if_exp             ::= expr_pjif expr jump_forward_else expr
 
         # if_exp_true are are IfExp which always evaluate true, e.g.:
         #      x = a if 1 else b

@@ -76,24 +76,31 @@ def customize_for_version3(self, version):
         """List comprehensions in Python 3 when handled as a closure.
         See if we can combine code.
         """
+
+        # FIXME: DRY with comprehension_walk_newer
         p = self.prec
         self.prec = 27
 
         code_obj = node[1].attr
-        assert iscode(code_obj)
-        code = Code(code_obj, self.scanner, self.currentclass)
+        assert iscode(code_obj), node[1]
+        code = Code(code_obj, self.scanner, self.currentclass, self.debug_opts["asm"])
+
         ast = self.build_ast(code._tokens, code._customize, code)
         self.customize(code._customize)
 
         # skip over: sstmt, stmt, return, ret_expr
         # and other singleton derivations
         while len(ast) == 1 or (
-            ast in ("sstmt", "return") and ast[-1] in ("RETURN_LAST", "RETURN_VALUE")
+            ast in ("sstmt", "return", "ret_expr")
         ):
             self.prec = 100
             ast = ast[0]
 
         n = ast[1]
+
+        # Pick out important parts of the comprehension:
+        # * the variables we iterate over: "stores"
+        # * the results we accumulate: "n"
 
         # collections is the name of the expression(s) we are iterating over
         collections = [node[-3]]
@@ -109,8 +116,8 @@ def customize_for_version3(self, version):
             n = n[0]
 
             if n == "list_for":
-                stores.append(n[2])
-                n = n[3]
+                stores.append(n[3])
+                n = n[4]
                 if n[0] == "list_for":
                     # Dog-paddle down largely singleton reductions
                     # to find the collection (expr)
@@ -127,6 +134,7 @@ def customize_for_version3(self, version):
                     list_ifs.append(n)
                 else:
                     list_ifs.append([1])
+                # FIXME: figure out what is up with come_from_opt - we have bb stuff
                 n = n[-2] if n[-1] == "come_from_opt" else n[-1]
                 pass
             elif n == "list_if37":

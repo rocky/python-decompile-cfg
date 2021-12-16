@@ -1017,12 +1017,13 @@ class SourceWalker(GenericASTTraversal, object):
         """Non-closure-based comprehensions the way they are done in Python3
         and some Python 2.7. Note: there are also other set comprehensions.
         """
+        # FIXME: DRY with listcomp_closure3
         p = self.prec
         self.prec = 27
-        code = node[code_index].attr
 
-        assert iscode(code), node[code_index]
-        code = Code(code, self.scanner, self.currentclass, self.debug_opts["asm"])
+        code_obj = node[code_index].attr
+        assert iscode(code_obj), node[code_index]
+        code = Code(code_obj, self.scanner, self.currentclass, self.debug_opts["asm"])
 
         ast = self.build_ast(code._tokens, code._customize, code)
         self.customize(code._customize)
