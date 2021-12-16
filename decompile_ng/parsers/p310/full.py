@@ -437,7 +437,6 @@ class Python310Parser(Python310LambdaParser):
         binary_operator  ::= BINARY_MATRIX_MULTIPLY
 
         # FIXME: do we need these?
-        ret_expr ::= expr
         return_if_stmt ::= ret_expr RETURN_END_IF POP_BLOCK
 
         jb_cf     ::= JUMP_BACK COME_FROM
@@ -924,12 +923,6 @@ class Python310Parser(Python310LambdaParser):
 
         # 3.6 redoes how return_closure works. FIXME: Isolate to LOAD_CLOSURE
         return_closure   ::= LOAD_CLOSURE DUP_TOP STORE_NAME RETURN_VALUE RETURN_LAST
-
-        # 3.6 due to jump optimization, we sometimes add RETURN_END_IF where
-        # RETURN_VALUE is meant. Specifcally this can happen in
-        # ifelsestmt -> ...else_suite _. suite_stmts... (last) stmt
-        return ::= ret_expr RETURN_END_IF
-        return ::= ret_expr RETURN_VALUE
 
         jf_cf        ::= JUMP_FORWARD COME_FROM
 

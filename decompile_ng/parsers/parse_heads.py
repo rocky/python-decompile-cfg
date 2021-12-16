@@ -14,6 +14,7 @@ and start-symbol grammar rule.
 from decompile_ng.parsers.treenode import SyntaxTree
 from spark_parser import GenericASTBuilder
 
+
 def nop_func(self, args):
     return None
 
@@ -32,7 +33,7 @@ class ParserError(Exception):
 
 
 class PythonBaseParser(GenericASTBuilder):
-    def __init__(self, debug_parser,  start_symbol, is_lambda=False):
+    def __init__(self, debug_parser, start_symbol, is_lambda=False):
 
         # Note: order of debug_parser, and start_symbol is reverse from above.
         # This is because (at least at one time), start_symbol can be defaulted
@@ -260,7 +261,7 @@ class PythonBaseParser(GenericASTBuilder):
 
 
 class PythonParserEval(PythonBaseParser):
-    def p_eval_start_rule(self, args):
+    def p_start_rule_eval(self, args):
         """
         call_stmt ::= expr PRINT_EXPR
 
@@ -270,17 +271,17 @@ class PythonParserEval(PythonBaseParser):
         """
 
     def __init__(self, debug_parser, start_symbol="call_stmt"):
-        super(PythonParserEval, self).__init__(
-                        start_symbol, debug_parser
-        )
+        super(PythonParserEval, self).__init__(start_symbol, debug_parser)
 
 
 class PythonParserExpr(PythonBaseParser):
+    """This corresponds to a single grammar expression: "expr". It matches smaller
+    units, so it is something to parse for that might be used when larger
+    pieces of code can't decompile.
+
     """
-    This corresponds to a single grammar expression: "expr". It is a small
-    to parse for that might be used when larger pieces of code can't decompile.
-    """
-    def p_expr_start_rule(self, args):
+
+    def p_start_rule_expr(self, args):
         """
         expr_start       ::= dom_start
                              expr
@@ -298,6 +299,7 @@ class PythonParserExec(PythonBaseParser):
     This corresponds to the compile-mode == "exec" of the `compile()` builtin
     or exec() builtin function
     """
+
     # def p_exec(self, args):
     #     """
     #     stmts ::= stmt+
@@ -305,8 +307,7 @@ class PythonParserExec(PythonBaseParser):
 
     def __init__(self, debug_parser, start_symbol="stmts"):
         super(PythonParserExec, self).__init__(
-            debug_parser=debug_parser,
-            start_symbol=start_symbol
+            debug_parser=debug_parser, start_symbol=start_symbol
         )
 
 
@@ -314,19 +315,18 @@ class PythonParserLambda(PythonBaseParser):
     """
     This corresponds to the Python lambda definitions
     """
-    def p_lambda_start_rule(self, args):
+
+    def p_start_rule_lambda(self, args):
         """
-        # lambda-mode compilation.  Lambda compilation
-        # adds another rule.
         lambda_start       ::= dom_start
                                return_lambda
                                dom_end_opt
         """
 
+    # lambda_start is the highest level nonterminal. However
+    # we can pass in other nonterminals like "expr" for a different
+    # parse.
     def __init__(self, debug_parser, start_symbol="lambda_start"):
-        # lambda_start is the highest level nonterminal. However
-        # we can pass in other nonterminals like "expr" for a different
-        # parse.
         super(PythonParserLambda, self).__init__(
             debug_parser=debug_parser,
             start_symbol=start_symbol,
@@ -338,7 +338,8 @@ class PythonParserSingle(PythonBaseParser):
     This corresponds to the compile-mode == "single"
     in the *compile()* builtin
     """
-    def p_single_start_rule(self, args):
+
+    def p_start_rule_single(self, args):
         """
         # The start or goal symbol
         stmts ::= dom_start
@@ -349,6 +350,7 @@ class PythonParserSingle(PythonBaseParser):
 
     def __init__(self, debug_parser, start_symbol="stmts"):
         super(PythonParserSingle, self).__init__(debug_parser, start_symbol)
+
     pass
 
 

@@ -185,8 +185,8 @@ class Scanner310Base(Scanner):
         Also, when we encounter certain tokens, we add them to a set which will cause custom
         grammar rules. Specifically, variable arg tokens like MAKE_FUNCTION or BUILD_LIST
         cause specific rules for the specific number of arguments they take.
-        """
 
+        """
         def tokens_append(j, token):
             tokens.append(token)
             self.offset2tok_index[token.offset] = j
@@ -456,7 +456,7 @@ class Scanner310Base(Scanner):
                 # sometimes classify JUMP_BACK as CONTINUE, but that's
                 # okay since grammar rules should tolerate that.
                 pattr = argval
-                target = self.get_target(inst.offset)
+                target = inst.argval
                 if target <= inst.offset:
                     next_opname = self.insts[i + 1].opname
 

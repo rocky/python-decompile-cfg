@@ -26,7 +26,6 @@ be used as a superclass in other grammars, such as a full grammar for Python 3.1
 
 from decompile_ng.parsers.p310.base import Python310BaseParser
 from decompile_ng.parsers.parse_heads import PythonParserLambda, PythonBaseParser
-from decompile_ng.parsers.treenode import SyntaxTree
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 
 class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
@@ -50,8 +49,10 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         doms_end        ::= DOM_END+
         dom_end_opt     ::= dom_end?
 
-        bb_doms_end_start_opt ::= bb_doms_end dom_start
-        bb_doms_end_start_opt ::=
+        bb_end_start          ::= BB_END dom_start
+        bb_doms_end_start     ::= bb_doms_end dom_start
+        bb_doms_end_start_opt ::= bb_doms_end_start?
+
         """
 
     # Conditional jumps with dominator information included
@@ -82,6 +83,10 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
 
         if_exp_not_lambda2 ::= expr_pjit dom_start expr
                                RETURN_VALUE bb_doms_end return_lambda
+
+        ret_expr ::= expr
+        return   ::= ret_expr RETURN_VALUE bb_doms_end
+
         """
 
     def p_310bool_ops(self, args):
@@ -106,74 +111,7 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         or_parts   ::= or_part+
 
         or_and     ::= or_parts expr jifop_expr
-
-        #### Below not gone over
-
-        # Note: "and" like "nor" might not have a trailing "come_from".
-        #       "nand" and "or", in contrast, *must* have at least one "come_from".
-        not_or       ::= and_parts expr_pjif _come_froms
-
-        # Nonterminals that end in "_cond" are used in "conditions":
-        # used for testing in control structures where the test is important and
-        # the value popped. Conditions also generally have non-local COME_FROMs
-        # that often need to be checked in the control structure. This is for example
-        # how we determine the difference between some "if not (not a or b) versus
-        # "if a and b".
-
-        and_cond     ::= and_parts expr_pjif _come_froms
-        and_cond     ::= testfalse expr_pjif _come_froms
-        and_not_cond ::= and_not
-
-        nand       ::= and_parts expr_pjit  come_froms
-        c_nand     ::= and_parts expr_pjift come_froms
-
-        # Note: "nor" like "and" might not have a trailing "come_from".
-        #       "nand" and "or_cond", in contrast, *must* have at least one "come_from".
-        or_cond     ::= or_parts expr_pjif come_froms
-        or_cond     ::= not_and_not expr_pjif come_froms
-        or_cond1    ::= and POP_JUMP_IF_TRUE come_froms expr_pjif come_from_opt
-
-        nor_cond    ::= or_parts expr_pjif
-
-        # When we alternating and/or's such as:
-        #    a and (b or c) and d
-        # instead of POP_JUMP_IF_TRUE, JUMP_IF_FALSE_OR_POP is sometimes be used
-        # The semantic rules for "and" require expr-like things in positions 0 and 1,
-        # thus the use of expr_jifop_cfs below.
-
-        or_and1        ::= or_parts and_parts come_froms
-        # and_or         ::= expr_jifop expr come_from_opt JUMP_IF_TRUE_OR_POP expr _come_froms
-
-        ## A COME_FROM is dropped off because of JUMP-to-JUMP optimization
-        # and       ::= expr_pjif expr
-
-        ## Note that "POP_JUMP_IF_FALSE" is what we check on in the "and" reduce rule.
-        # and       ::= expr_pjif expr COME_FROM
-
-        jump_if_false_cf ::= POP_JUMP_IF_FALSE COME_FROM
-        and_or_cond      ::= and_parts expr POP_JUMP_IF_TRUE come_froms expr_pjif _come_froms
-
-        # For "or", keep index 0 and 1 be the two expressions.
-
-        or        ::= expr_pjit  expr COME_FROM
-        or        ::= expr_pjit  expr jump_if_false_cf
-
-        or_expr ::= expr JUMP_IF_TRUE expr COME_FROM
         """
-
-    # def p_come_froms(self, args):
-    #     """
-    #     # Zero or one COME_FROM
-    #     # And/or expressions have this
-    #     come_from_opt ::= COME_FROM?
-
-    #     # One or more COME_FROMs - joins of tryelse's have this
-    #     come_froms    ::= COME_FROM+
-
-    #     # Zero or more COME_FROMs - loops can have this
-    #     _come_froms   ::= COME_FROM*
-    #     _come_froms   ::= COME_FROM_LOOP
-    #     """
 
     def p_jump(self, args):
         """
@@ -211,94 +149,6 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
 
         compare_chained2    ::= expr COMPARE_OP JUMP_FORWARD
         compare_chained2    ::= expr COMPARE_OP RETURN_VALUE
-
-        compare_chained     ::= compare_chained37
-        compare_chained     ::= compare_chained37_false
-
-        compare_chained_and ::= expr chained_parts
-                                compare_chained2a_false_37
-                                come_froms
-                                POP_TOP JUMP_FORWARD COME_FROM
-                                negated_testtrue
-                                come_froms
-
-        # We don't use testtrue directly because we need to tell the semantic
-        # action to negate the testtrue
-        negated_testtrue ::= testtrue
-
-
-        c_compare_chained   ::= c_compare_chained37_false
-
-        compare_chained37   ::= expr chained_parts
-        compare_chained37   ::= expr compare_chained1a_37
-        compare_chained37   ::= expr compare_chained1c_37
-        c_compare_chained37   ::= expr c_compare_chained1a_37
-        # c_compare_chained37   ::= expr c_compare_chained1c_37
-
-        compare_chained37_false   ::= expr compare_chained1_false_37
-        compare_chained37_false   ::= expr compare_chained1b_false_37
-        compare_chained37_false   ::= expr compare_chained2_false_37
-
-        c_compare_chained37_false ::= expr c_compare_chained2_false_37
-        c_compare_chained37_false ::= expr c_compare_chained1b_false_37
-        c_compare_chained37_false ::= compare_chained37_false
-
-        chained_parts              ::= chained_part+
-        chained_part               ::= expr DUP_TOP ROT_THREE COMPARE_OP come_from_opt POP_JUMP_IF_FALSE
-
-        # c_chained_parts            ::= c_chained_part+
-        # c_chained_part             ::= expr DUP_TOP ROT_THREE COMPARE_OP come_from_opt POP_JUMP_IF_FALSE_BACK
-        # c_chained_parts            ::= chained_parts
-
-
-        compare_chained1a_37       ::= chained_parts
-                                       compare_chained2a_37 COME_FROM
-                                       POP_TOP come_from_opt
-        c_compare_chained1a_37     ::= chained_parts
-                                       c_compare_chained2a_37 COME_FROM
-                                       POP_TOP come_from_opt
-
-        compare_chained1b_false_37 ::= chained_parts
-                                       compare_chained2b_false_37
-                                       POP_TOP jump _come_froms
-
-        c_compare_chained1b_false_37 ::= chained_parts
-                                         c_compare_chained2b_false_37 POP_TOP jump _come_froms
-        c_compare_chained1b_false_37 ::= chained_parts
-                                         compare_chained2b_false_37 POP_TOP jump _come_froms
-
-        compare_chained1c_37       ::= chained_parts
-                                       compare_chained2a_37 POP_TOP
-
-        compare_chained1_false_37  ::= chained_parts
-                                       compare_chained2c_37 POP_TOP JUMP_FORWARD come_from_opt
-        compare_chained1_false_37  ::= chained_parts
-                                       compare_chained2b_false_37 POP_TOP jump COME_FROM
-
-        compare_chained2_false_37  ::= chained_parts
-                                      compare_chained2a_false_37 POP_TOP JUMP_BACK COME_FROM
-        c_compare_chained2_false_37  ::= chained_parts
-                                         c_compare_chained2a_false_37 POP_TOP JUMP_BACK COME_FROM
-
-        compare_chained2a_37       ::= expr COMPARE_OP come_from_opt POP_JUMP_IF_TRUE JUMP_FORWARD
-        c_compare_chained2a_37     ::= expr COMPARE_OP come_from_opt POP_JUMP_IF_TRUE_BACK JUMP_FORWARD
-
-
-        compare_chained2a_37       ::= expr COMPARE_OP come_from_opt POP_JUMP_IF_TRUE JUMP_BACK
-        compare_chained2a_false_37 ::= expr COMPARE_OP come_from_opt POP_JUMP_IF_FALSE jf_cfs
-
-
-        compare_chained2b_false_37   ::= expr COMPARE_OP come_from_opt POP_JUMP_IF_FALSE
-                                         jump_or_break COME_FROM
-        c_compare_chained2b_false_37 ::= expr COMPARE_OP come_from_opt POP_JUMP_IF_FALSE_BACK
-                                         jump_or_break COME_FROM
-        c_compare_chained2a_false_37 ::= expr COMPARE_OP come_from_opt POP_JUMP_IF_FALSE_BACK
-                                         jf_cfs
-        c_compare_chained2a_false_37 ::= expr COMPARE_OP come_from_opt POP_JUMP_IF_FALSE_BACK
-        c_compare_chained2b_false_37 ::= expr COMPARE_OP come_from_opt JUMP_FORWARD COME_FROM
-
-
-        compare_chained2c_37       ::= chained_parts compare_chained2a_false_37
         """
 
     def p_expr(self, args):
@@ -405,7 +255,15 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         list_iter ::= lc_body
 
         lc_body   ::= expr LIST_APPEND
-        list_for  ::= expr for_iter store list_iter jb_or_c _come_froms
+
+        jump_back ::= JUMP_BACK bb_doms_end_start
+
+        list_for  ::= expr
+                      for_iter
+                      bb_end_start
+                      store list_iter
+                      jump_back
+
         list_comp ::= BUILD_LIST_0 list_iter
 
         list_if_not_end ::= pjump_ift _come_froms
@@ -467,6 +325,8 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         """
         # Python3 scanner adds LOAD_LISTCOMP. Python3 does list comprehension like
         # other comprehensions (set, dictionary).
+
+        for_iter       ::= bb_end_start FOR_ITER
 
         # Our "continue" heuristic -  in two successive JUMP_BACKS, the first
         # one may be a continue - sometimes classifies a JUMP_BACK

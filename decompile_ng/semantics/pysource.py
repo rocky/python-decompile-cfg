@@ -493,7 +493,6 @@ class SourceWalker(GenericASTTraversal, object):
             # We can't comment out like above because there may be a trailing ')'
             # that needs to be written
             if len(node) - opt_start - opt_end >= 4:
-                from trepan.api import debug; debug()
                 assert len(node) == 4+opt_start and node[2+opt_start].kind in (
                     "RETURN_VALUE_LAMBDA",
                     "LAMBDA_MARKER",
@@ -1023,7 +1022,7 @@ class SourceWalker(GenericASTTraversal, object):
         code = node[code_index].attr
 
         assert iscode(code), node[code_index]
-        code = Code(code, self.scanner, self.currentclass)
+        code = Code(code, self.scanner, self.currentclass, self.debug_opts["asm"])
 
         ast = self.build_ast(code._tokens, code._customize, code)
         self.customize(code._customize)
@@ -1031,7 +1030,7 @@ class SourceWalker(GenericASTTraversal, object):
         # skip over: sstmt, stmt, return, ret_expr
         # and other singleton derivations
         while len(ast) == 1 or (
-            ast in ("sstmt", "return") and ast[-1] in ("RETURN_LAST", "RETURN_VALUE")
+            ast in ("sstmt", "return", "ret_expr")
         ):
             self.prec = 100
             ast = ast[0]
@@ -1093,11 +1092,11 @@ class SourceWalker(GenericASTTraversal, object):
                 n = n[0]
 
             if n in ("list_for", "comp_for"):
-                if n[2] == "store" and not store:
-                    store = n[2]
+                if n[3] == "store" and not store:
+                    store = n[3]
                     if not comp_store:
                         comp_store = store
-                n = n[3]
+                n = n[4]
             elif n in (
                 "list_if",
                 "list_if_not",
@@ -1119,8 +1118,6 @@ class SourceWalker(GenericASTTraversal, object):
                     pass
             pass
 
-        # Python 2.7+ starts including set_comp_body
-        # Python 3.5+ starts including set_comp_func
         assert store, "Couldn't find store in list/set comprehension"
 
         # A problem created with later Python code generation is that there
@@ -1154,7 +1151,7 @@ class SourceWalker(GenericASTTraversal, object):
             list_iter = ast[1]
             assert list_iter == "list_iter"
             if list_iter[0] == "list_for":
-                self.preorder(list_iter[0][3])
+                self.preorder(list_iter[0][4])
                 self.prec = p
                 return
             pass
@@ -2095,13 +2092,16 @@ class SourceWalker(GenericASTTraversal, object):
 
         self.classes.pop(-1)
 
-    def gen_source(self, ast, name, customize, is_lambda=False, returnNone=False):
+    def gen_source(self, ast, name, customize, is_lambda=False,
+                   returnNone=False,
+                   debug_opts=None):
         """convert SyntaxTree to Python source code"""
 
         rn = self.return_none
         self.return_none = returnNone
         old_name = self.name
         self.name = name
+        self.debug_opts = debug_opts
         # if code would be empty, append 'pass'
         if len(ast) == 0:
             self.println(self.indent, "pass")
@@ -2303,7 +2303,9 @@ def code_deparse(
     )
 
     # What we've been waiting for: Generate source from Syntax Tree!
-    deparsed.gen_source(deparsed.ast, co.co_name, customize)
+    deparsed.gen_source(deparsed.ast, name=co.co_name,
+                        customize=customize,
+                        debug_opts=debug_opts)
 
     for g in sorted(deparsed.mod_globs):
         deparsed.write("# global %s ## Warning: Unused global\n" % g)
