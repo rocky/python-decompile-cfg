@@ -84,7 +84,7 @@ files = [
     ]
 
 for base in files:
-    filename = f"bytecode_{version_tuple_to_str()/{base}s.pyc"
+    filename = f"bytecode_{version_tuple_to_str()}/{base}s.pyc"
     version, timestamp, magic_int, co = decompile_ng.load_module(filename)
     ok = True
 

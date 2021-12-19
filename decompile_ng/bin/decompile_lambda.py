@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Mode: -*- python -*-
 #
-# Copyright (c) 2015-2016, 2018, 2020 by Rocky Bernstein <rb@dustyfeet.com>
+# Copyright (c) 2015-2016, 2018, 2020-2021 by Rocky Bernstein <rb@dustyfeet.com>
 #
 import sys, os, getopt
 
@@ -43,7 +43,7 @@ Type -h for for full help."""
         print("%s: %s" % (os.path.basename(sys.argv[0]), e), file=sys.stderr)
         sys.exit(-1)
 
-    for opt, val in opts:
+    for opt, _ in opts:
         if opt in ("-h", "--help"):
             print(__doc__)
             sys.exit(1)
@@ -55,9 +55,16 @@ Type -h for for full help."""
             print(Usage_short, file=sys.stderr)
             sys.exit(1)
 
-    for file in files:
-        if os.path.exists(files[0]):
-            decompile_lambda_fns(file, sys.stdout)
+    for filename in files[1:]:
+        if os.path.isdir(filename):
+            for subdir, dirs, files in os.walk(filename):
+                for filename in files:
+                    filepath = subdir + os.sep + filename
+                    if filepath.endswith(".pyc") or filepath.endswith(".py") or filepath.endswith(".pyo"):
+                        print("XXX", filepath)
+                        decompile_lambda_fns(filepath, sys.stdout)
+        elif os.path.exists(filename):
+            decompile_lambda_fns(filename, sys.stdout)
             print()
         else:
             print("Can't read %s - skipping" % files[0], file=sys.stderr)
