@@ -58,6 +58,7 @@ Type -h for for full help."""
     for file in files:
         if os.path.exists(files[0]):
             decompile_lambda_fns(file, sys.stdout)
+            print()
         else:
             print("Can't read %s - skipping" % files[0], file=sys.stderr)
             pass

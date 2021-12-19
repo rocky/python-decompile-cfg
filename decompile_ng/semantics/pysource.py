@@ -2119,7 +2119,8 @@ class SourceWalker(GenericASTTraversal, object):
             self.println(self.indent, "pass")
         else:
             self.customize(customize)
-            self.text = self.traverse(ast, is_lambda=is_lambda)
+            text = self.traverse(ast, is_lambda=is_lambda)
+            self.println(text)
         self.name = old_name
         self.return_none = rn
 
@@ -2168,8 +2169,8 @@ class SourceWalker(GenericASTTraversal, object):
 
         # Also return DOM_START BB_START and BB_END DOM_END
         if self.hide_internal:
-            assert len(tokens) >= 4
             assert tokens[0] == "DOM_START"
+            assert len(tokens) >= 4
             del tokens[0]
             assert tokens[0] == "BB_START"
             del tokens[0]
