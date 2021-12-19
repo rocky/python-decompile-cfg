@@ -38,9 +38,12 @@ class Scanner310(Scanner310Base):
     pass
 
     def ingest(self, co, classname=None, code_objects={}, show_asm=None) -> tuple:
-        tokens, customize = Scanner310Base.ingest(
-            self, co, classname, code_objects, show_asm
-        )
+        try:
+            tokens, customize = Scanner310Base.ingest(
+                self, co, classname, code_objects, show_asm
+            )
+        except:
+            from trepan.api import debug; debug()
         for t in tokens:
             # The lowest bit of flags indicates whether the
             # var-keyword argument is placed at the top of the stack

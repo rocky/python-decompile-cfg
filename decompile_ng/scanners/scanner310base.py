@@ -206,7 +206,7 @@ class Scanner310Base(Scanner):
         if co.co_name.endswith(">"):
             name = name[:-1]
         try:
-            if show_asm in ("both", "before"):
+            if show_asm in ("both", "before", "after"):
                 dot_path = '/tmp/flow-%s.dot' % name
                 png_path = '/tmp/flow-%s.png' % name
                 open(dot_path, 'w').write(cfg.graph.to_dot(False))
@@ -217,7 +217,7 @@ class Scanner310Base(Scanner):
             cfg.dom_tree = dt.tree(False)
             dfs_forest(cfg.dom_tree, False)
             build_dom_set(cfg.dom_tree, False)
-            if show_asm in ("both", "before"):
+            if show_asm in ("both", "before", "after"):
                 dot_path = '/tmp/flow-dom-%s.dot' % name
                 png_path = '/tmp/flow-dom-%s.png' % name
                 open(dot_path, 'w').write(cfg.dom_tree.to_dot())

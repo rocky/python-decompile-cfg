@@ -5,7 +5,7 @@
 #
 import sys, os, getopt
 
-from decompile_ng.disas import disassemble_file
+from decompile_ng.lambda_fns import decompile_lambda_fns
 from decompile_ng.version import __version__
 
 program, ext = os.path.splitext(os.path.basename(__file__))
@@ -15,23 +15,7 @@ Usage:
   {0} [OPTIONS]... FILE
   {0} [--help | -h | -V | --version]
 
-Disassemble FILE with the instruction mangling that is done to
-assist decompile_ng in parsing the instruction stream. For example
-instructions with variable-length arguments like CALL_FUNCTION and
-BUILD_LIST have argument counts appended to the instruction name, and
-COME_FROM instructions are inserted into the instruction stream.
-
-Examples:
-  {0} foo.pyc
-  {0} foo.py    # same thing as above but find the file
-  {0} foo.pyc bar.pyc  # disassemble foo.pyc and bar.pyc
-
-See also `pydisasm' from the `xdis' package.
-
-Options:
-  -V | --version     show version and stop
-  -h | --help        show this message
-
+decompile all lambda functions FILE.
 """.format(
     program
 )
@@ -73,7 +57,8 @@ Type -h for for full help."""
 
     for file in files:
         if os.path.exists(files[0]):
-            disassemble_file(file, sys.stdout)
+            decompile_lambda_fns(file, sys.stdout)
+            print()
         else:
             print("Can't read %s - skipping" % files[0], file=sys.stderr)
             pass

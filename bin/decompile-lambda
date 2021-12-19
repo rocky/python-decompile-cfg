@@ -1,0 +1,3 @@
+#!/usr/bin/env python
+from decompile_ng.bin.decompile_lambda import main
+main()

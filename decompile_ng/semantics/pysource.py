@@ -176,6 +176,7 @@ from decompile_ng.util import better_repr
 
 from io import StringIO
 
+DEFAULT_DEBUG_OPTS = {"asm": False, "tree": False, "grammar": False}
 
 class SourceWalkerError(Exception):
     def __init__(self, errmsg):
@@ -1023,6 +1024,10 @@ class SourceWalker(GenericASTTraversal, object):
 
         code_obj = node[code_index].attr
         assert iscode(code_obj), node[code_index]
+        try:
+            self.debug_opts["asm"]
+        except:
+            from trepan.api import debug; debug()
         code = Code(code_obj, self.scanner, self.currentclass, self.debug_opts["asm"])
 
         ast = self.build_ast(code._tokens, code._customize, code)
@@ -2093,10 +2098,16 @@ class SourceWalker(GenericASTTraversal, object):
 
         self.classes.pop(-1)
 
-    def gen_source(self, ast, name, customize, is_lambda=False,
-                   returnNone=False,
-                   debug_opts=None):
-        """convert SyntaxTree to Python source code"""
+    def gen_source(
+        self,
+        ast,
+        name,
+        customize,
+        is_lambda=False,
+        returnNone=False,
+        debug_opts=DEFAULT_DEBUG_OPTS,
+    ):
+        """convert parse tree to Python source code"""
 
         rn = self.return_none
         self.return_none = returnNone
@@ -2107,11 +2118,9 @@ class SourceWalker(GenericASTTraversal, object):
         if len(ast) == 0:
             self.println(self.indent, "pass")
         else:
-            if is_lambda:
-                self.write(self.traverse(ast, is_lambda=is_lambda))
-            else:
-                self.text = self.traverse(ast, is_lambda=is_lambda)
-                self.println(self.text)
+            self.customize(customize)
+            text = self.traverse(ast, is_lambda=is_lambda)
+            self.println(text)
         self.name = old_name
         self.return_none = rn
 
@@ -2160,8 +2169,8 @@ class SourceWalker(GenericASTTraversal, object):
 
         # Also return DOM_START BB_START and BB_END DOM_END
         if self.hide_internal:
-            assert len(tokens) >= 4
             assert tokens[0] == "DOM_START"
+            assert len(tokens) >= 4
             del tokens[0]
             assert tokens[0] == "BB_START"
             del tokens[0]
@@ -2211,10 +2220,6 @@ class SourceWalker(GenericASTTraversal, object):
     @classmethod
     def _get_mapping(cls, node):
         return MAP.get(node, MAP_DIRECT)
-
-
-#
-DEFAULT_DEBUG_OPTS = {"asm": False, "tree": False, "grammar": False}
 
 
 def code_deparse(
