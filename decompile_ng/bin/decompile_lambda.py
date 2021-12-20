@@ -70,12 +70,13 @@ Type -h for for full help."""
                             print()
                             success += 1
                             total += 1
-            elif os.path.exists(filename):
-                decompile_lambda_fns(filename, sys.stdout,
-                                     showasm=None, showast=False)
-                print()
-                success += 1
-                total += 1
+            elif os.path.exists(filename) and not os.path.islink(filename):
+                if filename.endswith(".pyc") or filename.endswith(".py") or filename.endswith(".pyo") or os.path.isdir(filename):
+                    decompile_lambda_fns(filename, sys.stdout,
+                                         showasm=None, showast=False)
+                    print()
+                    success += 1
+                    total += 1
             else:
                 print(f"Can't read {filename}; skipping", file=sys.stderr)
                 skipped += 1
