@@ -1030,7 +1030,7 @@ class SourceWalker(GenericASTTraversal, object):
             from trepan.api import debug; debug()
         code = Code(code_obj, self.scanner, self.currentclass, self.debug_opts["asm"])
 
-        ast = self.build_ast(code._tokens, code._customize, code)
+        ast = self.build_ast(code._tokens, code._customize, code, is_lambda=self.is_lambda)
         self.customize(code._customize)
 
         # skip over: sstmt, stmt, return, ret_expr
@@ -2119,8 +2119,8 @@ class SourceWalker(GenericASTTraversal, object):
             self.println(self.indent, "pass")
         else:
             self.customize(customize)
-            text = self.traverse(ast, is_lambda=is_lambda)
-            self.println(text)
+            self.text = self.traverse(ast, is_lambda=is_lambda)
+            self.println(self.text)
         self.name = old_name
         self.return_none = rn
 
@@ -2311,6 +2311,7 @@ def code_deparse(
     # What we've been waiting for: Generate source from Syntax Tree!
     deparsed.gen_source(deparsed.ast, name=co.co_name,
                         customize=customize,
+                        is_lambda = compile_mode == "lambda",
                         debug_opts=debug_opts)
 
     for g in sorted(deparsed.mod_globs):

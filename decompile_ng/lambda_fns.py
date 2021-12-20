@@ -36,8 +36,10 @@ from xdis import check_object_path, iscode, load_module
 from decompile_ng.scanner import get_scanner
 from decompile_ng.semantics.pysource import code_deparse
 
+# from spark_parser import GenericASTTraversal, DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 
-def disco(version: str, co, out=None, is_pypy=False) -> None:
+
+def disco_deparse(version: str, co, out, is_pypy, debug_opts) -> None:
     """
     diassembles and deparses a given code block 'co'
     """
@@ -53,10 +55,10 @@ def disco(version: str, co, out=None, is_pypy=False) -> None:
     scanner = get_scanner(version, is_pypy=is_pypy)
 
     queue = deque([co])
-    disco_loop(scanner.ingest, queue, real_out, is_pypy)
+    disco_deparse_loop(scanner.ingest, queue, real_out, is_pypy, debug_opts)
 
 
-def disco_loop(disasm, queue, real_out, is_pypy):
+def disco_deparse_loop(disasm, queue, real_out, is_pypy, debug_opts):
     while len(queue) > 0:
         co = queue.popleft()
         if co.co_name == "<lambda>":
@@ -69,7 +71,9 @@ def disco_loop(disasm, queue, real_out, is_pypy):
             code_deparse(
                 co,
                 real_out,
+                debug_opts=debug_opts,
                 is_pypy=is_pypy,
+                # compile_mode="exec",
                 compile_mode="lambda",
             )
 
@@ -83,21 +87,23 @@ def disco_loop(disasm, queue, real_out, is_pypy):
         pass
 
 
-# def disassemble_fp(fp, outstream=None):
-#     """
-#     disassemble Python byte-code from an open file
-#     """
-#     (version, timestamp, magic_int, co, is_pypy,
-#      source_size) = load_from_fp(fp)
-#     if type(co) == list:
-#         for con in co:
-#             disco(version, con, outstream)
-#     else:
-#         disco(version, co, outstream, is_pypy=is_pypy)
-#     co = None
+PARSER_DEFAULT_DEBUG = {
+    "rules": False,
+    "transition": False,
+    "reduce": True,
+    "errorstack": "full",
+    "context": True,
+    "dups": False,
+}
 
 
-def decompile_lambda_fns(filename: str, outstream=None) -> None:
+def decompile_lambda_fns(
+    filename: str,
+    outstream=None,
+    showasm=None,
+    showast={"after"},
+    showgrammar=PARSER_DEFAULT_DEBUG,
+) -> None:
     """
     decompile all of the lambda functions in a python byte-code file (.pyc)
 
@@ -105,12 +111,18 @@ def decompile_lambda_fns(filename: str, outstream=None) -> None:
     decompile all lambdas of the corresponding compiled object.
     """
     filename = check_object_path(filename)
-    (version, timestamp, magic_int, co, is_pypy, source_size, sip_hash) = load_module(filename)
+    (version, timestamp, magic_int, co, is_pypy, source_size, sip_hash) = load_module(
+        filename
+    )
+
+    debug_opts = {"asm": showasm, "ast": showast, "grammar": showgrammar}
     if type(co) == list:
         for con in co:
-            disco(version, con, outstream)
+            disco_deparse(
+                version, con, outstream, is_pypy, showasm, showast, showgrammar
+            )
     else:
-        disco(version, co, outstream, is_pypy=is_pypy)
+        disco_deparse(version, co, outstream, is_pypy, debug_opts)
     co = None
 
 

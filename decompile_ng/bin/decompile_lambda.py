@@ -55,21 +55,36 @@ Type -h for for full help."""
             print(Usage_short, file=sys.stderr)
             sys.exit(1)
 
-    for filename in files[1:]:
-        if os.path.isdir(filename):
-            for subdir, dirs, files in os.walk(filename):
-                for filename in files:
-                    filepath = subdir + os.sep + filename
-                    if filepath.endswith(".pyc") or filepath.endswith(".py") or filepath.endswith(".pyo"):
-                        print("XXX", filepath)
-                        decompile_lambda_fns(filepath, sys.stdout)
-        elif os.path.exists(filename):
-            decompile_lambda_fns(filename, sys.stdout)
-            print()
-        else:
-            print("Can't read %s - skipping" % files[0], file=sys.stderr)
+    success = 0
+    skipped = 0
+    total = 0
+    for filename in files:
+        try:
+            if os.path.isdir(filename):
+                for subdir, dirs, files in os.walk(filename):
+                    for filename in files:
+                        filepath = subdir + os.sep + filename
+                        if filepath.endswith(".pyc") or filepath.endswith(".py") or filepath.endswith(".pyo"):
+                            decompile_lambda_fns(filepath, sys.stdout)
+                            success += 1
+                            total += 1
+            elif os.path.exists(filename):
+                decompile_lambda_fns(filename, sys.stdout,
+                                     showasm="after", showast=True)
+                print()
+                success += 1
+                total += 1
+            else:
+                print(f"Can't read {filename}; skipping", file=sys.stderr)
+                skipped += 1
+                total += 1
+                pass
             pass
+        except:
+            print(sys.exc_info()[1])
+            total += 1
         pass
+    print(f"total: {total}, success: {success}")
     return
 
 
