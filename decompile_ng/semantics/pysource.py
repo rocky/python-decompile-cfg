@@ -1668,7 +1668,17 @@ class SourceWalker(GenericASTTraversal, object):
         elif lastnodetype.startswith("ROT_TWO"):
             self.write("(")
             endchar = ")"
+        elif node.kind == "list":
+            # FIXME: Something in tree building went weird. We had:
+            # list
+            #    BUILD_LIST_0          0
+            # but the "BUILD_LIST_0 is gone as a child.
+            self.write("[]")
+            self.prec = p
+            self.prune()
+            return
         else:
+            from trepan.api import debug; debug()
             raise TypeError(
                 "Internal Error: n_build_list expects list, tuple, set, or unpack"
             )

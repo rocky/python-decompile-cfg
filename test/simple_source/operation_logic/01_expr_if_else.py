@@ -4,3 +4,6 @@
 
 lambda a, b, c: a if c else b
 lambda a: False if not a else True
+
+# From 3.10 fontTools/subset/__init__.py. The else [] uses a BUILD_LIST_0
+lambda glyphs, c, r: [r] if r in glyphs else []
