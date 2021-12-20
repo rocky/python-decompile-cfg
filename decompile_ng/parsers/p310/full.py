@@ -180,6 +180,8 @@ class Python310Parser(Python310LambdaParser):
 
         stmt   ::= return
 
+        return ::= ret_expr RETURN_VALUE bb_doms_end
+
         # "returns" nonterminal is a sequence of statements that ends in a RETURN statement.
         # In later Python versions with jump optimization, this can cause JUMPs
         # that would normally appear to be omitted.
@@ -814,6 +816,14 @@ class Python310Parser(Python310LambdaParser):
 
     def p_jump3(self, args):
         """
+        # Do we need these?
+        # jump               ::= JUMP_FORWARD
+        # jump               ::= JUMP_BACK
+        # jump_or_break      ::= jump
+        # jump_or_break      ::= BREAK_LOOP
+
+        ret_expr ::= expr
+
         # FIXME: simplify this
         ret_expr_or_cond ::= if_exp_ret
         ret_expr_or_cond ::= ret_expr

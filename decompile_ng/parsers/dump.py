@@ -14,12 +14,12 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """Common grammar dump and check routine"""
 
-def dump_and_check(p, version: float, modified_tokens: set) -> None:
+def dump_and_check(p, version: tuple, modified_tokens: set, start_set: set={}) -> None:
 
     p.dump_grammar()
     print("=" * 50, "\n")
 
-    p.check_grammar()
+    p.check_grammar(ok_start_symbols=start_set)
     from xdis.version_info import PYTHON_VERSION_TRIPLE, IS_PYPY
 
     if PYTHON_VERSION_TRIPLE[:2] == version:

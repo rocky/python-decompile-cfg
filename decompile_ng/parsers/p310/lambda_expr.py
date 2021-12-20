@@ -100,8 +100,6 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
     def p_conditionals(self, args):
         """
         expr                       ::= if_exp37
-        branch_op                    ::= and_cond
-        branch_op                    ::= and_not_cond
         branch_op                    ::= and POP_JUMP_IF_TRUE expr
 
         expr_pjif                  ::= expr POP_JUMP_IF_FALSE BB_END
@@ -111,9 +109,6 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         expr_pjiff                 ::= expr pjump_iff
         expr_pjift                 ::= expr pjump_ift
 
-        if_exp37                   ::= expr expr    jf_cfs expr COME_FROM
-        if_exp37                   ::= branch_op expr jf_cfs expr COME_FROM
-        jf_cfs                     ::= JUMP_FORWARD _come_froms
         list_iter                  ::= list_if37
         list_iter                  ::= list_if37_not
         list_if37                  ::= c_compare_chained37_false list_iter
@@ -123,14 +118,13 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         # based on whether the POP_IF_JUMP location matches the location of the
         # POP_JUMP_IF_FALSE.
 
-        and_not                    ::= expr_pjif expr_pjit
-        or_and_not                 ::= expr_pjit and_not COME_FROM
-
-        not_and_not                ::= not expr_pjif COME_FROM
-
-        expr                       ::= if_exp_37a
-        expr                       ::= if_exp_37b
-        if_exp_37a                 ::= and_not expr JUMP_FORWARD come_froms expr COME_FROM
+        # Do we need these?
+        # and_not                    ::= expr_pjif expr_pjit
+        # or_and_not                 ::= expr_pjit and_not COME_FROM
+        # not_and_not                ::= not expr_pjif COME_FROM
+        #
+        # expr                       ::= if_exp_37a
+        # if_exp_37a                 ::= and_not expr JUMP_FORWARD come_froms expr COME_FROM
         """
 
     def p_comprehension(self, args):
@@ -145,8 +139,10 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         # one may be a continue - sometimes classifies a JUMP_BACK
         # as a CONTINUE. The two are kind of the same in a comprehension.
 
+        # FIXME: go over:
         comp_for       ::= expr get_for_iter store comp_iter CONTINUE _come_froms
         comp_for       ::= expr get_for_iter store comp_iter JUMP_BACK _come_froms
+
         get_for_iter   ::= GET_ITER _come_froms FOR_ITER
 
         comp_body      ::= dict_comp_body
@@ -167,13 +163,8 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         c_or       ::= c_or_parts expr
         c_or_parts ::= expr_pjift+
 
-        # Semantic rules require "comp_if" to have index 0 be some
-        # sort of "expr" and index 1 to be some sort of "comp_iter"
-        c_compare     ::= compare
-
         comp_if       ::= expr_pjif comp_iter
         comp_if       ::= expr_pjiff comp_iter
-        comp_if       ::= c_compare comp_iter
         comp_if       ::= or_jump_if_false_cf comp_iter
         comp_if       ::= c_or_jump_if_false_cf comp_iter
         comp_if_not   ::= expr pjump_ift comp_iter
@@ -211,9 +202,6 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
 
         list_if_end ::= pjump_iff BB_END dom_start
 
-        jb_or_c ::= JUMP_BACK
-        jb_or_c ::= CONTINUE
-
         # Need to fix or remove
         list_if     ::= expr pjump_iff list_iter come_from_opt
         list_if_or_not ::= expr_pjit expr_pjit COME_FROM list_iter
@@ -242,8 +230,8 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         expr ::= compare
         expr ::= compare_in
         expr ::= compare_is
-        expr ::= if_exp
-        expr ::= if_exp_not
+        # expr ::= if_exp
+        # expr ::= if_exp_not
         expr ::= if_exp_true
         expr ::= named_expr
         expr ::= not
@@ -333,11 +321,6 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
 
     def p_jump(self, args):
         """
-        jump               ::= JUMP_FORWARD
-        jump               ::= JUMP_BACK
-        jump_or_break      ::= jump
-        jump_or_break      ::= BREAK_LOOP
-
         pjump_ift          ::= POP_JUMP_IF_TRUE
         pjump_ift          ::= POP_JUMP_IF_TRUE_BACK
 
@@ -367,10 +350,6 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
 
         if_exp_not_lambda2 ::= expr_pjit dom_start expr
                                RETURN_VALUE bb_doms_end return_lambda
-
-        ret_expr ::= expr
-        return   ::= ret_expr RETURN_VALUE bb_doms_end
-
         """
 
     def p_store(self, args):
@@ -386,10 +365,11 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         ##   designLists ::=
         ## Will need to redo semantic actiion
 
-        store           ::= STORE_FAST
-        store           ::= STORE_NAME
-        store           ::= STORE_GLOBAL
         store           ::= STORE_DEREF
+        store           ::= STORE_FAST
+        store           ::= STORE_GLOBAL
+        store           ::= STORE_NAME
+
         store           ::= expr STORE_ATTR
         store           ::= store_subscript
         store_subscript ::= expr expr STORE_SUBSCR
@@ -421,4 +401,4 @@ LOAD_GENEXPR LOAD_ASSERT LOAD_SETCOMP LOAD_DICTCOMP LOAD_CLASSNAME
         """.split()
         )
 
-    dump_and_check(p, (3, 10), modified_tokens)
+    dump_and_check(p, (3, 10), modified_tokens, set(["lambda_start"]))
