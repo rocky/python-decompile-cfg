@@ -644,7 +644,7 @@ class Python310Parser(Python310LambdaParser):
 
         ifelsestmt    ::= testexpr
                           stmts_opt jf_cfs else_suite_opt opt_come_from_except
-        ifelsestmt    ::= bool_op
+        ifelsestmt    ::= branch_op
                           stmts_opt jf_cfs else_suite_opt opt_come_from_except
 
 

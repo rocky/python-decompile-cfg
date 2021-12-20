@@ -374,7 +374,7 @@ def customize_for_version37(self, version):
 
     self.n_async_call = n_async_call
 
-    def n_attribute37(node):
+    def n_attribute(node):
         expr = node[0]
         assert expr == "expr"
         if expr[0] == "LOAD_CONST":
@@ -386,7 +386,7 @@ def customize_for_version37(self, version):
             node.kind = "attribute_w_parens"
         self.default(node)
 
-    self.n_attribute37 = n_attribute37
+    self.n_attribute = n_attribute
 
     def n_build_list_unpack(node):
         """

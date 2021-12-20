@@ -207,12 +207,12 @@ TABLE_DIRECT = {
                                 (-1, 'binary_operator'),
                                 ( 1, 'expr' ) ),
 
-    'bool_op_compound_prefix': ( '%c(%c)',
+    'branch_op_compound_prefix': ( '%c(%c)',
                                  (3, 'unary_operator'),
-                                 (0, 'bool_op') ),
+                                 (0, 'branch_op') ),
 
-    'bool_op_compound_suffix': ( '(%c) %c %c',
-                                 (0, 'bool_op'),
+    'branch_op_compound_suffix': ( '(%c) %c %c',
+                                 (0, 'branch_op'),
                                  (4, 'binary_operator'),
                                  (3, 'expr') ),
 
@@ -390,10 +390,13 @@ TABLE_DIRECT = {
                         ( "%p if not %c else %c",
                           (2, "expr", 27), 0, 4 ),
 
-    "compare_single":	    ( '%p %[-1]{pattr.replace("-", " ")} %p', (0, 19), (1, 19) ),
-    "compare_chained":	    ( "%p %p", (0, 29), (1, 30)),
+    "compare_single":	    ( '%p %[-1]{pattr.replace("-", " ")} %p',
+                             (0, "expr", 19), (1, "expr", 19) ),
+    "compare_chained":	    ( "%p %p", (0, "expr", 29), (1, "compare_chained1", 30)),
     "compare_chained1":	    ( '%[3]{pattr.replace("-", " ")} %p %p', (0, 19), (5, 19)),
     "compare_chained2":	    ( '%[1]{pattr.replace("-", " ")} %p', (0, 19)),
+    "compare_in":	        ( "%p in %p",(0, "expr", 19), (1, "expr", 19) ),
+    "compare_is":	        ( "%p is %p",(0, "expr", 19), (1, "expr", 19) ),
 
     "c_compare_chained":    ( "%p %p", (0, 29), (1, 30)),
 

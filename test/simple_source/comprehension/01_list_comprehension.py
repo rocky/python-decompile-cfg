@@ -25,7 +25,7 @@ lambda n: [
         __name__ == "__main__"
         ) else 5
 
-
+# Variable "i" is not bound, so this is handled as a closure.
 lambda n: [
     i * i
     for i

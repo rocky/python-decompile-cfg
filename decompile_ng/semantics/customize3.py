@@ -85,7 +85,7 @@ def customize_for_version3(self, version):
         assert iscode(code_obj), node[1]
         code = Code(code_obj, self.scanner, self.currentclass, self.debug_opts["asm"])
 
-        ast = self.build_ast(code._tokens, code._customize, code)
+        ast = self.build_ast(code._tokens, code._customize, code, is_lambda = self.compile_mode == "lambda")
         self.customize(code._customize)
 
         # skip over: sstmt, stmt, return, ret_expr
@@ -106,6 +106,8 @@ def customize_for_version3(self, version):
         collections = [node[-3]]
         list_ifs = []
 
+        if n.kind == "return_lambda":
+            self.prune()
         assert n == "list_iter"
         stores = []
         # Find the list comprehension body. It is the inner-most

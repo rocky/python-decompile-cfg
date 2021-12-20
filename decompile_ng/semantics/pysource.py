@@ -284,6 +284,7 @@ class SourceWalker(GenericASTTraversal, object):
         # An example is:
         # __module__ = __name__
         self.hide_internal = True
+        self.compile_mode = "exec"
         self.name = None
         self.version = version
         self.is_pypy = is_pypy
@@ -1068,6 +1069,13 @@ class SourceWalker(GenericASTTraversal, object):
         elif ast == "list_comp_async":
             store = ast[2][1]
         else:
+            # FIXME: we get this wehen we parse lambda's explicitly.
+            # And here we've already printed/handled the list comprehension
+            # this iteration is duplicate in seeing the list-comprehension code
+            # item again. Is this a larger duplicate parsing problem?
+            # Not sure what the best thi
+            if n.kind == "return_lambda":
+                self.prune()
             assert n == "list_iter", n
 
         # FIXME: I'm not totally sure this is right.
@@ -2270,6 +2278,7 @@ def code_deparse(
     isTopLevel = co.co_name == "<module>"
     if compile_mode == "eval":
         deparsed.hide_internal = False
+    deparsed.compile_mode = compile_mode
     deparsed.ast = deparsed.build_ast(tokens, customize, co,
                                       is_lambda=(compile_mode == "lambda"),
                                       isTopLevel=isTopLevel)

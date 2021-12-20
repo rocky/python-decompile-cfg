@@ -61,6 +61,7 @@ def disco_deparse(version: str, co, out, is_pypy, debug_opts) -> None:
 def disco_deparse_loop(disasm, queue, real_out, is_pypy, debug_opts):
     while len(queue) > 0:
         co = queue.popleft()
+        skip_token_scan = False
         if co.co_name == "<lambda>":
             print(
                 "\n# %s line %d of %s"
@@ -76,8 +77,11 @@ def disco_deparse_loop(disasm, queue, real_out, is_pypy, debug_opts):
                 # compile_mode="exec",
                 compile_mode="lambda",
             )
+            skip_token_scan = True
 
         tokens, customize = disasm(co)
+        if skip_token_scan:
+            continue
         for t in tokens:
             if iscode(t.pattr):
                 queue.append(t.pattr)

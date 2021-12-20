@@ -59,6 +59,7 @@ Type -h for for full help."""
     skipped = 0
     total = 0
     for filename in files:
+        print(f"total: {total}, success: {success}")
         try:
             if os.path.isdir(filename):
                 for subdir, dirs, files in os.walk(filename):
@@ -66,11 +67,12 @@ Type -h for for full help."""
                         filepath = subdir + os.sep + filename
                         if filepath.endswith(".pyc") or filepath.endswith(".py") or filepath.endswith(".pyo"):
                             decompile_lambda_fns(filepath, sys.stdout)
+                            print()
                             success += 1
                             total += 1
             elif os.path.exists(filename):
                 decompile_lambda_fns(filename, sys.stdout,
-                                     showasm="after", showast=True)
+                                     showasm=None, showast=False)
                 print()
                 success += 1
                 total += 1
@@ -81,6 +83,7 @@ Type -h for for full help."""
                 pass
             pass
         except:
+            print("Failure")
             print(sys.exc_info()[1])
             total += 1
         pass
