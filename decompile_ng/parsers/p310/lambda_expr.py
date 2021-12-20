@@ -132,7 +132,7 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         # Python3 scanner adds LOAD_LISTCOMP. Python3 does list comprehension like
         # other comprehensions (set, dictionary).
 
-        comp_iter      ::= comp_for
+        # comp_iter      ::= comp_for
         for_iter       ::= bb_end_start FOR_ITER
 
         # Our "continue" heuristic -  in two successive JUMP_BACKS, the first
@@ -140,8 +140,8 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         # as a CONTINUE. The two are kind of the same in a comprehension.
 
         # FIXME: go over:
-        comp_for       ::= expr get_for_iter store comp_iter CONTINUE _come_froms
-        comp_for       ::= expr get_for_iter store comp_iter JUMP_BACK _come_froms
+        # comp_for       ::= expr get_for_iter store comp_iter CONTINUE _come_froms
+        # comp_for       ::= expr get_for_iter store comp_iter JUMP_BACK _come_froms
 
         get_for_iter   ::= GET_ITER _come_froms FOR_ITER
 
@@ -156,9 +156,6 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
 
     def p_comprehension_dict(self, args):
         """"
-        or_jump_if_false_cf    ::= or POP_JUMP_IF_FALSE COME_FROM
-        c_or_jump_if_false_cf  ::= c_or POP_JUMP_IF_FALSE_BACK COME_FROM
-
         c_or       ::= or
         c_or       ::= c_or_parts expr
         c_or_parts ::= expr_pjift+
@@ -172,6 +169,9 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         comp_iter     ::= comp_body
         comp_iter     ::= comp_if
         comp_iter     ::= comp_if_not
+
+        # or_jump_if_false_cf    ::= or POP_JUMP_IF_FALSE COME_FROM
+        # c_or_jump_if_false_cf  ::= c_or POP_JUMP_IF_FALSE_BACK COME_FROM
         """
 
     def p_comprehension_list(self, args):
@@ -363,7 +363,7 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         ##   designList  ::= designLists store store
         ##   designLists ::= designLists store DUP_TOP
         ##   designLists ::=
-        ## Will need to redo semantic actiion
+        ## Will need to redo semantic action
 
         store           ::= STORE_DEREF
         store           ::= STORE_FAST
@@ -392,13 +392,9 @@ if __name__ == "__main__":
     # Note that the start_symbol from parse_heads is "lambda_start"
     # which is the same thing surrounded by dominator information.
     # But that doesn't appear here.
-    p = Python310LambdaParser(start_symbol="return_lambda")
+    p = Python310LambdaParser(start_symbol="lambda_start")
     modified_tokens = set(
-        """JUMP_BACK CONTINUE RETURN_END_IF BB_END BB_START DOM_END DOM_START
-
-LOAD_GENEXPR LOAD_ASSERT LOAD_SETCOMP LOAD_DICTCOMP LOAD_CLASSNAME
-           RETURN_LAST
-        """.split()
+        """JUMP_BACK CONTINUE BB_END BB_START DOM_END DOM_START""".split()
         )
 
     dump_and_check(p, (3, 10), modified_tokens, set(["lambda_start"]))
