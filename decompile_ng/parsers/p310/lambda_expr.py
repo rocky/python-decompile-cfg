@@ -345,7 +345,7 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         return_lambda      ::= if_exp_not_lambda2
         return_lambda      ::= if_exp_dead_code
 
-        if_exp_lambda2     ::= and_parts return_lambda
+        if_exp_lambda2     ::= and_parts return_lambda dom_start
                                return_lambda
 
         if_exp_not_lambda2 ::= expr_pjit dom_start expr

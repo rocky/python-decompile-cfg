@@ -362,7 +362,7 @@ TABLE_DIRECT = {
         "%c if %c else %c",
         (1, ("expr", "return_lambda")),
         (0, "and_parts"),
-        (-2,  "return_lambda"),
+        (-1,  "return_lambda"),
     ),
 
     "if_exp_not_lambda2": (
