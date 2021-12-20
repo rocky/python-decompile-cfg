@@ -43,6 +43,7 @@ class Scanner310(Scanner310Base):
                 self, co, classname, code_objects, show_asm
             )
         except:
+            # raise uncomment if you don't want to debug
             from trepan.api import debug; debug()
         for t in tokens:
             # The lowest bit of flags indicates whether the

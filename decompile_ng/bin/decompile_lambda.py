@@ -82,7 +82,8 @@ Type -h for for full help."""
                 total += 1
                 pass
             pass
-        except:
+        # except RuntimeError:  # uncomment out and comment out below to see traceback
+        except RuntimeError:
             print("Failure")
             print(sys.exc_info()[1])
             total += 1
