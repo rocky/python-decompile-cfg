@@ -233,6 +233,11 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         # expr ::= if_exp
         # expr ::= if_exp_not
         expr ::= if_exp_true
+
+        # FIXME: generalize this
+        expr ::= list
+        list ::= BUILD_LIST_0 LOAD_CONST LIST_EXTEND
+
         expr ::= named_expr
         expr ::= not
         expr ::= subscript

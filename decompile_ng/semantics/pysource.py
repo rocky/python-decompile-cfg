@@ -1649,6 +1649,17 @@ class SourceWalker(GenericASTTraversal, object):
         if lastnodetype.startswith("BUILD_LIST"):
             self.write("[")
             endchar = "]"
+
+        elif lastnodetype.startswith("LIST_EXTEND"):
+            # FIXME: generalize
+            if lastnode.attr == 1 and node[1] == "LOAD_CONST":
+                self.write(list(node[1].attr))
+            else:
+                assert False, "BUILD_LIST .. LIST_EXTEND needs work"
+            self.prec = p
+            self.prune()
+            return
+
         elif lastnodetype.startswith("BUILD_TUPLE"):
             # Tuples can appear places that can NOT
             # have parenthesis around them, like array
