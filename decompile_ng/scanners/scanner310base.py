@@ -196,7 +196,7 @@ class Scanner310Base(Scanner):
 
 
         bb_mgr = basic_blocks(co)
-        if show_asm in ("both", "before"):
+        if True or show_asm in ("both", "before"):
             for bb in bb_mgr.bb_list:
                 print("\t", bb)
         cfg = ControlFlowGraph(bb_mgr)

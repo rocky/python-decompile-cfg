@@ -190,8 +190,15 @@ class Python310Parser(Python310LambdaParser):
         returns ::= _stmts return
 
         stmt ::= genexpr_func
-        genexpr_func ::= LOAD_FAST _come_froms FOR_ITER store comp_iter
-                         JUMP_BACK _come_froms
+        genexpr_func ::= GEN_START
+                         LOAD_FAST
+                         bb_end_start
+                         FOR_ITER
+                         bb_end_start
+                         store
+                         comp_iter
+                         JUMP_BACK
+                         bb_end_start
         """
         pass
 
@@ -218,12 +225,6 @@ class Python310Parser(Python310LambdaParser):
         mkfuncdeco0        ::= mkfunc
         load_closure       ::= load_closure LOAD_CLOSURE
         load_closure       ::= LOAD_CLOSURE
-        """
-
-    def p_generator_exp3(self, args):
-        """
-        load_genexpr ::= LOAD_GENEXPR
-        load_genexpr ::= BUILD_TUPLE_1 LOAD_GENEXPR LOAD_STR
         """
 
     def p_augmented_assign(self, args):
@@ -843,6 +844,14 @@ class Python310Parser(Python310LambdaParser):
 
         opt_pop_block ::= POP_BLOCK?
 
+        """
+
+    def p_set_comp(self, args):
+        """
+        comp_iter     ::= comp_body
+        comp_iter     ::= comp_for
+        comp_body     ::= gen_comp_body
+        gen_comp_body ::= yield BB_END DOM_END BB_START POP_TOP
         """
 
     def p_stmt3(self, args):

@@ -593,15 +593,6 @@ class Python310BaseParser(PythonBaseParser):
                 """
                 self.add_unique_doc_rules(rules_str, customize)
 
-            elif opname == "GET_ITER":
-                self.addRule(
-                    """
-                    expr      ::= get_iter
-                    get_iter  ::= expr GET_ITER
-                    """,
-                    nop_func,
-                )
-                custom_ops_processed.add(opname)
             elif opname == "GET_AITER":
                 self.addRule(
                     """

@@ -956,6 +956,12 @@ class SourceWalker(GenericASTTraversal, object):
         while len(ast) == 1:
             ast = ast[0]
 
+        if ast == "stmts":
+            # FIXME: rest is a return None?
+            # Verify this
+            # rest = ast[1:]
+            ast = ast[0]
+
         n = ast[iter_index]
         assert n == "comp_iter", n
 
@@ -992,11 +998,13 @@ class SourceWalker(GenericASTTraversal, object):
         self.preorder(iter_expr)
         self.preorder(ast[iter_index])
         self.prec = p
+        # for n in rest:
+        #     self.preorder(n)
 
     def n_generator_exp(self, node):
         self.write("(")
         code_index = -6
-        self.comprehension_walk(node, iter_index=4, code_index=code_index)
+        self.comprehension_walk(node, iter_index=6, code_index=code_index)
         self.write(")")
         self.prune()
 
