@@ -312,7 +312,7 @@ TABLE_DIRECT = {
     'gen_comp_body':        ( '%c', 0 ),
     'dict_comp_body':       ( '%c:%c', 1, 0 ),
 
-    'assign':		    ( '%|%c = %p\n', -1, (0, 200) ),
+    "assign":		    ( '%|%c = %p\n', -1, (0, "expr", 200) ),
 
     # The 2nd parameter should have a = suffix.
     # There is a rule with a 4th parameter "store"

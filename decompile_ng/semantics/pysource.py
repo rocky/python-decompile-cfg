@@ -1525,17 +1525,6 @@ class SourceWalker(GenericASTTraversal, object):
                 template = ("%C", (0, len(node[0]), ", **"))
                 self.template_engine(template, node[0])
                 sep = ""
-            elif node[-1].kind.startswith("BUILD_MAP_UNPACK") or node[
-                -1
-            ].kind.startswith("dict_entry"):
-                assert self.version >= (3, 5)
-                # FIXME: I think we can intermingle dict_comp's with other
-                # dictionary kinds of things. The most common though is
-                # a sequence of dict_comp's
-                kwargs = node[-1].attr
-                template = ("**%C", (0, kwargs, ", **"))
-                self.template_engine(template, node)
-                sep = ""
 
             pass
         elif self.version >= (3, 6) and self.is_pypy:
@@ -1652,9 +1641,13 @@ class SourceWalker(GenericASTTraversal, object):
 
         elif lastnodetype.startswith("LIST_EXTEND"):
             # FIXME: generalize
-            if lastnode.attr == 1 and node[1] == "LOAD_CONST":
-                self.write(list(node[1].attr))
+            if lastnode.attr == 1:
+                if len(node) > 1 and node[1] == "LOAD_CONST":
+                    self.write(list(node[1].attr))
+                elif len(node) == 1:
+                    self.preorder(node[0])
             else:
+                from trepan.api import debug; debug()
                 assert False, "BUILD_LIST .. LIST_EXTEND needs work"
             self.prec = p
             self.prune()
@@ -1681,9 +1674,6 @@ class SourceWalker(GenericASTTraversal, object):
         elif lastnodetype.startswith("BUILD_SET"):
             self.write("{")
             endchar = "}"
-        elif lastnodetype.startswith("BUILD_MAP_UNPACK"):
-            self.write("{*")
-            endchar = "}"
         elif lastnodetype.startswith("ROT_TWO"):
             self.write("(")
             endchar = ")"
@@ -1696,6 +1686,9 @@ class SourceWalker(GenericASTTraversal, object):
             self.prec = p
             self.prune()
             return
+        elif node.kind == "tuple":
+            self.write("(")
+            endchar = ")"
         else:
             from trepan.api import debug; debug()
             raise TypeError(
@@ -1709,7 +1702,7 @@ class SourceWalker(GenericASTTraversal, object):
         for elem in flat_elems:
             if elem in ("ROT_THREE", "EXTENDED_ARG"):
                 continue
-            assert elem == "expr"
+            assert elem in ("expr", "list", "lists")
             line_number = self.line_number
             value = self.traverse(elem)
             if line_number != self.line_number:
@@ -1728,7 +1721,106 @@ class SourceWalker(GenericASTTraversal, object):
         self.prune()
         return
 
-    n_set = n_tuple = n_build_set = n_list
+    n_set = n_build_set = n_list
+
+    def n_tuple(self, node):
+        """
+        prettyprint a list or tuple
+        """
+        p = self.prec
+        self.prec = PRECEDENCE["yield"] - 1
+        lastnode = node.pop()
+        lastnodetype = lastnode.kind
+
+        if lastnodetype.startswith("BUILD_LIST"):
+            self.write("[")
+            endchar = "]"
+
+        elif lastnodetype.startswith("LIST_EXTEND"):
+            # FIXME: generalize
+            if lastnode.attr == 1:
+                if len(node) > 1 and node[1] == "LOAD_CONST":
+                    self.write(list(node[1].attr))
+                elif len(node) == 1:
+                    self.preorder(node[0])
+            else:
+                from trepan.api import debug; debug()
+                assert False, "BUILD_LIST .. LIST_EXTEND needs work"
+            self.prec = p
+            self.prune()
+            return
+
+        elif lastnodetype.startswith("BUILD_TUPLE"):
+            # Tuples can appear places that can NOT
+            # have parenthesis around them, like array
+            # subscripts. We check for that by seeing
+            # if a tuple item is some sort of slice.
+            no_parens = False
+            for n in node:
+                if n == "expr" and n[0].kind.startswith("build_slice"):
+                    no_parens = True
+                    break
+                pass
+            if no_parens:
+                endchar = ""
+            else:
+                self.write("(")
+                endchar = ")"
+                pass
+
+        elif lastnodetype.startswith("BUILD_SET"):
+            self.write("{")
+            endchar = "}"
+        elif lastnodetype.startswith("ROT_TWO"):
+            self.write("(")
+            endchar = ")"
+        elif node.kind == "list":
+            # FIXME: Something in tree building went weird. We had:
+            # list
+            #    BUILD_LIST_0          0
+            # but the "BUILD_LIST_0 is gone as a child.
+            self.write("[]")
+            self.prec = p
+            self.prune()
+            return
+        elif node.kind == "tuple":
+            self.write("(")
+            endchar = ")"
+        else:
+            from trepan.api import debug; debug()
+            raise TypeError(
+                "Internal Error: n_build_list expects list, tuple, set, or unpack"
+            )
+
+        flat_elems = flatten_list(node)
+
+        self.indent_more(INDENT_PER_LEVEL)
+        sep = ""
+        for elem in flat_elems:
+            if elem in ("ROT_THREE", "EXTENDED_ARG"):
+                continue
+            assert elem in ("expr", "list", "lists")
+            line_number = self.line_number
+            value = self.traverse(elem)
+            if line_number != self.line_number:
+                sep += "\n" + self.indent + INDENT_PER_LEVEL[:-1]
+            else:
+                if sep != "":
+                    sep += " "
+            self.write(sep, value)
+            sep = ","
+        if lastnode.attr == 1 and lastnodetype.startswith("BUILD_TUPLE"):
+            self.write(",")
+        self.write(endchar)
+        self.indent_less(INDENT_PER_LEVEL)
+
+        self.prec = p
+        self.prune()
+        return
+
+
+    def n_lists(self, node):
+        return
 
     def n_attribute(self, node):
         if node[0] == "LOAD_CONST" or node[0] == "expr" and node[0][0] == "LOAD_CONST":

@@ -176,8 +176,6 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
 
     def p_comprehension_list(self, args):
         """
-        expr ::= list_comp
-
         list_iter ::= list_for
         list_iter ::= list_if
         list_iter ::= list_if_not
@@ -234,9 +232,9 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         # expr ::= if_exp_not
         expr ::= if_exp_true
 
-        # FIXME: generalize this
+
         expr ::= list
-        list ::= BUILD_LIST_0 LOAD_CONST LIST_EXTEND
+        expr ::= list_comp
 
         expr ::= named_expr
         expr ::= not
@@ -405,6 +403,7 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
                 "BUILD",
                 "GET",
                 "FORMAT",
+                "LIST",
                 "LOAD",
                 "MAKE",
                 "SETUP",
@@ -461,15 +460,39 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
 
             opname_base = opname[: opname.rfind("_")]
 
-            if opname == "GET_ITER":
-                self.addRule(
+            # Must come before BUILD_LIST
+            if opname.startswith("BUILD_LIST_UNPACK"):
+                v = token.attr
+                rule = "build_list_unpack ::= %s%s" % ("expr " * v, opname)
+                self.addRule(rule, nop_func)
+                rule = "expr ::= build_list_unpack"
+                self.add_unique_rule(rule, opname, token.attr, customize)
+
+            elif opname.startswith("BUILD_LIST"):
+                v = token.attr
+                if v == 0:
+                    rule_str = """
+                       list ::= BUILD_LIST_0
+                       list ::= BUILD_LIST_0 expr LIST_EXTEND
+                       list ::= expr LIST_EXTEND
+                    """
+                    self.add_unique_doc_rules(rule_str, customize)
+                else:
+                    list_nt = f"list_{v}"
+                    rule_str = f"""
+                     list  ::= {'list ' * v}{opname}
+                     expr  ::= list
+                    """
+                    self.add_unique_doc_rules(rule_str, customize)
+
+            elif opname == "GET_ITER":
+                self.add_unique_doc_rules(
                     """
                     expr      ::= get_iter
                     get_iter  ::= expr GET_ITER
                     """,
-                    nop_func,
+                    customize,
                 )
-                custom_ops_processed.add(opname)
 
             elif opname == "LOAD_ASSERT":
                 if "PyPy" in customize:
@@ -477,6 +500,14 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
                     stmt ::= JUMP_IF_NOT_DEBUG stmts COME_FROM
                     """
                     self.add_unique_doc_rules(rules_str, customize)
+            elif opname == "LIST_TO_TUPLE":
+                rule_str = """
+                    lists ::= lists list
+                    lists ::= list
+                    tuple ::= lists LIST_TO_TUPLE
+                    expr ::= tuple
+                    """
+                self.add_unique_doc_rules(rule_str, customize)
             elif opname == "FORMAT_VALUE":
                 rules_str = """
                     expr              ::= formatted_value1

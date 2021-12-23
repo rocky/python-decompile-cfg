@@ -134,10 +134,7 @@ class Python310BaseParser(PythonBaseParser):
         # only once and if we see the opcode a second we don't have to consider
         # adding more rules.
         #
-        # Note: BUILD_TUPLE_UNPACK_WITH_CALL gets considered by
-        # default because it starts with BUILD. So we'll set to ignore it from
-        # the start.
-        custom_ops_processed = set(("BUILD_TUPLE_UNPACK_WITH_CALL",))
+        custom_ops_processed = set()
 
         # A set of instruction operation names that exist in the token stream.
         # We use this customize the grammar that we create.
@@ -324,28 +321,7 @@ class Python310BaseParser(PythonBaseParser):
                 )
                 self.addRule(rule, nop_func)
 
-            elif opname.startswith("BUILD_LIST_UNPACK"):
-                v = token.attr
-                rule = "build_list_unpack ::= %s%s" % ("expr " * v, opname)
-                self.addRule(rule, nop_func)
-                rule = "expr ::= build_list_unpack"
-                self.addRule(rule, nop_func)
-
-            elif opname_base in ("BUILD_MAP", "BUILD_MAP_UNPACK"):
-
-                if opname == "BUILD_MAP_UNPACK":
-                    self.addRule(
-                        """
-                        expr       ::= unmap_dict
-                        unmap_dict ::= expr BUILD_MAP_UNPACK
-                        """,
-                        nop_func,
-                    )
-                    pass
-                elif opname.startswith("BUILD_MAP_UNPACK_WITH_CALL"):
-                    v = token.attr
-                    rule = "build_map_unpack_with_call ::= %s%s" % ("expr " * v, opname)
-                    self.addRule(rule, nop_func)
+            elif opname_base in ("BUILD_MAP", ):
 
                 kvlist_n = "kvlist_%s" % token.attr
                 if opname == "BUILD_MAP_n":
@@ -366,70 +342,24 @@ class Python310BaseParser(PythonBaseParser):
                        dict ::=  BUILD_MAP_n kvlist_n
                     """
 
-                if not opname.startswith("BUILD_MAP_WITH_CALL"):
-                    # FIXME: Use the attr
-                    # so this doesn't run into exponential parsing time.
-                    if opname.startswith("BUILD_MAP_UNPACK"):
-                        # FIXME: start here. The LHS should be unmap_dict, not dict.
-                        # FIXME: really we need a combination of dict_entry-like things.
-                        # It just so happens the most common case is not to mix
-                        # dictionary comphensions with dictionary, elements
-                        if "LOAD_DICTCOMP" in self.seen_ops:
-                            rule = """
-                               expr ::= dict_comp
-                               expr ::= dict
-                               dict ::= %s%s
-                            """ % (
-                                "dict_comp " * token.attr,
-                                opname,
-                            )
-                            self.addRule(rule, nop_func)
-                        rule = """
-                         expr       ::= unmap_dict
-                         unmap_dict ::= %s%s
-                         """ % (
-                            "expr " * token.attr,
-                            opname,
-                        )
-                    else:
-                        rule = "%s ::= %s %s" % (
-                            kvlist_n,
-                            "expr " * (token.attr * 2),
-                            opname,
-                        )
-                        self.add_unique_rule(rule, opname, token.attr, customize)
-                        rule = (
-                            """
-                        expr ::= dict
-                        dict ::=  %s
-                        """
-                            % kvlist_n
-                        )
+                rule = "%s ::= %s %s" % (
+                    kvlist_n,
+                    "expr " * (token.attr * 2),
+                    opname,
+                )
+                self.add_unique_rule(rule, opname, token.attr, customize)
+                rule = (
+                    """
+                expr ::= dict
+                dict ::=  %s
+                """
+                    % kvlist_n
+                )
                 self.add_unique_rule(rule, opname, token.attr, customize)
 
-            elif opname.startswith("BUILD_MAP_UNPACK_WITH_CALL"):
-                v = token.attr
-                rule = "build_map_unpack_with_call ::= %s%s" % ("expr " * v, opname)
-                self.addRule(rule, nop_func)
-
-            elif opname.startswith("BUILD_TUPLE_UNPACK_WITH_CALL"):
-                v = token.attr
-                rule = (
-                    "build_tuple_unpack_with_call ::= "
-                    + "expr1024 " * int(v // 1024)
-                    + "expr32 " * int((v // 32) % 32)
-                    + "expr " * (v % 32)
-                    + opname
-                )
-                self.addRule(rule, nop_func)
-                rule = "starred ::= %s %s" % ("expr " * v, opname)
-                self.addRule(rule, nop_func)
-
             elif opname_base in (
-                "BUILD_LIST",
                 "BUILD_SET",
                 "BUILD_TUPLE",
-                "BUILD_TUPLE_UNPACK",
             ):
                 v = token.attr
 
