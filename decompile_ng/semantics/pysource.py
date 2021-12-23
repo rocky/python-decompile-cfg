@@ -1740,11 +1740,9 @@ class SourceWalker(GenericASTTraversal, object):
 
 
         if lastnodetype == "LIST_TO_TUPLE":
-            assert len(node) == 2 and node[0] == "lists"
-            start = 1 if node.first_child().kind.startswith("BUILD_LIST") else 0
-            lists = node[0][start:]
+            assert len(node) == 3 and node[1] == "lists"
             sep = ""
-            for n in lists:
+            for n in node[1]:
                 assert n == "list"
                 line_number = self.line_number
                 value = self.traverse(n)

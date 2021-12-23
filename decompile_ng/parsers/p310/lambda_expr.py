@@ -511,7 +511,7 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
                 rule_str = """
                     lists ::= lists list
                     lists ::= list
-                    tuple_starred ::= lists LIST_TO_TUPLE
+                    tuple_starred ::= BUILD_LIST_0 lists LIST_TO_TUPLE
                     expr ::= tuple_starred
                     """
                 self.add_unique_doc_rules(rule_str, customize)
