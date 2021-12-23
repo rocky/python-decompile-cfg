@@ -305,20 +305,23 @@ class SourceWalker(GenericASTTraversal, object):
         if isinstance(self.showast, dict) and self.showast.get:
             maybe_show_tree(self, ast)
 
-    def str_with_template(self, ast):
+    def str_with_template(self, ast) -> str:
         stream = sys.stdout
         stream.write(self.str_with_template1(ast, "", None))
         stream.write("\n")
 
-    def str_with_template1(self, ast, indent, sibNum=None):
+    def str_with_template1(self, ast, indent, sibNum=None) -> str:
         rv = str(ast.kind)
 
         if sibNum is not None:
             rv = "%2d. %s" % (sibNum, rv)
         enumerate_children = False
         if len(ast) > 1:
-            rv += " (%d)" % (len(ast))
+            rv += f" ({len(ast)})"
             enumerate_children = True
+
+        if ast in PRECEDENCE:
+            rv += f", precedence {PRECEDENCE[ast]}"
 
         mapping = self._get_mapping(ast)
         table = mapping[0]
