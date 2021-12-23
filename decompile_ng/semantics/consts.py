@@ -46,6 +46,7 @@ PRECEDENCE = {
     "named_expr":             40, # :=
     "yield":                  38, # Needs to be below named_expr
     "yield_from":             38,
+    "tuple_starred":          38,  # *x, *y, *z - about at the level of yield?
 
     "_mklambda":              30,
     "mklambda":               30,
@@ -312,7 +313,7 @@ TABLE_DIRECT = {
     'gen_comp_body':        ( '%c', 0 ),
     'dict_comp_body':       ( '%c:%c', 1, 0 ),
 
-    "assign":		    ( '%|%c = %p\n', -1, (0, "expr", 200) ),
+    "assign":		    ( '%|%c = %p\n', -1, (0, "expr", PRECEDENCE["tuple_starred"]+1) ),
 
     # The 2nd parameter should have a = suffix.
     # There is a rule with a 4th parameter "store"

@@ -211,13 +211,10 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
     def p_expr(self, args):
         """
         # expressions going to terminal symbols
-        expr ::= LOAD_CODE
-        expr ::= LOAD_CONST
         expr ::= LOAD_DEREF
         expr ::= LOAD_FAST
         expr ::= LOAD_GLOBAL
         expr ::= LOAD_NAME
-        expr ::= LOAD_STR
 
         expr ::= and
         expr ::= attribute
@@ -228,6 +225,10 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         expr ::= compare
         expr ::= compare_in
         expr ::= compare_is
+
+        # experimental. Matches AST better though
+        expr ::= constant
+
         # expr ::= if_exp
         # expr ::= if_exp_not
         expr ::= if_exp_true
@@ -295,6 +296,11 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         compare_in        ::= expr expr CONTAINS_OP
         compare_is        ::= expr expr IS_OP
         compare_single    ::= expr expr COMPARE_OP
+
+        constant ::= LOAD_CONST
+        constant ::= LOAD_STR
+        constant ::= LOAD_CODE
+
 
         # if_exp_true are are IfExp which always evaluate true, e.g.:
         #      x = a if 1 else b
@@ -480,7 +486,8 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
                 else:
                     list_nt = f"list_{v}"
                     rule_str = f"""
-                     list  ::= {'list ' * v}{opname}
+                     list  ::= {'expr ' * v}{opname}
+                     list  ::= {'expr ' * v}{opname}
                      expr  ::= list
                     """
                     self.add_unique_doc_rules(rule_str, customize)
@@ -504,8 +511,8 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
                 rule_str = """
                     lists ::= lists list
                     lists ::= list
-                    tuple ::= lists LIST_TO_TUPLE
-                    expr ::= tuple
+                    tuple_starred ::= lists LIST_TO_TUPLE
+                    expr ::= tuple_starred
                     """
                 self.add_unique_doc_rules(rule_str, customize)
             elif opname == "FORMAT_VALUE":

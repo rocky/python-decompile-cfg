@@ -1647,7 +1647,6 @@ class SourceWalker(GenericASTTraversal, object):
                 elif len(node) == 1:
                     self.preorder(node[0])
             else:
-                from trepan.api import debug; debug()
                 assert False, "BUILD_LIST .. LIST_EXTEND needs work"
             self.prec = p
             self.prune()
@@ -1721,31 +1720,53 @@ class SourceWalker(GenericASTTraversal, object):
         self.prune()
         return
 
-    n_set = n_build_set = n_list
+    n_set = n_build_set = n_tuple = n_list
 
-    def n_tuple(self, node):
+    def n_tuple_starred(self, node):
         """
         prettyprint a list or tuple
         """
         p = self.prec
         self.prec = PRECEDENCE["yield"] - 1
-        lastnode = node.pop()
+
+        lastnode = node[-1]
         lastnodetype = lastnode.kind
 
-        if lastnodetype.startswith("BUILD_LIST"):
-            self.write("[")
-            endchar = "]"
+        tuple_star_str = ""
+        leading_paren_added = False
+        if p < self.prec:
+            tuple_star_str = "("
+            leading_paren_added = True
 
-        elif lastnodetype.startswith("LIST_EXTEND"):
-            # FIXME: generalize
-            if lastnode.attr == 1:
-                if len(node) > 1 and node[1] == "LOAD_CONST":
-                    self.write(list(node[1].attr))
-                elif len(node) == 1:
-                    self.preorder(node[0])
-            else:
-                from trepan.api import debug; debug()
-                assert False, "BUILD_LIST .. LIST_EXTEND needs work"
+
+        if lastnodetype == "LIST_TO_TUPLE":
+            assert len(node) == 2 and node[0] == "lists"
+            start = 1 if node.first_child().kind.startswith("BUILD_LIST") else 0
+            lists = node[0][start:]
+            sep = ""
+            for n in lists:
+                assert n == "list"
+                line_number = self.line_number
+                value = self.traverse(n)
+                if line_number != self.line_number:
+                    if not leading_paren_added:
+                        tuple_star_str = "(" + tuple_star_str
+                        leading_paren_added = True
+
+                    sep += "\n" + self.indent + INDENT_PER_LEVEL[:-1]
+                else:
+                    if sep != "":
+                        sep += " "
+
+                tuple_star_str += f"{sep}*{value}"
+                sep = ","
+                pass
+
+            if leading_paren_added:
+                tuple_star_str += ")"
+
+            self.write(tuple_star_str)
+
             self.prec = p
             self.prune()
             return
@@ -1768,22 +1789,7 @@ class SourceWalker(GenericASTTraversal, object):
                 endchar = ")"
                 pass
 
-        elif lastnodetype.startswith("BUILD_SET"):
-            self.write("{")
-            endchar = "}"
         elif lastnodetype.startswith("ROT_TWO"):
-            self.write("(")
-            endchar = ")"
-        elif node.kind == "list":
-            # FIXME: Something in tree building went weird. We had:
-            # list
-            #    BUILD_LIST_0          0
-            # but the "BUILD_LIST_0 is gone as a child.
-            self.write("[]")
-            self.prec = p
-            self.prune()
-            return
-        elif node.kind == "tuple":
             self.write("(")
             endchar = ")"
         else:
@@ -1792,6 +1798,7 @@ class SourceWalker(GenericASTTraversal, object):
                 "Internal Error: n_build_list expects list, tuple, set, or unpack"
             )
 
+        # FIXME: do we need the below?
         flat_elems = flatten_list(node)
 
         self.indent_more(INDENT_PER_LEVEL)
@@ -1813,6 +1820,9 @@ class SourceWalker(GenericASTTraversal, object):
             self.write(",")
         self.write(endchar)
         self.indent_less(INDENT_PER_LEVEL)
+
+        if add_parens:
+            self.write(")")
 
         self.prec = p
         self.prune()
