@@ -42,11 +42,13 @@ maxint = sys.maxsize
 # say to 100, to make sure we avoid additional prenthesis in
 # call((.. op ..)).
 
+# fmt: off
 PRECEDENCE = {
     "named_expr":             40, # :=
     "yield":                  38, # Needs to be below named_expr
     "yield_from":             38,
     "tuple_starred":          38,  # *x, *y, *z - about at the level of yield?
+    "dict_unmap":             38,  # **x
 
     "_mklambda":              30,
     "mklambda":               30,
@@ -302,16 +304,17 @@ TABLE_DIRECT = {
         (1, 'expr_pjit'),
         (3, "list_iter"),
         ),
-    'lc_body':		    ( '', ),	# ignore when recursing
+    'lc_body':		    ( "", ),	# ignore when recursing
 
-    'comp_iter':	    ( '%c', 0 ),
-    'comp_if':		    ( ' if %c%c', 0, 1 ),
-    'comp_if_not':	    ( ' if not %p%c',
+    'comp_iter':	    ( "%c", 0 ),
+    'comp_if':		    ( " if %c%c", 0, 1 ),
+    'comp_if_not':	    ( " if not %p%c",
                               (0, 'expr', PRECEDENCE['unary_not']), 2 ),
-    'comp_body':	    ( '', ),	# ignore when recursing
-    'set_comp_body':        ( '%c', 0 ),
-    'gen_comp_body':        ( '%c', 0 ),
-    'dict_comp_body':       ( '%c:%c', 1, 0 ),
+    'comp_body':	    ( "", ),	# ignore when recursing
+    'set_comp_body':    ( "%c", 0 ),
+    'gen_comp_body':    ( "%c", 0 ),
+    "dict_comp_body":   ( "%c:%c", 1, 0 ),
+    "dicts_unmap":      ("{**%C}", (0, maxint, ", **")),
 
     "assign":		    ( '%|%c = %p\n', -1, (0, "expr", PRECEDENCE["tuple_starred"]+1) ),
 
@@ -539,6 +542,7 @@ TABLE_DIRECT = {
                               (3, "importlist") ),
     "import_from_star":     ( "%|from %[2]{pattr} import *\n", ),
 }
+# fmt: on
 
 
 MAP_DIRECT = (TABLE_DIRECT, )
@@ -546,10 +550,10 @@ MAP_R = (TABLE_R, -1)
 
 MAP = {
     "stmt":		MAP_R,
-    "c_stmt":		MAP_R,
-    "call":	        MAP_R,
-    "delete":		MAP_R,
-    "store":	        MAP_R,
+    "c_stmt":	MAP_R,
+    "call":	    MAP_R,
+    "delete":   MAP_R,
+    "store":	MAP_R,
 }
 
 ASSIGN_TUPLE_PARAM = lambda param_name: \

@@ -407,6 +407,7 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
             (
                 "BEFORE",
                 "BUILD",
+                "DICT",
                 "GET",
                 "FORMAT",
                 "LIST",
@@ -484,13 +485,45 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
                     """
                     self.add_unique_doc_rules(rule_str, customize)
                 else:
-                    list_nt = f"list_{v}"
                     rule_str = f"""
-                     list  ::= {'expr ' * v}{opname}
                      list  ::= {'expr ' * v}{opname}
                      expr  ::= list
                     """
                     self.add_unique_doc_rules(rule_str, customize)
+
+            elif opname_base.startswith("BUILD_MAP"):
+                if opname == "BUILD_MAP_n":
+                    # PyPy sometimes has no count. Sigh.
+                    # FIXME...
+                    pass
+                else:
+                    v = token.attr
+                    if v == 0:
+                        rules_str = f"""
+                            dict ::= BUILD_MAP_0
+                            expr ::= dict
+                        """
+                    else:
+                        kvlist_n = f"kvlist_{token.attr}"
+                        rules_str = f"""
+                            {kvlist_n} ::= {"expr " * (token.attr * 2)}{opname}
+                            dict ::=  {kvlist_n}
+                            expr ::= dict
+                        """
+                    self.add_unique_doc_rules(rules_str, customize)
+
+            elif opname == "DICT_UPDATE":
+                self.add_unique_doc_rules(
+                    f"""
+                    dicts_unmap ::= dicts_unmap dict_update
+                    dicts_unmap ::= dict_update
+
+                    dict_update ::= dict DICT_UPDATE
+                    dict_unmap  ::= BUILD_MAP_0 dicts_unmap
+                    expr        ::= dict_unmap
+                    """,
+                    customize,
+                )
 
             elif opname == "GET_ITER":
                 self.add_unique_doc_rules(
