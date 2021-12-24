@@ -53,6 +53,7 @@ class PythonBaseParser(GenericASTBuilder):
             "exprlist",
             "kvlist",
             "kwargs",
+            "lists",
             "or_parts",
             "stmts",
         ]
