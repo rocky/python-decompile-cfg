@@ -28,3 +28,5 @@ lambda x, y, z: (not x) and (not y) or z
 
 lambda glyphs, c, r: r in glyphs
 lambda x: x is False
+
+lambda x, y: ((y and x) or (y and x) or 0.0)

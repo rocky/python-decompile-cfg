@@ -139,6 +139,8 @@ class Python310BaseParser(PythonBaseParser):
         # A set of instruction operation names that exist in the token stream.
         # We use this customize the grammar that we create.
         # 2.6-compatible set comprehensions
+
+        # The initial initialization is done in lambea_expr.py
         self.seen_ops = frozenset([t.kind for t in tokens])
         self.seen_op_basenames = frozenset(
             [opname[: opname.rfind("_")] for opname in self.seen_ops]
@@ -309,17 +311,6 @@ class Python310BaseParser(PythonBaseParser):
                                                POP_BLOCK async_with_post
                     """
                 self.addRule(rules_str, nop_func)
-
-            elif opname_base == "BUILD_CONST_KEY_MAP":
-                kvlist_n = "expr " * (token.attr)
-                rule = """
-                   expr ::= dict
-                   dict ::= %sLOAD_CONST %s
-                """ % (
-                    kvlist_n,
-                    opname,
-                )
-                self.addRule(rule, nop_func)
 
             elif opname_base in (
                 "BUILD_SET",
@@ -1133,20 +1124,6 @@ class Python310BaseParser(PythonBaseParser):
         nak = (len(opname) - len("CALL_FUNCTION")) // 3
         uniq_param = args_kw + args_pos
 
-        if frozenset(("GET_AWAITABLE", "YIELD_FROM")).issubset(self.seen_ops):
-            rule = (
-                "async_call ::= expr "
-                + ("expr " * args_pos)
-                + ("kwarg " * args_kw)
-                + "expr " * nak
-                + token.kind
-                + " GET_AWAITABLE LOAD_CONST YIELD_FROM"
-            )
-            self.add_unique_rule(rule, token.kind, uniq_param, customize)
-            self.add_unique_rule(
-                "expr ::= async_call", token.kind, uniq_param, customize
-            )
-
         if opname.startswith("CALL_FUNCTION_VAR"):
             token.kind = self.call_fn_name(token)
             if opname.endswith("KW"):
@@ -1175,6 +1152,7 @@ class Python310BaseParser(PythonBaseParser):
                 + ("expr " * args_pos)
                 + ("kwarg " * args_kw)
                 + "expr " * nak
+                + "bb_doms_end_start_opt "
                 + token.kind
             )
 
