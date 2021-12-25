@@ -45,7 +45,7 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         and_part   ::= expr_pjif dom_start
         and_parts  ::= and_part+
 
-        and_or ::= and_parts expr jitop_expr
+        and_or      ::= and_parts expr jitop_expr
 
         or_part    ::= expr_pjit dom_start
         or_parts   ::= or_part+
@@ -272,7 +272,7 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
 
         branch_op ::= or bb_doms_end_opt
         branch_op ::= and bb_doms_end_opt
-        branch_op ::= and_or bb_doms_end
+        branch_op ::= and_or bb_doms_end_opt
         branch_op ::= or_and bb_doms_end
 
         # A "branch_op_compound" is a branch_op with a non-branching unary or binary operator at the end.
