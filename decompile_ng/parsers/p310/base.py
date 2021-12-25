@@ -321,42 +321,6 @@ class Python310BaseParser(PythonBaseParser):
                 )
                 self.addRule(rule, nop_func)
 
-            elif opname_base in ("BUILD_MAP", ):
-
-                kvlist_n = "kvlist_%s" % token.attr
-                if opname == "BUILD_MAP_n":
-                    # PyPy sometimes has no count. Sigh.
-                    rule = (
-                        "dict_comp_func ::= BUILD_MAP_n LOAD_FAST for_iter store "
-                        "comp_iter JUMP_BACK RETURN_VALUE RETURN_LAST"
-                    )
-                    self.add_unique_rule(rule, "dict_comp_func", 1, customize)
-
-                    kvlist_n = "kvlist_n"
-                    rule = "kvlist_n ::=  kvlist_n kv3"
-                    self.add_unique_rule(rule, "kvlist_n", 0, customize)
-                    rule = "kvlist_n ::="
-                    self.add_unique_rule(rule, "kvlist_n", 1, customize)
-                    rule = """
-                       expr ::= dict
-                       dict ::=  BUILD_MAP_n kvlist_n
-                    """
-
-                rule = "%s ::= %s %s" % (
-                    kvlist_n,
-                    "expr " * (token.attr * 2),
-                    opname,
-                )
-                self.add_unique_rule(rule, opname, token.attr, customize)
-                rule = (
-                    """
-                expr ::= dict
-                dict ::=  %s
-                """
-                    % kvlist_n
-                )
-                self.add_unique_rule(rule, opname, token.attr, customize)
-
             elif opname_base in (
                 "BUILD_SET",
                 "BUILD_TUPLE",

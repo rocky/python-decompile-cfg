@@ -407,6 +407,7 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
             (
                 "BEFORE",
                 "BUILD",
+                "DICT",
                 "GET",
                 "FORMAT",
                 "LIST",
@@ -478,19 +479,51 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
                 v = token.attr
                 if v == 0:
                     rule_str = """
-                       list ::= BUILD_LIST_0
-                       list ::= BUILD_LIST_0 expr LIST_EXTEND
-                       list ::= expr LIST_EXTEND
+                       list        ::= BUILD_LIST_0
+                       list_unpack ::= BUILD_LIST_0 expr LIST_EXTEND
+                       list        ::= list_unpack
                     """
                     self.add_unique_doc_rules(rule_str, customize)
                 else:
-                    list_nt = f"list_{v}"
                     rule_str = f"""
-                     list  ::= {'expr ' * v}{opname}
                      list  ::= {'expr ' * v}{opname}
                      expr  ::= list
                     """
                     self.add_unique_doc_rules(rule_str, customize)
+
+            elif opname_base.startswith("BUILD_MAP"):
+                if opname == "BUILD_MAP_n":
+                    # PyPy sometimes has no count. Sigh.
+                    # FIXME...
+                    pass
+                else:
+                    v = token.attr
+                    if v == 0:
+                        rules_str = f"""
+                            dict ::= BUILD_MAP_0
+                            expr ::= dict
+                        """
+                    else:
+                        kvlist_n = f"kvlist_{token.attr}"
+                        rules_str = f"""
+                            {kvlist_n} ::= {"expr " * (token.attr * 2)}{opname}
+                            dict ::=  {kvlist_n}
+                            expr ::= dict
+                        """
+                    self.add_unique_doc_rules(rules_str, customize)
+
+            elif opname == "DICT_UPDATE":
+                self.add_unique_doc_rules(
+                    f"""
+                    dicts_unpack ::= dicts_unpack dict_update
+                    dicts_unpack ::= dict_update
+
+                    dict_update ::= dict DICT_UPDATE
+                    dict_unpack ::= BUILD_MAP_0 dicts_unpack
+                    expr        ::= dict_unpack
+                    """,
+                    customize,
+                )
 
             elif opname == "GET_ITER":
                 self.add_unique_doc_rules(
@@ -806,21 +839,20 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
             rule = "call_kw36 ::= expr {values} LOAD_CONST {opname}".format(**locals())
             self.add_unique_rule(rule, token.kind, token.attr, customize)
         elif opname == "CALL_FUNCTION_EX_KW":
-            # Note: this doesn't exist in 3.7 and later
             self.addRule(
                 """expr        ::= call_ex_kw4
-                            call_ex_kw4 ::= expr
-                                            expr
-                                            expr
-                                            CALL_FUNCTION_EX_KW
-                         """,
+                   call_ex_kw4 ::= expr
+                                   expr
+                                   BUILD_MAP_0 expr DICT_MERGE
+                                   CALL_FUNCTION_EX_KW
+                """,
                 nop_func,
             )
             if "BUILD_MAP_UNPACK_WITH_CALL" in self.seen_op_basenames:
                 self.addRule(
-                    """expr        ::= call_ex_kw
-                                call_ex_kw  ::= expr expr build_map_unpack_with_call
-                                                CALL_FUNCTION_EX_KW
+                    """expr       ::= call_ex_kw
+                      call_ex_kw  ::= expr expr build_map_unpack_with_call
+                                      CALL_FUNCTION_EX_KW
                              """,
                     nop_func,
                 )
@@ -828,52 +860,49 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
                 # FIXME: should this be parameterized by EX value?
                 self.addRule(
                     """expr        ::= call_ex_kw3
-                                call_ex_kw3 ::= expr
-                                                build_tuple_unpack_with_call
-                                                expr
-                                                CALL_FUNCTION_EX_KW
-                             """,
+                       call_ex_kw3 ::= expr
+                                       build_tuple_unpack_with_call
+                                       expr
+                                      CALL_FUNCTION_EX_KW
+                    """,
                     nop_func,
                 )
                 if "BUILD_MAP_UNPACK_WITH_CALL" in self.seen_op_basenames:
                     # FIXME: should this be parameterized by EX value?
                     self.addRule(
                         """expr        ::= call_ex_kw2
-                                    call_ex_kw2 ::= expr
-                                                    build_tuple_unpack_with_call
-                                                    build_map_unpack_with_call
-                                                    CALL_FUNCTION_EX_KW
-                             """,
+                           call_ex_kw2 ::= expr
+                           build_tuple_unpack_with_call
+                           build_map_unpack_with_call
+                           CALL_FUNCTION_EX_KW
+                        """,
                         nop_func,
                     )
 
         elif opname == "CALL_FUNCTION_EX":
             self.addRule(
-                """
-                         expr        ::= call_ex
-                         starred     ::= expr
-                         call_ex     ::= expr starred CALL_FUNCTION_EX
-                         """,
+                """expr        ::= call_ex
+                   starred     ::= expr
+                   call_ex     ::= expr starred CALL_FUNCTION_EX
+                """,
                 nop_func,
             )
             if "BUILD_MAP_UNPACK_WITH_CALL" in self.seen_ops:
                 self.addRule(
-                    """
-                        expr        ::= call_ex_kw
-                        call_ex_kw  ::= expr expr
-                                        build_map_unpack_with_call CALL_FUNCTION_EX
-                        """,
+                    """expr        ::= call_ex_kw
+                       call_ex_kw  ::= expr expr
+                       build_map_unpack_with_call CALL_FUNCTION_EX
+                     """,
                     nop_func,
                 )
             if "BUILD_TUPLE_UNPACK_WITH_CALL" in self.seen_ops:
                 self.addRule(
+                    """expr        ::= call_ex_kw3
+                       call_ex_kw3 ::= expr
+                                       build_tuple_unpack_with_call
+                                       %s
+                                       CALL_FUNCTION_EX
                     """
-                        expr        ::= call_ex_kw3
-                        call_ex_kw3 ::= expr
-                                        build_tuple_unpack_with_call
-                                        %s
-                                        CALL_FUNCTION_EX
-                        """
                     % "expr "
                     * token.attr,
                     nop_func,
@@ -882,13 +911,12 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
 
             # FIXME: Is this right?
             self.addRule(
-                """
-                        expr        ::= call_ex_kw4
-                        call_ex_kw4 ::= expr
-                                        expr
-                                        expr
-                                        CALL_FUNCTION_EX
-                        """,
+                """expr        ::= call_ex_kw4
+                   call_ex_kw4 ::= expr
+                                   expr
+                                   expr
+                                   CALL_FUNCTION_EX
+                """,
                 nop_func,
             )
             pass

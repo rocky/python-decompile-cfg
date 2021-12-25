@@ -42,11 +42,14 @@ maxint = sys.maxsize
 # say to 100, to make sure we avoid additional prenthesis in
 # call((.. op ..)).
 
+# fmt: off
 PRECEDENCE = {
     "named_expr":             40, # :=
     "yield":                  38, # Needs to be below named_expr
     "yield_from":             38,
     "tuple_starred":          38,  # *x, *y, *z - about at the level of yield?
+    "dict_unpack":            38,  # **kwargs
+    "list_unpack":            38,  # *args
 
     "_mklambda":              30,
     "mklambda":               30,
@@ -158,38 +161,55 @@ TABLE_R = {
 }
 
 TABLE_DIRECT = {
-    'BINARY_ADD':               ( '+' ,),
-    'BINARY_SUBTRACT':          ( '-' ,),
-    'BINARY_MULTIPLY':          ( '*' ,),
-    'BINARY_DIVIDE':            ( '/' ,),
-    'BINARY_MATRIX_MULTIPLY':   ( '@' ,),
-    'BINARY_TRUE_DIVIDE':       ( '/' ,),   # Not in <= 2.1
-    'BINARY_FLOOR_DIVIDE':      ( '//' ,),
-    'BINARY_MODULO':            ( '%%',),
-    'BINARY_POWER':             ( '**',),
-    'BINARY_LSHIFT':            ( '<<',),
-    'BINARY_RSHIFT':            ( '>>',),
-    'BINARY_AND':               ( '&' ,),
-    'BINARY_OR':                ( '|' ,),
-    'BINARY_XOR':               ( '^' ,),
-    'INPLACE_ADD':              ( '+=' ,),
-    'INPLACE_SUBTRACT':         ( '-=' ,),
-    'INPLACE_MULTIPLY':         ( '*=' ,),
-    'INPLACE_MATRIX_MULTIPLY':  ( '@=' ,),
-    'INPLACE_DIVIDE':           ( '/=' ,),
-    'INPLACE_TRUE_DIVIDE':  ( '/=' ,),  # Not in <= 2.1; 2.6 generates INPLACE_DIVIDE only?
-    'INPLACE_FLOOR_DIVIDE':     ( '//=' ,),
-    'INPLACE_MODULO':           ( '%%=',),
-    'INPLACE_POWER':            ( '**=',),
-    'INPLACE_LSHIFT':           ( '<<=',),
-    'INPLACE_RSHIFT':           ( '>>=',),
-    'INPLACE_AND':              ( '&=' ,),
-    'INPLACE_OR':               ( '|=' ,),
-    'INPLACE_XOR':              ( '^=' ,),
-    'UNARY_POSITIVE':           ( '+',),
-    'UNARY_NEGATIVE':           ( '-',),
-    'UNARY_INVERT':             ( '~'),
-    'UNARY_NOT':                ( 'not ', ),
+    "BINARY_ADD":               ( "+" ,),
+    "BINARY_AND":               ( "&" ,),
+    "BINARY_DIVIDE":            ( "/" ,),
+    "BINARY_FLOOR_DIVIDE":      ( "//" ,),
+    "BINARY_LSHIFT":            ( "<<",),
+    "BINARY_MATRIX_MULTIPLY":   ( "@" ,),
+    "BINARY_MODULO":            ( "%%",),
+    "BINARY_MULTIPLY":          ( "*" ,),
+    "BINARY_OR":                ( "|" ,),
+    "BINARY_POWER":             ( "**",),
+    "BINARY_RSHIFT":            ( ">>",),
+    "BINARY_SUBTRACT":          ( "-" ,),
+    "BINARY_TRUE_DIVIDE":       ( "/" ,),   # Not in <= 2.1
+    "BINARY_XOR":               ( "^" ,),
+    "DELETE_FAST":	            ( "%|del %{pattr}\n", ),
+    "DELETE_GLOBAL":	        ( "%|del %{pattr}\n", ),
+    "DELETE_NAME":	            ( "%|del %{pattr}\n", ),
+    "IMPORT_FROM":              ( "%{pattr}", ),
+    "IMPORT_NAME_ATTR":         ( "%{pattr}", ),
+    "INPLACE_ADD":              ( "+=" ,),
+    "INPLACE_AND":              ( "&=" ,),
+    "INPLACE_DIVIDE":           ( "/=" ,),
+    "INPLACE_FLOOR_DIVIDE":     ( "//=" ,),
+    "INPLACE_LSHIFT":           ( "<<=",),
+    "INPLACE_MATRIX_MULTIPLY":  ( "@=" ,),
+    "INPLACE_MODULO":           ( "%%=",),
+    "INPLACE_MULTIPLY":         ( "*=" ,),
+    "INPLACE_OR":               ( "|=" ,),
+    "INPLACE_POWER":            ( "**=",),
+    "INPLACE_RSHIFT":           ( ">>=",),
+    "INPLACE_SUBTRACT":         ( "-=" ,),
+    "INPLACE_TRUE_DIVIDE":      ( "/=" ,),
+    "INPLACE_XOR":              ( "^=" ,),
+    "LOAD_ASSERT":              ( "%{pattr}", ),
+    "LOAD_CLASSNAME":	        ( "%{pattr}", ),
+    "LOAD_DEREF":	            ( "%{pattr}", ),
+    "LOAD_FAST":	            ( "%{pattr}", ),
+    "LOAD_GLOBAL":	            ( "%{pattr}", ),
+    "LOAD_LOCALS":	            ( "locals()", ),
+    "LOAD_NAME":	            ( "%{pattr}", ),
+    "LOAD_STR":	                ( "%{pattr}", ),
+    "STORE_DEREF":	            ( "%{pattr}", ),
+    "STORE_FAST":	            ( "%{pattr}", ),
+    "STORE_GLOBAL":	            ( "%{pattr}", ),
+    "STORE_NAME":	            ( "%{pattr}", ),
+    "UNARY_INVERT":             ( "~"),
+    "UNARY_NEGATIVE":           ( "-",),
+    "UNARY_NOT":                ( "not ", ),
+    "UNARY_POSITIVE":           ( "+",),
 
     "and_or": (
         "%c and %c or %c",
@@ -202,6 +222,15 @@ TABLE_DIRECT = {
         "and %p",
         (0, "expr_pjif", PRECEDENCE["and"]),
         ),
+
+    "assign":		    ( "%|%c = %p\n", -1, (0, "expr", PRECEDENCE["tuple_starred"]+1) ),
+
+    # The 2nd parameter should have a = suffix.
+    # There is a rule with a 4th parameter "store"
+    # which we don't use here.
+    "aug_assign1":      ( "%|%c %c %c\n", 0, 2, 1),
+
+    "aug_assign2":	    ( "%|%c.%[2]{pattr} %c %c\n", 0, -3, -4 ),
 
     # bin_op (formerly "binary_expr") is the Python AST BinOp
     'bin_op':                  ( '%c %c %c', 0,
@@ -217,15 +246,22 @@ TABLE_DIRECT = {
                                  (4, 'binary_operator'),
                                  (3, 'expr') ),
 
-    # unary_op (formerly "unary_expr") is the Python AST UnaryOp
-    'unary_op':                ( '%c%c',
-                                 (1, 'unary_operator'),
-                                 (0, 'expr') ),
+    "conditional_not_lambda":
+                        ( "%p if not %c else %c",
+                          (2, "expr", 27), 0, 4 ),
 
-    'unary_not':	            ( 'not %c',
-                                  (0, 'expr' ) ),
-    'unary_convert':            ( '`%c`',
-                                  (0, 'expr' ), ),
+    "compare_single":	    ( '%p %[-1]{pattr.replace("-", " ")} %p',
+                             (0, "expr", 19), (1, "expr", 19) ),
+    "compare_chained":	    ( "%p %p", (0, "expr", 29), (1, "compare_chained1", 30)),
+    "compare_chained1":	    ( '%[3]{pattr.replace("-", " ")} %p %p', (0, 19), (5, 19)),
+    "compare_chained2":	    ( '%[1]{pattr.replace("-", " ")} %p', (0, 19)),
+    "compare_in":	        ( "%p in %p",(0, "expr", 19), (1, "expr", 19) ),
+    "compare_is":	        ( "%p is %p",(0, "expr", 19), (1, "expr", 19) ),
+
+    "c_compare_chained":    ( "%p %p", (0, 29), (1, 30)),
+
+    #   "classdef": 	(), # handled by n_classdef()
+
     'get_iter':	                ( 'iter(%c)',
                                   (0, 'expr'), ),
     'slice0':		        ( '%c[:]',
@@ -240,21 +276,8 @@ TABLE_DIRECT = {
                                   (0, 'expr'),
                                   (1, 100), (2, 100) ),
 
-    'IMPORT_FROM':              ( '%{pattr}', ),
-    'IMPORT_NAME_ATTR':         ( '%{pattr}', ),
     'attribute':	        ( '%c.%[1]{pattr}',
                                   (0, 'expr')),
-    'LOAD_STR':	                ( '%{pattr}', ),
-    'LOAD_FAST':	        ( '%{pattr}', ),
-    'LOAD_NAME':	        ( '%{pattr}', ),
-    'LOAD_CLASSNAME':	        ( '%{pattr}', ),
-    'LOAD_GLOBAL':	        ( '%{pattr}', ),
-    'LOAD_DEREF':	        ( '%{pattr}', ),
-    'LOAD_LOCALS':	        ( 'locals()', ),
-    'LOAD_ASSERT':              ( '%{pattr}', ),
-    'DELETE_FAST':	        ( '%|del %{pattr}\n', ),
-    'DELETE_NAME':	        ( '%|del %{pattr}\n', ),
-    'DELETE_GLOBAL':	        ( '%|del %{pattr}\n', ),
     'delete_subscript':         ( '%|del %p[%c]\n',
                                   (0, 'expr', PRECEDENCE['subscript']), (1, 'expr') ),
     'subscript':                ( '%p[%c]',
@@ -266,12 +289,28 @@ TABLE_DIRECT = {
     'store_subscript':	        ( '%p[%c]',
                                   (0, 'expr', PRECEDENCE['subscript']),
                                   (1, 'expr') ),
-    'STORE_FAST':	        ( '%{pattr}', ),
-    'STORE_NAME':	        ( '%{pattr}', ),
-    'STORE_GLOBAL':	        ( '%{pattr}', ),
-    'STORE_DEREF':	        ( '%{pattr}', ),
     'unpack':		        ( '%C%,', (1, maxint, ', ') ),
 
+    # A custom rule in n_function def distinguishes whether to call this or
+    # function_def_async
+    "function_def":         ( "\n\n%|def %c\n", -2), # -2 to handle closures
+
+    "function_def_deco":    ( "\n\n%c", (0, "mkfuncdeco") ),
+    "mkfuncdeco":  	    ( "%|@%c\n%c", (0, "expr"), 1 ),
+
+    # A custom rule in n_function def distinguishes whether to call this or
+    # function_def_async
+    "mkfuncdeco0":  	    ( "%|def %c\n", (0, "mkfunc") ),
+
+    # unary_op (formerly "unary_expr") is the Python AST UnaryOp
+    'unary_op':                ( '%c%c',
+                                 (1, 'unary_operator'),
+                                 (0, 'expr') ),
+
+    'unary_not':	            ( 'not %c',
+                                  (0, 'expr' ) ),
+    'unary_convert':            ( '`%c`',
+                                  (0, 'expr' ), ),
     # This nonterminal we create on the fly in semantic routines
     'unpack_w_parens':	        ( '(%C%,)', (1, maxint, ', ') ),
 
@@ -302,25 +341,18 @@ TABLE_DIRECT = {
         (1, 'expr_pjit'),
         (3, "list_iter"),
         ),
-    'lc_body':		    ( '', ),	# ignore when recursing
+    'lc_body':		    ( "", ),	# ignore when recursing
 
-    'comp_iter':	    ( '%c', 0 ),
-    'comp_if':		    ( ' if %c%c', 0, 1 ),
-    'comp_if_not':	    ( ' if not %p%c',
+    'comp_iter':	    ( "%c", 0 ),
+    'comp_if':		    ( " if %c%c", 0, 1 ),
+    'comp_if_not':	    ( " if not %p%c",
                               (0, 'expr', PRECEDENCE['unary_not']), 2 ),
-    'comp_body':	    ( '', ),	# ignore when recursing
-    'set_comp_body':        ( '%c', 0 ),
-    'gen_comp_body':        ( '%c', 0 ),
-    'dict_comp_body':       ( '%c:%c', 1, 0 ),
+    'comp_body':	    ( "", ),	# ignore when recursing
+    'set_comp_body':    ( "%c", 0 ),
+    'gen_comp_body':    ( "%c", 0 ),
+    "dict_comp_body":   ( "%c:%c", 1, 0 ),
+    "dicts_unpack":     ("{**%C}", (0, maxint, ", **")),
 
-    "assign":		    ( '%|%c = %p\n', -1, (0, "expr", PRECEDENCE["tuple_starred"]+1) ),
-
-    # The 2nd parameter should have a = suffix.
-    # There is a rule with a 4th parameter "store"
-    # which we don't use here.
-    "aug_assign1":      ( "%|%c %c %c\n", 0, 2, 1),
-
-    "aug_assign2":	    ( "%|%c.%[2]{pattr} %c %c\n", 0, -3, -4 ),
     "designList":	    ( "%c = %c", 0, -1 ),
     "and":          	(
         "%c and %c",
@@ -387,32 +419,6 @@ TABLE_DIRECT = {
                           (2, 27),
                           (0, "expr", PRECEDENCE["unary_not"]),
                           (4, 27) ),
-    "conditional_not_lambda":
-                        ( "%p if not %c else %c",
-                          (2, "expr", 27), 0, 4 ),
-
-    "compare_single":	    ( '%p %[-1]{pattr.replace("-", " ")} %p',
-                             (0, "expr", 19), (1, "expr", 19) ),
-    "compare_chained":	    ( "%p %p", (0, "expr", 29), (1, "compare_chained1", 30)),
-    "compare_chained1":	    ( '%[3]{pattr.replace("-", " ")} %p %p', (0, 19), (5, 19)),
-    "compare_chained2":	    ( '%[1]{pattr.replace("-", " ")} %p', (0, 19)),
-    "compare_in":	        ( "%p in %p",(0, "expr", 19), (1, "expr", 19) ),
-    "compare_is":	        ( "%p is %p",(0, "expr", 19), (1, "expr", 19) ),
-
-    "c_compare_chained":    ( "%p %p", (0, 29), (1, 30)),
-
-#   "classdef": 	(), # handled by n_classdef()
-
-    # A custom rule in n_function def distinguishes whether to call this or
-    # function_def_async
-    "function_def":         ( "\n\n%|def %c\n", -2), # -2 to handle closures
-
-    "function_def_deco":    ( "\n\n%c", (0, "mkfuncdeco") ),
-    "mkfuncdeco":  	    ( "%|@%c\n%c", (0, "expr"), 1 ),
-
-    # A custom rule in n_function def distinguishes whether to call this or
-    # function_def_async
-    "mkfuncdeco0":  	    ( "%|def %c\n", (0, "mkfunc") ),
 
     "classdefdeco":  	    ( "\n\n%c", 0),
     "classdefdeco1":  	    ( "%|@%c\n%c", 0, 1),
@@ -530,7 +536,6 @@ TABLE_DIRECT = {
     "except_suite_finalize":     ( "%+%c%-%C", 1, (3, maxint, "") ),
 
     "pass":	            ( "%|pass\n", ),
-    "STORE_FAST":	    ( "%{pattr}", ),
     "kv":		    ( "%c: %c", 3, 1 ),
     "kv2":		    ( "%c: %c", 1, 2 ),
     "import":               ( "%|import %c\n", 2),
@@ -539,6 +544,7 @@ TABLE_DIRECT = {
                               (3, "importlist") ),
     "import_from_star":     ( "%|from %[2]{pattr} import *\n", ),
 }
+# fmt: on
 
 
 MAP_DIRECT = (TABLE_DIRECT, )
@@ -546,10 +552,10 @@ MAP_R = (TABLE_R, -1)
 
 MAP = {
     "stmt":		MAP_R,
-    "c_stmt":		MAP_R,
-    "call":	        MAP_R,
-    "delete":		MAP_R,
-    "store":	        MAP_R,
+    "c_stmt":	MAP_R,
+    "call":	    MAP_R,
+    "delete":   MAP_R,
+    "store":	MAP_R,
 }
 
 ASSIGN_TUPLE_PARAM = lambda param_name: \

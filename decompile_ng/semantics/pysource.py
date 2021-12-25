@@ -135,6 +135,7 @@ import sys
 IS_PYPY = "__pypy__" in sys.builtin_module_names
 
 from xdis import COMPILER_FLAG_BIT, iscode
+from xdis.version_info import PYTHON_VERSION_TRIPLE
 
 import decompile_ng.parsers.parse_heads as heads
 import decompile_ng.parsers.main as python_parser
@@ -178,6 +179,7 @@ from io import StringIO
 
 DEFAULT_DEBUG_OPTS = {"asm": False, "tree": False, "grammar": False}
 
+
 class SourceWalkerError(Exception):
     def __init__(self, errmsg):
         self.errmsg = errmsg
@@ -201,30 +203,28 @@ class SourceWalker(GenericASTTraversal, object):
         linestarts={},
         tolerate_errors=False,
     ):
-        """
-        "version" is the Python version (a float) of the Python
-        dialect of both the syntax tree and language we should
-        produce.
+        """`version' is the Python version (a float) of the Python dialect
+        of both the syntax tree and language we should produce.
 
-        "out" is IO-like file pointer to where the output should go. It
+        `out' is IO-like file pointer to where the output should go. It
         whould have a getvalue() method.
 
-        "scanner" is a method to call when we need to scan tokens. Sometimes
+        `scanner' is a method to call when we need to scan tokens. Sometimes
         in producing output we will run across further tokens that need
         to be scaned.
 
-        If "showast" is True, we print the syntax tree.
+        If `showast' is True, we print the syntax tree.
 
-        "compile_mode" is is either "exec" or "single" or "lambda".
+        `compile_mode` is is either `exec`, `single` or `lambda`.
 
-        For "lambda", the grammar that can be used in lambda
+        For `lambda`, the grammar that can be used in lambda
         expressions is used.  Otherwise, it is the compile mode that
         was used to create the Syntax Tree and specifies a gramar
         variant within a Python version to use.
 
-        "is_pypy" should be True if the Syntax Tree was generated for PyPy.
+        `is_pypy` should be True if the Syntax Tree was generated for PyPy.
 
-        "linestarts" is a dictionary of line number to bytecode offset. This
+        `linestarts` is a dictionary of line number to bytecode offset. This
         can sometimes assist in determinte which kind of source-code construct
         to use when there is ambiguity.
 
@@ -289,7 +289,6 @@ class SourceWalker(GenericASTTraversal, object):
         self.version = version
         self.is_pypy = is_pypy
         customize_for_version(self, is_pypy, version)
-
         return
 
     def maybe_show_tree(self, ast):
@@ -1427,200 +1426,109 @@ class SourceWalker(GenericASTTraversal, object):
         """
         prettyprint a dict
         'dict' is something like k = {'a': 1, 'b': 42}"
-        We will source-code use line breaks to guide us when to break.
+        We will use source-code line breaks to guide us when to break.
         """
         p = self.prec
         self.prec = 100
 
         self.indent_more(INDENT_PER_LEVEL)
         sep = INDENT_PER_LEVEL[:-1]
-        if node[0] != "dict_entry":
-            self.write("{")
+        self.write("{")
         line_number = self.line_number
 
-        if self.version >= (3, 0) and not self.is_pypy:
-            if node[0].kind.startswith("kvlist"):
-                # Python 3.5+ style key/value list in dict
-                kv_node = node[0]
-                l = list(kv_node)
-                length = len(l)
-                if kv_node[-1].kind.startswith("BUILD_MAP"):
-                    length -= 1
-                i = 0
-
-                # Respect line breaks from source
-                while i < length:
-                    self.write(sep)
-                    name = self.traverse(l[i], indent="")
-                    if i > 0:
-                        line_number = self.indent_if_source_nl(
-                            line_number, self.indent + INDENT_PER_LEVEL[:-1]
-                        )
-                    line_number = self.line_number
-                    self.write(name, ": ")
-                    value = self.traverse(
-                        l[i + 1], indent=self.indent + (len(name) + 2) * " "
-                    )
-                    self.write(value)
-                    sep = ", "
-                    if line_number != self.line_number:
-                        sep += "\n" + self.indent + INDENT_PER_LEVEL[:-1]
-                        line_number = self.line_number
-                    i += 2
-                    pass
-                pass
-            elif len(node) > 1 and node[1].kind.startswith("kvlist"):
-                # Python 3.0..3.4 style key/value list in dict
-                kv_node = node[1]
-                l = list(kv_node)
-                if len(l) > 0 and l[0].kind == "kv3":
-                    # Python 3.2 does this
-                    kv_node = node[1][0]
-                    l = list(kv_node)
-                i = 0
-                while i < len(l):
-                    self.write(sep)
-                    name = self.traverse(l[i + 1], indent="")
-                    if i > 0:
-                        line_number = self.indent_if_source_nl(
-                            line_number, self.indent + INDENT_PER_LEVEL[:-1]
-                        )
-                        pass
-                    line_number = self.line_number
-                    self.write(name, ": ")
-                    value = self.traverse(
-                        l[i], indent=self.indent + (len(name) + 2) * " "
-                    )
-                    self.write(value)
-                    sep = ", "
-                    if line_number != self.line_number:
-                        sep += "\n" + self.indent + INDENT_PER_LEVEL[:-1]
-                        line_number = self.line_number
-                    else:
-                        sep += " "
-                    i += 3
-                    pass
-                pass
-            elif node[-1].kind.startswith("BUILD_CONST_KEY_MAP"):
-                # Python 3.6+ style const map
-                keys = node[-2].pattr
-                values = node[:-2]
-                # FIXME: Line numbers?
-                for key, value in zip(keys, values):
-                    self.write(sep)
-                    self.write(repr(key))
-                    line_number = self.line_number
-                    self.write(":")
-                    self.write(self.traverse(value[0]))
-                    sep = ", "
-                    if line_number != self.line_number:
-                        sep += "\n" + self.indent + INDENT_PER_LEVEL[:-1]
-                        line_number = self.line_number
-                    else:
-                        sep += " "
-                        pass
-                    pass
-                if sep.startswith(",\n"):
-                    self.write(sep[1:])
-                pass
-            elif node[0].kind.startswith("dict_entry"):
-                assert self.version >= (3, 5)
-                template = ("%C", (0, len(node[0]), ", **"))
-                self.template_engine(template, node[0])
-                sep = ""
-
+        if node[0].kind == "BUILD_MAP_0":
+            # Empty dictionary: {}
             pass
-        elif self.version >= (3, 6) and self.is_pypy:
-            # FIXME: DRY with above
-            if node[-1].kind.startswith("BUILD_CONST_KEY_MAP"):
-                # Python 3.6+ style const map
-                keys = node[-2].pattr
-                values = node[:-2]
-                # FIXME: Line numbers?
-                for key, value in zip(keys, values):
-                    self.write(sep)
-                    self.write(repr(key))
-                    line_number = self.line_number
-                    self.write(":")
-                    self.write(self.traverse(value[0]))
-                    sep = ", "
-                    if line_number != self.line_number:
-                        sep += "\n" + self.indent + INDENT_PER_LEVEL[:-1]
-                        line_number = self.line_number
-                    else:
-                        sep += " "
-                        pass
-                    pass
-                if sep.startswith(",\n"):
-                    self.write(sep[1:])
-                pass
-        else:
-            # Python 2 style kvlist. Find beginning of kvlist.
-            if node[0].kind.startswith("BUILD_MAP"):
-                if len(node) > 1 and node[1].kind in ("kvlist", "kvlist_n"):
-                    kv_node = node[1]
-                else:
-                    kv_node = node[1:]
-            else:
-                assert node[-1].kind.startswith("kvlist")
-                kv_node = node[-1]
+        if node[0].kind.startswith("kvlist"):
+            kv_node = node[0]
+            l = list(kv_node)
+            length = len(l)
+            if kv_node[-1].kind.startswith("BUILD_MAP"):
+                length -= 1
+            i = 0
 
-            first_time = True
-            for kv in kv_node:
-                assert kv in ("kv", "kv2", "kv3")
-
-                # kv ::= DUP_TOP expr ROT_TWO expr STORE_SUBSCR
-                # kv2 ::= DUP_TOP expr expr ROT_THREE STORE_SUBSCR
-                # kv3 ::= expr expr STORE_MAP
-
-                # FIXME: DRY this and the above
-                indent = self.indent + "  "
-                if kv == "kv":
-                    self.write(sep)
-                    name = self.traverse(kv[-2], indent="")
-                    if first_time:
-                        line_number = self.indent_if_source_nl(line_number, indent)
-                        first_time = False
-                        pass
-                    line_number = self.line_number
-                    self.write(name, ": ")
-                    value = self.traverse(
-                        kv[1], indent=self.indent + (len(name) + 2) * " "
+            # Respect line breaks from source
+            while i < length:
+                self.write(sep)
+                name = self.traverse(l[i], indent="")
+                if i > 0:
+                    line_number = self.indent_if_source_nl(
+                        line_number, self.indent + INDENT_PER_LEVEL[:-1]
                     )
-                elif kv == "kv2":
-                    self.write(sep)
-                    name = self.traverse(kv[1], indent="")
-                    if first_time:
-                        line_number = self.indent_if_source_nl(line_number, indent)
-                        first_time = False
-                        pass
-                    line_number = self.line_number
-                    self.write(name, ": ")
-                    value = self.traverse(
-                        kv[-3], indent=self.indent + (len(name) + 2) * " "
-                    )
-                elif kv == "kv3":
-                    self.write(sep)
-                    name = self.traverse(kv[-2], indent="")
-                    if first_time:
-                        line_number = self.indent_if_source_nl(line_number, indent)
-                        first_time = False
-                        pass
-                    line_number = self.line_number
-                    self.write(name, ": ")
-                    line_number = self.line_number
-                    value = self.traverse(
-                        kv[0], indent=self.indent + (len(name) + 2) * " "
-                    )
-                    pass
+                line_number = self.line_number
+                self.write(name, ": ")
+                value = self.traverse(
+                    l[i + 1], indent=self.indent + (len(name) + 2) * " "
+                )
                 self.write(value)
                 sep = ", "
                 if line_number != self.line_number:
-                    sep += "\n" + self.indent + "  "
+                    sep += "\n" + self.indent + INDENT_PER_LEVEL[:-1]
                     line_number = self.line_number
-                    pass
+                i += 2
                 pass
             pass
+        elif len(node) > 1 and node[1].kind.startswith("kvlist"):
+            # Python 3.0..3.4 style key/value list in dict
+            kv_node = node[1]
+            l = list(kv_node)
+            if len(l) > 0 and l[0].kind == "kv3":
+                # Python 3.2 does this
+                kv_node = node[1][0]
+                l = list(kv_node)
+            i = 0
+            while i < len(l):
+                self.write(sep)
+                name = self.traverse(l[i + 1], indent="")
+                if i > 0:
+                    line_number = self.indent_if_source_nl(
+                        line_number, self.indent + INDENT_PER_LEVEL[:-1]
+                    )
+                    pass
+                line_number = self.line_number
+                self.write(name, ": ")
+                value = self.traverse(
+                    l[i], indent=self.indent + (len(name) + 2) * " "
+                )
+                self.write(value)
+                sep = ", "
+                if line_number != self.line_number:
+                    sep += "\n" + self.indent + INDENT_PER_LEVEL[:-1]
+                    line_number = self.line_number
+                else:
+                    sep += " "
+                i += 3
+                pass
+            pass
+        elif node[-1].kind.startswith("BUILD_CONST_KEY_MAP"):
+            # Python 3.6+ style const map
+            keys = node[-2].pattr
+            values = node[:-2]
+            # FIXME: Line numbers?
+            for key, value in zip(keys, values):
+                self.write(sep)
+                self.write(repr(key))
+                line_number = self.line_number
+                self.write(":")
+                self.write(self.traverse(value[0]))
+                sep = ", "
+                if line_number != self.line_number:
+                    sep += "\n" + self.indent + INDENT_PER_LEVEL[:-1]
+                    line_number = self.line_number
+                else:
+                    sep += " "
+                    pass
+                pass
+            if sep.startswith(",\n"):
+                self.write(sep[1:])
+            pass
+        elif node[0].kind.startswith("dict_entry"):
+            assert self.version >= (3, 5)
+            template = ("%C", (0, len(node[0]), ", **"))
+            self.template_engine(template, node[0])
+            sep = ""
+
+        pass
         if sep.startswith(",\n"):
             self.write(sep[1:])
         if node[0] != "dict_entry":
@@ -1953,15 +1861,11 @@ class SourceWalker(GenericASTTraversal, object):
                 index = entry[arg]
                 if isinstance(index, tuple):
                     if isinstance(index[1], str):
-                        if node[index[0]] != index[1]:
-                            from trepan.api import debug; debug()
                         assert node[index[0]] == index[1], (
                             "at %s[%d], expected '%s' node; got '%s'"
                             % (node.kind, arg, index[1], node[index[0]].kind)
                         )
                     else:
-                        if not node[index[0]] in index[1]:
-                            from trepan.api import debug; debug()
                         assert node[index[0]] in index[1], (
                             "at %s[%d], expected to be in '%s' node; got '%s'"
                             % (node.kind, arg, index[1], node[index[0]].kind)
@@ -2380,7 +2284,7 @@ def code_deparse(
     assert iscode(co)
 
     if version is None:
-        version = sys.version_info[:2]
+        version = PYTHON_VERSION_TRIPLE
 
     # store final output stream for case of error
     scanner = get_scanner(version, is_pypy=is_pypy)

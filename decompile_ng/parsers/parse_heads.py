@@ -49,6 +49,7 @@ class PythonBaseParser(GenericASTBuilder):
         nt_list = [
             "and_parts",
             "attributes",
+            "dicts_unmap",
             "doms_end",
             "exprlist",
             "kvlist",
@@ -127,6 +128,7 @@ class PythonBaseParser(GenericASTBuilder):
         Note that the rules must not be those that set arg_count in the
         custom dictionary.
         """
+        # print(rules_str)
         rules = [r.strip() for r in rules_str.split("\n")]
         self.add_unique_rules(rules, customize)
         return
