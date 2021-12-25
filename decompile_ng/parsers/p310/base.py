@@ -1124,20 +1124,6 @@ class Python310BaseParser(PythonBaseParser):
         nak = (len(opname) - len("CALL_FUNCTION")) // 3
         uniq_param = args_kw + args_pos
 
-        if frozenset(("GET_AWAITABLE", "YIELD_FROM")).issubset(self.seen_ops):
-            rule = (
-                "async_call ::= expr "
-                + ("expr " * args_pos)
-                + ("kwarg " * args_kw)
-                + "expr " * nak
-                + token.kind
-                + " GET_AWAITABLE LOAD_CONST YIELD_FROM"
-            )
-            self.add_unique_rule(rule, token.kind, uniq_param, customize)
-            self.add_unique_rule(
-                "expr ::= async_call", token.kind, uniq_param, customize
-            )
-
         if opname.startswith("CALL_FUNCTION_VAR"):
             token.kind = self.call_fn_name(token)
             if opname.endswith("KW"):
@@ -1166,6 +1152,7 @@ class Python310BaseParser(PythonBaseParser):
                 + ("expr " * args_pos)
                 + ("kwarg " * args_kw)
                 + "expr " * nak
+                + "bb_doms_end_start_opt "
                 + token.kind
             )
 
