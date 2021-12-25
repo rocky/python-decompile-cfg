@@ -51,7 +51,7 @@ class PythonBaseParser(GenericASTBuilder):
             "attributes",
             "dicts_unmap",
             "doms_end",
-            "exprlist",
+            "exprs",
             "kvlist",
             "kwargs",
             "lists",

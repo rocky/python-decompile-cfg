@@ -198,8 +198,8 @@ class Python310LambdaCustom(Python310BaseParser):
                     lists ::= lists list
                     lists ::= list
                     list  ::= expr LIST_EXTEND
-                    tuple_starred ::= BUILD_LIST_0 lists LIST_TO_TUPLE
-                    expr ::= tuple_starred
+                    tuple_list_starred ::= BUILD_LIST_0 lists LIST_TO_TUPLE
+                    expr ::= tuple_list_starred
                     """
                 self.add_unique_doc_rules(rule_str, customize)
             elif opname == "FORMAT_VALUE":
@@ -512,13 +512,13 @@ class Python310LambdaCustom(Python310BaseParser):
                 )
             if "DICT_MERGE" in self.seen_ops:
                 self.addRule(
-                    f"""expr           ::= call_ex_kw3
-                        tuple_starred ::= BUILD_LIST_1 expr LIST_EXTEND LIST_TO_TUPLE
-                        call_ex_kw3    ::= expr
-                                           {("expr " * args_pos)}
-                                           tuple_starred
-                                           BUILD_MAP_0 expr DICT_MERGE
-                                           CALL_FUNCTION_EX_KW
+                    f"""expr               ::= call_ex_kw3
+                        tuple_list_starred ::= BUILD_LIST_1 expr LIST_EXTEND LIST_TO_TUPLE
+                        call_ex_kw3        ::= expr
+                                               {("expr " * args_pos)}
+                                               tuple_list_starred
+                                               BUILD_MAP_0 expr DICT_MERGE
+                                               CALL_FUNCTION_EX_KW
                      """,
                     nop_func,
                 )
@@ -546,10 +546,13 @@ class Python310LambdaCustom(Python310BaseParser):
                     )
 
         elif opname == "CALL_FUNCTION_EX":
+            # FIXME probably not right. Probably the number of expr's should match
+            # the number after BUILD_LIST_
             self.addRule(
-                """expr        ::= call_ex
-                   starred     ::= expr
-                   call_ex     ::= expr starred CALL_FUNCTION_EX
+                """expr               ::= call_ex
+                   exprs              ::= expr+
+                   tuple_list_starred ::= BUILD_LIST_1 expr LIST_EXTEND LIST_TO_TUPLE
+                   call_ex            ::= expr exprs CALL_FUNCTION_EX
                 """,
                 nop_func,
             )
@@ -575,16 +578,6 @@ class Python310LambdaCustom(Python310BaseParser):
                 )
                 pass
 
-            # FIXME: Is this right?
-            self.addRule(
-                """expr        ::= call_ex_kw4
-                   call_ex_kw4 ::= expr
-                                   expr
-                                   expr
-                                   CALL_FUNCTION_EX
-                """,
-                nop_func,
-            )
             pass
         else:
             Python310BaseParser.custom_classfunc_rule(

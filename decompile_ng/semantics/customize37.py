@@ -113,7 +113,9 @@ def customize_for_version37(self, version):
             # need parenthesis.
             "await_expr": ("await %p", (0, PRECEDENCE["await_expr"] - 1)),
             "await_stmt": ("%|%c\n", 0),
-            "call_ex": ("%c(%p)", (0, "expr"), (1, 100)),
+
+            "call_ex": ("%c(%C, *%p)", (0, "expr"), (1, -1, ", "), (-1, 100)),
+
             "compare_chained1a_37": (
                 "%p %p",
                 (0, PRECEDENCE["compare"] - 1),
@@ -1146,9 +1148,7 @@ def customize_for_version37(self, version):
         if kwargs == "expr":
             kwargs = kwargs[0]
         call_function_ex = node[-1]
-        assert call_function_ex == "CALL_FUNCTION_EX_KW" or (
-            self.version >= 3.6 and call_function_ex == "CALL_FUNCTION_EX"
-        )
+        assert call_function_ex.kind.startswith("CALL_FUNCTION_EX")
         # FIXME: decide if the below test be on kwargs == 'dict'
         if (
             call_function_ex.attr & 1
