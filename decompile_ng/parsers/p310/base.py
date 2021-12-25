@@ -139,6 +139,8 @@ class Python310BaseParser(PythonBaseParser):
         # A set of instruction operation names that exist in the token stream.
         # We use this customize the grammar that we create.
         # 2.6-compatible set comprehensions
+
+        # The initial initialization is done in lambea_expr.py
         self.seen_ops = frozenset([t.kind for t in tokens])
         self.seen_op_basenames = frozenset(
             [opname[: opname.rfind("_")] for opname in self.seen_ops]
@@ -309,17 +311,6 @@ class Python310BaseParser(PythonBaseParser):
                                                POP_BLOCK async_with_post
                     """
                 self.addRule(rules_str, nop_func)
-
-            elif opname_base == "BUILD_CONST_KEY_MAP":
-                kvlist_n = "expr " * (token.attr)
-                rule = """
-                   expr ::= dict
-                   dict ::= %sLOAD_CONST %s
-                """ % (
-                    kvlist_n,
-                    opname,
-                )
-                self.addRule(rule, nop_func)
 
             elif opname_base in (
                 "BUILD_SET",

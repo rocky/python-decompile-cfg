@@ -405,8 +405,10 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         # but we'll do a finer check after the rough breakout.
         customize_instruction_basenames = frozenset(
             (
+                "BUILD",
                 "BEFORE",
                 "BUILD",
+                "CALL",
                 "DICT",
                 "GET",
                 "FORMAT",
@@ -422,10 +424,20 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
         # only once and if we see the opcode a second we don't have to consider
         # adding more rules.
         #
+        custom_ops_processed = frozenset()
+
+        # A set of instruction operation names that exist in the token stream.
+        # We use this customize the grammar that we create.
+        # 2.6-compatible set comprehensions
+        self.seen_ops = frozenset([t.kind for t in tokens])
+        self.seen_op_basenames = frozenset(
+            [opname[: opname.rfind("_")] for opname in self.seen_ops]
+        )
+
         # Note: BUILD_TUPLE_UNPACK_WITH_CALL gets considered by
         # default because it starts with BUILD. So we'll set to ignore it from
         # the start.
-        custom_ops_processed = set(("BUILD_TUPLE_UNPACK_WITH_CALL",))
+        custom_ops_processed = set(("BUILD_TUPLE_UNPACK_WITH_CALL", "DICT_MERGE"))
 
         # Loop over instructions adding custom grammar rules based on
         # a specific instruction seen.
@@ -467,8 +479,18 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
 
             opname_base = opname[: opname.rfind("_")]
 
+            if opname_base == "BUILD_CONST_KEY_MAP":
+                kvlist_n = "expr " * (token.attr)
+                rule = """
+                    expr ::= dict
+                    dict ::= %sLOAD_CONST %s
+                """ % (
+                    kvlist_n,
+                    opname,
+                )
+                self.addRule(rule, nop_func)
             # Must come before BUILD_LIST
-            if opname.startswith("BUILD_LIST_UNPACK"):
+            elif opname.startswith("BUILD_LIST_UNPACK"):
                 v = token.attr
                 rule = "build_list_unpack ::= %s%s" % ("expr " * v, opname)
                 self.addRule(rule, nop_func)
@@ -544,6 +566,7 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
                 rule_str = """
                     lists ::= lists list
                     lists ::= list
+                    list  ::= expr LIST_EXTEND
                     tuple_starred ::= BUILD_LIST_0 lists LIST_TO_TUPLE
                     expr ::= tuple_starred
                     """
@@ -854,6 +877,18 @@ class Python310LambdaParser(Python310BaseParser, PythonParserLambda):
                       call_ex_kw  ::= expr expr build_map_unpack_with_call
                                       CALL_FUNCTION_EX_KW
                              """,
+                    nop_func,
+                )
+            if "DICT_MERGE" in self.seen_ops:
+                self.addRule(
+                    f"""expr           ::= call_ex_kw3
+                        tuple_starred ::= BUILD_LIST_1 expr LIST_EXTEND LIST_TO_TUPLE
+                        call_ex_kw3    ::= expr
+                                           {("expr " * args_pos)}
+                                           tuple_starred
+                                           BUILD_MAP_0 expr DICT_MERGE
+                                           CALL_FUNCTION_EX_KW
+                     """,
                     nop_func,
                 )
             if "BUILD_TUPLE_UNPACK_WITH_CALL" in self.seen_op_basenames:
