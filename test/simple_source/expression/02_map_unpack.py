@@ -13,8 +13,8 @@ lambda w: (*w, *w)
 # {'c': 1, {'d': 2}, **{'e': 3}}
 # [*[]]
 # FIXME: assert deparsing is incorrect for:
-# {**{}, **{}}
+lambda: {**{}, **{}}
 # assert {} == {**{}, **{}, **{}}
 
-# {**{}, **{}, **{}}
+lambda: {**{}, **{}, **{}}
 # assert {} == {**{}, **{}, **{}}
