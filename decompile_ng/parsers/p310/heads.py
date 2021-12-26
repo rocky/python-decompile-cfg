@@ -46,7 +46,7 @@ class Python310ParserLambda(Python310LambdaParser, PythonParserLambda):
 
 
 # These classes are here just to get parser doc-strings for the
-# various classes inherited properly and start_symbols set pproperly
+# various classes inherited properly and start_symbols set properly.
 class Python310ParserSingle(Python310Parser, PythonParserSingle):
     def __init__(self, debug_parser):
-        PythonParserSingle.__init__(self, debug_parser, start_symbol="stmts")
+        PythonParserSingle.__init__(self, debug_parser)

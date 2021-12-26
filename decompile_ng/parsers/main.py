@@ -75,7 +75,7 @@ def get_python_parser(
 
     if compile_mode in ("exec"):
         p = Python310ParserExec(debug_parser=debug_parser)
-    if compile_mode == "single":
+    elif compile_mode == "single":
         p = Python310ParserSingle(debug_parser=debug_parser)
     elif compile_mode == "lambda":
         p = Python310ParserLambda(debug_parser=debug_parser)

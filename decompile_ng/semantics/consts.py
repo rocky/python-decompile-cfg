@@ -47,7 +47,7 @@ PRECEDENCE = {
     "named_expr":             40, # :=
     "yield":                  38, # Needs to be below named_expr
     "yield_from":             38,
-    "tuple_starred":          38,  # *x, *y, *z - about at the level of yield?
+    "tuple_list_starred":     38,  # *x, *y, *z - about at the level of yield?
     "dict_unpack":            38,  # **kwargs
     "list_unpack":            38,  # *args
 
@@ -223,7 +223,7 @@ TABLE_DIRECT = {
         (0, "expr_pjif", PRECEDENCE["and"]),
         ),
 
-    "assign":		    ( "%|%c = %p\n", -1, (0, "expr", PRECEDENCE["tuple_starred"]+1) ),
+    "assign":		    ( "%|%c = %p\n", -1, (0, "expr", PRECEDENCE["tuple_list_starred"]+1) ),
 
     # The 2nd parameter should have a = suffix.
     # There is a rule with a 4th parameter "store"
@@ -551,9 +551,9 @@ MAP_DIRECT = (TABLE_DIRECT, )
 MAP_R = (TABLE_R, -1)
 
 MAP = {
-    "stmt":		MAP_R,
+    "stmt":	MAP_R,
     "c_stmt":	MAP_R,
-    "call":	    MAP_R,
+    "call":	MAP_R,
     "delete":   MAP_R,
     "store":	MAP_R,
 }

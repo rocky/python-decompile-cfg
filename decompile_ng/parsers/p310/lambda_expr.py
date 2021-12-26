@@ -25,8 +25,9 @@ be used as a superclass in other grammars, such as a full grammar for Python 3.1
 """
 
 from decompile_ng.parsers.p310.lambda_custom import Python310LambdaCustom
-from decompile_ng.parsers.parse_heads import PythonParserLambda, PythonBaseParser, nop_func
+from decompile_ng.parsers.parse_heads import PythonParserLambda, PythonBaseParser
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
+
 
 class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
     def p_branch_ops(self, args):
@@ -155,7 +156,7 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         """
 
     def p_comprehension_dict(self, args):
-        """"
+        """ "
         comp_if       ::= expr_pjif comp_iter
         comp_if       ::= expr_pjiff comp_iter
         comp_if       ::= or_jump_if_false_cf comp_iter
@@ -384,7 +385,11 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         store_subscript ::= expr expr STORE_SUBSCR
         """
 
-    def __init__(self, start_symbol: str, debug_parser: dict = PARSER_DEFAULT_DEBUG):
+    def __init__(
+        self,
+        start_symbol: str = "lambda_start",
+        debug_parser: dict = PARSER_DEFAULT_DEBUG,
+    ):
         PythonParserLambda.__init__(
             self, debug_parser=debug_parser, start_symbol=start_symbol
         )
@@ -396,9 +401,11 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
     def customize_grammar_rules(self, tokens, customize):
         self.customize_grammar_rules_lambda310(tokens, customize)
 
+
 if __name__ == "__main__":
     # Check grammar
     from decompile_ng.parsers.dump import dump_and_check
+
     # The start_symbol here is something from this file to check.
     # Note that the start_symbol from parse_heads is "lambda_start"
     # which is the same thing surrounded by dominator information.
@@ -406,6 +413,6 @@ if __name__ == "__main__":
     p = Python310LambdaParser(start_symbol="lambda_start")
     modified_tokens = set(
         """JUMP_BACK CONTINUE BB_END BB_START DOM_END DOM_START""".split()
-        )
+    )
 
     dump_and_check(p, (3, 10), modified_tokens, set(["lambda_start"]))

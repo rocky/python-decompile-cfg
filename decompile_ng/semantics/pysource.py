@@ -168,6 +168,7 @@ from decompile_ng.semantics.consts import (
     PRECEDENCE,
     escape,
     minint,
+    maxint,
 )
 
 
@@ -1079,7 +1080,7 @@ class SourceWalker(GenericASTTraversal, object):
         elif ast == "list_comp_async":
             store = ast[2][1]
         else:
-            # FIXME: we get this wehen we parse lambda's explicitly.
+            # FIXME: we get this when we parse lambda's explicitly.
             # And here we've already printed/handled the list comprehension
             # this iteration is duplicate in seeing the list-comprehension code
             # item again. Is this a larger duplicate parsing problem?
@@ -1633,7 +1634,7 @@ class SourceWalker(GenericASTTraversal, object):
 
     n_set = n_build_set = n_tuple = n_list
 
-    def n_tuple_starred(self, node):
+    def n_tuple_list_starred(self, node):
         """
         prettyprint a list or tuple
         """
@@ -1651,10 +1652,12 @@ class SourceWalker(GenericASTTraversal, object):
 
 
         if lastnodetype == "LIST_TO_TUPLE":
-            assert len(node) == 3 and node[1] == "lists"
+            assert node[1] in ("lists", "expr")
+            node_len = len(node)
+            assert 3 <= node_len <= 4
             sep = ""
             for n in node[1]:
-                assert n == "list"
+                assert n.kind == "list" if node_len == 3 else "expr"
                 line_number = self.line_number
                 value = self.traverse(n)
                 if line_number != self.line_number:
@@ -1774,6 +1777,22 @@ class SourceWalker(GenericASTTraversal, object):
                 n[0].kind = "unpack_w_parens"
         self.default(node)
 
+    def n_call_ex(self, node):
+        assert len(node) == 3
+        exprs = node[1]
+        assert exprs == "exprs"
+        if len(exprs) == 1:
+            self.template_engine(("%c(*%p)", (0, "expr"), (1, "exprs", 100)), node)
+        else:
+            self.template_engine(("%c(", (0, "expr")), node)
+            # FIXME: we assume that any starred args here are under nonterminal
+            # tuple_list_starred and are thus marked that way. So we don't
+            # add "*"
+            # We should check this though.
+            self.template_engine(("%P)", (0, maxint, ", ", 100)), exprs)
+        self.prune()
+
+
     def n_except_cond2(self, node):
         unpack_node = -3 if node[-1] == "come_from_opt" else -2
         if node[unpack_node][0] == "unpack":
@@ -1861,6 +1880,10 @@ class SourceWalker(GenericASTTraversal, object):
                 index = entry[arg]
                 if isinstance(index, tuple):
                     if isinstance(index[1], str):
+                        try:
+                            assert node[index[0]] == index[1]
+                        except:
+                            from trepan.api import debug; debug()
                         assert node[index[0]] == index[1], (
                             "at %s[%d], expected '%s' node; got '%s'"
                             % (node.kind, arg, index[1], node[index[0]].kind)
@@ -2003,7 +2026,7 @@ class SourceWalker(GenericASTTraversal, object):
                 TABLE_R[k] = (
                     "%c(%P)",
                     (0, "expr"),
-                    (1, -1, ", ", PRECEDENCE["yield"] - 1),
+                    (1, -2, ", ", PRECEDENCE["yield"] - 1),
                 )
             elif op in (
                 "CALL_FUNCTION_VAR",
@@ -2327,7 +2350,7 @@ def code_deparse(
     if compile_mode == "lambda":
         expected_start = "lambda_start"
     elif compile_mode == "eval":
-        expected_start = "expr_stmt"
+        expected_start = "expr_start"
     elif compile_mode == "expr":
         expected_start = "expr_start"
     elif compile_mode == "exec":
@@ -2364,7 +2387,7 @@ def code_deparse(
 
     if deparsed.ast_errors:
         deparsed.write("# NOTE: have internal decompilation grammar errors.\n")
-        deparsed.write("# Use -t option to show full context.")
+        deparsed.write("# Use -T option to show full context.")
         for err in deparsed.ast_errors:
             deparsed.write(err)
         raise SourceWalkerError("Deparsing hit an internal grammar-rule bug")
