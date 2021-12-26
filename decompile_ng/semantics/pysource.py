@@ -1080,7 +1080,7 @@ class SourceWalker(GenericASTTraversal, object):
         elif ast == "list_comp_async":
             store = ast[2][1]
         else:
-            # FIXME: we get this wehen we parse lambda's explicitly.
+            # FIXME: we get this when we parse lambda's explicitly.
             # And here we've already printed/handled the list comprehension
             # this iteration is duplicate in seeing the list-comprehension code
             # item again. Is this a larger duplicate parsing problem?

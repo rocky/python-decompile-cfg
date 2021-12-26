@@ -33,7 +33,7 @@ class ParserError(Exception):
 
 
 class PythonBaseParser(GenericASTBuilder):
-    def __init__(self, debug_parser, start_symbol, is_lambda=False):
+    def __init__(self, start_symbol, debug_parser, is_lambda=False):
 
         # Note: order of debug_parser, and start_symbol is reverse from above.
         # This is because (at least at one time), start_symbol can be defaulted

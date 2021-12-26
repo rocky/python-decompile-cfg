@@ -27,7 +27,7 @@ from decompile_ng.parsers.p310.lambda_expr import Python310LambdaParser
 
 
 class Python310Parser(Python310LambdaParser):
-    def __init__(self, start_symbol: str, debug_parser:dict=PARSER_DEFAULT_DEBUG):
+    def __init__(self, start_symbol: str="stmts", debug_parser:dict=PARSER_DEFAULT_DEBUG):
         super(Python310Parser, self).__init__(start_symbol, debug_parser)
         self.customized = {}
 
@@ -1245,7 +1245,7 @@ if __name__ == "__main__":
     # Check grammar
     from decompile_ng.parsers.dump import dump_and_check
 
-    p = Python310FullParser()
+    p = Python310FullParser(start_symbol="stmts")
     modified_tokens = set(
         """JUMP_BACK CONTINUE RETURN_END_IF COME_FROM
            LOAD_GENEXPR LOAD_ASSERT LOAD_SETCOMP LOAD_DICTCOMP LOAD_CLASSNAME

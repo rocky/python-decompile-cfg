@@ -14,13 +14,11 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from decompile_ng.parsers.parse_heads import PythonBaseParser, PythonParserSingle, nop_func
-from decompile_ng.parsers.treenode import SyntaxTree
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 
 class Python310BaseParser(PythonBaseParser):
     def __init__(self, start_symbol, debug_parser:dict=PARSER_DEFAULT_DEBUG):
-        super(Python310BaseParser, self).__init__(SyntaxTree, start_symbol=start_symbol,
-                                                  debug_parser=debug_parser)
+        super(Python310BaseParser, self).__init__(start_symbol=start_symbol, debug_parser=debug_parser)
 
     def add_make_function_rule(self, rule, opname, attr, customize):
         """Python 3.3 added a an addtional LOAD_STR before MAKE_FUNCTION and
@@ -1192,19 +1190,3 @@ class Python310BaseParser(PythonBaseParser):
 
 class Python310ParseSingle(Python310BaseParser, PythonParserSingle):
     pass
-
-
-if __name__ == "__main__":
-    # Check grammar
-    from decompile_ng.parsers.dump import dump_and_check
-    from decompile_ng.parsers.p310.lambda_expr import Python310LambdaParser
-    p = Python310LambdaParser("lambda_start")
-    modified_tokens = set(
-        """JUMP_BACK CONTINUE RETURN_END_IF COME_FROM
-           LOAD_GENEXPR LOAD_ASSERT LOAD_SETCOMP LOAD_DICTCOMP LOAD_CLASSNAME
-           LAMBDA_MARKER RETURN_LAST
-        """.split()
-        )
-
-    p.remove_rules_310()
-    dump_and_check(p, (3, 10), modified_tokens)

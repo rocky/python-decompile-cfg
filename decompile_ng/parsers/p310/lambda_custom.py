@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Cgrammar Customization rules for Python 3.10's Lambda expression grammar.
+Grammar Customization rules for Python 3.10's Lambda expression grammar.
 """
 
 from decompile_ng.parsers.p310.base import Python310BaseParser
