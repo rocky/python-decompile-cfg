@@ -331,14 +331,18 @@ class PythonParserSingle(PythonBaseParser):
     def p_start_rule_single(self, args):
         """
         # The start or goal symbol
-        single_stmt ::= dom_start
-                        expr PRINT_EXPR
-                        dom_end_opt
-        """
+        single_start ::= dom_start
+                         expr PRINT_EXPR
+                         dom_end_opt
+        single_start ::= dom_start
+                         stmt
+                         dom_end_opt
+         """
 
     def __init__(self, debug_parser, start_symbol="single_start"):
-        super(PythonParserSingle, self).__init__(debug_parser, start_symbol)
-
+        super(PythonParserSingle, self).__init__(
+            start_symbol=start_symbol, debug_parser=debug_parser
+    )
     pass
 
 
