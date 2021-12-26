@@ -3,6 +3,7 @@
 # """This program is self-checking!"""
 lambda: globals()
 lambda: locals()
+lambda d=b'': 5
 
 # Numpy code has a rich source of lamddas
 lambda x: func(mapdomain(x, window, domain), *args)
