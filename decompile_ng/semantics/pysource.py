@@ -2350,7 +2350,7 @@ def code_deparse(
     if compile_mode == "lambda":
         expected_start = "lambda_start"
     elif compile_mode == "eval":
-        expected_start = "expr_stmt"
+        expected_start = "expr_start"
     elif compile_mode == "expr":
         expected_start = "expr_start"
     elif compile_mode == "exec":

@@ -263,20 +263,6 @@ class PythonBaseParser(GenericASTBuilder):
         return GenericASTBuilder.resolve(self, list)
 
 
-class PythonParserEval(PythonBaseParser):
-    def p_start_rule_eval(self, args):
-        """
-        call_stmt ::= expr PRINT_EXPR
-
-        # eval-mode compilation.  Single-mode interactive compilation
-        # adds another rule.
-        expr_stmt ::= expr POP_TOP
-        """
-
-    def __init__(self, debug_parser, start_symbol="call_stmt"):
-        super(PythonParserEval, self).__init__(start_symbol, debug_parser)
-
-
 class PythonParserExpr(PythonBaseParser):
     """This corresponds to a single grammar expression: "expr". It matches smaller
     units, so it is something to parse for that might be used when larger
@@ -313,6 +299,7 @@ class PythonParserExec(PythonBaseParser):
             debug_parser=debug_parser, start_symbol=start_symbol
         )
 
+PythonParserEval = PythonParserExpr
 
 class PythonParserLambda(PythonBaseParser):
     """
@@ -335,7 +322,6 @@ class PythonParserLambda(PythonBaseParser):
             start_symbol=start_symbol,
         )
 
-
 class PythonParserSingle(PythonBaseParser):
     """
     This corresponds to the compile-mode == "single"
@@ -345,13 +331,12 @@ class PythonParserSingle(PythonBaseParser):
     def p_start_rule_single(self, args):
         """
         # The start or goal symbol
-        stmts ::= dom_start
-                  sstmt_plus
-                  dom_end_opt
-        sstmt_plus ::= sstmt+
+        single_stmt ::= dom_start
+                        expr PRINT_EXPR
+                        dom_end_opt
         """
 
-    def __init__(self, debug_parser, start_symbol="stmts"):
+    def __init__(self, debug_parser, start_symbol="single_start"):
         super(PythonParserSingle, self).__init__(debug_parser, start_symbol)
 
     pass
