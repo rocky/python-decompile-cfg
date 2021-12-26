@@ -83,8 +83,7 @@ def test_eval_mode():
 
 def test_lambda_mode():
     expressions = (
-        # FIXME:
-        # "lambda d=b'': 5",
+        "lambda d=b'': 5",
         "lambda *, d=0: d",
         "lambda x: 1 if x < 2 else 3",
         "lambda y: x * y",

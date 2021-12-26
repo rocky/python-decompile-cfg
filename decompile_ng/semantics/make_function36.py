@@ -126,8 +126,10 @@ def make_function36(self, node, is_lambda, nested=1, code_node=None):
         if node[0] == "pos_arg":
             expr_node = expr_node[0]
         assert expr_node == "expr", "expecting mkfunc default node to be an expr"
-        if expr_node[0] == "LOAD_CONST" and isinstance(expr_node[0].attr, tuple):
-            defparams = [repr(a) for a in expr_node[0].attr]
+        constant_node = expr_node[0]
+        # FIXME: generalize getting constant value beyond contant_node[0].attr
+        if constant_node == "constant" and isinstance(constant_node[0].attr, tuple):
+            defparams = [repr(a) for a in constant_node[0].attr]
         elif expr_node[0] in frozenset(("list", "tuple", "dict", "set")):
             defparams = [self.traverse(n, indent="") for n in expr_node[0][:-1]]
     else:
