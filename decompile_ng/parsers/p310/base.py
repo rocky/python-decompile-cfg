@@ -621,8 +621,8 @@ class Python310BaseParser(PythonBaseParser):
                 j = 2
                 if is_pypy or (i >= j and tokens[i - j] == "LOAD_LAMBDA"):
                     rule_pat = """
-                                expr     ::= mklambda
-                                mklambda ::= %sload_closure LOAD_LAMBDA %%s%s
+                                expr        ::= lambda_body
+                                lambda_body ::= %sload_closure LOAD_LAMBDA %%s%s
                                """ % (
                         "expr " * args_pos,
                         opname,
@@ -698,8 +698,8 @@ class Python310BaseParser(PythonBaseParser):
                 if closure:
                     if args_pos:
                         rule = """
-                             expr     ::= mklambda
-                             mklambda ::= %s%s%s%s
+                             expr        ::= lambda_body
+                             lambda_body ::= %s%s%s%s
                              """ % (
                             "expr " * stack_count,
                             "load_closure " * closure,
@@ -708,8 +708,8 @@ class Python310BaseParser(PythonBaseParser):
                         )
                     else:
                         rule = """
-                             expr     ::= mklambda
-                             mklambda ::= %s%s%s""" % (
+                             expr        ::= lambda_body
+                             lambda_body ::= %s%s%s""" % (
                             "load_closure " * closure,
                             "LOAD_LAMBDA LOAD_STR ",
                             opname,
@@ -718,8 +718,8 @@ class Python310BaseParser(PythonBaseParser):
 
                 else:
                     rule = """
-                         expr     ::= mklambda
-                         mklambda ::= %sLOAD_LAMBDA LOAD_STR %s""" % (
+                         expr        ::= lambda_body
+                         lambda_body ::= %sLOAD_LAMBDA LOAD_STR %s""" % (
                         ("expr " * stack_count),
                         opname,
                     )
@@ -768,8 +768,8 @@ class Python310BaseParser(PythonBaseParser):
 
                 if (i >= 2 and tokens[i - 2] == "LOAD_LAMBDA"):
                     rule_pat = """
-                        expr     ::= mklambda
-                        mklambda ::= %s%sLOAD_LAMBDA %%s%s
+                        expr        ::= lambda_body
+                        lambda_body ::= %s%sLOAD_LAMBDA %%s%s
                         """ % (
                         ("expr " * args_pos),
                         ("kwarg " * args_kw),
@@ -806,8 +806,8 @@ class Python310BaseParser(PythonBaseParser):
                 # FIXME: Fold test  into add_make_function_rule
                 if (i >= j and tokens[i - j] == "LOAD_LAMBDA"):
                     rule_pat = """
-                        expr     ::= mklambda
-                        mklambda ::= %s%sLOAD_LAMBDA %%s%s
+                        expr        ::= lambda_body
+                        lambda_body ::= %s%sLOAD_LAMBDA %%s%s
                         """ % (
                         ("expr " * args_pos),
                         ("kwarg " * args_kw),

@@ -326,7 +326,9 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         unary_not         ::= expr UNARY_NOT
 
         yield             ::= expr YIELD_VALUE
-        yield_from        ::= expr GET_YIELD_FROM_ITER LOAD_CONST YIELD_FROM
+        yield_from        ::= GEN_START
+                              expr
+                              GET_YIELD_FROM_ITER LOAD_CONST YIELD_FROM
         """
 
     def p_jump(self, args):

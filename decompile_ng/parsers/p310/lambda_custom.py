@@ -222,8 +222,8 @@ class Python310LambdaCustom(Python310BaseParser):
                 if closure:
                     if args_pos:
                         rule = """
-                             expr     ::= mklambda
-                             mklambda ::= %s%s%s%s
+                             expr        ::= lambda_body
+                             lambda_body ::= %s%s%s%s
                              """ % (
                             "expr " * stack_count,
                             "load_closure " * closure,
@@ -232,8 +232,8 @@ class Python310LambdaCustom(Python310BaseParser):
                         )
                     else:
                         rule = """
-                             expr     ::= mklambda
-                             mklambda ::= %s%s%s""" % (
+                             expr        ::= lambda_body
+                             lambda_body ::= %s%s%s""" % (
                             "load_closure " * closure,
                             "LOAD_LAMBDA LOAD_STR ",
                             opname,
@@ -242,8 +242,8 @@ class Python310LambdaCustom(Python310BaseParser):
 
                 else:
                     rule = """
-                         expr     ::= mklambda
-                         mklambda ::= %sLOAD_LAMBDA LOAD_STR %s""" % (
+                         expr        ::= lambda_body
+                         lambda_body ::= %sLOAD_LAMBDA LOAD_STR %s""" % (
                         ("expr " * stack_count),
                         opname,
                     )
@@ -294,8 +294,8 @@ class Python310LambdaCustom(Python310BaseParser):
 
                 if is_pypy or (i >= 2 and tokens[i - 2] == "LOAD_LAMBDA"):
                     rule_pat = """
-                        expr     ::= mklambda
-                        mklambda ::= %s%sLOAD_LAMBDA %%s%s
+                        expr        ::= lambda_body
+                        lambda_body ::= %s%sLOAD_LAMBDA %%s%s
                         """ % (
                         ("expr " * args_pos),
                         ("kwarg " * args_kw),
@@ -332,8 +332,8 @@ class Python310LambdaCustom(Python310BaseParser):
                 # FIXME: Fold test  into add_make_function_rule
                 if is_pypy or (i >= j and tokens[i - j] == "LOAD_LAMBDA"):
                     rule_pat = """
-                        expr     ::= mklambda
-                        mklambda ::= %s%sLOAD_LAMBDA %%s%s
+                        expr        ::= lambda_body
+                        lambda_body ::= %s%sLOAD_LAMBDA %%s%s
                         """ % (
                         ("expr " * args_pos),
                         ("kwarg " * args_kw),

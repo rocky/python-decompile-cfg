@@ -44,6 +44,7 @@ maxint = sys.maxsize
 
 # fmt: off
 PRECEDENCE = {
+
     "named_expr":             40, # :=
     "yield":                  38, # Needs to be below named_expr
     "yield_from":             38,
@@ -51,8 +52,7 @@ PRECEDENCE = {
     "dict_unpack":            38,  # **kwargs
     "list_unpack":            38,  # *args
 
-    "_mklambda":              30,
-    "mklambda":               30,
+    "lambda_body":            30,  # lambda ... : lambda_body
 
     "if_exp":                 28, # IfExp ( a if x else b)
     "if_exp_lambda":          28, # IfExp involving a lambda expression
