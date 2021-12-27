@@ -175,9 +175,9 @@ TABLE_DIRECT = {
     "BINARY_SUBTRACT":          ( "-" ,),
     "BINARY_TRUE_DIVIDE":       ( "/" ,),   # Not in <= 2.1
     "BINARY_XOR":               ( "^" ,),
-    "DELETE_FAST":	            ( "%|del %{pattr}\n", ),
-    "DELETE_GLOBAL":	        ( "%|del %{pattr}\n", ),
-    "DELETE_NAME":	            ( "%|del %{pattr}\n", ),
+    "DELETE_FAST":              ( "%|del %{pattr}\n", ),
+    "DELETE_GLOBAL":            ( "%|del %{pattr}\n", ),
+    "DELETE_NAME":              ( "%|del %{pattr}\n", ),
     "IMPORT_FROM":              ( "%{pattr}", ),
     "IMPORT_NAME_ATTR":         ( "%{pattr}", ),
     "INPLACE_ADD":              ( "+=" ,),
@@ -195,17 +195,17 @@ TABLE_DIRECT = {
     "INPLACE_TRUE_DIVIDE":      ( "/=" ,),
     "INPLACE_XOR":              ( "^=" ,),
     "LOAD_ASSERT":              ( "%{pattr}", ),
-    "LOAD_CLASSNAME":	        ( "%{pattr}", ),
-    "LOAD_DEREF":	            ( "%{pattr}", ),
-    "LOAD_FAST":	            ( "%{pattr}", ),
-    "LOAD_GLOBAL":	            ( "%{pattr}", ),
-    "LOAD_LOCALS":	            ( "locals()", ),
-    "LOAD_NAME":	            ( "%{pattr}", ),
-    "LOAD_STR":	                ( "%{pattr}", ),
-    "STORE_DEREF":	            ( "%{pattr}", ),
-    "STORE_FAST":	            ( "%{pattr}", ),
-    "STORE_GLOBAL":	            ( "%{pattr}", ),
-    "STORE_NAME":	            ( "%{pattr}", ),
+    "LOAD_CLASSNAME":           ( "%{pattr}", ),
+    "LOAD_DEREF":               ( "%{pattr}", ),
+    "LOAD_FAST":                ( "%{pattr}", ),
+    "LOAD_GLOBAL":              ( "%{pattr}", ),
+    "LOAD_LOCALS":              ( "locals()", ),
+    "LOAD_NAME":                ( "%{pattr}", ),
+    "LOAD_STR":                 ( "%{pattr}", ),
+    "STORE_DEREF":              ( "%{pattr}", ),
+    "STORE_FAST":               ( "%{pattr}", ),
+    "STORE_GLOBAL":             ( "%{pattr}", ),
+    "STORE_NAME":               ( "%{pattr}", ),
     "UNARY_INVERT":             ( "~"),
     "UNARY_NEGATIVE":           ( "-",),
     "UNARY_NOT":                ( "not ", ),
@@ -233,18 +233,18 @@ TABLE_DIRECT = {
     "aug_assign2":	    ( "%|%c.%[2]{pattr} %c %c\n", 0, -3, -4 ),
 
     # bin_op (formerly "binary_expr") is the Python AST BinOp
-    'bin_op':                  ( '%c %c %c', 0,
-                                (-1, 'binary_operator'),
-                                ( 1, 'expr' ) ),
+    "bin_op":                  ( "%c %c %c", 0,
+                                (-1, "binary_operator"),
+                                ( 1, "expr" ) ),
 
-    'branch_op_compound_prefix': ( '%c(%c)',
-                                 (3, 'unary_operator'),
-                                 (0, 'branch_op') ),
+    "branch_op_compound_prefix": ( "%c(%c)",
+                                 (3, "unary_operator"),
+                                 (0, "branch_op") ),
 
-    'branch_op_compound_suffix': ( '(%c) %c %c',
-                                 (0, 'branch_op'),
-                                 (4, 'binary_operator'),
-                                 (3, 'expr') ),
+    "branch_op_compound_suffix": ( "(%c) %c %c",
+                                 (0, "branch_op"),
+                                 (4, "binary_operator"),
+                                 (3, "expr") ),
 
     "conditional_not_lambda":
                         ( "%p if not %c else %c",
@@ -262,94 +262,94 @@ TABLE_DIRECT = {
 
     #   "classdef": 	(), # handled by n_classdef()
 
-    'get_iter':	                ( 'iter(%c)',
-                                  (0, 'expr'), ),
-    'slice0':		        ( '%c[:]',
-                                  (0, 'expr'), ),
-    'slice1':		        ( '%c[%p:]',
-                                  (0, 'expr'),
+    "get_iter":	                ( "iter(%c)",
+                                  (0, "expr"), ),
+    "slice0":		        ( "%c[:]",
+                                  (0, "expr"), ),
+    "slice1":		        ( "%c[%p:]",
+                                  (0, "expr"),
                                   (1, 100) ),
-    'slice2':		        ( '%c[:%p]',
-                                  (0, 'expr'),
+    "slice2":		        ( "%c[:%p]",
+                                  (0, "expr"),
                                   (1, 100) ),
-    'slice3':		            ( '%c[%p:%p]',
-                                  (0, 'expr'),
+    "slice3":		            ( "%c[%p:%p]",
+                                  (0, "expr"),
                                   (1, 100), (2, 100) ),
 
-    'attribute':	        ( '%c.%[1]{pattr}',
-                                  (0, 'expr')),
-    'delete_subscript':         ( '%|del %p[%c]\n',
-                                  (0, 'expr', PRECEDENCE['subscript']), (1, 'expr') ),
-    'subscript':                ( '%p[%c]',
-                                      (0, 'expr', PRECEDENCE['subscript']),
-                                      (1, 'expr') ),
-    'subscript2':               ( '%p[%c]',
-                                      (0, 'expr', PRECEDENCE['subscript']),
-                                      (1, 'expr') ),
-    'store_subscript':	        ( '%p[%c]',
-                                  (0, 'expr', PRECEDENCE['subscript']),
-                                  (1, 'expr') ),
-    'unpack':		        ( '%C%,', (1, maxint, ', ') ),
+    "attribute":	        ( "%c.%[1]{pattr}",
+                                  (0, "expr")),
+    "delete_subscript":         ( "%|del %p[%c]\n",
+                                  (0, "expr", PRECEDENCE["subscript"]), (1, "expr") ),
+    "subscript":                ( "%p[%c]",
+                                      (0, "expr", PRECEDENCE["subscript"]),
+                                      (1, "expr") ),
+    "subscript2":               ( "%p[%c]",
+                                      (0, "expr", PRECEDENCE["subscript"]),
+                                      (1, "expr") ),
+    "store_subscript":	        ( "%p[%c]",
+                                  (0, "expr", PRECEDENCE["subscript"]),
+                                  (1, "expr") ),
+    "unpack":		        ( "%C%,", (1, maxint, ", ") ),
 
     # A custom rule in n_function def distinguishes whether to call this or
     # function_def_async
-    "function_def":         ( "\n\n%|def %c\n", -2), # -2 to handle closures
+    "function_def":             ( "\n\n%|def %c\n", -2), # -2 to handle closures
 
-    "function_def_deco":    ( "\n\n%c", (0, "mkfuncdeco") ),
-    "mkfuncdeco":  	    ( "%|@%c\n%c", (0, "expr"), 1 ),
+    "function_def_deco":        ( "\n\n%c", (0, "mkfuncdeco") ),
+    "mkfuncdeco":  	        ( "%|@%c\n%c", (0, "expr"), 1 ),
 
     # A custom rule in n_function def distinguishes whether to call this or
     # function_def_async
-    "mkfuncdeco0":  	    ( "%|def %c\n", (0, "mkfunc") ),
+    "mkfuncdeco0":  	        ( "%|def %c\n", (0, "mkfunc") ),
 
     # unary_op (formerly "unary_expr") is the Python AST UnaryOp
-    'unary_op':                ( '%c%c',
-                                 (1, 'unary_operator'),
-                                 (0, 'expr') ),
+    "unary_op":                 ( "%c%c",
+                                  (1, "unary_operator"),
+                                  (0, "expr") ),
 
-    'unary_not':	            ( 'not %c',
-                                  (0, 'expr' ) ),
-    'unary_convert':            ( '`%c`',
-                                  (0, 'expr' ), ),
+    "unary_not":	        ( "not %c",
+                                  (0, "expr" ) ),
+    "unary_convert":            ( "`%c`",
+                                  (0, "expr" ), ),
     # This nonterminal we create on the fly in semantic routines
-    'unpack_w_parens':	        ( '(%C%,)', (1, maxint, ', ') ),
-
-    # This nonterminal we create on the fly in semantic routines
-    'attribute_w_parens':	( '(%c).%[1]{pattr}',
-                                  (0, 'expr')),
+    "unpack_w_parens":	        ( "(%C%,)", (1, maxint, ", ") ),
 
     # This nonterminal we create on the fly in semantic routines
-    'store_w_parens':	( '(%c).%[1]{pattr}',
-                                  (0, 'expr')),
+    "attribute_w_parens":	( "(%c).%[1]{pattr}",
+                                  (0, "expr")),
 
-    'unpack_list':	        ( '[%C]',
-                                      (1, maxint, ', ') ),
-    'build_tuple2':	        ( '%P',
-                                      (0, -1, ', ', 100) ),
+    # This nonterminal we create on the fly in semantic routines
+    "store_w_parens":	( "(%c).%[1]{pattr}",
+                                  (0, "expr")),
 
-    'list_iter':	    ( '%c', 0 ),
-    'list_for':		    ( ' for %c in %c%c', 2, 0, 3 ),
-    'list_if':		    ( ' if %p%c',
-                              (0, 'expr', 27), 2 ),
-    'list_if_not':	    (
-        ' if not %p%c',
-        (0, 'expr', PRECEDENCE['unary_not']),
+    "unpack_list":	        ( "[%C]",
+                                      (1, maxint, ", ") ),
+    "build_tuple2":	        ( "%P",
+                                      (0, -1, ", ", 100) ),
+
+    "list_iter":	        ( "%c", 0 ),
+    "list_for":		        ( " for %c in %c%c", 2, 0, 3 ),
+    "list_if":		        ( " if %p%c",
+                                  (0, "expr", 27), 2 ),
+    "list_if_not":	    (
+        " if not %p%c",
+        (0, "expr", PRECEDENCE["unary_not"]),
         2 ),
-    'list_if_or_not':	    (
-        ' if %c or not %c %c',
-        (0, 'expr_pjit'),
-        (1, 'expr_pjit'),
+    "list_if_or_not":	    (
+        " if %c or not %c %c",
+        (0, "expr_pjit"),
+        (1, "expr_pjit"),
         (3, "list_iter"),
         ),
-    'lc_body':		    ( "", ),	# ignore when recursing
+    "lc_body":		    ( "", ),	# ignore when recursing
 
-    'comp_iter':	    ( "%c", 0 ),
-    'comp_if':		    ( " if %c%c", 0, 1 ),
-    'comp_if_not':	    ( " if not %p%c",
-                              (0, 'expr', PRECEDENCE['unary_not']), 2 ),
-    'comp_body':	    ( "", ),	# ignore when recursing
-    'set_comp_body':    ( "%c", 0 ),
-    'gen_comp_body':    ( "%c", 0 ),
+    "comp_iter":	    ( "%c", 0 ),
+    "comp_if":		    ( " if %c%c", 0, 1 ),
+    "comp_if_not":	    ( " if not %p%c",
+                              (0, "expr", PRECEDENCE["unary_not"]), 2 ),
+    "comp_body":	    ( "", ),	# ignore when recursing
+    "set_comp_body":    ( "%c", 0 ),
+    "gen_comp_body":    ( "%c", 0 ),
     "dict_comp_body":   ( "%c:%c", 1, 0 ),
     "dicts_unpack":     ("{**%C}", (0, maxint, ", **")),
 
@@ -406,7 +406,7 @@ TABLE_DIRECT = {
     ),
 
     # The arg2 is dead-code
-    'if_expr_true':     ( '%p if 1 else %c', (0, 'expr', 27), 2 ),
+    "if_expr_true":     ( "%p if 1 else %c", (0, "expr", 27), 2 ),
 
     # The arg 1 is dead-code
     "if_exp_dead_code": ( "%c if True else %c",
@@ -561,9 +561,9 @@ MAP = {
 ASSIGN_TUPLE_PARAM = lambda param_name: \
              SyntaxTree("expr", [ Token("LOAD_FAST", pattr=param_name) ])
 
-escape = re.compile(r'''
+escape = re.compile(r"""
             (?P<prefix> [^%]* )
             % ( \[ (?P<child> -? \d+ ) \] )?
                 ((?P<type> [^{] ) |
                  ( [{] (?P<expr> [^}]* ) [}] ))
-        ''', re.VERBOSE)
+        """, re.VERBOSE)
