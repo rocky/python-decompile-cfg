@@ -148,7 +148,7 @@ See Also
 .. _Cython: https://en.wikipedia.org/wiki/Cython
 .. _MicroPython: https://micropython.org
 .. _uncompyle6: https://pypi.python.org/pypi/uncompyle6
-.. _decompile3: https://pypi.python.org/pypi/decompile3
+.. _decompyle3: https://pypi.python.org/pypi/decompyle3
 .. _python-control-flow: https://github.com/rocky/python-control-flow
 .. _trepan: https://pypi.python.org/pypi/trepan2
 .. _compiler: https://pypi.python.org/pypi/spark_parser
