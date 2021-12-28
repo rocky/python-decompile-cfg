@@ -72,10 +72,9 @@ def main_bin():
     version_tuple = sys.version_info[0:2]
     if not version_tuple in ((3, 10),):
         print(
-            f"Error: {program} can decompile only bytecode from Python 3.10"
+            f"Note: {program} can decompile only bytecode from Python 3.10"
             f"""\n\tYou have version: {version_tuple_to_str()}."""
         )
-        sys.exit(-1)
 
     do_verify = recurse_dirs = False
     numproc = 0

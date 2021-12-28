@@ -46,7 +46,7 @@ entry_points = {
     ]
 }
 ftp_url = None
-install_requires = ["spark-parser >= 1.8.9, < 1.9.0", "xdis >= 6.0.3,<6.1.0"]
+install_requires = ["spark-parser >= 1.8.9, < 1.9.0", "xdis >= 6.0.3,<6.1.0", "control_flow >= 0.9"]
 
 license = "GPL3"
 mailing_list = "python-debugger@googlegroups.com"

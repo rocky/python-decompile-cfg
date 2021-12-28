@@ -23,7 +23,7 @@ check:
 	$(MAKE) check-$(PYTHON_VERSION)
 
 #: Run working tests from Python 3.10
-check-3.10: check-bytecode
+check-3.9 check-3.10: check-bytecode
 
 #	$(PYTHON) test_pythonlib.py --bytecode-3.10-run --verify-run
 #	$(PYTHON) test_pythonlib.py --bytecode-3.10 --syntax-verify $(COMPILE)
