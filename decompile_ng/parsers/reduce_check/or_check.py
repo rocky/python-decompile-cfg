@@ -1,4 +1,4 @@
-#  Copyright (c) 2020 Rocky Bernstein
+#  Copyright (c) 2022 Rocky Bernstein
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
@@ -13,19 +13,17 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-def whilestmt(
+# FIXME: this probably applies to lots of rules. Figure out a good name.
+def or_check(
     self, lhs: str, n: int, rule, ast, tokens: list, first: int, last: int
 ) -> bool:
-    # When we are missing a COME_FROM_LOOP, the
-    # "while" statement is nested inside an if/else
-    # so after the POP_BLOCK we have a JUMP_FORWARD which forms the "else" portion of the "if"
-    # Check this.
-    # print("XXX", first, last, rule)
-    # for t in range(first, last): print(tokens[t])
-    # print("="*40)
 
-    return tokens[last - 1] == "POP_BLOCK" and tokens[last] not in (
-        "JUMP_FORWARD",
-        "COME_FROM_LOOP",
-        "COME_FROM",
-    )
+    # for i in range(first, last, 1):
+    #     print(tokens[i])
+    # print(ast)
+    # print("DOMS", tokens[first].dominator.bb.number, tokens[last].dominator.bb.number)
+    while tokens[first] != "DOM_START":
+        first += 1
+    while tokens[last+1] != "DOM_START":
+        last += 1
+    return tokens[first].dominator == tokens[last].dominator

@@ -517,6 +517,7 @@ class Scanner310Base(Scanner):
                 j,
                 Token(
                     opname=opname,
+                    optype = inst.optype,
                     attr=argval,
                     pattr=pattr,
                     offset=inst.offset,
@@ -525,6 +526,8 @@ class Scanner310Base(Scanner):
                     has_arg=inst.has_arg,
                     opc=self.opc,
                     has_extended_arg=inst.has_extended_arg,
+                    basic_block=inst.basic_block,
+                    dominator=inst.dominator,
                 ),
             )
             pass

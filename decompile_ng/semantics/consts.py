@@ -356,15 +356,23 @@ TABLE_DIRECT = {
     "designList":	    ( "%c = %c", 0, -1 ),
     "and":          	(
         "%c and %c",
-        (0,  ("expr_jifop",)),
+        (0,  "expr_jifop"),
         (2,  ("expr",)),
+    ),
+    "and1":          	(
+        "%c and %c",
+        (0,  "and_parts"),
+        (1,  ("expr",)),
     ),
     "ret_and":        	( "%c and %c", 0, 2 ),
     "and2":          	( "%c", 3 ),
 
     "or":           	( "%c or %c",
-                         (0, ("expr", "expr_jitop")),
+                         (0, "expr_jitop"),
                          (2, "expr") ),
+    "or1":           	( "%c or %c",
+                         (0, "or_parts"),
+                         (1, "expr") ),
     "or_and": (
         "(%c or %c) and %c",
         (0, "or_parts"),
@@ -386,9 +394,9 @@ TABLE_DIRECT = {
     ),
     "if_exp_lambda":    (
         "%c if %c else %c",
-        (1, ("expr", "return_lambda")),
-        (0, "expr_pjif"),
-        (-1,  ("return_lambda", "return_if_lambda")),
+        (3, "expr"),
+        (0, "expr"),
+        (-1, "return_lambda"),
     ),
 
     "if_exp_lambda2":    (

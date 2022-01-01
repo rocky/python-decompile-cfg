@@ -16,6 +16,7 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re, sys
+from typing import Optional
 
 
 def off2int(offset: int, prefer_last=True) -> int:
@@ -55,6 +56,7 @@ class Token:
     def __init__(
         self,
         opname: str,
+        optype: Optional[str] = None,
         attr=None,
         pattr=None,
         offset=-1,
@@ -68,13 +70,19 @@ class Token:
         # the instruction associated with opname sits
         # at next offset
         has_extended_arg=False,
+        fallthrough=None,
+        basic_block=None,
+        dominator=None,
     ):
         self.kind = sys.intern(opname)
+        self.optype = optype
         self.has_arg = has_arg
         self.attr = attr
         self.pattr = pattr
         self.offset = f"{offset}_{offset+2}" if has_extended_arg else offset
         self.linestart = linestart
+        self.basic_block = basic_block
+        self.dominator = dominator
         if has_arg is False:
             self.attr = None
             self.pattr = None
@@ -211,4 +219,4 @@ class Token:
         return off2int(self.offset, prefer_last)
 
 
-NoneToken = Token("LOAD_CONST", offset=-1, attr=None, pattr=None)
+NoneToken = Token("LOAD_CONST", optype=None, offset=-1, attr=None, pattr=None)

@@ -18,7 +18,9 @@ Grammar Customization rules for Python 3.10's Lambda expression grammar.
 
 from decompile_ng.parsers.p310.base import Python310BaseParser
 from decompile_ng.parsers.parse_heads import PythonParserLambda, PythonBaseParser, nop_func
+# from decompile_ng.parsers.reduce_check.or_check import or_check
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
+from spark_parser.spark import rule2str
 
 class Python310LambdaCustom(Python310BaseParser):
     def __init__(self):
@@ -26,8 +28,12 @@ class Python310LambdaCustom(Python310BaseParser):
         self.customized = {}
 
     def customize_grammar_rules_lambda310(self, tokens, customize):
-        super(Python310LambdaCustom, self).customize_grammar_rules(tokens, customize)
-        self.check_reduce["call_kw"] = "AST"
+
+        # self.reduce_check_table = {
+        #     "or": or_check,
+        # }
+
+        # self.check_reduce["or"] = "AST"
 
         is_pypy = False
 
@@ -583,3 +589,23 @@ class Python310LambdaCustom(Python310BaseParser):
             Python310BaseParser.custom_classfunc_rule(
                 self, opname, token, customize, next_token
             )
+
+    def reduce_is_invalid(self, rule: list, ast, tokens, first: int, last: int):
+        lhs = rule[0]
+        n = len(tokens)
+        last = min(last, n - 1)
+        fn = self.reduce_check_table.get(lhs, None)
+        try:
+            if fn:
+                return fn(self, lhs, n, rule, ast, tokens, first, last)
+        except:
+            import sys, traceback
+
+            print(
+                f"Exception in {fn.__name__} {sys.exc_info()[1]}\n"
+                + f"rule: {rule2str(rule)}\n"
+                + f"offsets {tokens[first].offset} .. {tokens[last].offset}"
+            )
+            print(traceback.print_tb(sys.exc_info()[2], -1))
+            raise ParserError(tokens[last], tokens[last].off2int(), self.debug["rules"])
+        return False

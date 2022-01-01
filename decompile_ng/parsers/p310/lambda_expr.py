@@ -35,13 +35,19 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         # Note: reduction-rule checks are needed for many of the below;
         # the rules in of themselves are not sufficient.
 
-        or  ::= expr_jitop
-                dom_start
-                expr
+        or   ::= expr_jitop
+                 dom_start
+                 expr
 
-        and ::= expr_jifop
-                dom_start
-                expr
+        and  ::= expr_jifop
+                 dom_start
+                 expr
+
+        and1 ::= and_parts expr
+
+        or1  ::= or_parts
+                 expr
+
 
         and_part   ::= expr_pjif dom_start
         and_parts  ::= and_part+
@@ -217,7 +223,6 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         expr ::= LOAD_GLOBAL
         expr ::= LOAD_NAME
 
-        expr ::= and
         expr ::= attribute
         expr ::= bin_op
         expr ::= branch_op
@@ -272,7 +277,9 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         # they have basic block and dominator pseudo instructions.
 
         branch_op ::= or bb_doms_end_opt
+        branch_op ::= or1 bb_doms_end_opt
         branch_op ::= and bb_doms_end_opt
+        branch_op ::= and1 bb_doms_end_opt
         branch_op ::= and_or bb_doms_end_opt
         branch_op ::= or_and bb_doms_end
 
@@ -356,6 +363,14 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         return_lambda      ::= if_exp_not_lambda
         return_lambda      ::= if_exp_not_lambda2
         return_lambda      ::= if_exp_dead_code
+
+        if_exp_lambda      ::= expr
+                               POP_JUMP_IF_FALSE
+                               bb_doms_end_start
+                               expr
+                               RETURN_VALUE
+                               bb_doms_end
+                               return_lambda
 
         if_exp_lambda2     ::= and_parts return_lambda dom_start
                                return_lambda

@@ -11,3 +11,12 @@ lambda glyphs, c, r: [r] if r in glyphs else []
 lambda glyphs, c, r: (
     glyphs if c else (set(glyphs) if r == 0 else set())
 )
+
+# From somewhere in numpy. Note the parenthesis are optional
+# I put them in for clarity
+lambda m, n, d, fo: (0 if d or (n and m and fo) else n)
+
+
+# Simplication of the above... Note the parenthesis again are optional
+# I put them in for clarity.
+lambda m, n, d, fo: d or (n and m and d)
