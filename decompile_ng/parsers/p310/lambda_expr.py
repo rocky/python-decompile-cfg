@@ -240,7 +240,6 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         # expr ::= if_exp_not
         expr ::= if_exp_true
 
-
         expr ::= list
         expr ::= list_comp
 
@@ -360,12 +359,11 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
                                bb_doms_end
 
         return_lambda      ::= if_exp_lambda
-        return_lambda      ::= if_exp_lambda2
-        return_lambda      ::= if_exp_lambda3
         return_lambda      ::= if_exp_not_lambda
         return_lambda      ::= if_exp_not_lambda2
         return_lambda      ::= if_exp_dead_code
 
+        # FIXME: These three are pretty similar - see if we can simplify.
         if_exp_lambda      ::= expr
                                POP_JUMP_IF_FALSE
                                bb_doms_end_start
@@ -374,7 +372,6 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
                                bb_doms_end
                                return_lambda
 
-        # FIXME: seems almost the same as if_exp_lambda - reconcile
         if_exp_lambda      ::= expr
                                POP_JUMP_IF_FALSE
                                bb_end_start
@@ -383,9 +380,15 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
                                bb_doms_end
                                return_lambda
 
-        # FIXME: this seems hoaky
-        if_exp_lambda2     ::= and1 return_lambda dom_start
+        if_exp_lambda      ::= expr
+                               POP_JUMP_IF_FALSE
+                               bb_end_start
+                               expr
+                               RETURN_VALUE
+                               dom_end dom_start
                                return_lambda
+
+
 
         if_exp_not_lambda2 ::= expr_pjit dom_start expr
                                RETURN_VALUE bb_doms_end return_lambda
