@@ -18,7 +18,7 @@ Grammar Customization rules for Python 3.10's Lambda expression grammar.
 
 from decompile_ng.parsers.p310.base import Python310BaseParser
 from decompile_ng.parsers.parse_heads import PythonParserLambda, PythonBaseParser, nop_func
-# from decompile_ng.parsers.reduce_check.or_check import or_check
+from decompile_ng.parsers.reduce_check.and_check import and_check
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 from spark_parser.spark import rule2str
 
@@ -33,10 +33,10 @@ class Python310LambdaCustom(Python310BaseParser):
         super(Python310LambdaCustom, self).customize_grammar_rules(tokens, customize)
 
         # self.reduce_check_table = {
-        #     "or": or_check,
+        #     "and_parts": and_check,
         # }
 
-        # self.check_reduce["or"] = "AST"
+        # self.check_reduce["and_parts"] = "AST"
 
         is_pypy = False
 
