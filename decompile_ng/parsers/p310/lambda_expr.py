@@ -108,7 +108,7 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
     def p_conditionals(self, args):
         """
         expr                       ::= if_exp37
-        branch_op                    ::= and POP_JUMP_IF_TRUE expr
+        branch_op                  ::= and POP_JUMP_IF_TRUE expr
 
         expr_pjif                  ::= expr POP_JUMP_IF_FALSE BB_END
         expr_pjit                  ::= expr POP_JUMP_IF_TRUE BB_END
@@ -386,6 +386,18 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
                                expr
                                RETURN_VALUE
                                dom_end dom_start
+                               return_lambda
+
+        # FIXME: we need branch_op instead of expr because
+        # we sometimes match expr to small and that limits the larger
+        # situtation where we have, say, "and1".
+        # Figure out how to fix this.
+        if_exp_lambda      ::= branch_op
+                               POP_JUMP_IF_FALSE
+                               bb_end_start
+                               expr
+                               RETURN_VALUE
+                               bb_doms_end
                                return_lambda
 
 
