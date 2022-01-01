@@ -1,4 +1,4 @@
-#  Copyright (c) 2021 Rocky Bernstein
+#  Copyright (c) 2021-2022 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -563,7 +563,7 @@ class Python310BaseParser(PythonBaseParser):
             elif opname == "RETURN_VALUE_LAMBDA":
                 self.addRule(
                     """
-                    return_lambda ::= ret_expr RETURN_VALUE_LAMBDA
+                    return_expr_lambda ::= ret_expr RETURN_VALUE_LAMBDA
                     """,
                     nop_func,
                 )

@@ -1,4 +1,4 @@
-#  Copyright (c) 2020-2021 Rocky Bernstein
+#  Copyright (c) 2020-2022 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -352,16 +352,16 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
 
     def p_lambda(self, args):
         """
-        return_lambda      ::= dom_start_opt
-                               expr
-                               dom_start_opt
-                               RETURN_VALUE
-                               bb_doms_end
+        return_expr_lambda      ::= dom_start_opt
+                                    expr
+                                    dom_start_opt
+                                    RETURN_VALUE
+                                    bb_doms_end
 
-        return_lambda      ::= if_exp_lambda
-        return_lambda      ::= if_exp_not_lambda
-        return_lambda      ::= if_exp_not_lambda2
-        return_lambda      ::= if_exp_dead_code
+        return_expr_lambda      ::= if_exp_lambda
+        return_expr_lambda      ::= if_exp_not_lambda
+        return_expr_lambda      ::= if_exp_not_lambda2
+        return_expr_lambda      ::= if_exp_dead_code
 
         # FIXME: These three are pretty similar - see if we can simplify.
         if_exp_lambda      ::= expr
@@ -370,7 +370,7 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
                                expr
                                RETURN_VALUE
                                bb_doms_end
-                               return_lambda
+                               return_expr_lambda
 
         if_exp_lambda      ::= expr
                                POP_JUMP_IF_FALSE
@@ -378,7 +378,7 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
                                expr
                                RETURN_VALUE
                                bb_doms_end
-                               return_lambda
+                               return_expr_lambda
 
         if_exp_lambda      ::= expr
                                POP_JUMP_IF_FALSE
@@ -386,7 +386,7 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
                                expr
                                RETURN_VALUE
                                dom_end dom_start
-                               return_lambda
+                               return_expr_lambda
 
         # FIXME: we need branch_op instead of expr because
         # we sometimes match expr to small and that limits the larger
@@ -398,12 +398,12 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
                                expr
                                RETURN_VALUE
                                bb_doms_end
-                               return_lambda
+                               return_expr_lambda
 
 
 
         if_exp_not_lambda2 ::= expr_pjit dom_start expr
-                               RETURN_VALUE bb_doms_end return_lambda
+                               RETURN_VALUE bb_doms_end return_expr_lambda
         """
 
     def p_store(self, args):

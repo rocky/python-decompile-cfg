@@ -1,4 +1,4 @@
-#  Copyright (c) 2015-2021 by Rocky Bernstein
+#  Copyright (c) 2015-2022 by Rocky Bernstein
 #  Copyright (c) 2005 by Dan Pascu <dan@windowmaker.org>
 #  Copyright (c) 2000-2002 by hartmut Goebel <h.goebel@crazy-compilers.com>
 #  Copyright (c) 1999 John Aycock
@@ -485,7 +485,7 @@ class SourceWalker(GenericASTTraversal, object):
 
     # Python 3.x can have be dead code as a result of its optimization?
     # So we'll add a # at the end of the return lambda so the rest is ignored
-    def n_return_lambda(self, node):
+    def n_return_expr_lambda(self, node):
 
         # Understand were non-psuedo instructions lie.
         opt_start = 1 if node[0].kind in ("dom_start_opt", "dom_start") else 0
@@ -1082,7 +1082,7 @@ class SourceWalker(GenericASTTraversal, object):
             # this iteration is duplicate in seeing the list-comprehension code
             # item again. Is this a larger duplicate parsing problem?
             # Not sure what the best thi
-            if n.kind == "return_lambda":
+            if n.kind == "return_expr_lambda":
                 self.prune()
             assert n == "list_iter", n
 

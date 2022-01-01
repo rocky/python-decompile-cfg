@@ -396,14 +396,14 @@ TABLE_DIRECT = {
         "%c if %c else %c",
         (3, "expr"),
         (0, ("expr", "branch_op")),
-        (-1, "return_lambda"),
+        (-1, "return_expr_lambda"),
     ),
 
     "if_exp_not_lambda2": (
         "%c if not (%c) else %c",
         (2, "expr"),
         (0, "expr_pjit"),
-        (-1, "return_lambda"),
+        (-1, "return_expr_lambda"),
     ),
 
     # The arg2 is dead-code
@@ -411,8 +411,8 @@ TABLE_DIRECT = {
 
     # The arg 1 is dead-code
     "if_exp_dead_code": ( "%c if True else %c",
-                          (0, "return_lambda"),
-                          (1, "return_lambda") ),
+                          (0, "return_expr_lambda"),
+                          (1, "return_expr_lambda") ),
 
     "if_exp_true":      ( "%p if 1 else %c", (0, "expr", 27), 2 ),
     "if_exp_ret":       ( "%p if %p else %p", (2, 27), (0, 27), (-1, 27) ),

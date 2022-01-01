@@ -1,4 +1,4 @@
-#  Copyright (c) 2018-2021 by Rocky Bernstein
+#  Copyright (c) 2018-2022 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -106,7 +106,7 @@ def customize_for_version3(self, version):
         collections = [node[-3]]
         list_ifs = []
 
-        if n.kind == "return_lambda":
+        if n.kind == "return_expr_lambda":
             self.prune()
         assert n == "list_iter"
         stores = []
