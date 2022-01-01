@@ -29,6 +29,9 @@ class Python310LambdaCustom(Python310BaseParser):
 
     def customize_grammar_rules_lambda310(self, tokens, customize):
 
+        # FIXME: all of the base rules should be moved here. Then this line is removed
+        super(Python310LambdaCustom, self).customize_grammar_rules(tokens, customize)
+
         # self.reduce_check_table = {
         #     "or": or_check,
         # }
@@ -126,6 +129,7 @@ class Python310LambdaCustom(Python310BaseParser):
                     opname,
                 )
                 self.addRule(rule, nop_func)
+
             # Must come before BUILD_LIST
             elif opname.startswith("BUILD_LIST_UNPACK"):
                 v = token.attr
@@ -171,6 +175,173 @@ class Python310LambdaCustom(Python310BaseParser):
                         """
                     self.add_unique_doc_rules(rules_str, customize)
 
+            elif opname_base in (
+                "BUILD_SET",
+                "BUILD_TUPLE",
+            ):
+                v = token.attr
+
+                is_LOAD_CLOSURE = False
+                if opname_base == "BUILD_TUPLE":
+                    # If is part of a "load_closure", then it is not part of a
+                    # "list".
+                    is_LOAD_CLOSURE = True
+                    for j in range(v):
+                        if tokens[i - j - 1].kind != "LOAD_CLOSURE":
+                            is_LOAD_CLOSURE = False
+                            break
+                    if is_LOAD_CLOSURE:
+                        rule = "load_closure ::= %s%s" % (("LOAD_CLOSURE " * v), opname)
+                        self.add_unique_rule(rule, opname, token.attr, customize)
+                if not is_LOAD_CLOSURE or v == 0:
+                    # We do this complicated test to speed up parsing of
+                    # pathelogically long literals, especially those over 1024.
+                    build_count = token.attr
+                    thousands = build_count // 1024
+                    thirty32s = (build_count // 32) % 32
+                    if thirty32s > 0:
+                        rule = "expr32 ::=%s" % (" expr" * 32)
+                        self.add_unique_rule(rule, opname_base, build_count, customize)
+                        pass
+                    if thousands > 0:
+                        self.add_unique_rule(
+                            "expr1024 ::=%s" % (" expr32" * 32),
+                            opname_base,
+                            build_count,
+                            customize,
+                        )
+                        pass
+                    collection = opname_base[opname_base.find("_") + 1 :].lower()
+                    rule = (
+                        ("%s ::= " % collection)
+                        + "expr1024 " * thousands
+                        + "expr32 " * thirty32s
+                        + "expr " * (build_count % 32)
+                        + opname
+                    )
+                    self.add_unique_rules(["expr ::= %s" % collection, rule], customize)
+                    continue
+                continue
+
+            elif opname_base == "BUILD_SLICE":
+                if token.attr == 2:
+                    self.add_unique_rules(
+                        [
+                            "expr ::= build_slice2",
+                            "build_slice2 ::= expr expr BUILD_SLICE_2",
+                        ],
+                        customize,
+                    )
+                else:
+                    assert token.attr == 3, (
+                        "BUILD_SLICE value must be 2 or 3; is %s" % v
+                    )
+                    self.add_unique_rules(
+                        [
+                            "expr ::= build_slice3",
+                            "build_slice3 ::= expr expr expr BUILD_SLICE_3",
+                        ],
+                        customize,
+                    )
+
+            elif opname.startswith("BUILD_STRING"):
+                v = token.attr
+                rules_str = """
+                    expr                 ::= joined_str
+                    joined_str           ::= %sBUILD_STRING_%d
+                """ % (
+                    "expr " * v,
+                    v,
+                )
+                self.add_unique_doc_rules(rules_str, customize)
+                if "FORMAT_VALUE_ATTR" in self.seen_ops:
+                    rules_str = """
+                      formatted_value_attr ::= expr expr FORMAT_VALUE_ATTR expr BUILD_STRING
+                      expr                 ::= formatted_value_attr
+                    """
+                    self.add_unique_doc_rules(rules_str, customize)
+
+            elif opname == "SETUP_WITH":
+                rules_str = """
+                with       ::= expr SETUP_WITH POP_TOP suite_stmts_opt COME_FROM_WITH
+                               WITH_CLEANUP_START WITH_CLEANUP_FINISH END_FINALLY
+
+                # Removes POP_BLOCK LOAD_CONST from 3.6-
+                withasstmt ::= expr SETUP_WITH store suite_stmts_opt COME_FROM_WITH
+                               WITH_CLEANUP_START WITH_CLEANUP_FINISH END_FINALLY
+                """
+                if self.version < (3, 8):
+                    rules_str += """
+                    with       ::= expr SETUP_WITH POP_TOP suite_stmts_opt POP_BLOCK
+                                   LOAD_CONST
+                                   WITH_CLEANUP_START WITH_CLEANUP_FINISH END_FINALLY
+                    """
+                else:
+                    rules_str += """
+                    with        ::= expr SETUP_WITH POP_TOP suite_stmts_opt POP_BLOCK
+                                   BEGIN_FINALLY COME_FROM_WITH
+                                   WITH_CLEANUP_START WITH_CLEANUP_FINISH
+                                   END_FINALLY
+                    """
+                self.addRule(rules_str, nop_func)
+                pass
+
+            elif opname.startswith("BUILD_STRING"):
+                v = token.attr
+                rules_str = """
+                    expr                 ::= joined_str
+                    joined_str           ::= %sBUILD_STRING_%d
+                """ % (
+                    "expr " * v,
+                    v,
+                )
+                self.add_unique_doc_rules(rules_str, customize)
+                if "FORMAT_VALUE_ATTR" in self.seen_ops:
+                    rules_str = """
+                      formatted_value_attr ::= expr expr FORMAT_VALUE_ATTR expr BUILD_STRING
+                      expr                 ::= formatted_value_attr
+                    """
+                    self.add_unique_doc_rules(rules_str, customize)
+
+            elif opname in frozenset(
+                (
+                    "CALL_FUNCTION",
+                    "CALL_FUNCTION_EX",
+                    "CALL_FUNCTION_EX_KW",
+                    "CALL_FUNCTION_VAR",
+                    "CALL_FUNCTION_VAR_KW",
+                )
+            ) or opname.startswith("CALL_FUNCTION_KW"):
+
+                if opname == "CALL_FUNCTION" and token.attr == 1:
+                    rule = """
+                     expr         ::= dict_comp
+                     dict_comp    ::= LOAD_DICTCOMP LOAD_STR MAKE_FUNCTION_0 expr
+                                      GET_ITER CALL_FUNCTION_1
+                    classdefdeco1 ::= expr classdefdeco2 CALL_FUNCTION_1
+                    classdefdeco1 ::= expr classdefdeco1 CALL_FUNCTION_1
+                    """
+                    self.addRule(rule, nop_func)
+
+                self.custom_classfunc_rule(opname, token, customize, tokens[i + 1])
+                # Note: don't add to custom_ops_processed.
+
+            elif opname_base == "CALL_METHOD":
+                # PyPy and Python 3.7+ only - DRY with parse2
+
+                args_pos, args_kw = self.get_pos_kw(token)
+
+                # number of apply equiv arguments:
+                nak = (len(opname_base) - len("CALL_METHOD")) // 3
+                rule = (
+                    "call ::= expr "
+                    + ("expr " * args_pos)
+                    + ("kwarg " * args_kw)
+                    + "expr " * nak
+                    + opname
+                )
+                self.add_unique_rule(rule, opname, token.attr, customize)
+
             elif opname == "DICT_UPDATE":
                 self.add_unique_doc_rules(
                     f"""
@@ -184,6 +355,21 @@ class Python310LambdaCustom(Python310BaseParser):
                     customize,
                 )
 
+
+            elif opname == "FORMAT_VALUE":
+                rules_str = """
+                    expr              ::= formatted_value1
+                    formatted_value1  ::= expr FORMAT_VALUE
+                """
+                self.add_unique_doc_rules(rules_str, customize)
+
+            elif opname == "FORMAT_VALUE_ATTR":
+                rules_str = """
+                expr              ::= formatted_value2
+                formatted_value2  ::= expr expr FORMAT_VALUE_ATTR
+                """
+                self.add_unique_doc_rules(rules_str, customize)
+
             elif opname == "GET_ITER":
                 self.add_unique_doc_rules(
                     """
@@ -193,12 +379,6 @@ class Python310LambdaCustom(Python310BaseParser):
                     customize,
                 )
 
-            elif opname == "LOAD_ASSERT":
-                if "PyPy" in customize:
-                    rules_str = """
-                    stmt ::= JUMP_IF_NOT_DEBUG stmts COME_FROM
-                    """
-                    self.add_unique_doc_rules(rules_str, customize)
             elif opname == "LIST_TO_TUPLE":
                 rule_str = """
                     lists ::= lists list
@@ -208,19 +388,188 @@ class Python310LambdaCustom(Python310BaseParser):
                     expr ::= tuple_list_starred
                     """
                 self.add_unique_doc_rules(rule_str, customize)
-            elif opname == "FORMAT_VALUE":
-                rules_str = """
-                    expr              ::= formatted_value1
-                    formatted_value1  ::= expr FORMAT_VALUE
-                """
-                self.add_unique_doc_rules(rules_str, customize)
-            elif opname == "FORMAT_VALUE_ATTR":
-                rules_str = """
-                expr              ::= formatted_value2
-                formatted_value2  ::= expr expr FORMAT_VALUE_ATTR
-                """
-                self.add_unique_doc_rules(rules_str, customize)
 
+            elif opname == "LOAD_ASSERT":
+                if "PyPy" in customize:
+                    rules_str = """
+                    stmt ::= JUMP_IF_NOT_DEBUG stmts COME_FROM
+                    """
+                    self.add_unique_doc_rules(rules_str, customize)
+
+            elif opname == "LOAD_ATTR":
+                self.addRule(
+                    """
+                  expr      ::= attribute
+                  attribute ::= expr LOAD_ATTR
+                  """,
+                    nop_func,
+                )
+                custom_ops_processed.add(opname)
+
+            elif opname == "LOAD_DICTCOMP":
+                if has_get_iter_call_function1:
+                    rule_pat = (
+                        "dict_comp ::= LOAD_DICTCOMP %sMAKE_FUNCTION_0 expr "
+                        "GET_ITER CALL_FUNCTION_1"
+                    )
+                    self.add_make_function_rule(rule_pat, opname, token.attr, customize)
+                    pass
+                custom_ops_processed.add(opname)
+
+            elif opname == "LOAD_LISTCOMP":
+                self.add_unique_rule(
+                    "expr ::= list_comp", opname, token.attr, customize
+                )
+                custom_ops_processed.add(opname)
+
+            elif opname == "LOAD_NAME":
+                if (
+                    token.attr == "__annotations__"
+                    and "SETUP_ANNOTATIONS" in self.seen_ops
+                ):
+                    token.kind = "LOAD_ANNOTATION"
+                    self.addRule(
+                        """
+                        stmt       ::= SETUP_ANNOTATIONS
+                        stmt       ::= ann_assign
+                        ann_assign ::= expr LOAD_ANNOTATION LOAD_STR STORE_SUBSCR
+                        """,
+                        nop_func,
+                    )
+                    pass
+            elif opname == "LOAD_SETCOMP":
+                # Should this be generalized and put under MAKE_FUNCTION?
+                if has_get_iter_call_function1:
+                    self.addRule("expr ::= set_comp", nop_func)
+                    rule_pat = (
+                        "set_comp ::= LOAD_SETCOMP %sMAKE_FUNCTION_0 expr "
+                        "GET_ITER CALL_FUNCTION_1"
+                    )
+                    self.add_make_function_rule(rule_pat, opname, token.attr, customize)
+                    pass
+                custom_ops_processed.add(opname)
+            elif opname == "LOOKUP_METHOD":
+                # A PyPy speciality - DRY with parse3
+                self.addRule(
+                    """
+                             expr      ::= attribute
+                             attribute ::= expr LOOKUP_METHOD
+                             """,
+                    nop_func,
+                )
+                custom_ops_processed.add(opname)
+            elif opname.startswith("MAKE_CLOSURE"):
+                # DRY with MAKE_FUNCTION
+                # Note: this probably doesn't handle kwargs proprerly
+
+                if opname == "MAKE_CLOSURE_0" and "LOAD_DICTCOMP" in self.seen_ops:
+                    # Is there something general going on here?
+                    # Note that 3.6+ doesn't do this, but we'll remove
+                    # this rule in parse36.py
+                    rule = """
+                        dict_comp ::= load_closure LOAD_DICTCOMP LOAD_STR
+                                      MAKE_CLOSURE_0 expr
+                                      GET_ITER CALL_FUNCTION_1
+                    """
+                    self.addRule(rule, nop_func)
+
+                args_pos, args_kw, annotate_args = token.attr
+
+                # FIXME: Fold test  into add_make_function_rule
+                j = 2
+                if is_pypy or (i >= j and tokens[i - j] == "LOAD_LAMBDA"):
+                    rule_pat = """
+                                expr        ::= lambda_body
+                                lambda_body ::= %sload_closure LOAD_LAMBDA %%s%s
+                               """ % (
+                        "expr " * args_pos,
+                        opname,
+                    )
+                    self.add_make_function_rule(rule_pat, opname, token.attr, customize)
+
+                if has_get_iter_call_function1:
+                    rule_pat = (
+                        "generator_exp ::= %sload_closure load_genexpr %%s%s expr "
+                        "GET_ITER CALL_FUNCTION_1" % ("expr " * args_pos, opname)
+                    )
+                    self.add_make_function_rule(rule_pat, opname, token.attr, customize)
+
+                    if has_get_iter_call_function1:
+                        if is_pypy or (i >= j and tokens[i - j] == "LOAD_LISTCOMP"):
+                            # In the tokens we saw:
+                            #   LOAD_LISTCOMP LOAD_CONST MAKE_FUNCTION (>= 3.3) or
+                            #   LOAD_LISTCOMP MAKE_FUNCTION (< 3.3) or
+                            #   and have GET_ITER CALL_FUNCTION_1
+                            # Todo: For Pypy we need to modify this slightly
+                            rule_pat = (
+                                "list_comp ::= %sload_closure LOAD_LISTCOMP %%s%s expr "
+                                "GET_ITER CALL_FUNCTION_1"
+                                % ("expr " * args_pos, opname)
+                            )
+                            self.add_make_function_rule(
+                                rule_pat, opname, token.attr, customize
+                            )
+                        if is_pypy or (i >= j and tokens[i - j] == "LOAD_SETCOMP"):
+                            rule_pat = (
+                                "set_comp ::= %sload_closure LOAD_SETCOMP %%s%s expr "
+                                "GET_ITER CALL_FUNCTION_1"
+                                % ("expr " * args_pos, opname)
+                            )
+                            self.add_make_function_rule(
+                                rule_pat, opname, token.attr, customize
+                            )
+                        if is_pypy or (i >= j and tokens[i - j] == "LOAD_DICTCOMP"):
+                            self.add_unique_rule(
+                                "dict_comp ::= %sload_closure LOAD_DICTCOMP %s "
+                                "expr GET_ITER CALL_FUNCTION_1"
+                                % ("expr " * args_pos, opname),
+                                opname,
+                                token.attr,
+                                customize,
+                            )
+
+                if args_kw > 0:
+                    kwargs_str = "kwargs "
+                else:
+                    kwargs_str = ""
+
+                rule = "mkfunc ::= %s%s%s load_closure LOAD_CODE LOAD_STR %s" % (
+                    "expr " * args_pos,
+                    kwargs_str,
+                    "expr " * annotate_args,
+                    opname,
+                )
+
+                self.add_unique_rule(rule, opname, token.attr, customize)
+
+                if args_kw == 0:
+                    rule = "mkfunc ::= %sload_closure load_genexpr %s" % (
+                        "expr " * args_pos,
+                        opname,
+                    )
+                    self.add_unique_rule(rule, opname, token.attr, customize)
+
+                pass
+
+            # Has to come before MAKE_FUNCTION
+            elif opname == "MAKE_FUNCTION_8":
+                if "LOAD_DICTCOMP" in self.seen_ops:
+                    # Is there something general going on here?
+                    rule = """
+                       expr      ::= dict_comp
+                       dict_comp ::= load_closure LOAD_DICTCOMP LOAD_STR
+                                     MAKE_FUNCTION_8 expr
+                                     GET_ITER CALL_FUNCTION_1
+                       """
+                    self.addRule(rule, nop_func)
+                elif "LOAD_SETCOMP" in self.seen_ops:
+                    self.addRule("expr ::= set_comp", nop_func)
+                    rule = """
+                       set_comp ::= load_closure LOAD_SETCOMP LOAD_STR
+                                    MAKE_FUNCTION_8 expr
+                                    GET_ITER CALL_FUNCTION_1
+                       """
+                    self.addRule(rule, nop_func)
 
             elif opname_base.startswith("MAKE_FUNCTION"):
                 args_pos, args_kw, annotate_args, closure = token.attr
@@ -266,8 +615,8 @@ class Python310LambdaCustom(Python310BaseParser):
                 if has_get_iter_call_function1:
                     rule_pat = (
                         "generator_exp ::= %sload_genexpr %%s%s expr "
-                        "GET_ITER CALL_FUNCTION_1"
-                    ) % ("expr " * args_pos, opname)
+                        "GET_ITER CALL_FUNCTION_1" % ("expr " * args_pos, opname)
+                    )
                     self.add_make_function_rule(rule_pat, opname, token.attr, customize)
                     rule_pat = """
                            expr          ::= generator_exp
@@ -361,111 +710,8 @@ class Python310LambdaCustom(Python310BaseParser):
                     opname,
                 )
                 self.add_unique_rule(rule, opname, token.attr, customize)
-
-            elif opname == "MAKE_FUNCTION_8":
-                if "LOAD_DICTCOMP" in self.seen_ops:
-                    # Is there something general going on here?
-                    rule = """
-                       dict_comp ::= load_closure LOAD_DICTCOMP LOAD_STR
-                                     MAKE_FUNCTION_8 expr
-                                     GET_ITER CALL_FUNCTION_1
-                       """
-                    self.addRule(rule, nop_func)
-                elif "LOAD_SETCOMP" in self.seen_ops:
-                    rule = """
-                       set_comp ::= load_closure LOAD_SETCOMP LOAD_STR
-                                    MAKE_FUNCTION_8 expr
-                                    GET_ITER CALL_FUNCTION_1
-                       """
-                    self.addRule(rule, nop_func)
-
-            elif opname == "BEFORE_ASYNC_WITH":
-                rules_str = """
-                  stmt               ::= async_with_stmt SETUP_ASYNC_WITH
-                  async_with_pre     ::= BEFORE_ASYNC_WITH GET_AWAITABLE LOAD_CONST YIELD_FROM SETUP_ASYNC_WITH
-                  async_with_post    ::= COME_FROM_ASYNC_WITH
-                                         WITH_CLEANUP_START GET_AWAITABLE LOAD_CONST YIELD_FROM
-                                         WITH_CLEANUP_FINISH END_FINALLY
-
-                  stmt               ::= async_with_as_stmt
-                  async_with_as_stmt ::= expr
-                                         async_with_pre
-                                         store
-                                         suite_stmts_opt
-                                         POP_BLOCK LOAD_CONST
-                                         async_with_post
-
-                 async_with_stmt     ::= expr
-                                         async_with_pre
-                                         POP_TOP
-                                         suite_stmts_opt
-                                         POP_BLOCK LOAD_CONST
-                                         async_with_post
-                 async_with_stmt     ::= expr
-                                         async_with_pre
-                                         POP_TOP
-                                         suite_stmts_opt
-                                         async_with_post
-                """
-                self.addRule(rules_str, nop_func)
-
-            elif opname.startswith("BUILD_STRING"):
-                v = token.attr
-                rules_str = """
-                    expr                 ::= joined_str
-                    joined_str           ::= %sBUILD_STRING_%d
-                """ % (
-                    "expr " * v,
-                    v,
-                )
-                self.add_unique_doc_rules(rules_str, customize)
-                if "FORMAT_VALUE_ATTR" in self.seen_ops:
-                    rules_str = """
-                      formatted_value_attr ::= expr expr FORMAT_VALUE_ATTR expr BUILD_STRING
-                      expr                 ::= formatted_value_attr
-                    """
-                    self.add_unique_doc_rules(rules_str, customize)
-            elif opname.startswith("BUILD_MAP_UNPACK_WITH_CALL"):
-                v = token.attr
-                rule = "build_map_unpack_with_call ::= %s%s" % ("expr " * v, opname)
-                self.addRule(rule, nop_func)
-            elif opname.startswith("BUILD_TUPLE_UNPACK_WITH_CALL"):
-                v = token.attr
-                rule = (
-                    "build_tuple_unpack_with_call ::= "
-                    + "expr1024 " * int(v // 1024)
-                    + "expr32 " * int((v // 32) % 32)
-                    + "expr " * (v % 32)
-                    + opname
-                )
-                self.addRule(rule, nop_func)
-                rule = "starred ::= %s %s" % ("expr " * v, opname)
-                self.addRule(rule, nop_func)
-            elif opname == "SETUP_WITH":
-                rules_str = """
-                with       ::= expr SETUP_WITH POP_TOP suite_stmts_opt COME_FROM_WITH
-                               WITH_CLEANUP_START WITH_CLEANUP_FINISH END_FINALLY
-
-                # Removes POP_BLOCK LOAD_CONST from 3.6-
-                withasstmt ::= expr SETUP_WITH store suite_stmts_opt COME_FROM_WITH
-                               WITH_CLEANUP_START WITH_CLEANUP_FINISH END_FINALLY
-                """
-                if self.version < (3, 8):
-                    rules_str += """
-                    with       ::= expr SETUP_WITH POP_TOP suite_stmts_opt POP_BLOCK
-                                   LOAD_CONST
-                                   WITH_CLEANUP_START WITH_CLEANUP_FINISH END_FINALLY
-                    """
-                else:
-                    rules_str += """
-                    with        ::= expr SETUP_WITH POP_TOP suite_stmts_opt POP_BLOCK
-                                   BEGIN_FINALLY COME_FROM_WITH
-                                   WITH_CLEANUP_START WITH_CLEANUP_FINISH
-                                   END_FINALLY
-                    """
-                self.addRule(rules_str, nop_func)
                 pass
-            pass
+
 
     def custom_classfunc_rule(self, opname, token, customize, next_token):
 
