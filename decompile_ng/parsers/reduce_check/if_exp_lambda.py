@@ -14,9 +14,12 @@
 
 
 # FIXME: this probably applies to lots of rules. Figure out a good name.
-def if_exp_lambda_check(
+def if_exp_lambda_ok(
     self, lhs: str, n: int, rule, ast, tokens: list, first: int, last: int
 ) -> bool:
+    """
+    Returns True if we can't find any reason to disallow an "if_exp_lambda" reduction.
+    """
 
     # for i in range(first, last, 1):
     #    print(tokens[i])
@@ -26,7 +29,11 @@ def if_exp_lambda_check(
     # condition_expr = ast[0]
     # print(condition_expr)
     then_expr = ast[3]
-    assert then_expr == "expr"
+    assert (
+        then_expr == "expr"
+    ), f'Expecting child 3 (then expression) to be "expr"; got {then_expr}"'
     return_value = ast[4]
-    assert return_value == "RETURN_VALUE"
-    return then_expr.first_child().basic_block != return_value.basic_block
+    assert (
+        return_value == "RETURN_VALUE"
+    ), f"expecting child 4 to be a RETURN_VALUE; got {ast[4]}"
+    return then_expr.first_child().basic_block == return_value.basic_block

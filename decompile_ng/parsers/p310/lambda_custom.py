@@ -1,4 +1,4 @@
-#  Copyright (c) 2020-2021 Rocky Bernstein
+#  Copyright (c) 2020-2022 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Grammar Customization rules for Python 3.10's Lambda expression grammar.
 
 from decompile_ng.parsers.p310.base import Python310BaseParser
 from decompile_ng.parsers.parse_heads import PythonParserLambda, PythonBaseParser, nop_func
-from decompile_ng.parsers.reduce_check.if_exp_lambda import if_exp_lambda_check
+from decompile_ng.parsers.reduce_check.if_exp_lambda import if_exp_lambda_ok
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 from spark_parser.spark import rule2str
 
@@ -33,7 +33,7 @@ class Python310LambdaCustom(Python310BaseParser):
         super(Python310LambdaCustom, self).customize_grammar_rules(tokens, customize)
 
         self.reduce_check_table = {
-            "if_exp_lambda": if_exp_lambda_check,
+            "if_exp_lambda": if_exp_lambda_ok
         }
 
         self.check_reduce["if_exp_lambda"] = "AST"
@@ -843,7 +843,7 @@ class Python310LambdaCustom(Python310BaseParser):
         fn = self.reduce_check_table.get(lhs, None)
         try:
             if fn:
-                return fn(self, lhs, n, rule, ast, tokens, first, last)
+                return not fn(self, lhs, n, rule, ast, tokens, first, last)
         except:
             import sys, traceback
 
