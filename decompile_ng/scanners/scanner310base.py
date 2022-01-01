@@ -1,4 +1,4 @@
-#  Copyright (c) 2015-2021 by Rocky Bernstein
+#  Copyright (c) 2015-2022 by Rocky Bernstein
 #  Copyright (c) 2005 by Dan Pascu <dan@windowmaker.org>
 #  Copyright (c) 2000-2002 by hartmut Goebel <h.goebel@crazy-compilers.com>
 #
@@ -517,6 +517,7 @@ class Scanner310Base(Scanner):
                 j,
                 Token(
                     opname=opname,
+                    optype = inst.optype,
                     attr=argval,
                     pattr=pattr,
                     offset=inst.offset,
@@ -525,6 +526,8 @@ class Scanner310Base(Scanner):
                     has_arg=inst.has_arg,
                     opc=self.opc,
                     has_extended_arg=inst.has_extended_arg,
+                    basic_block=inst.basic_block,
+                    dominator=inst.dominator,
                 ),
             )
             pass

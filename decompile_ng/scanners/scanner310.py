@@ -45,6 +45,7 @@ class Scanner310(Scanner310Base):
         except:
             # raise uncomment if you don't want to debug
             from trepan.api import debug; debug()
+            pass
         for t in tokens:
             # The lowest bit of flags indicates whether the
             # var-keyword argument is placed at the top of the stack

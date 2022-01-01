@@ -35,13 +35,19 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         # Note: reduction-rule checks are needed for many of the below;
         # the rules in of themselves are not sufficient.
 
-        or  ::= expr_jitop
-                dom_start
-                expr
+        or   ::= expr_jitop
+                 dom_start
+                 expr
 
-        and ::= expr_jifop
-                dom_start
-                expr
+        and  ::= expr_jifop
+                 dom_start
+                 expr
+
+        and1 ::= and_parts expr
+
+        or1  ::= or_parts
+                 expr
+
 
         and_part   ::= expr_pjif dom_start
         and_parts  ::= and_part+
@@ -86,6 +92,7 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         dom_start       ::= DOM_START BB_START
         dom_start_opt   ::= dom_start?
         dom_end         ::= BB_END DOM_END
+        bb_end_start    ::= BB_END dom_start
         dom_end_opt     ::= dom_end?
         bb_doms_end     ::= BB_END doms_end
         bb_doms_end_opt ::= bb_doms_end?
@@ -101,7 +108,7 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
     def p_conditionals(self, args):
         """
         expr                       ::= if_exp37
-        branch_op                    ::= and POP_JUMP_IF_TRUE expr
+        branch_op                  ::= and POP_JUMP_IF_TRUE expr
 
         expr_pjif                  ::= expr POP_JUMP_IF_FALSE BB_END
         expr_pjit                  ::= expr POP_JUMP_IF_TRUE BB_END
@@ -217,7 +224,6 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         expr ::= LOAD_GLOBAL
         expr ::= LOAD_NAME
 
-        expr ::= and
         expr ::= attribute
         expr ::= bin_op
         expr ::= branch_op
@@ -233,7 +239,6 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         # expr ::= if_exp
         # expr ::= if_exp_not
         expr ::= if_exp_true
-
 
         expr ::= list
         expr ::= list_comp
@@ -272,7 +277,9 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         # they have basic block and dominator pseudo instructions.
 
         branch_op ::= or bb_doms_end_opt
+        branch_op ::= or1 bb_doms_end_opt
         branch_op ::= and bb_doms_end_opt
+        branch_op ::= and1 bb_doms_end_opt
         branch_op ::= and_or bb_doms_end_opt
         branch_op ::= or_and bb_doms_end
 
@@ -352,13 +359,48 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
                                bb_doms_end
 
         return_lambda      ::= if_exp_lambda
-        return_lambda      ::= if_exp_lambda2
         return_lambda      ::= if_exp_not_lambda
         return_lambda      ::= if_exp_not_lambda2
         return_lambda      ::= if_exp_dead_code
 
-        if_exp_lambda2     ::= and_parts return_lambda dom_start
+        # FIXME: These three are pretty similar - see if we can simplify.
+        if_exp_lambda      ::= expr
+                               POP_JUMP_IF_FALSE
+                               bb_doms_end_start
+                               expr
+                               RETURN_VALUE
+                               bb_doms_end
                                return_lambda
+
+        if_exp_lambda      ::= expr
+                               POP_JUMP_IF_FALSE
+                               bb_end_start
+                               expr
+                               RETURN_VALUE
+                               bb_doms_end
+                               return_lambda
+
+        if_exp_lambda      ::= expr
+                               POP_JUMP_IF_FALSE
+                               bb_end_start
+                               expr
+                               RETURN_VALUE
+                               dom_end dom_start
+                               return_lambda
+
+        # FIXME: we need branch_op instead of expr because
+        # we sometimes match expr to small and that limits the larger
+        # situtation where we have, say, "and1".
+        # Figure out how to fix this.
+        if_exp_lambda      ::= branch_op
+                               POP_JUMP_IF_FALSE
+                               bb_end_start
+                               expr
+                               RETURN_VALUE
+                               bb_doms_end
+                               return_lambda
+
+
 
         if_exp_not_lambda2 ::= expr_pjit dom_start expr
                                RETURN_VALUE bb_doms_end return_lambda
