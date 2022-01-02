@@ -211,6 +211,19 @@ TABLE_DIRECT = {
     "UNARY_NOT":                ( "not ", ),
     "UNARY_POSITIVE":           ( "+",),
 
+    "and":          	(
+        "%c and %c",
+        (0,  "expr_jifop"),
+        (2,  ("expr",)),
+    ),
+    "and1":          	(
+        "%c and %c",
+        (0,  "and_parts"),
+        (1,  ("expr",)),
+    ),
+
+    "and2":          	( "%c", 3 ),
+
     "and_or": (
         "%c and %c or %c",
         (0, "and_parts"),
@@ -223,32 +236,99 @@ TABLE_DIRECT = {
         (0, "expr_pjif", PRECEDENCE["and"]),
         ),
 
-    "assign":		    ( "%|%c = %p\n", -1, (0, "expr", PRECEDENCE["tuple_list_starred"]+1) ),
+    "assign": (
+        "%|%c = %p\n",
+        -1,
+        (0, "expr", PRECEDENCE["tuple_list_starred"] + 1)
+        ),
+
+    "attribute": (
+        "%c.%[1]{pattr}",
+        (0, "expr")
+        ),
+
+    # This nonterminal we create on the fly in semantic routines
+    "attribute_w_parens": (
+        "(%c).%[1]{pattr}",
+        (0, "expr")
+        ),
 
     # The 2nd parameter should have a = suffix.
     # There is a rule with a 4th parameter "store"
     # which we don't use here.
-    "aug_assign1":      ( "%|%c %c %c\n", 0, 2, 1),
+    "aug_assign1":  (
+        "%|%c %c %c\n", 0, 2, 1
+        ),
 
-    "aug_assign2":	    ( "%|%c.%[2]{pattr} %c %c\n", 0, -3, -4 ),
+    "aug_assign2": (
+        "%|%c.%[2]{pattr} %c %c\n", 0, -3, -4
+        ),
 
     # bin_op (formerly "binary_expr") is the Python AST BinOp
-    "bin_op":                  ( "%c %c %c", 0,
-                                (-1, "binary_operator"),
-                                ( 1, "expr" ) ),
+    "bin_op": (
+        "%c %c %c", 0,
+        (-1, "binary_operator"),
+        ( 1, "expr" )
+        ),
 
-    "branch_op_compound_prefix": ( "%c(%c)",
-                                 (3, "unary_operator"),
-                                 (0, "branch_op") ),
+    "branch_op_compound_prefix": (
+        "%c(%c)",
+        (3, "unary_operator"),
+        (0, "branch_op")
+        ),
 
-    "branch_op_compound_suffix": ( "(%c) %c %c",
-                                 (0, "branch_op"),
-                                 (4, "binary_operator"),
-                                 (3, "expr") ),
+    "branch_op_compound_suffix": (
+        "(%c) %c %c",
+        (0, "branch_op"),
+        (4, "binary_operator"),
+         (3, "expr")
+        ),
+
+    "break": ( "%|break\n", ),
+
+    "build_tuple2":(
+        "%P",
+        (0, -1, ", ", 100)
+        ),
+
+    "c_compare_chained":(
+        "%p %p",
+        (0, 29),
+        (1, 30)
+        ),
+
+    "c_except": (
+        "%|except:\n%+%c%-",
+        (3, ("c_stmts_opt", "c_returns", "c_stmts", "pass")),
+    ),
+
+    "c_tryelsestmt": (
+        "%|try:\n%+%c%-%c%|else:\n%+%c%-",
+        1, 3, 4
+        ),
+
+    "c_tryfinallystmt":	(
+        "%|try:\n%+%c%-%|finally:\n%+%c%-\n\n",
+        (1, "c_suite_stmts_opt"),
+        (5, "c_suite_stmts_opt")
+    ),
+
+    #   "classdef": 	(), # handled by n_classdef()
+
+    "classdefdeco":  	    ( "\n\n%c", 0),
+    "classdefdeco1":  	    ( "%|@%c\n%c", 0, 1),
 
     "conditional_not_lambda":
-                        ( "%p if not %c else %c",
-                          (2, "expr", 27), 0, 4 ),
+                            ( "%p if not %c else %c",
+                              (2, "expr", 27), 0, 4 ),
+
+    "comp_iter": ( "%c", 0 ),
+    "comp_if":	 ( " if %c%c", 0, 1 ),
+    "comp_if_not": (
+        " if not %p%c",
+         (0, "expr", PRECEDENCE["unary_not"]), 2
+         ),
+    "comp_body":( "", ), # ignore when recursing
 
     "compare_single":	    ( '%p %[-1]{pattr.replace("-", " ")} %p',
                              (0, "expr", 19), (1, "expr", 19) ),
@@ -258,140 +338,100 @@ TABLE_DIRECT = {
     "compare_in":	        ( "%p in %p",(0, "expr", 19), (1, "expr", 19) ),
     "compare_is":	        ( "%p is %p",(0, "expr", 19), (1, "expr", 19) ),
 
-    "c_compare_chained":    ( "%p %p", (0, 29), (1, 30)),
+    "continue":	            ( "%|continue\n", ),
 
-    #   "classdef": 	(), # handled by n_classdef()
-
-    "get_iter":	                ( "iter(%c)",
-                                  (0, "expr"), ),
-    "slice0":		        ( "%c[:]",
-                                  (0, "expr"), ),
-    "slice1":		        ( "%c[%p:]",
-                                  (0, "expr"),
-                                  (1, 100) ),
-    "slice2":		        ( "%c[:%p]",
-                                  (0, "expr"),
-                                  (1, 100) ),
-    "slice3":		            ( "%c[%p:%p]",
-                                  (0, "expr"),
-                                  (1, 100), (2, 100) ),
-
-    "attribute":	        ( "%c.%[1]{pattr}",
-                                  (0, "expr")),
     "delete_subscript":         ( "%|del %p[%c]\n",
                                   (0, "expr", PRECEDENCE["subscript"]), (1, "expr") ),
-    "subscript":                ( "%p[%c]",
-                                      (0, "expr", PRECEDENCE["subscript"]),
-                                      (1, "expr") ),
-    "subscript2":               ( "%p[%c]",
-                                      (0, "expr", PRECEDENCE["subscript"]),
-                                      (1, "expr") ),
-    "store_subscript":	        ( "%p[%c]",
-                                  (0, "expr", PRECEDENCE["subscript"]),
-                                  (1, "expr") ),
-    "unpack":		        ( "%C%,", (1, maxint, ", ") ),
-
-    # A custom rule in n_function def distinguishes whether to call this or
-    # function_def_async
-    "function_def":             ( "\n\n%|def %c\n", -2), # -2 to handle closures
-
-    "function_def_deco":        ( "\n\n%c", (0, "mkfuncdeco") ),
-    "mkfuncdeco":  	        ( "%|@%c\n%c", (0, "expr"), 1 ),
-
-    # A custom rule in n_function def distinguishes whether to call this or
-    # function_def_async
-    "mkfuncdeco0":  	        ( "%|def %c\n", (0, "mkfunc") ),
-
-    # unary_op (formerly "unary_expr") is the Python AST UnaryOp
-    "unary_op":                 ( "%c%c",
-                                  (1, "unary_operator"),
-                                  (0, "expr") ),
-
-    "unary_not":	        ( "not %c",
-                                  (0, "expr" ) ),
-    "unary_convert":            ( "`%c`",
-                                  (0, "expr" ), ),
-    # This nonterminal we create on the fly in semantic routines
-    "unpack_w_parens":	        ( "(%C%,)", (1, maxint, ", ") ),
-
-    # This nonterminal we create on the fly in semantic routines
-    "attribute_w_parens":	( "(%c).%[1]{pattr}",
-                                  (0, "expr")),
-
-    # This nonterminal we create on the fly in semantic routines
-    "store_w_parens":	( "(%c).%[1]{pattr}",
-                                  (0, "expr")),
-
-    "unpack_list":	        ( "[%C]",
-                                      (1, maxint, ", ") ),
-    "build_tuple2":	        ( "%P",
-                                      (0, -1, ", ", 100) ),
-
-    "list_iter":	        ( "%c", 0 ),
-    "list_for":		        ( " for %c in %c%c", 2, 0, 3 ),
-    "list_if":		        ( " if %p%c",
-                                  (0, "expr", 27), 2 ),
-    "list_if_not":	    (
-        " if not %p%c",
-        (0, "expr", PRECEDENCE["unary_not"]),
-        2 ),
-    "list_if_or_not":	    (
-        " if %c or not %c %c",
-        (0, "expr_pjit"),
-        (1, "expr_pjit"),
-        (3, "list_iter"),
+    "designList": (
+        "%c = %c", 0, -1
         ),
-    "lc_body":		    ( "", ),	# ignore when recursing
 
-    "comp_iter":	    ( "%c", 0 ),
-    "comp_if":		    ( " if %c%c", 0, 1 ),
-    "comp_if_not":	    ( " if not %p%c",
-                              (0, "expr", PRECEDENCE["unary_not"]), 2 ),
-    "comp_body":	    ( "", ),	# ignore when recursing
-    "set_comp_body":    ( "%c", 0 ),
-    "gen_comp_body":    ( "%c", 0 ),
     "dict_comp_body":   ( "%c:%c", 1, 0 ),
+
     "dicts_unpack":     ("{**%C}", (0, maxint, ", **")),
 
-    "designList":	    ( "%c = %c", 0, -1 ),
-    "and":          	(
-        "%c and %c",
-        (0,  "expr_jifop"),
-        (2,  ("expr",)),
-    ),
-    "and1":          	(
-        "%c and %c",
-        (0,  "and_parts"),
-        (1,  ("expr",)),
-    ),
-    "ret_and":        	( "%c and %c", 0, 2 ),
-    "and2":          	( "%c", 3 ),
+    "elifelifstmt":	( "%|elif %c:\n%+%c%-%c", 0, 1, 3 ),
+    "elifstmt":		( "%|elif %c:\n%+%c%-", 0, 1 ),
 
-    "or":           	( "%c or %c",
-                         (0, "expr_jitop"),
-                         (2, "expr") ),
-    "or1":           	( "%c or %c",
-                         (0, "or_parts"),
-                         (1, "expr") ),
-    "or_and": (
-        "(%c or %c) and %c",
-        (0, "or_parts"),
+    "except": (
+        "%|except:\n%+%c%-",
+        3
+        ),
+
+    "except_cond1": (
+        "%|except %c:\n",
+        1
+        ),
+    "except_suite": (
+        "%+%c%-%C",
+        0,
+        (1, maxint, "")
+        ),
+
+    # In Python 3.6+, this is more complicated in the presence of "returns"
+    "except_suite_finalize": (
+        "%+%c%-%C",
+        1,
+        (3, maxint, "")
+        ),
+
+    # Note: Python 3.8+ changes this
+    "for":              ( "%|for %c in %c:\n%+%c%-\n\n",
+                          (3, "store"),
+                          (1, "expr"),
+                          (4, "for_block") ),
+    "forelsestmt":	    (
+        "%|for %c in %c:\n%+%c%-%|else:\n%+%c%-\n\n",
+                          (3, "store"),
+                          (1, "expr"),
+                          (4, "for_block"), -2 ),
+    "forelselaststmt":	(
+        "%|for %c in %c:\n%+%c%-%|else:\n%+%c%-",
+                          (3, "store"),
+                          (1, "expr"),
+                          (4, "for_block"), -2 ),
+    "forelselaststmtc":	(
+        "%|for %c in %c:\n%+%c%-%|else:\n%+%c%-\n\n",
+        (3, "store"),
         (1, "expr"),
-        (2, "jifop_expr"),
+        (4, "for_block"),
+        -2
         ),
 
-    "or_part": (
-        "or %p",
-        (0, "expr_pjit", PRECEDENCE["or"]),
+    # A custom rule in n_function def distinguishes whether to call this or
+    # function_def_async
+    "function_def": (
+        "\n\n%|def %c\n",
+        -2
+        ), # -2 to handle closures
+
+    "function_def_deco": ( "\n\n%c", (0, "mkfuncdeco") ),
+
+    "gen_comp_body":    ( "%c", 0 ),
+
+    "get_iter":	(
+        "iter(%c)",
+        (0, "expr"),
         ),
 
-    "ret_or":           ( "%c or %c", 0, 2 ),
     "if_exp":           (
         "%p if %c else %c",
         (1, 27), # "expr-like thing
         0,  # expr-like thing
         3
     ),
+
+    "if_exp_binop_lambda":    (
+        "%c %c %c if %c else %c %c",
+        (0, "expr"),
+        (5, "binary_operator"),
+        (4, "expr"),
+        (1, "expr"),
+        (0, "expr"),
+        (-1, "return_expr_binop_lambda"),
+    ),
+
+
     "if_exp_lambda":    (
         "%c if %c else %c",
         (3, "expr"),
@@ -421,11 +461,36 @@ TABLE_DIRECT = {
                           (0, "expr", PRECEDENCE["unary_not"]),
                           (4, 27) ),
 
-    "classdefdeco":  	    ( "\n\n%c", 0),
-    "classdefdeco1":  	    ( "%|@%c\n%c", 0, 1),
+    "ifelsestmt":	( "%|if %c:\n%+%c%-%|else:\n%+%c%-", 0, 1, 3 ),
+    "ifelsestmtc":	( "%|if %c:\n%+%c%-%|else:\n%+%c%-", 0, 1, 3 ),
+
+    "iflaststmt":	( "%|if %c:\n%+%c%-", 0, 1 ),
+    "iflaststmtc":	( "%|if %c:\n%+%c%-", 0, 1 ),
+
+    "ifstmt":		( "%|if %c:\n%+%c%-",
+                            (0, "testexpr"),
+                            (1, ("ifstmts_jump", "stmts")) ),
+
+    "import":           ( "%|import %c\n", 2),
+    "import_from":      ( "%|from %[2]{pattr} import %c\n",
+                          (3, "importlist") ),
+    "import_from_star": ( "%|from %[2]{pattr} import *\n", ),
+    "importlist":       ( "%C", (0, maxint, ", ") ),
+
+    "kv":   ( "%c: %c", 3, 1 ),
+    "kv2":  ( "%c: %c", 1, 2 ),
+
     "kwarg":    	    ( "%[0]{attr}=%c", 1),
     "kwargs":    	    ( "%D", (0, maxint, ", ") ),
     "kwargs1":    	    ( "%D", (0, maxint, ", ") ),
+
+    "mkfuncdeco":  	        ( "%|@%c\n%c", (0, "expr"), 1 ),
+
+    # A custom rule in n_function def distinguishes whether to call this or
+    # function_def_async
+    "mkfuncdeco0":  	        ( "%|def %c\n", (0, "mkfunc") ),
+
+    "pass":	            ( "%|pass\n", ),
 
     "print_items_nl_stmt": ( "%|print %c%c\n", 0, 2 ),
     "print_item":       ( ", %c", 0),
@@ -434,6 +499,22 @@ TABLE_DIRECT = {
     "print_to_nl":	    ( "%|print >> %c, %c\n", 0, 1 ),
     "print_nl_to":	    ( "%|print >> %c\n", 0 ),
     "print_to_items":	( "%C", (0, 2, ", ") ),
+
+    "list_iter":	        ( "%c", 0 ),
+    "list_for":		        ( " for %c in %c%c", 2, 0, 3 ),
+    "list_if":		        ( " if %p%c",
+                                  (0, "expr", 27), 2 ),
+    "list_if_not":	    (
+        " if not %p%c",
+        (0, "expr", PRECEDENCE["unary_not"]),
+        2 ),
+    "list_if_or_not":	    (
+        " if %c or not %c %c",
+        (0, "expr_pjit"),
+        (1, "expr_pjit"),
+        (3, "list_iter"),
+        ),
+    "lc_body":		    ( "", ),	# ignore when recursing
 
     # This is only generated by transform
     # it is a string at the beginning of a function that is *not* a docstring
@@ -448,37 +529,105 @@ TABLE_DIRECT = {
                               (0, PRECEDENCE["named_expr"]-1)),
     "expr_stmt":	    ( "%|%c\n",
                               (0, "expr") ),
-    "break":	            ( "%|break\n", ),
-    "continue":	            ( "%|continue\n", ),
-
-    "raise_stmt0":	    ( "%|raise\n", ),
-    "raise_stmt1":	    ( "%|raise %c\n", 0),
-    "raise_stmt3":	    ( "%|raise %c, %c, %c\n", 0, 1, 2),
-#    "yield":	        ( "yield %c", 0),
-#    "return":	        ( "%|return %c\n", 0),
-    "return_if_stmt":	( "return %c\n", 0),
-
-    "ifstmt":		( "%|if %c:\n%+%c%-",
-                            (0, "testexpr"),
-                            (1, ("ifstmts_jump", "stmts")) ),
-
-    "iflaststmt":	( "%|if %c:\n%+%c%-", 0, 1 ),
-    "iflaststmtc":	( "%|if %c:\n%+%c%-", 0, 1 ),
-    "testtrue":         ( "not %p",
-                          (0, PRECEDENCE["unary_not"]) ),
-
-    "ifelsestmt":	( "%|if %c:\n%+%c%-%|else:\n%+%c%-", 0, 1, 3 ),
-    "ifelsestmtc":	( "%|if %c:\n%+%c%-%|else:\n%+%c%-", 0, 1, 3 ),
-
     #  These are created only via transformation
     "ifelifstmt":	( "%|if %c:\n%+%c%-%c", 0, 1, 3 ),
-    "elifelifstmt":	( "%|elif %c:\n%+%c%-%c", 0, 1, 3 ),
-    "elifstmt":		( "%|elif %c:\n%+%c%-", 0, 1 ),
     "elifelsestmt":	( "%|elif %c:\n%+%c%-%|else:\n%+%c%-", 0, 1, 3 ),
     "ifelsestmtr":	( "%|if %c:\n%+%c%-%|else:\n%+%c%-", 0, 1, 2 ),
     "ifelsestmtr2":	( "%|if %c:\n%+%c%-%|else:\n%+%c%-\n\n", 0, 1, 3 ), # has COME_FROM
     "elifelsestmtr":	( "%|elif %c:\n%+%c%-%|else:\n%+%c%-\n\n", 0, 1, 2 ),
     "elifelsestmtr2":	( "%|elif %c:\n%+%c%-%|else:\n%+%c%-\n\n", 0, 1, 3 ), # has COME_FROM
+
+    "or":           	( "%c or %c",
+                         (0, "expr_jitop"),
+                         (2, "expr") ),
+    "or1":           	( "%c or %c",
+                         (0, "or_parts"),
+                         (1, "expr") ),
+    "or_and": (
+        "(%c or %c) and %c",
+        (0, "or_parts"),
+        (1, "expr"),
+        (2, "jifop_expr"),
+        ),
+
+    "or_part": (
+        "or %p",
+        (0, "expr_pjit", PRECEDENCE["or"]),
+        ),
+
+    "raise_stmt0":	    ( "%|raise\n", ),
+    "raise_stmt1":	    ( "%|raise %c\n", 0),
+    "raise_stmt3":	    ( "%|raise %c, %c, %c\n", 0, 1, 2),
+#    "return":	        ( "%|return %c\n", 0),
+
+    "ret_and":        	("%c and %c", 0, 2),
+
+    "return_if_stmt":	("return %c\n", 0),
+
+    "return_expr_binop_lambda": (
+      "%c %c",
+      (2, "binary_operator"),
+      (1, "expr"),
+      ),
+
+    "ret_or":           ( "%c or %c", 0, 2 ),
+    "set_comp_body":    ( "%c", 0 ),
+
+    "slice0": (
+        "%c[:]",
+        (0, "expr"),
+        ),
+    "slice1": (
+        "%c[%p:]",
+        (0, "expr"),
+        (1, 100)
+        ),
+
+    "slice2": ( "%c[:%p]",
+        (0, "expr"),
+        (1, 100)
+        ),
+
+    "slice3": (
+        "%c[%p:%p]",
+        (0, "expr"),
+        (1, 100),
+        (2, 100)
+        ),
+
+    "store_subscript": (
+        "%p[%c]",
+        (0, "expr", PRECEDENCE["subscript"]),
+        (1, "expr")
+        ),
+    # This nonterminal we create on the fly in semantic routines
+    "store_w_parens": (
+        "(%c).%[1]{pattr}",
+        (0, "expr")
+        ),
+
+    "subscript":                ( "%p[%c]",
+                                      (0, "expr", PRECEDENCE["subscript"]),
+                                      (1, "expr") ),
+    "subscript2":               ( "%p[%c]",
+                                      (0, "expr", PRECEDENCE["subscript"]),
+                                      (1, "expr") ),
+
+    "testtrue":         ( "not %p",
+                          (0, PRECEDENCE["unary_not"]) ),
+
+    "try_except":       ( "%|try:\n%+%c%-%c\n\n", 1, 3 ),
+    "tryelsestmt":	    ( "%|try:\n%+%c%-%c%|else:\n%+%c%-\n\n", 1, 3, 4 ),
+    "tryelsestmt3":	    ( "%|try:\n%+%c%-%c%|else:\n%+%c%-\n\n", 1, 3, 5 ),
+    "tryelsestmtl":	    ( "%|try:\n%+%c%-%c%|else:\n%+%c%-", 1, 3, 4 ),
+
+    # Note: this is generated generated by grammar rules but in this phase.
+    "tf_try_except":	( "%c%-%c%+", 1, 3 ),
+    "tf_tryelsestmt":	( "%c%-%c%|else:\n%+%c", 1, 3, 4 ),
+
+    "tryfinallystmt":	( "%|try:\n%+%c%-%|finally:\n%+%c%-\n\n", 1, 5 ),
+
+    "unpack":		        ( "%C%,", (1, maxint, ", ") ),
 
     "whileTruestmt":	( "%|while True:\n%+%c%-\n\n", 1 ),
     "whilestmt":	    ( "%|while %c:\n%+%c%-\n\n", 1, 2 ),
@@ -487,63 +636,34 @@ TABLE_DIRECT = {
     "whileelsestmt":	( "%|while %c:\n%+%c%-%|else:\n%+%c%-\n\n", 1, 2, -2 ),
     "whileelselaststmt":	( "%|while %c:\n%+%c%-%|else:\n%+%c%-", 1, 2, -2 ),
 
-    # Note: Python 3.8+ changes this
-    "for":              ( "%|for %c in %c:\n%+%c%-\n\n",
-                          (3, "store"),
-                          (1, "expr"),
-                          (4, "for_block") ),
-    "forelsestmt":	    (
-        "%|for %c in %c:\n%+%c%-%|else:\n%+%c%-\n\n",
-                          (3, "store"),
-                          (1, "expr"),
-                          (4, "for_block"), -2 ),
-    "forelselaststmt":	(
-        "%|for %c in %c:\n%+%c%-%|else:\n%+%c%-",
-                          (3, "store"),
-                          (1, "expr"),
-                          (4, "for_block"), -2 ),
-    "forelselaststmtc":	(
-        "%|for %c in %c:\n%+%c%-%|else:\n%+%c%-\n\n",
-                          (3, "store"),
-                          (1, "expr"),
-                          (4, "for_block"), -2 ),
+    # unary_op (formerly "unary_expr") is the Python AST UnaryOp
+    "unary_op": (
+        "%c%c",
+        (1, "unary_operator"),
+        (0, "expr")
+        ),
 
-    "try_except":       ( "%|try:\n%+%c%-%c\n\n", 1, 3 ),
-    "tryelsestmt":	    ( "%|try:\n%+%c%-%c%|else:\n%+%c%-\n\n", 1, 3, 4 ),
-    "tryelsestmt3":	    ( "%|try:\n%+%c%-%c%|else:\n%+%c%-\n\n", 1, 3, 5 ),
-    "c_tryelsestmt":	    ( "%|try:\n%+%c%-%c%|else:\n%+%c%-", 1, 3, 4 ),
-    "tryelsestmtl":	    ( "%|try:\n%+%c%-%c%|else:\n%+%c%-", 1, 3, 4 ),
+    "unary_not": (
+        "not %c",
+        (0, "expr" )
+        ),
 
-    # Note: this is generated generated by grammar rules but in this phase.
-    "tf_try_except":	( "%c%-%c%+", 1, 3 ),
-    "tf_tryelsestmt":	( "%c%-%c%|else:\n%+%c", 1, 3, 4 ),
+    "unary_convert":(
+        "`%c`",
+        (0, "expr" ),
+        ),
 
-    "tryfinallystmt":	( "%|try:\n%+%c%-%|finally:\n%+%c%-\n\n", 1, 5 ),
-    "c_tryfinallystmt":	(
-        "%|try:\n%+%c%-%|finally:\n%+%c%-\n\n",
-        (1, "c_suite_stmts_opt"),
-        (5, "c_suite_stmts_opt")
-    ),
-    "except":           ( "%|except:\n%+%c%-", 3 ),
-    "except_cond1":	    ( "%|except %c:\n", 1 ),
-    "except_suite":     ( "%+%c%-%C", 0, (1, maxint, "") ),
+    "unpack_list":(
+        "[%C]",
+        (1, maxint, ", ")
+        ),
 
-    "c_except":         (
-        "%|except:\n%+%c%-",
-        (3, ("c_stmts_opt", "c_returns", "c_stmts", "pass")),
-    ),
+    # This nonterminal we create on the fly in semantic routines
+    "unpack_w_parens": (
+        "(%C%,)", (1, maxint, ", ")
+        ),
 
-    # In Python 3.6+, this is more complicated in the presence of "returns"
-    "except_suite_finalize":     ( "%+%c%-%C", 1, (3, maxint, "") ),
-
-    "pass":	            ( "%|pass\n", ),
-    "kv":		    ( "%c: %c", 3, 1 ),
-    "kv2":		    ( "%c: %c", 1, 2 ),
-    "import":               ( "%|import %c\n", 2),
-    "importlist":           ( "%C", (0, maxint, ", ") ),
-    "import_from":          ( "%|from %[2]{pattr} import %c\n",
-                              (3, "importlist") ),
-    "import_from_star":     ( "%|from %[2]{pattr} import *\n", ),
+    #  "yield": ( "yield %c", 0),
 }
 # fmt: on
 

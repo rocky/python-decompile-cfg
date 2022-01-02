@@ -20,3 +20,7 @@ lambda m, n, d, fo: (0 if d or (n and m and fo) else n)
 # Simplication of the above... Note the parenthesis again are optional
 # I put them in for clarity.
 lambda m, n, d, fo: d or (n and m and d)
+
+# Simplified from numpy/core/tests/test_simd.py which
+# has a wealth of lambda's.
+lambda v: v + 0.5 if v else v + -0.5

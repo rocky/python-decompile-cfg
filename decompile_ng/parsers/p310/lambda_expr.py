@@ -355,6 +355,8 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
 
     def p_lambda(self, args):
         """
+        # return_expr_lambda is a return value used inside a lambda
+
         return_expr_lambda      ::= dom_start_opt
                                     expr
                                     dom_start_opt
@@ -362,9 +364,21 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
                                     bb_doms_end
 
         return_expr_lambda      ::= if_exp_lambda
+        return_expr_lambda      ::= if_exp_binop_lambda
         return_expr_lambda      ::= if_exp_not_lambda
         return_expr_lambda      ::= if_exp_not_lambda2
         return_expr_lambda      ::= if_exp_dead_code
+
+        # return_expr_lambda with a binary operator before the return
+        return_expr_binop_lambda  ::= dom_start_opt
+                                      expr
+                                      binary_operator
+                                      RETURN_VALUE
+                                      bb_doms_end
+
+
+        # if_exp_lambda is an if_exp with a return value used
+        # inside a lambda
 
         # FIXME: These three are pretty similar - see if we can simplify.
         if_exp_lambda      ::= expr
@@ -390,6 +404,18 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
                                RETURN_VALUE
                                dom_end dom_start
                                return_expr_lambda
+
+        # A binary operator with if_exp as the left operand.
+        # Here that value is duplicated before both return
+        # branches
+        if_exp_binop_lambda ::= expr expr
+                               POP_JUMP_IF_FALSE
+                               bb_end_start
+                               expr
+                               binary_operator
+                               RETURN_VALUE
+                               dom_end dom_start
+                               return_expr_binop_lambda
 
         # FIXME: we need branch_op instead of expr because
         # we sometimes match expr to small and that limits the larger
