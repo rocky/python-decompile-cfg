@@ -140,14 +140,18 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         # Python3 scanner adds LOAD_LISTCOMP. Python3 does list comprehension like
         # other comprehensions (set, dictionary).
 
-        # comp_iter      ::= comp_for
+        gen_comp_body  ::= expr YIELD_VALUE bb_doms_end_start POP_TOP
         for_iter       ::= bb_end_start FOR_ITER
+
+        # FIXME: go over:
+
+        # comp_iter      ::= comp_for
+        # comp_for       ::= expr gen_comp_body JUMP_BACK bb_doms_end_start
 
         # Our "continue" heuristic -  in two successive JUMP_BACKS, the first
         # one may be a continue - sometimes classifies a JUMP_BACK
         # as a CONTINUE. The two are kind of the same in a comprehension.
 
-        # FIXME: go over:
         # comp_for       ::= expr get_for_iter store comp_iter CONTINUE _come_froms
         # comp_for       ::= expr get_for_iter store comp_iter JUMP_BACK _come_froms
 
@@ -158,7 +162,6 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         comp_body      ::= gen_comp_body
 
         dict_comp_body ::= expr expr MAP_ADD
-        gen_comp_body  ::= expr YIELD_VALUE POP_TOP
         set_comp_body  ::= expr SET_ADD
         """
 

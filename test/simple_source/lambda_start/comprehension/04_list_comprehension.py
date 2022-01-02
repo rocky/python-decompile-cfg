@@ -31,3 +31,7 @@ lambda n: [
     for i
     in range(n)
     if n]
+
+lambda p: ''.join(unichr(c) for c in range(ord(p[0]), ord(p[1]) + 1))
+
+lambda p: p if not isinstance(p, ParseResults) else ''.join(unichr(c) for c in range(ord(p[0]), ord(p[1]) + 1))

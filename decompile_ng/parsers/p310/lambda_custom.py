@@ -99,6 +99,7 @@ class Python310LambdaCustom(Python310BaseParser):
         # Determine if we have an iteration CALL_FUNCTION_1.
         has_get_iter_call_function1 = False
         for i, token in enumerate(tokens):
+            # The GET_ITER path might be obsolete
             if (
                 token == "GET_ITER"
                 and i < n - 2
@@ -416,6 +417,10 @@ class Python310LambdaCustom(Python310BaseParser):
                     pass
                 custom_ops_processed.add(opname)
 
+            elif opname == "LOAD_GENEXPR":
+                self.addRule("load_genexpr ::= LOAD_GENEXPR", nop_func)
+                custom_ops_processed.add(opname)
+
             elif opname == "LOAD_LISTCOMP":
                 self.add_unique_rule(
                     "expr ::= list_comp", opname, token.attr, customize
@@ -612,6 +617,8 @@ class Python310LambdaCustom(Python310BaseParser):
                 )
                 self.add_unique_rule(rule, opname, token.attr, customize)
 
+
+                # This might be obsolete
                 if has_get_iter_call_function1:
                     rule_pat = (
                         "generator_exp ::= %sload_genexpr %%s%s expr "
