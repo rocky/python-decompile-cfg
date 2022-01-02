@@ -40,11 +40,36 @@ supposed `COME_FROM` targets.
 However all of this is complicated, not robust, has greatly slowed
 down deparsing and is not really tenable.
 
-So in this project we started rewriting and refactoring the grammar.
+It is clear that even this isn't enough. Control flow needs to be
+addressed by using dominators which the python-control-flow_ project
+can give.
 
-However it is clear that even this isn't enough. Control flow needs
-to be addressed by using dominators and reverse-dominators which
-the python-control-flow_ project can give.
+So far, this seems to hold promise of finally solving such problems.
+
+Another change here is to more flexibly decompile smaller pieces of
+code, and modularize the grammar better.
+
+Right now you can deparse a lambda expression using a subset grammar
+of the full Python grammar. We should also be able to do that with other
+code objects such as comprehensions and generators.
+
+In the future we hope to also be able to hanlde contigous sections of
+code smaller than a code object. In particular, constructs that are
+found inside a single dominator region. A looping structure is
+something that might be easily identified.
+
+In the process of doing this, we are forced to really isolate and
+segregate subsets of the grammar. And this also drives us towards
+redoing the grammar more or less from scratch to simplify it and try
+to match Python's AST better.
+
+Recall that when this code was first created there was no such thing
+as a Python AST.  So using this to guide the grammar was
+impossible. We had tried prevously to match up nonterminal names when
+possible, changing CamelCase to snake_case. However with Python 3's
+AST, a reexamination and rewriting of the entire underlying grammar is
+warranted.
+
 
 Requirements
 ------------
