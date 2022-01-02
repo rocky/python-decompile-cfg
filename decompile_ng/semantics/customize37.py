@@ -1320,7 +1320,7 @@ def customize_for_version37(self, version):
                 # bytecode, the escaping of the braces has been
                 # removed. So we need to put back the braces escaping in
                 # reconstructing the source.
-                assert expr[0] == "LOAD_STR"
+                assert expr[0] == "constant" and expr[0][0] == "LOAD_STR"
                 value = value.replace("{", "{{").replace("}", "}}")
 
             # Remove leading quotes
