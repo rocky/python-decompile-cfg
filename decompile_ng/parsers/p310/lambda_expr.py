@@ -376,6 +376,21 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
                                       RETURN_VALUE
                                       bb_doms_end
 
+        # Temporary until we have a rule generatie this
+        return_expr_lambda      ::= if_exp_call_lambda
+        return_call_lambda      ::= dom_start_opt
+                                    expr
+                                    CALL_FUNCTION_1
+                                    RETURN_VALUE
+                                    bb_doms_end
+
+        if_exp_call_lambda      ::= expr expr
+                                    POP_JUMP_IF_FALSE
+                                    bb_end_start
+                                    expr CALL_FUNCTION_1
+                                    RETURN_VALUE
+                                    dom_end dom_start
+                                    return_call_lambda
 
         # if_exp_lambda is an if_exp with a return value used
         # inside a lambda

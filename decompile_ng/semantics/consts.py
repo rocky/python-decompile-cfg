@@ -432,6 +432,17 @@ TABLE_DIRECT = {
     ),
 
 
+    # FIXME: this needs to be a procedure
+    # This only handles the 1 argument function case
+    "if_exp_call_lambda":    (
+        "%c(%c if %c else %c)",
+        (0, "expr"),
+        (4, "expr"),
+        (1, "expr"),
+        (-1, "return_call_lambda"),
+    ),
+
+
     "if_exp_lambda":    (
         "%c if %c else %c",
         (3, "expr"),

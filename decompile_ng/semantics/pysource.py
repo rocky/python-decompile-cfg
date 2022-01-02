@@ -483,6 +483,18 @@ class SourceWalker(GenericASTTraversal, object):
             "return", [SyntaxTree("ret_expr", [NONE]), Token("RETURN_VALUE")]
         )
 
+    def n_return_call_lambda(self, node):
+
+        # Understand were non-psuedo instructions lie.
+        opt_start = 1 if node[0].kind in ("dom_start_opt", "dom_start") else 0
+        call_index = -3 if node[-1].kind == "bb_doms_end" else -2
+
+        call_fn = node[call_index]
+        assert call_fn.kind.startswith("CALL_FUNCTION")
+        # Just print the args
+        self.template_engine(("%P", (opt_start, call_fn.attr + opt_start, ", ", 100)), node)
+        self.prune()
+
     # Python 3.x can have be dead code as a result of its optimization?
     # So we'll add a # at the end of the return lambda so the rest is ignored
     def n_return_expr_lambda(self, node):
@@ -491,7 +503,10 @@ class SourceWalker(GenericASTTraversal, object):
         opt_start = 1 if node[0].kind in ("dom_start_opt", "dom_start") else 0
         opt_end = 1 if node[-1].kind == "bb_doms_end" else 0
 
-        if 2 <= len(node) - opt_start - opt_end <= 3:
+        if node[0] == "if_exp_call_lambda":
+            self.preorder(node[0])
+            self.prune()
+        elif 2 <= len(node) - opt_start - opt_end <= 3:
             self.preorder(node[1])
             self.prune()
         else:
