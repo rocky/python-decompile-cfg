@@ -75,7 +75,7 @@ def disco_deparse_loop(disasm, compile_mode, code_type, queue, real_out, is_pypy
             )
             skip_token_scan = True
 
-        tokens, customize = disasm(co)
+        tokens, customize = disasm(co, show_asm=debug_opts.get("asm", None))
         if skip_token_scan:
             continue
         for t in tokens:
@@ -117,11 +117,14 @@ def decompile_code_type(
         filename
     )
 
+    # maybe a second -a will do before as well
+    asm = "after" if showasm else None
+
     debug_opts = {"asm": showasm, "ast": showast, "grammar": showgrammar}
     if isinstance(co, list):
         for bytecode in co:
             disco_deparse(
-                version, bytecode, compile_mode, code_type, is_pypy, showasm, showast, showgrammar
+                version, bytecode, compile_mode, code_type, is_pypy, debug_opts
             )
     else:
         disco_deparse(version, co, compile_mode, code_type, outstream, is_pypy, debug_opts)

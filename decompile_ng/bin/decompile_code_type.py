@@ -72,6 +72,9 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
             out_base = outfile
             outfile = None
 
+    # maybe a second -a will do before as well
+    asm = "after" if show_asm else None
+
     show_ast = {"before": tree, "after": tree_plus}
     show_grammar = {
         "rules": False,
@@ -108,7 +111,7 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
                     or filename.endswith(".pyo")
                     or os.path.isdir(filename)
                 ):
-                    decompile_fn(filename, outfile, showasm=show_asm, showgrammar=show_grammar, showast=show_ast)
+                    decompile_fn(filename, outfile, showasm=asm, showgrammar=show_grammar, showast=show_ast)
                     print()
                     success += 1
                     total += 1

@@ -391,7 +391,6 @@ def main(
                         okay_files,
                         failed_files,
                         verify_failed_files,
-                        do_verify,
                     ),
                 )
             )
