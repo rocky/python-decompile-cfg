@@ -1638,9 +1638,7 @@ class SourceWalker(GenericASTTraversal, object):
             self.write("(")
             endchar = ")"
         else:
-            from trepan.api import debug
-
-            debug()
+            from trepan.api import debug; debug()
             raise TypeError(
                 "Internal Error: n_build_list expects list, tuple, set, or unpack"
             )
@@ -1743,9 +1741,7 @@ class SourceWalker(GenericASTTraversal, object):
             self.write("(")
             endchar = ")"
         else:
-            from trepan.api import debug
-
-            debug()
+            from trepan.api import debug; debug()
             raise TypeError(
                 "Internal Error: n_build_list expects list, tuple, set, or unpack"
             )
@@ -2302,10 +2298,6 @@ class SourceWalker(GenericASTTraversal, object):
                     if load_const.kind == "LOAD_CONST":
                         if isTopLevel or load_const.pattr is None:
                             del tokens[-2:]
-                        else:
-                            tokens.append(Token("RETURN_LAST"))
-                    else:
-                        tokens.append(Token("RETURN_LAST"))
             if len(tokens) == 0:
                 return PASS
 
