@@ -471,7 +471,7 @@ class SourceWalker(GenericASTTraversal, object):
     def is_return_none(self, node):
         # Is there a better way?
         ret = (
-            node[0] == "ret_expr"
+            node[0] == "return_expr"
             and node[0][0] == "expr"
             and node[0][0][0] == "LOAD_CONST"
             and node[0][0][0].pattr is None
@@ -480,7 +480,7 @@ class SourceWalker(GenericASTTraversal, object):
         # FIXME: should the SyntaxTree expression be folded into
         # the global RETURN_NONE constant?
         return ret or node == SyntaxTree(
-            "return", [SyntaxTree("ret_expr", [NONE]), Token("RETURN_VALUE")]
+            "return", [SyntaxTree("return_expr", [NONE]), Token("RETURN_VALUE")]
         )
 
     def n_return_call_lambda(self, node):
@@ -617,7 +617,7 @@ class SourceWalker(GenericASTTraversal, object):
         self.prec = p
         self.prune()
 
-    def n_ret_expr(self, node):
+    def n_return_expr(self, node):
         if len(node) == 1 and node[0] == "expr":
             # If expr is yield we want parens.
             self.prec = PRECEDENCE["yield"] - 1
@@ -625,7 +625,7 @@ class SourceWalker(GenericASTTraversal, object):
         else:
             self.n_expr(node)
 
-    n_ret_expr_or_cond = n_expr
+    n_return_expr_or_cond = n_expr
 
     def n_bin_op(self, node):
         """bin_op (formerly "binary_expr") is the Python AST BinOp"""
@@ -1057,10 +1057,10 @@ class SourceWalker(GenericASTTraversal, object):
         ast = self.build_ast(code._tokens, code._customize, code, is_lambda=self.is_lambda)
         self.customize(code._customize)
 
-        # skip over: sstmt, stmt, return, ret_expr
+        # skip over: sstmt, stmt, return, return_expr
         # and other singleton derivations
         while len(ast) == 1 or (
-            ast in ("sstmt", "return", "ret_expr")
+            ast in ("sstmt", "return", "return_expr")
         ):
             self.prec = 100
             ast = ast[0]

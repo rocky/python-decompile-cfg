@@ -180,7 +180,7 @@ class Python310Parser(Python310LambdaParser):
 
         stmt   ::= return
 
-        return ::= ret_expr RETURN_VALUE bb_doms_end
+        return ::= return_expr RETURN_VALUE bb_doms_end
 
         # "returns" nonterminal is a sequence of statements that ends in a RETURN statement.
         # In later Python versions with jump optimization, this can cause JUMPs
@@ -440,7 +440,7 @@ class Python310Parser(Python310LambdaParser):
         binary_operator  ::= BINARY_MATRIX_MULTIPLY
 
         # FIXME: do we need these?
-        return_if_stmt ::= ret_expr RETURN_END_IF POP_BLOCK
+        return_if_stmt ::= return_expr RETURN_END_IF POP_BLOCK
 
         jb_cf     ::= JUMP_BACK COME_FROM
         ifelsestmtc ::= testexpr c_stmts_opt JUMP_FORWARD else_suitec
@@ -526,7 +526,7 @@ class Python310Parser(Python310LambdaParser):
 
         return_if_stmts ::= return_if_stmt come_from_opt
         return_if_stmts ::= _stmts return_if_stmt _come_froms
-        return_if_stmt  ::= ret_expr RETURN_END_IF
+        return_if_stmt  ::= return_expr RETURN_END_IF
         returns         ::= _stmts return_if_stmt
 
 
@@ -823,13 +823,13 @@ class Python310Parser(Python310LambdaParser):
         # jump_or_break      ::= jump
         # jump_or_break      ::= BREAK_LOOP
 
-        ret_expr ::= expr
+        return_expr ::= expr
 
         # FIXME: simplify this
-        ret_expr_or_cond ::= if_exp_ret
-        ret_expr_or_cond ::= ret_expr
+        return_expr_or_cond ::= if_exp_ret
+        return_expr_or_cond ::= return_expr
 
-        if_exp_ret ::= expr POP_JUMP_IF_FALSE expr RETURN_END_IF COME_FROM ret_expr_or_cond
+        if_exp_ret ::= expr POP_JUMP_IF_FALSE expr RETURN_END_IF COME_FROM return_expr_or_cond
 
         testfalse ::= or POP_JUMP_IF_FALSE COME_FROM
         testfalse ::= nand
@@ -861,7 +861,7 @@ class Python310Parser(Python310LambdaParser):
         if_exp_not_lambda
                            ::= expr POP_JUMP_IF_TRUE expr return_if_lambda
                                return_stmt_lambda
-        return_stmt_lambda ::= ret_expr RETURN_VALUE_LAMBDA
+        return_stmt_lambda ::= return_expr RETURN_VALUE_LAMBDA
 
         stmt               ::= return_closure
         return_closure     ::= LOAD_CLOSURE RETURN_VALUE RETURN_LAST
@@ -1049,16 +1049,16 @@ class Python310FullParser(Python310Parser, Python310LambdaParser):
         discard_tops       ::= discard_top+
         pop_tops           ::= POP_TOP+
 
-        return             ::= ret_expr
+        return             ::= return_expr
                                discard_tops RETURN_VALUE
 
         return             ::= pop_return
         return             ::= popb_return
         return             ::= pop_ex_return
         except_stmt        ::= pop_ex_return
-        pop_return         ::= POP_TOP ret_expr RETURN_VALUE
-        popb_return        ::= ret_expr POP_BLOCK RETURN_VALUE
-        pop_ex_return      ::= ret_expr ROT_FOUR POP_EXCEPT RETURN_VALUE
+        pop_return         ::= POP_TOP return_expr RETURN_VALUE
+        popb_return        ::= return_expr POP_BLOCK RETURN_VALUE
+        pop_ex_return      ::= return_expr ROT_FOUR POP_EXCEPT RETURN_VALUE
 
         except_stmt        ::= except_cond1a except_suite come_from_opt
 

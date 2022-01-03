@@ -88,10 +88,10 @@ def customize_for_version3(self, version):
         ast = self.build_ast(code._tokens, code._customize, code, is_lambda = self.compile_mode == "lambda")
         self.customize(code._customize)
 
-        # skip over: sstmt, stmt, return, ret_expr
+        # skip over: sstmt, stmt, return, return_expr
         # and other singleton derivations
         while len(ast) == 1 or (
-            ast in ("sstmt", "return", "ret_expr")
+            ast in ("sstmt", "return", "return_expr")
         ):
             self.prec = 100
             ast = ast[0]
