@@ -26,18 +26,9 @@ from decompile_ng.version import __version__
 
 # from decompile_ng.linenumbers import line_number_mapping
 
-from decompile_ng.semantics.pysource import code_deparse
+from decompile_ng.semantics.pysource import code_deparse, PARSER_DEFAULT_DEBUG
 from decompile_ng.semantics.fragments import code_deparse as code_deparse_fragments
 from decompile_ng.semantics.linemap import deparse_code_with_map
-
-PARSER_DEFAULT_DEBUG = {
-    "rules": False,
-    "transition": False,
-    "reduce": True,
-    "errorstack": "full",
-    "context": True,
-    "dups": False,
-}
 
 def _get_outstream(outfile: str) -> Any:
     dir = os.path.dirname(outfile)
@@ -115,7 +106,10 @@ def decompile(
     # maybe a second -a will do before as well
     asm = "after" if showasm else None
 
-    debug_opts = {"asm": asm, "ast": showast, "grammar": showgrammar}
+    grammar = dict(PARSER_DEFAULT_DEBUG)
+    if showgrammar:
+        grammar["reduce"] = True
+    debug_opts = {"asm": asm, "ast": showast, "grammar": grammar}
 
     try:
         if mapstream:
@@ -248,7 +242,7 @@ def main(
     showasm=None,
     showast={},
     do_verify=False,
-    showgrammar=PARSER_DEFAULT_DEBUG,
+    showgrammar=False,
     source_encoding=None,
     raise_on_error=False,
     do_linemaps=False,

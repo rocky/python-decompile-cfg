@@ -178,8 +178,6 @@ from decompile_ng.util import better_repr
 
 from io import StringIO
 
-DEFAULT_DEBUG_OPTS = {"asm": False, "tree": False, "grammar": False}
-
 PARSER_DEFAULT_DEBUG = {
     "rules": False,
     "transition": False,
@@ -189,8 +187,13 @@ PARSER_DEFAULT_DEBUG = {
     "dups": False,
 }
 
-AST_DEFAULT_DEBUG = {"before": False, "after": False}
+TREE_DEFAULT_DEBUG = {"before": False, "after": False}
 
+DEFAULT_DEBUG_OPTS = {
+    "asm": False,
+    "tree": TREE_DEFAULT_DEBUG,
+    "grammar": dict(PARSER_DEFAULT_DEBUG)
+    }
 
 class SourceWalkerError(Exception):
     def __init__(self, errmsg):
@@ -208,7 +211,7 @@ class SourceWalker(GenericASTTraversal, object):
         version,
         out,
         scanner,
-        showast=AST_DEFAULT_DEBUG,
+        showast=TREE_DEFAULT_DEBUG,
         debug_parser=PARSER_DEFAULT_DEBUG,
         compile_mode="exec",
         is_pypy=IS_PYPY,
@@ -2369,7 +2372,7 @@ def code_deparse(
         version,
         out,
         scanner,
-        showast=debug_opts.get("ast", None),
+        showast=debug_opts.get("tree", TREE_DEFAULT_DEBUG),
         debug_parser=debug_parser,
         compile_mode=compile_mode,
         is_pypy=is_pypy,

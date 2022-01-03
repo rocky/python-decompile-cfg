@@ -1,15 +1,16 @@
 import pytest
 from decompile_ng import code_deparse
+from decompile_ng.semantics.pysource import DEFAULT_DEBUG_OPTS
 
 from io import StringIO
 
 out = StringIO()
 
 def run_deparse(expr: str, compile_mode: bool, debug=False) -> object:
+    debug_opts = dict(DEFAULT_DEBUG_OPTS)
     if debug:
-        debug_opts = {"asm": "both", "tree": True, "grammar": True}
-    else:
-        debug_opts = {"asm": False, "tree": False, "grammar": False}
+        debug_opts["reduce"] = True
+        debug_opts["asm"] = "both"
 
     orig_compile_mode = compile_mode
     if compile_mode == "lambda":
@@ -18,7 +19,7 @@ def run_deparse(expr: str, compile_mode: bool, debug=False) -> object:
     if debug:
         import dis;
         print(dis.dis(code))
-    deparsed = code_deparse(code, out=out, compile_mode=orig_compile_mode, debug_opts=debug_opts)
+    deparsed = code_deparse(code, out=out, compile_mode=orig_compile_mode, debug_opts=DEFAULT_DEBUG_OPTS)
     return deparsed
 
 

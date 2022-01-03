@@ -1,7 +1,7 @@
 import pytest
 
 # decompyle3
-from validate import validate_uncompyle
+from validate import validate_decompile
 
 TESTS = (
         "{0.: 'a', -1: 'b'}",  # BUILD_MAP
@@ -20,8 +20,8 @@ TESTS = (
     "text", TESTS
 )
 def test_build_const_key_map(text):
-    validate_uncompyle(text)
+    validate_decompile(text)
 
 if __name__ == "__main__":
     for test in TESTS:
-        validate_uncompyle(test)
+        validate_decompile(test)
