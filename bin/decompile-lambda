@@ -1,3 +1,3 @@
 #!/usr/bin/env python
-from decompile_ng.bin.decompile_lambda import main
+from decompile_ng.bin.decompile_code_type import main
 main()

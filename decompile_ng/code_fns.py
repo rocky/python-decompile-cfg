@@ -39,7 +39,7 @@ from decompile_ng.semantics.pysource import code_deparse
 # from spark_parser import GenericASTTraversal, DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 
 
-def disco_deparse(version: str, co, out, is_pypy, debug_opts) -> None:
+def disco_deparse(version: str, co, compile_mode, code_type, out, is_pypy, debug_opts) -> None:
     """
     diassembles and deparses a given code block 'co'
     """
@@ -55,14 +55,14 @@ def disco_deparse(version: str, co, out, is_pypy, debug_opts) -> None:
     scanner = get_scanner(version, is_pypy=is_pypy)
 
     queue = deque([co])
-    disco_deparse_loop(scanner.ingest, queue, real_out, is_pypy, debug_opts)
+    disco_deparse_loop(scanner.ingest, compile_mode, code_type, queue, real_out, is_pypy, debug_opts)
 
 
-def disco_deparse_loop(disasm, queue, real_out, is_pypy, debug_opts):
+def disco_deparse_loop(disasm, compile_mode, code_type, queue, real_out, is_pypy, debug_opts):
     while len(queue) > 0:
         co = queue.popleft()
         skip_token_scan = False
-        if co.co_name == "<lambda>":
+        if co.co_name == code_type:
             print(
                 "\n# %s line %d of %s"
                 % (co.co_name, co.co_firstlineno, co.co_filename),
@@ -74,8 +74,7 @@ def disco_deparse_loop(disasm, queue, real_out, is_pypy, debug_opts):
                 real_out,
                 debug_opts=debug_opts,
                 is_pypy=is_pypy,
-                # compile_mode="exec",
-                compile_mode="lambda",
+                compile_mode=compile_mode,
             )
             skip_token_scan = True
 
@@ -101,8 +100,10 @@ PARSER_DEFAULT_DEBUG = {
 }
 
 
-def decompile_lambda_fns(
+def decompile_code_type(
     filename: str,
+    compile_mode,
+    code_type,
     outstream=None,
     showasm=None,
     showast={"after"},
@@ -120,15 +121,46 @@ def decompile_lambda_fns(
     )
 
     debug_opts = {"asm": showasm, "ast": showast, "grammar": showgrammar}
-    if type(co) == list:
-        for con in co:
+    if isinstance(co, list):
+        for bytecode in co:
             disco_deparse(
-                version, con, outstream, is_pypy, showasm, showast, showgrammar
+                version, bytecode, compile_mode, code_type, is_pypy, showasm, showast, showgrammar
             )
     else:
-        disco_deparse(version, co, outstream, is_pypy, debug_opts)
+        disco_deparse(version, co, compile_mode, code_type, outstream, is_pypy, debug_opts)
     co = None
 
+def decompile_lambda_fns(
+    filename: str,
+    code_type,
+    outstream=None,
+    showasm=None,
+    showast={"after"},
+    showgrammar=PARSER_DEFAULT_DEBUG,
+) -> None:
+    """
+    decompile all of the lambda functions in a python byte-code file (.pyc)
+
+    If given a Python source file (".py") file, we'll
+    decompile all lambdas of the corresponding compiled object.
+    """
+    decompile_code_type(filename, "lambda", "<lambda>", outstream, showasm, showast, showgrammar)
+
+def decompile_list_comprehensions(
+    filename: str,
+    code_type,
+    outstream=None,
+    showasm=None,
+    showast={"after"},
+    showgrammar=PARSER_DEFAULT_DEBUG,
+) -> None:
+    """
+    decompile all of the lambda functions in a python byte-code file (.pyc)
+
+    If given a Python source file (".py") file, we'll
+    decompile all list_comprehensions of the corresponding compiled object.
+    """
+    decompile_code_type(filename, "exec", "<listcomp>", outstream, showasm, showast, showgrammar)
 
 def _test() -> None:
     """Simple test program to disassemble a file."""
