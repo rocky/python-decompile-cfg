@@ -995,6 +995,12 @@ class SourceWalker(GenericASTTraversal, object):
             # Verify this
             # rest = ast[1:]
             ast = ast[0]
+        elif ast == "lambda_start":
+            assert len(ast) <= 3
+            ast = ast[-2]
+            if ast == "return_expr_lambda":
+                ast = ast[1]
+            pass
 
         n = ast[iter_index]
         assert n == "comp_iter", n
@@ -1912,12 +1918,6 @@ class SourceWalker(GenericASTTraversal, object):
                 index = entry[arg]
                 if isinstance(index, tuple):
                     if isinstance(index[1], str):
-                        try:
-                            assert node[index[0]] == index[1]
-                        except:
-                            from trepan.api import debug
-
-                            debug()
                         assert (
                             node[index[0]] == index[1]
                         ), "at %s[%d], expected '%s' node; got '%s'" % (
@@ -2318,6 +2318,7 @@ class SourceWalker(GenericASTTraversal, object):
             self.p.offset2inst_index = self.scanner.offset2inst_index
             self.p.opc = self.scanner.opc
             ast = python_parser.parse(self.p, tokens, customize, is_lambda=is_lambda)
+
             self.p.insts = p_insts
         except (heads.ParserError, AssertionError) as e:
             raise ParserError(e, tokens, self.p.debug["reduce"])

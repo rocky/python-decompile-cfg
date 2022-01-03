@@ -322,7 +322,10 @@ class PythonParserLambda(PythonBaseParser):
 
     def p_start_rule_lambda(self, args):
         """
-        lambda_start       ::= dom_start
+        # When called from inside another expression like a call
+        # there might not be a dom_start. So we need dom_start_opt
+        # to start this off.
+        lambda_start       ::= dom_start_opt
                                return_expr_lambda
                                dom_end_opt
         """

@@ -141,6 +141,17 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         # other comprehensions (set, dictionary).
 
         gen_comp_body  ::= expr YIELD_VALUE bb_doms_end_start POP_TOP
+
+        genexpr_func ::= GEN_START
+                         LOAD_FAST
+                         bb_end_start
+                         FOR_ITER
+                         bb_end_start
+                         store
+                         comp_iter
+                         JUMP_BACK
+                         bb_end_start
+
         for_iter       ::= bb_end_start FOR_ITER
 
         # FIXME: go over:
@@ -360,6 +371,13 @@ class Python310LambdaParser(Python310LambdaCustom, PythonParserLambda):
         return_expr_lambda      ::= dom_start_opt
                                     expr
                                     dom_start_opt
+                                    RETURN_VALUE
+                                    bb_doms_end
+
+        # FIXME: generalize this
+        return_expr_lambda      ::= dom_start_opt
+                                    genexpr_func
+                                    LOAD_CONST
                                     RETURN_VALUE
                                     bb_doms_end
 

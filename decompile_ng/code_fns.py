@@ -120,7 +120,7 @@ def decompile_code_type(
     # maybe a second -a will do before as well
     asm = "after" if showasm else None
 
-    debug_opts = {"asm": showasm, "ast": showast, "grammar": showgrammar}
+    debug_opts = {"asm": showasm, "tree": showast, "grammar": showgrammar}
     if isinstance(co, list):
         for bytecode in co:
             disco_deparse(
