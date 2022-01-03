@@ -30,6 +30,14 @@ from decompile_ng.semantics.pysource import code_deparse
 from decompile_ng.semantics.fragments import code_deparse as code_deparse_fragments
 from decompile_ng.semantics.linemap import deparse_code_with_map
 
+PARSER_DEFAULT_DEBUG = {
+    "rules": False,
+    "transition": False,
+    "reduce": True,
+    "errorstack": "full",
+    "context": True,
+    "dups": False,
+}
 
 def _get_outstream(outfile: str) -> Any:
     dir = os.path.dirname(outfile)
@@ -104,7 +112,10 @@ def decompile(
     if source_size:
         write("# Size of source mod 2**32: %d bytes" % source_size)
 
-    debug_opts = {"asm": showasm, "ast": showast, "grammar": showgrammar}
+    # maybe a second -a will do before as well
+    asm = "after" if showasm else None
+
+    debug_opts = {"asm": asm, "ast": showast, "grammar": showgrammar}
 
     try:
         if mapstream:
@@ -237,7 +248,7 @@ def main(
     showasm=None,
     showast={},
     do_verify=False,
-    showgrammar=False,
+    showgrammar=PARSER_DEFAULT_DEBUG,
     source_encoding=None,
     raise_on_error=False,
     do_linemaps=False,
@@ -418,19 +429,13 @@ else:
 
 
 def status_msg(
-    do_verify, tot_files, okay_files, failed_files, verify_failed_files, weak_verify
+    do_verify, tot_files, okay_files, failed_files, verify_failed_files
 ):
-    if weak_verify == "weak":
-        verification_type = "weak "
-    elif weak_verify == "verify-run":
-        verification_type = "run "
-    else:
-        verification_type = ""
     if tot_files == 1:
         if failed_files:
             return "\n# decompile failed"
         elif verify_failed_files:
-            return f"\n# decompile {verification_type}verification failed"
+            return f"\n# decompile run verification failed"
         else:
             return "\n# Successfully decompiled file"
             pass

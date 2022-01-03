@@ -141,7 +141,7 @@ import decompile_ng.parsers.parse_heads as heads
 import decompile_ng.parsers.main as python_parser
 from decompile_ng.parsers.main import get_python_parser
 from decompile_ng.parsers.treenode import SyntaxTree
-from spark_parser import GenericASTTraversal, DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
+from spark_parser import GenericASTTraversal
 from decompile_ng.scanner import Code, get_scanner
 from decompile_ng.semantics.make_function36 import make_function36
 from decompile_ng.semantics.parser_error import ParserError
@@ -180,6 +180,17 @@ from io import StringIO
 
 DEFAULT_DEBUG_OPTS = {"asm": False, "tree": False, "grammar": False}
 
+PARSER_DEFAULT_DEBUG = {
+    "rules": False,
+    "transition": False,
+    "reduce": False,
+    "errorstack": "full",
+    "context": True,
+    "dups": False,
+}
+
+AST_DEFAULT_DEBUG = {"before": False, "after": False}
+
 
 class SourceWalkerError(Exception):
     def __init__(self, errmsg):
@@ -197,7 +208,7 @@ class SourceWalker(GenericASTTraversal, object):
         version,
         out,
         scanner,
-        showast=False,
+        showast=AST_DEFAULT_DEBUG,
         debug_parser=PARSER_DEFAULT_DEBUG,
         compile_mode="exec",
         is_pypy=IS_PYPY,
@@ -285,24 +296,27 @@ class SourceWalker(GenericASTTraversal, object):
         # An example is:
         # __module__ = __name__
         self.hide_internal = True
-        self.compile_mode = "exec"
+        self.compile_mode = compile_mode
         self.name = None
         self.version = version
         self.is_pypy = is_pypy
         customize_for_version(self, is_pypy, version)
         return
 
-    def maybe_show_tree(self, ast):
-        if self.showast and self.treeTransform.showast:
+    def maybe_show_tree(self, ast, phase):
+        if self.showast.get("before", False):
             self.println(
                 """
 ---- end before transform
----- begin after transform
 """
-                + "    "
             )
-
-        if isinstance(self.showast, dict) and self.showast.get:
+        if self.showast.get("after", False):
+            self.println(
+                """
+---- begin after transform
+""" + " "
+            )
+        if self.showast.get(phase, False):
             maybe_show_tree(self, ast)
 
     def str_with_template(self, ast) -> str:
@@ -492,7 +506,9 @@ class SourceWalker(GenericASTTraversal, object):
         call_fn = node[call_index]
         assert call_fn.kind.startswith("CALL_FUNCTION")
         # Just print the args
-        self.template_engine(("%P", (opt_start, call_fn.attr + opt_start, ", ", 100)), node)
+        self.template_engine(
+            ("%P", (opt_start, call_fn.attr + opt_start, ", ", 100)), node
+        )
         self.prune()
 
     # Python 3.x can have be dead code as a result of its optimization?
@@ -513,7 +529,7 @@ class SourceWalker(GenericASTTraversal, object):
             # We can't comment out like above because there may be a trailing ')'
             # that needs to be written
             if len(node) - opt_start - opt_end >= 4:
-                assert len(node) == 4+opt_start and node[2+opt_start].kind in (
+                assert len(node) == 4 + opt_start and node[2 + opt_start].kind in (
                     "RETURN_VALUE_LAMBDA",
                     "LAMBDA_MARKER",
                 )
@@ -1051,17 +1067,19 @@ class SourceWalker(GenericASTTraversal, object):
         try:
             self.debug_opts["asm"]
         except:
-            from trepan.api import debug; debug()
+            from trepan.api import debug
+
+            debug()
         code = Code(code_obj, self.scanner, self.currentclass, self.debug_opts["asm"])
 
-        ast = self.build_ast(code._tokens, code._customize, code, is_lambda=self.is_lambda)
+        ast = self.build_ast(
+            code._tokens, code._customize, code, is_lambda=self.is_lambda
+        )
         self.customize(code._customize)
 
         # skip over: sstmt, stmt, return, ret_expr
         # and other singleton derivations
-        while len(ast) == 1 or (
-            ast in ("sstmt", "return", "ret_expr")
-        ):
+        while len(ast) == 1 or (ast in ("sstmt", "return", "ret_expr")):
             self.prec = 100
             ast = ast[0]
 
@@ -1500,9 +1518,7 @@ class SourceWalker(GenericASTTraversal, object):
                     pass
                 line_number = self.line_number
                 self.write(name, ": ")
-                value = self.traverse(
-                    l[i], indent=self.indent + (len(name) + 2) * " "
-                )
+                value = self.traverse(l[i], indent=self.indent + (len(name) + 2) * " ")
                 self.write(value)
                 sep = ", "
                 if line_number != self.line_number:
@@ -1613,7 +1629,9 @@ class SourceWalker(GenericASTTraversal, object):
             self.write("(")
             endchar = ")"
         else:
-            from trepan.api import debug; debug()
+            from trepan.api import debug
+
+            debug()
             raise TypeError(
                 "Internal Error: n_build_list expects list, tuple, set, or unpack"
             )
@@ -1661,7 +1679,6 @@ class SourceWalker(GenericASTTraversal, object):
         if p < self.prec:
             tuple_star_str = "("
             leading_paren_added = True
-
 
         if lastnodetype == "LIST_TO_TUPLE":
             assert node[1] in ("lists", "expr")
@@ -1717,7 +1734,9 @@ class SourceWalker(GenericASTTraversal, object):
             self.write("(")
             endchar = ")"
         else:
-            from trepan.api import debug; debug()
+            from trepan.api import debug
+
+            debug()
             raise TypeError(
                 "Internal Error: n_build_list expects list, tuple, set, or unpack"
             )
@@ -1751,7 +1770,6 @@ class SourceWalker(GenericASTTraversal, object):
         self.prec = p
         self.prune()
         return
-
 
     def n_lists(self, node):
         return
@@ -1803,7 +1821,6 @@ class SourceWalker(GenericASTTraversal, object):
             # We should check this though.
             self.template_engine(("%P)", (0, maxint, ", ", 100)), exprs)
         self.prune()
-
 
     def n_except_cond2(self, node):
         unpack_node = -3 if node[-1] == "come_from_opt" else -2
@@ -1895,21 +1912,34 @@ class SourceWalker(GenericASTTraversal, object):
                         try:
                             assert node[index[0]] == index[1]
                         except:
-                            from trepan.api import debug; debug()
-                        assert node[index[0]] == index[1], (
-                            "at %s[%d], expected '%s' node; got '%s'"
-                            % (node.kind, arg, index[1], node[index[0]].kind)
+                            from trepan.api import debug
+
+                            debug()
+                        assert (
+                            node[index[0]] == index[1]
+                        ), "at %s[%d], expected '%s' node; got '%s'" % (
+                            node.kind,
+                            arg,
+                            index[1],
+                            node[index[0]].kind,
                         )
                     else:
-                        assert node[index[0]] in index[1], (
-                            "at %s[%d], expected to be in '%s' node; got '%s'"
-                            % (node.kind, arg, index[1], node[index[0]].kind)
+                        assert (
+                            node[index[0]] in index[1]
+                        ), "at %s[%d], expected to be in '%s' node; got '%s'" % (
+                            node.kind,
+                            arg,
+                            index[1],
+                            node[index[0]].kind,
                         )
 
                     index = index[0]
-                assert isinstance(index, int), (
-                    "at %s[%d], %s should be int or tuple"
-                    % (node.kind, arg, type(index),)
+                assert isinstance(
+                    index, int
+                ), "at %s[%d], %s should be int or tuple" % (
+                    node.kind,
+                    arg,
+                    type(index),
                 )
 
                 try:
@@ -1931,9 +1961,13 @@ class SourceWalker(GenericASTTraversal, object):
                 assert isinstance(tup, tuple)
                 if len(tup) == 3:
                     (index, nonterm_name, self.prec) = tup
-                    assert node[index] == nonterm_name, (
-                        "at %s[%d], expected '%s' node; got '%s'"
-                        % (node.kind, arg, nonterm_name, node[index].kind)
+                    assert (
+                        node[index] == nonterm_name
+                    ), "at %s[%d], expected '%s' node; got '%s'" % (
+                        node.kind,
+                        arg,
+                        nonterm_name,
+                        node[index].kind,
                     )
                 else:
                     assert len(tup) == 2
@@ -2233,11 +2267,10 @@ class SourceWalker(GenericASTTraversal, object):
                 ast = python_parser.parse(p, tokens, customize, is_lambda)
                 self.customize(customize)
 
-
             except (heads.ParserError, AssertionError) as e:
                 raise ParserError(e, tokens, self.p.debug["reduce"])
             transform_ast = self.treeTransform.transform(ast, code)
-            self.maybe_show_tree(ast)
+            self.maybe_show_tree(ast, phase="after")
             del ast  # Save memory
             return transform_ast
 
@@ -2291,7 +2324,7 @@ class SourceWalker(GenericASTTraversal, object):
         self.customize(customize)
         transform_ast = self.treeTransform.transform(ast, code)
 
-        self.maybe_show_tree(ast)
+        self.maybe_show_tree(ast, phase="before")
 
         del ast  # Save memory
         return transform_ast
@@ -2322,16 +2355,13 @@ def code_deparse(
         version = PYTHON_VERSION_TRIPLE
 
     # store final output stream for case of error
-    scanner = get_scanner(version, is_pypy=is_pypy)
+    scanner = get_scanner(version, is_pypy=is_pypy, show_asm=debug_opts["asm"])
 
     tokens, customize = scanner.ingest(
         co, code_objects=code_objects, show_asm=debug_opts["asm"]
     )
 
-    debug_parser = dict(PARSER_DEFAULT_DEBUG)
-    if debug_opts.get("grammar", None):
-        debug_parser["reduce"] = debug_opts["grammar"]
-        debug_parser["errorstack"] = "full"
+    debug_parser = debug_opts.get("grammar", dict(PARSER_DEFAULT_DEBUG))
 
     #  Build Syntax Tree from disassembly.
     linestarts = dict(scanner.opc.findlinestarts(co))
@@ -2350,9 +2380,13 @@ def code_deparse(
     if compile_mode == "eval":
         deparsed.hide_internal = False
     deparsed.compile_mode = compile_mode
-    deparsed.ast = deparsed.build_ast(tokens, customize, co,
-                                      is_lambda=(compile_mode == "lambda"),
-                                      isTopLevel=isTopLevel)
+    deparsed.ast = deparsed.build_ast(
+        tokens,
+        customize,
+        co,
+        is_lambda=(compile_mode == "lambda"),
+        isTopLevel=isTopLevel,
+    )
 
     #### XXX workaround for profiling
     if deparsed.ast is None:
@@ -2389,10 +2423,13 @@ def code_deparse(
     )
 
     # What we've been waiting for: Generate source from Syntax Tree!
-    deparsed.gen_source(deparsed.ast, name=co.co_name,
-                        customize=customize,
-                        is_lambda = compile_mode == "lambda",
-                        debug_opts=debug_opts)
+    deparsed.gen_source(
+        deparsed.ast,
+        name=co.co_name,
+        customize=customize,
+        is_lambda=compile_mode == "lambda",
+        debug_opts=debug_opts,
+    )
 
     for g in sorted(deparsed.mod_globs):
         deparsed.write("# global %s ## Warning: Unused global\n" % g)

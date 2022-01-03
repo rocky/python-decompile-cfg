@@ -51,7 +51,7 @@ def maybe_show_tree(walker, ast) -> None:
             stream = sys.stdout
         if (
             isinstance(walker.showast, dict)
-            and walker.showast.get("Full", False)
+            and walker.showast.get("after", False)
             and hasattr(walker, "str_with_template")
         ):
             walker.str_with_template(ast)

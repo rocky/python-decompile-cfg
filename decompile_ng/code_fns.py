@@ -36,9 +36,6 @@ from xdis import check_object_path, iscode, load_module
 from decompile_ng.scanner import get_scanner
 from decompile_ng.semantics.pysource import code_deparse
 
-# from spark_parser import GenericASTTraversal, DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
-
-
 def disco_deparse(version: str, co, compile_mode, code_type, out, is_pypy, debug_opts) -> None:
     """
     diassembles and deparses a given code block 'co'
@@ -106,7 +103,7 @@ def decompile_code_type(
     code_type,
     outstream=None,
     showasm=None,
-    showast={"after"},
+    showast={},
     showgrammar=PARSER_DEFAULT_DEBUG,
 ) -> None:
     """
