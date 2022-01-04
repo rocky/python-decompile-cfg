@@ -36,11 +36,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # the rules in of themselves are not sufficient.
 
         or   ::= expr_jitop
-                 dom_start
+                 dom_start_opt
                  expr
 
         and  ::= expr_jifop
-                 dom_start
+                 dom_start_opt
                  expr
 
         and1 ::= and_parts expr
@@ -118,8 +118,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         expr_pjif                  ::= expr POP_JUMP_IF_FALSE BB_END
         expr_pjit                  ::= expr POP_JUMP_IF_TRUE BB_END
-        expr_jifop                 ::= expr JUMP_IF_FALSE_OR_POP BB_END
-        expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP BB_END
+        expr_jifop                 ::= expr JUMP_IF_FALSE_OR_POP
+        expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP
         expr_pjiff                 ::= expr pjump_iff
         # expr_pjift                 ::= expr pjump_ift
 
@@ -302,6 +302,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         branch_op ::= and1 bb_doms_end_opt
         branch_op ::= and_or bb_doms_end_opt
         branch_op ::= or_and bb_doms_end
+        branch_op ::= compare_chained
 
         # A "branch_op_compound" is a branch_op with a non-branching unary or binary operator at the end.
         # For example, in: "not a and b", the "not" is at the end after "a and b" and is non-branching.
@@ -319,7 +320,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # on the LHS because it is also somewhere on in a rule.
         call              ::= expr CALL_METHOD_0
 
-        compare           ::= compare_chained
         compare           ::= compare_single
         compare_in        ::= expr expr CONTAINS_OP
         compare_is        ::= expr expr IS_OP
