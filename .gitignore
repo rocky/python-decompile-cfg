@@ -13,7 +13,7 @@
 /.venv*
 /README
 /__pkginfo__.pyc
-/decompile_ng.egg-info
+/decompile_cfg.egg-info
 /dist
 /how-to-make-a-release.txt
 /nose-*.egg
@@ -23,4 +23,4 @@ ChangeLog
 __pycache__
 build
 nohup.out
-o/decompile_ng.egg-info
+o/decompile_cfg.egg-info

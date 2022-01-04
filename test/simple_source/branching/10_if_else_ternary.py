@@ -5,7 +5,7 @@
 # return_expr_or_cond ::= if_exp_ret
 # ret_or ::= expr JUMP_IF_TRUE_OR_POP return_expr_or_cond COME_FROM
 
-# See https://github.com/rocky/python-decompile_ng/issues/5
+# See https://github.com/rocky/python-decompile_cfg/issues/5
 
 def minimize(x, y):
     return x or (x if x < y else y)

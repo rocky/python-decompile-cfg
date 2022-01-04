@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Tell us about a new feature that you would like to see in decompile_ng
+about: Tell us about a new feature that you would like to see in decompile_cfg
 
 ---
 

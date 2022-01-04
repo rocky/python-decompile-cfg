@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-from decompile_ng.main import decompile
+from decompile_cfg.main import decompile
 from xdis import sysinfo2float
 import sys, inspect
 

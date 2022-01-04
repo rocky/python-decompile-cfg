@@ -1,5 +1,5 @@
-from decompile_ng.semantics.fragments import code_deparse as deparse, deparsed_find
-from decompile_ng import PYTHON_VERSION_TRIPLE
+from decompile_cfg.semantics.fragments import code_deparse as deparse, deparsed_find
+from decompile_cfg import PYTHON_VERSION_TRIPLE
 
 
 def map_stmts(x, y):

@@ -1,7 +1,7 @@
 import pytest
 import re
 from xdis.version_info import PYTHON_VERSION_TRIPLE, IS_PYPY
-from decompile_ng.parsers.main import get_python_parser, python_parser
+from decompile_cfg.parsers.main import get_python_parser, python_parser
 
 
 @pytest.mark.skip("Not gone over for full grammar")

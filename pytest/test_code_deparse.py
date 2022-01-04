@@ -1,6 +1,6 @@
 import pytest
-from decompile_ng import code_deparse
-from decompile_ng.semantics.pysource import DEFAULT_DEBUG_OPTS
+from decompile_cfg import code_deparse
+from decompile_cfg.semantics.pysource import DEFAULT_DEBUG_OPTS
 
 from io import StringIO
 
@@ -54,7 +54,7 @@ def test_single_mode() -> None:
             continue
 
         if deparsed.text != (expr + "\n"):
-            from decompile_ng.show import maybe_show_tree
+            from decompile_cfg.show import maybe_show_tree
             deparsed.showast = {"Full": True}
             maybe_show_tree(deparsed, deparsed.ast)
         assert deparsed.text == expr + "\n" if deparsed.text.endswith("\n") else expr
@@ -77,7 +77,7 @@ def test_eval_mode():
             continue
 
         if deparsed.text != expr:
-            from decompile_ng.show import maybe_show_tree
+            from decompile_cfg.show import maybe_show_tree
             deparsed.showast = {"Full": True}
             maybe_show_tree(deparsed, deparsed.ast)
         assert deparsed.text == expr
@@ -101,7 +101,7 @@ def test_lambda_mode():
         if deparsed.text.endswith("\n"):
             deparsed.text = deparsed.text[:-1]
         if deparsed.text != expr:
-            from decompile_ng.show import maybe_show_tree
+            from decompile_cfg.show import maybe_show_tree
             deparsed.showast = {"Full": True}
             maybe_show_tree(deparsed, deparsed.ast)
         assert deparsed.text == expr

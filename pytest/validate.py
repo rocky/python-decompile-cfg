@@ -5,8 +5,8 @@ import subprocess
 import tempfile
 import functools
 
-from decompile_ng import code_deparse
-from decompile_ng.semantics.pysource import PARSER_DEFAULT_DEBUG
+from decompile_cfg import code_deparse
+from decompile_cfg.semantics.pysource import PARSER_DEFAULT_DEBUG
 
 from xdis.version_info import PYTHON_VERSION_TRIPLE, IS_PYPY
 

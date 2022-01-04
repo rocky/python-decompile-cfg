@@ -1,4 +1,4 @@
-decompile_ng
+decompile-cfg
 ============
 
 A native Python cross-version decompiler and fragment decompiler.
@@ -8,7 +8,7 @@ A reworking of decompyle3_.
 Introduction
 ------------
 
-*decompile_ng* translates Python bytecode back into equivalent Python
+*decompile-cfg* translates Python bytecode back into equivalent Python
 source code. It accepts Python version 3.10 bytecode.
 
 For decompilation of older Python bytecode see decompyle3_.
@@ -113,13 +113,13 @@ Run
 
 ::
 
-$ decompile_ng *compiled-python-file-pyc-or-pyo*
+$ decompile-cfg *compiled-python-file-pyc-or-pyo*
 
 For usage help:
 
 ::
 
-   $ decompile_ng -h
+   $ decompile-cfg -h
 
 Known Bugs/Restrictions
 -----------------------
@@ -190,7 +190,7 @@ See Also
 .. _PJOrion: http://www.koreanrandom.com/forum/topic/15280-pjorion-%D1%80%D0%B5%D0%B4%D0%B0%D0%BA%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B8%D0%BB%D1%8F%D1%86%D0%B8%D1%8F-%D0%B4%D0%B5%D0%BA%D0%BE%D0%BC%D0%BF%D0%B8%D0%BB%D1%8F%D1%86%D0%B8%D1%8F-%D0%BE%D0%B1%D1%84
 .. _Deobfuscator: https://github.com/extremecoders-re/PjOrion-Deobfuscator
 .. _Py2EXE: https://en.wikipedia.org/wiki/Py2exe
-.. |Supported Python Versions| image:: https://img.shields.io/pypi/pyversions/decompile_ng.svg
-.. |Latest Version| image:: https://badge.fury.io/py/decompile_ng.svg
-		 :target: https://badge.fury.io/py/decompile_ng
-.. |PyPI Installs| image:: https://pepy.tech/badge/decompile_ng/month
+.. |Supported Python Versions| image:: https://img.shields.io/pypi/pyversions/decompile-cfg.svg
+.. |Latest Version| image:: https://badge.fury.io/py/decompile-cfg.svg
+		 :target: https://badge.fury.io/py/decompile-cfg
+.. |PyPI Installs| image:: https://pepy.tech/badge/decompile-cfg/month

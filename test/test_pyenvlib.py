@@ -22,7 +22,7 @@ from __future__ import print_function
 import os, time, re, shutil, sys
 from fnmatch import fnmatch
 
-from decompile_ng import main
+from decompile_cfg import main
 import xdis.magics as magics
 
 # ----- configure this for your needs

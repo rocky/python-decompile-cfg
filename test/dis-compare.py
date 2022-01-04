@@ -22,9 +22,9 @@ Usage: %s [OPTIONS]... FILE
 
 usage_short = "Usage: %s [OPTIONS]... FILE" % program
 
-import decompile_ng
-from decompile_ng import check_python_version
-from decompile_ng.disas import disco
+import decompile_cfg
+from decompile_cfg import check_python_version
+from decompile_cfg.disas import disco
 from xdis.version_info import version_tuple_to_str
 
 def inst_fmt(inst):
@@ -85,7 +85,7 @@ files = [
 
 for base in files:
     filename = f"bytecode_{version_tuple_to_str()}/{base}s.pyc"
-    version, timestamp, magic_int, co = decompile_ng.load_module(filename)
+    version, timestamp, magic_int, co = decompile_cfg.load_module(filename)
     ok = True
 
     if type(co) == list:

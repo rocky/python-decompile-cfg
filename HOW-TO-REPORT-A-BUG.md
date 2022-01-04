@@ -147,7 +147,7 @@ helpful. From this, I can figure out what OS you are running this on
 and what version of *uncomplye6* was used. Therefore, if you _don't_
 provide the input command and the output from that, please give:
 
-* _decompile_ng_ version used
+* _decompile_cfg_ version used
 * OS that you used this on
 * Python interpreter version used
 

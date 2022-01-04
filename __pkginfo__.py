@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""decompile_ng packaging information"""
+"""decompile-cfg packaging information"""
 
 # To the extent possible we make this file look more like a
 # configuration file rather than code like setup.py. I find putting
@@ -41,9 +41,9 @@ author = "Rocky Bernstein, Hartmut Goebel, John Aycock, and others"
 author_email = "rb@dustyfeet.com"
 entry_points = {
     "console_scripts": [
-        "decompile-ng=decompile_ng.bin.decompile:main_bin",
-        "decompile-ng-code=decompile_ng.bin.decompile-code:main_bin",
-        "disassemble-ng=decompile_ng.bin.disassemble:main",
+        "decompile-cfg=decompile_cfg.bin.decompile:main_bin",
+        "decompile-cfg-code=decompile_cfg.bin.decompile_code_type:main_bin",
+        "disassemble-cfg=decompile_cfg.bin.disassemble:main",
     ]
 }
 ftp_url = None
@@ -56,10 +56,10 @@ install_requires = [
 
 license = "GPL3"
 mailing_list = "python-debugger@googlegroups.com"
-modname = "decompile_ng"
+modname = "decompile_cfg"
 py_modules = None
 short_desc = "Python cross-version byte-code decompiler"
-web = "https://github.com/rocky/python-decompile_ng/"
+web = "https://github.com/rocky/python-decompile-cfg/"
 
 # tracebacks in zip files are funky and not debuggable
 zip_safe = True
@@ -82,4 +82,4 @@ def read(*rnames):
 
 # Get info from files; set: long_description and VERSION
 long_description = read("README.rst") + "\n"
-exec(read("decompile_ng/version.py"))
+exec(read("decompile_cfg/version.py"))

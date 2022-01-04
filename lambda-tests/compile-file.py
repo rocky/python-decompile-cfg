@@ -16,4 +16,4 @@ import py_compile
 print("compiling %s to %s" % (source, bytecode))
 py_compile.compile(source, bytecode, source)
 import os
-os.system(f"../decompile_ng/bin/decompile.py {bytecode}")
+os.system(f"../decompile_cfg/bin/decompile.py {bytecode}")

@@ -27,7 +27,7 @@ Step 2: Run the test:
 import getopt, os, py_compile, sys, shutil, tempfile, time
 
 from xdis.version_info import PYTHON_VERSION_TRIPLE
-from decompile_ng.main import main
+from decompile_cfg.main import main
 from fnmatch import fnmatch
 
 

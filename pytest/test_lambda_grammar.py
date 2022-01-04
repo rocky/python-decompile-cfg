@@ -1,8 +1,8 @@
-from decompile_ng.parsers.p310.lambda_expr import Python310LambdaParser
-from decompile_ng.main import decompile
+from decompile_cfg.parsers.p38.lambda_expr import Python38LambdaParser
+from decompile_cfg.main import decompile
 
 def test_grammar():
-    p = Python310LambdaParser()
+    p = Python38LambdaParser()
     # p.dump_grammar()
     p.check_grammar()
 
