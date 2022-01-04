@@ -23,7 +23,7 @@
 
 # Things that change more often go here.
 copyright = """
-Copyright (C) 2021 Rocky Bernstein <rb@dustyfeet.com>.
+Copyright (C) 2021-2022 Rocky Bernstein <rb@dustyfeet.com>.
 """
 
 classifiers = [
@@ -42,6 +42,7 @@ author_email = "rb@dustyfeet.com"
 entry_points = {
     "console_scripts": [
         "decompile-ng=decompile_ng.bin.decompile:main_bin",
+        "decompile-ng-code=decompile_ng.bin.decompile-code:main_bin",
         "disassemble-ng=decompile_ng.bin.disassemble:main",
     ]
 }

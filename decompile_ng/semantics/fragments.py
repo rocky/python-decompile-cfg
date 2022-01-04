@@ -1170,7 +1170,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
             ## FIXME: So as not to remove tokens with offsets,
             ## remove this phase until we have a chance to go over,
             # transform_ast = self.treeTransform.transform(ast)
-            maybe_show_tree(self, ast)
+            maybe_show_tree(self, ast, "before")
             return ast
             # del ast # Save memory
             # return transform_ast
@@ -1210,7 +1210,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
         except (heads.ParserError, AssertionError) as e:
             raise ParserError(e, tokens, self.debug_parser.get("reduce", False))
 
-        maybe_show_tree(self, ast)
+        maybe_show_tree(self, ast, "before")
 
         checker(ast, False, self.ast_errors)
 

@@ -51,7 +51,7 @@ def maybe_show_tree(walker, ast) -> None:
             stream = sys.stdout
         if (
             isinstance(walker.showast, dict)
-            and walker.showast.get("Full", False)
+            and walker.showast.get("after", False)
             and hasattr(walker, "str_with_template")
         ):
             walker.str_with_template(ast)
@@ -73,7 +73,7 @@ def maybe_show_tree_param_default(show_tree, name: str, default):
     :param name:    The function parameter name.
     :param default: The function parameter default.
     """
-    if show_tree:
+    if show_tree.get("param", False):
         stream = show_tree if hasattr(show_tree, "write") else sys.stdout
         stream.write("\n")
         stream.write("--" + name)

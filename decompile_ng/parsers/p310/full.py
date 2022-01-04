@@ -190,15 +190,6 @@ class Python310Parser(Python310LambdaParser):
         returns ::= _stmts return
 
         stmt ::= genexpr_func
-        genexpr_func ::= GEN_START
-                         LOAD_FAST
-                         bb_end_start
-                         FOR_ITER
-                         bb_end_start
-                         store
-                         comp_iter
-                         JUMP_BACK
-                         bb_end_start
         """
         pass
 
