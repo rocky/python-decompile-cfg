@@ -1,4 +1,4 @@
-#  Copyright (c) 2015-2016, 2818-2021 by Rocky Bernstein
+#  Copyright (c) 2015-2016, 2818-2022 by Rocky Bernstein
 #  Copyright (c) 2005 by Dan Pascu <dan@windowmaker.org>
 #  Copyright (c) 2000-2002 by hartmut Goebel <h.goebel@crazy-compilers.com>
 #  Copyright (c) 1999 John Aycock
@@ -34,7 +34,7 @@ from collections import deque
 
 from xdis import check_object_path, iscode, load_module
 from decompile_cfg.scanner import get_scanner
-from decompile_cfg.semantics.pysource import code_deparse
+from decompile_cfg.semantics.pysource import code_deparse, PARSER_DEFAULT_DEBUG, TREE_DEFAULT_DEBUG
 
 def disco_deparse(version: str, co, compile_mode, code_type, out, is_pypy, debug_opts) -> None:
     """
@@ -87,23 +87,13 @@ def disco_deparse_loop(disasm, compile_mode, code_type, queue, real_out, is_pypy
         pass
 
 
-PARSER_DEFAULT_DEBUG = {
-    "rules": False,
-    "transition": False,
-    "reduce": True,
-    "errorstack": "full",
-    "context": True,
-    "dups": False,
-}
-
-
 def decompile_code_type(
     filename: str,
     compile_mode,
     code_type,
     outstream=None,
     showasm=None,
-    showast={},
+    showast=TREE_DEFAULT_DEBUG,
     showgrammar=PARSER_DEFAULT_DEBUG,
 ) -> None:
     """
@@ -135,7 +125,7 @@ def decompile_lambda_fns(
     code_type,
     outstream=None,
     showasm=None,
-    showast={"after"},
+    showast=TREE_DEFAULT_DEBUG,
     showgrammar=PARSER_DEFAULT_DEBUG,
 ) -> None:
     """
@@ -151,7 +141,7 @@ def decompile_list_comprehensions(
     code_type,
     outstream=None,
     showasm=None,
-    showast={"after"},
+    showast=TREE_DEFAULT_DEBUG,
     showgrammar=PARSER_DEFAULT_DEBUG,
 ) -> None:
     """
