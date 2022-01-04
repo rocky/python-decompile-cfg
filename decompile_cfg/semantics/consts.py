@@ -42,6 +42,7 @@ maxint = sys.maxsize
 # say to 100, to make sure we avoid additional prenthesis in
 # call((.. op ..)).
 
+NO_PARENTHESIS_EVER = 100
 # fmt: off
 PRECEDENCE = {
 
@@ -212,9 +213,9 @@ TABLE_DIRECT = {
     "UNARY_POSITIVE":           ( "+",),
 
     "and":          	(
-        "%c and %c",
-        (0,  "expr_jifop"),
-        (2,  ("expr",)),
+        "%p and %p",
+        (0,  "expr_jifop", PRECEDENCE["and"]),
+        (2,  "expr", PRECEDENCE["and"]),
     ),
     "and1":          	(
         "%c and %c",
@@ -288,7 +289,7 @@ TABLE_DIRECT = {
 
     "build_tuple2":(
         "%P",
-        (0, -1, ", ", 100)
+        (0, -1, ", ", NO_PARENTHESIS_EVER)
         ),
 
     "c_compare_chained":(
@@ -451,9 +452,9 @@ TABLE_DIRECT = {
     ),
 
     "if_exp_not_lambda2": (
-        "%c if not (%c) else %c",
+        "%c if not %p else %c",
         (2, "expr"),
-        (0, "expr_pjit"),
+        (0, "expr_pjit", NO_PARENTHESIS_EVER),
         (-1, "return_expr_lambda"),
     ),
 
@@ -591,19 +592,19 @@ TABLE_DIRECT = {
     "slice1": (
         "%c[%p:]",
         (0, "expr"),
-        (1, 100)
+        (1, NO_PARENTHESIS_EVER)
         ),
 
     "slice2": ( "%c[:%p]",
         (0, "expr"),
-        (1, 100)
+        (1, NO_PARENTHESIS_EVER)
         ),
 
     "slice3": (
         "%c[%p:%p]",
         (0, "expr"),
-        (1, 100),
-        (2, 100)
+        (1, NO_PARENTHESIS_EVER),
+        (2, NO_PARENTHESIS_EVER)
         ),
 
     "store_subscript": (

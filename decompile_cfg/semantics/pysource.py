@@ -628,6 +628,7 @@ class SourceWalker(GenericASTTraversal, object):
         # print(self.f.getvalue())
 
         if p < self.prec:
+            # print(f"PREC {p}, {node[0].kind}")
             self.write("(")
             self.preorder(node[0])
             self.write(")")
