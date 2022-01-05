@@ -113,7 +113,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
     def p_conditionals(self, args):
         """
-        expr                       ::= if_exp37
         branch_op                  ::= and POP_JUMP_IF_TRUE expr
 
         expr_pjif                  ::= expr POP_JUMP_IF_FALSE
@@ -122,6 +121,14 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP
         expr_pjiff                 ::= expr pjump_iff
         # expr_pjift                 ::= expr pjump_ift
+
+        if_exp ::= expr
+                   POP_JUMP_IF_FALSE
+                   expr
+                   JUMP_FORWARD
+                   bb_end_start
+                   expr
+                   bb_doms_end_start
 
         list_iter                  ::= list_if37
         list_iter                  ::= list_if37_not
@@ -138,7 +145,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # not_and_not                ::= not expr_pjif COME_FROM
         #
         # expr                       ::= if_exp_37a
-        # if_exp_37a                 ::= and_not expr JUMP_FORWARD come_froms expr COME_FROM
         """
 
     def p_comprehension(self, args):
@@ -256,7 +262,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # experimental. Matches AST better though
         expr ::= constant
 
-        # expr ::= if_exp
+        expr ::= if_exp
         # expr ::= if_exp_not
         expr ::= if_exp_true
 
@@ -398,7 +404,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                       RETURN_VALUE
                                       bb_doms_end
 
-        # Temporary until we have a rule generatie this
+        # Temporary until we have a rule generati this
         return_expr_lambda      ::= if_exp_call_lambda
         return_call_lambda      ::= dom_start_opt
                                     expr

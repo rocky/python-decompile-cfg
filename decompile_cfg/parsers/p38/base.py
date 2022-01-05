@@ -861,7 +861,6 @@ class Python38BaseParser(PythonBaseParser):
                 + ("expr " * args_pos)
                 + ("kwarg " * args_kw)
                 + "expr " * nak
-                + "bb_doms_end_start_opt "
                 + token.kind
             )
 

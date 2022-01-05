@@ -417,9 +417,9 @@ TABLE_DIRECT = {
 
     "if_exp":           (
         "%p if %c else %c",
-        (1, 27), # "expr-like thing
-        0,  # expr-like thing
-        3
+        (2, "expr", PRECEDENCE["if_exp"]),
+        (0, "expr"),
+        (5, "expr"),
     ),
 
     "if_exp_binop_lambda":    (
