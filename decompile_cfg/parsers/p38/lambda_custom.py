@@ -32,11 +32,11 @@ class Python38LambdaCustom(Python38BaseParser):
         # FIXME: all of the base rules should be moved here. Then this line is removed
         super(Python38LambdaCustom, self).customize_grammar_rules(tokens, customize)
 
-        self.reduce_check_table = {
-            "if_exp_lambda": if_exp_lambda_ok
-        }
+        # self.reduce_check_table = {
+        #     "if_exp_lambda": if_exp_lambda_ok
+        # }
 
-        self.check_reduce["if_exp_lambda"] = "AST"
+        # self.check_reduce["if_exp_lambda"] = "AST"
 
         is_pypy = False
 

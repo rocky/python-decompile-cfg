@@ -28,4 +28,4 @@ lambda v: v + 0.5 if v else v + -0.5
 lambda v: int((0.5 if v  else -0.5))
 
 # FIXME
-# lambda v: int(v + (0.5 if v >= 0 else -0.5))
+lambda v: int(v + (0.5 if v >= 0 else -0.5))
