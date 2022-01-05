@@ -28,12 +28,8 @@ def if_exp_lambda_ok(
     # print("XXX", first, last)
     # condition_expr = ast[0]
     # print(condition_expr)
-    then_expr = ast[3]
+    return_expr_lambda = ast[-1]
     assert (
-        then_expr == "expr"
-    ), f'Expecting child 3 (then expression) to be "expr"; got {then_expr}"'
-    return_value = ast[4]
-    assert (
-        return_value == "RETURN_VALUE"
-    ), f"expecting child 4 to be a RETURN_VALUE; got {ast[4]}"
-    return then_expr.first_child().basic_block == return_value.basic_block
+        return_expr_lambda == "return_expr_lambda"
+    ), f'Expecting last child to be "return_expr_lambda"; got {return_expr_lambda}"'
+    return return_expr_lambda.first_child().basic_block == tokens[last-1].basic_block

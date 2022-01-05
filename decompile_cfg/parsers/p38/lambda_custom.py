@@ -17,7 +17,7 @@ Grammar Customization rules for Python 3.10's Lambda expression grammar.
 """
 
 from decompile_cfg.parsers.p38.base import Python38BaseParser
-from decompile_cfg.parsers.parse_heads import PythonParserLambda, PythonBaseParser, nop_func
+from decompile_cfg.parsers.parse_heads import ParserError, PythonParserLambda, PythonBaseParser, nop_func
 from decompile_cfg.parsers.reduce_check.if_exp_lambda import if_exp_lambda_ok
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 from spark_parser.spark import rule2str

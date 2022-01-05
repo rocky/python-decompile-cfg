@@ -36,11 +36,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # the rules in of themselves are not sufficient.
 
         or   ::= expr_jitop
-                 dom_start_opt
+                 dom_start
                  expr
 
         and  ::= expr_jifop
-                 dom_start_opt
+                 dom_start
                  expr
 
         and1 ::= and_parts expr
@@ -116,8 +116,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         expr                       ::= if_exp37
         branch_op                  ::= and POP_JUMP_IF_TRUE expr
 
-        expr_pjif                  ::= expr POP_JUMP_IF_FALSE BB_END
-        expr_pjit                  ::= expr POP_JUMP_IF_TRUE BB_END
+        expr_pjif                  ::= expr POP_JUMP_IF_FALSE
+        expr_pjit                  ::= expr POP_JUMP_IF_TRUE
         expr_jifop                 ::= expr JUMP_IF_FALSE_OR_POP
         expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP
         expr_pjiff                 ::= expr pjump_iff
@@ -422,7 +422,13 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # FIXME: These three are pretty similar - see if we can simplify.
         if_exp_lambda      ::= expr
                                POP_JUMP_IF_FALSE
-                               bb_doms_end_start
+                               expr
+                               RETURN_VALUE
+                               bb_end_start
+                               return_expr_lambda
+
+        if_exp_lambda      ::= expr
+                               POP_JUMP_IF_FALSE
                                expr
                                RETURN_VALUE
                                bb_doms_end
@@ -430,15 +436,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         if_exp_lambda      ::= expr
                                POP_JUMP_IF_FALSE
-                               bb_end_start
-                               expr
-                               RETURN_VALUE
-                               bb_doms_end
-                               return_expr_lambda
-
-        if_exp_lambda      ::= expr
-                               POP_JUMP_IF_FALSE
-                               bb_end_start
                                expr
                                RETURN_VALUE
                                dom_end dom_start
