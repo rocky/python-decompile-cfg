@@ -353,8 +353,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         unary_not         ::= expr UNARY_NOT
 
         yield             ::= expr YIELD_VALUE
-        yield_from        ::= GEN_START
-                              expr
+        yield_from        ::= expr
                               GET_YIELD_FROM_ITER LOAD_CONST YIELD_FROM
         """
 

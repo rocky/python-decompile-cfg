@@ -318,7 +318,7 @@ def customize_for_version37(self, version):
             ),
             "unmap_dict": ("{**%C}", (0, -1, ", **")),
             "unpack_list": ("*%c", (0, "list")),
-            "yield_from": ("yield from %c", (1, "expr")),
+            "yield_from": ("yield from %c", (0, "expr")),
         }
     )
 
