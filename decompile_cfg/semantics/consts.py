@@ -451,10 +451,10 @@ TABLE_DIRECT = {
         (-1, "return_expr_lambda"),
     ),
 
-    "if_exp_not_lambda2": (
+    "if_exp_not_lambda": (
         "%c if not %p else %c",
         (2, "expr"),
-        (0, "expr_pjit", NO_PARENTHESIS_EVER),
+        (0, "expr", NO_PARENTHESIS_EVER),
         (-1, "return_expr_lambda"),
     ),
 

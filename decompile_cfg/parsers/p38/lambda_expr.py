@@ -389,7 +389,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         return_expr_lambda      ::= if_exp_lambda
         return_expr_lambda      ::= if_exp_binop_lambda
         return_expr_lambda      ::= if_exp_not_lambda
-        return_expr_lambda      ::= if_exp_not_lambda2
         return_expr_lambda      ::= if_exp_dead_code
 
         # return_expr_lambda with a binary operator before the return
@@ -451,22 +450,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                dom_end dom_start
                                return_expr_binop_lambda
 
-        # FIXME: we need branch_op instead of expr because
-        # we sometimes match expr to small and that limits the larger
-        # situtation where we have, say, "and1".
-        # Figure out how to fix this.
-        if_exp_lambda      ::= branch_op
-                               POP_JUMP_IF_FALSE
-                               bb_end_start
-                               expr
-                               RETURN_VALUE
-                               bb_doms_end
-                               return_expr_lambda
-
-
-
-        if_exp_not_lambda2 ::= expr_pjit dom_start expr
-                               RETURN_VALUE bb_doms_end return_expr_lambda
+        if_exp_not_lambda ::= expr
+                              POP_JUMP_IF_TRUE
+                              expr
+                              RETURN_VALUE
+                              bb_end_start
+                              return_expr_lambda
         """
 
     def p_store(self, args):

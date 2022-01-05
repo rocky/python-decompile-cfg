@@ -33,4 +33,4 @@ for path in py_source:
     print(f"byte-compiling {path} to {bytecode}")
     py_compile.compile(path, bytecode, optimize=optimize)
     if isinstance(version, str) or version >= (2, 6, 0):
-        os.system(f"../bin/decompile-ng -a -T {bytecode}")
+        os.system(f"../bin/decompile-cfg -a -T {bytecode}")
