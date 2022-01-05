@@ -36,11 +36,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # the rules in of themselves are not sufficient.
 
         or   ::= expr_jitop
-                 dom_start
+                 dom_start_opt
                  expr
 
         and  ::= expr_jifop
-                 dom_start
+                 dom_start_opt
                  expr
 
         and1 ::= and_parts expr
@@ -49,7 +49,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                  expr
 
 
-        and_part   ::= expr_pjif dom_start
+        and_part   ::= expr_pjif
         and_parts  ::= and_part+
 
         and_or      ::= and_parts expr jitop_expr
@@ -377,7 +377,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                     expr
                                     dom_start_opt
                                     RETURN_VALUE
-                                    bb_doms_end
+                                    bb_doms_end_opt
 
         # FIXME: generalize this
         return_expr_lambda      ::= dom_start_opt
@@ -418,7 +418,18 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # if_exp_lambda is an if_exp with a return value used
         # inside a lambda
 
-        # FIXME: These three are pretty similar - see if we can simplify.
+        # Note these two if_exp_lambda are distinct and cannot be generalized combined
+        # into once. Otherwise we would need to disabmiguate
+        #    lambda n: True if n >= 95 and n & 1 else False
+        # from:
+        #    lambda n: (n & 1) and True if n >= 95 else False
+        if_exp_lambda      ::= branch_op
+                               POP_JUMP_IF_FALSE
+                               expr
+                               RETURN_VALUE
+                               BB_END
+                               return_expr_lambda
+
         if_exp_lambda      ::= expr
                                POP_JUMP_IF_FALSE
                                expr
@@ -426,19 +437,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                bb_end_start
                                return_expr_lambda
 
-        if_exp_lambda      ::= expr
-                               POP_JUMP_IF_FALSE
-                               expr
-                               RETURN_VALUE
-                               bb_doms_end
-                               return_expr_lambda
 
-        if_exp_lambda      ::= expr
-                               POP_JUMP_IF_FALSE
-                               expr
-                               RETURN_VALUE
-                               dom_end dom_start
-                               return_expr_lambda
 
         # A binary operator with if_exp as the left operand.
         # Here that value is duplicated before both return
