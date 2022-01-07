@@ -240,7 +240,7 @@ TABLE_DIRECT = {
     "assign": (
         "%|%c = %p\n",
         -1,
-        (0, "expr", PRECEDENCE["tuple_list_starred"] + 1)
+        (0, ("expr", "branch_op"), PRECEDENCE["tuple_list_starred"] + 1)
         ),
 
     "attribute": (
@@ -312,6 +312,13 @@ TABLE_DIRECT = {
         "%|try:\n%+%c%-%|finally:\n%+%c%-\n\n",
         (1, "c_suite_stmts_opt"),
         (5, "c_suite_stmts_opt")
+     ),
+
+    "call_stmt": (
+        "%|%p\n",
+        # When a call statement contains only a named_expr (:=)
+        # the named_expr should have parenthesis around it.
+       (0, PRECEDENCE["named_expr"]-1)
     ),
 
     #   "classdef": 	(), # handled by n_classdef()
@@ -518,11 +525,11 @@ TABLE_DIRECT = {
     "list_for":		        ( " for %c in %c%c", 2, 0, 3 ),
     "list_if":		        ( " if %p%c",
                                   (0, "expr", 27), 2 ),
-    "list_if_not":	    (
+    "list_if_not": (
         " if not %p%c",
         (0, "expr", PRECEDENCE["unary_not"]),
         2 ),
-    "list_if_or_not":	    (
+    "list_if_or_not": (
         " if %c or not %c %c",
         (0, "expr_pjit"),
         (1, "expr_pjit"),
@@ -537,12 +544,10 @@ TABLE_DIRECT = {
     # a format string.
     "string_at_beginning":   ( '%|"%%s" %% %c\n', 0),
 
-    "call_stmt":	    ( "%|%p\n",
-                              # When a call statement contains only a named_expr (:=)
-                              # the named_expr should have parenthesis around it.
-                              (0, PRECEDENCE["named_expr"]-1)),
-    "expr_stmt":	    ( "%|%c\n",
-                              (0, "expr") ),
+    "expr_stmt": (
+        "%|%c\n",
+        (0, ("expr", "branch_op")),
+        ),
     #  These are created only via transformation
     "ifelifstmt":	( "%|if %c:\n%+%c%-%c", 0, 1, 3 ),
     "elifelsestmt":	( "%|elif %c:\n%+%c%-%|else:\n%+%c%-", 0, 1, 3 ),

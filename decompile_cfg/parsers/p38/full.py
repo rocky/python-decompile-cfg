@@ -133,6 +133,7 @@ class Python38Parser(Python38LambdaParser):
         stmt ::= call_stmt
 
         expr_stmt ::= expr POP_TOP
+        expr_stmt ::= branch_op dom_start POP_TOP
         call_stmt ::= call
 
         stmt ::= ifstmt
@@ -252,6 +253,7 @@ class Python38Parser(Python38LambdaParser):
         stmt ::= assign
         assign ::= expr DUP_TOP designList
         assign ::= expr store
+        assign ::= branch_op dom_start store
 
         stmt ::= assign2
         stmt ::= assign3

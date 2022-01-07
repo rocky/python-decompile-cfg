@@ -1964,14 +1964,25 @@ class SourceWalker(GenericASTTraversal, object):
                 assert isinstance(tup, tuple)
                 if len(tup) == 3:
                     (index, nonterm_name, self.prec) = tup
-                    assert (
-                        node[index] == nonterm_name
-                    ), "at %s[%d], expected '%s' node; got '%s'" % (
-                        node.kind,
-                        arg,
-                        nonterm_name,
-                        node[index].kind,
-                    )
+                    if isinstance(tup[1], str):
+                         assert (
+                            node[index] == nonterm_name
+                        ), "at %s[%d], expected '%s' node; got '%s'" % (
+                            node.kind,
+                            arg,
+                            nonterm_name,
+                            node[index].kind,
+                        )
+                    else:
+                       assert (
+                            node[tup[0]] in tup[1]
+                        ), "at %s[%d], expected to be in '%s' node; got '%s'" % (
+                            node.kind,
+                            arg,
+                            index[1],
+                            node[index[0]].kind,
+                        )
+
                 else:
                     assert len(tup) == 2
                     (index, self.prec) = entry[arg]
