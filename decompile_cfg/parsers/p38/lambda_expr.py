@@ -52,9 +52,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         and_part   ::= expr_pjif
         and_parts  ::= and_part+
 
-        and_or      ::= and_parts expr jitop_expr
+        and_or      ::= and_parts
+                        expr
+                        jitop
+                        expr
 
-        or_part    ::= expr_pjit dom_start
+        or_part    ::= expr_pjit
         or_parts   ::= or_part+
 
         or_and     ::= or_parts expr jifop_expr
@@ -85,7 +88,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         """
         jifop       ::= JUMP_IF_FALSE_OR_POP bb_end_start
         jifop_opt   ::= JUMP_IF_FALSE_OR_POP bb_end_start_opt
-        # jitop     ::= JUMP_IF_TRUE_OR_POP BB_END dom_start
+        jitop     ::= JUMP_IF_TRUE_OR_POP BB_END dom_start
         jifop_expr  ::= JUMP_IF_FALSE_OR_POP bb_doms_end dom_start expr
         jitop_expr  ::= JUMP_IF_TRUE_OR_POP bb_doms_end dom_start expr
         """

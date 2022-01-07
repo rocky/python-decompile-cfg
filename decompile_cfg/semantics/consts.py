@@ -229,7 +229,7 @@ TABLE_DIRECT = {
         "%c and %c or %c",
         (0, "and_parts"),
         (1, "expr"),
-        (2, "jitop_expr"),
+        (3, "expr"),
         ),
 
     "and_part": (
