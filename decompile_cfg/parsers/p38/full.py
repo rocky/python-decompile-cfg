@@ -24,12 +24,20 @@ Python38Parser is probably pretty much top-level.
 
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 from decompile_cfg.parsers.p38.lambda_expr import Python38LambdaParser
+from decompile_cfg.parsers.p38.full_custom import Python38FullCustom
 
 
-class Python38Parser(Python38LambdaParser):
-    def __init__(self, start_symbol: str="stmts", debug_parser:dict=PARSER_DEFAULT_DEBUG):
-        super(Python38Parser, self).__init__(start_symbol, debug_parser)
+class Python38Parser(Python38LambdaParser, Python38FullCustom):
+    def __init__(
+        self,
+        start_symbol: str="stmts",
+        debug_parser:dict=PARSER_DEFAULT_DEBUG
+    ):
+        Python38LambdaParser.__init__(self, start_symbol, debug_parser)
         self.customized = {}
+
+    def customize_grammar_rules(self, tokens, customize):
+        self.customize_grammar_rules_full38(tokens, customize)
 
     ###############################################
     #  Python 3.10 grammar rules with statements
