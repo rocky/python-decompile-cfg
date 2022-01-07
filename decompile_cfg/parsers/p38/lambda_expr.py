@@ -35,32 +35,33 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # Note: reduction-rule checks are needed for many of the below;
         # the rules in of themselves are not sufficient.
 
-        or   ::= expr_jitop
-                 dom_start_opt
-                 expr
-
-        and  ::= expr_jifop
-                 dom_start_opt
-                 expr
-
-        and1 ::= and_parts expr
-
-        or1  ::= or_parts
-                 expr
-
+        and        ::= expr_jifop
+                       dom_start_opt
+                       expr
 
         and_part   ::= expr_pjif
         and_parts  ::= and_part+
 
-        and_or      ::= and_parts
-                        expr
-                        jitop
-                        expr
+        and1       ::= and_parts expr
+
+        or         ::= expr_jitop
+                       dom_start_opt
+                       expr
 
         or_part    ::= expr_pjit
         or_parts   ::= or_part+
 
-        or_and     ::= or_parts expr jifop_expr
+        or1        ::= or_parts expr
+
+        and_or     ::= and_parts
+                       expr
+                       jitop
+                       expr
+
+        or_and     ::= or_parts
+                       expr
+                       jifop
+                       expr
         """
 
     def p_chained(self, args):
@@ -88,7 +89,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         """
         jifop       ::= JUMP_IF_FALSE_OR_POP bb_end_start
         jifop_opt   ::= JUMP_IF_FALSE_OR_POP bb_end_start_opt
-        jitop     ::= JUMP_IF_TRUE_OR_POP BB_END dom_start
+        jitop       ::= JUMP_IF_TRUE_OR_POP BB_END dom_start
         jifop_expr  ::= JUMP_IF_FALSE_OR_POP bb_doms_end dom_start expr
         jitop_expr  ::= JUMP_IF_TRUE_OR_POP bb_doms_end dom_start expr
         """
@@ -318,7 +319,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         branch_op ::= and bb_doms_end_opt
         branch_op ::= and1 bb_doms_end_opt
         branch_op ::= and_or bb_doms_end_opt
-        branch_op ::= or_and bb_doms_end
+        branch_op ::= or_and bb_doms_end_opt
 
         # A "branch_op_compound" is a branch_op with a non-branching unary or binary operator at the end.
         # For example, in: "not a and b", the "not" is at the end after "a and b" and is non-branching.
