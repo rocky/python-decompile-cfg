@@ -62,6 +62,29 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                        expr
                        jifop
                        expr
+
+        if_exp     ::= expr
+                       POP_JUMP_IF_FALSE
+                       expr
+                       JUMP_FORWARD
+                       bb_end_start
+                       expr
+
+        if_exp_not ::= expr
+                       POP_JUMP_IF_TRUE
+                       expr
+                       JUMP_FORWARD
+                       bb_end_start
+                       expr
+
+        # if_exp_true are are IfExp which always evaluate true, e.g.:
+        #      x = a if 1 else b
+        # There is dead or non-optional remnants of the condition code though,
+        # and we use that to match on to reconstruct the source more accurately
+        if_exp_true ::= expr
+                        JUMP_FORWARD
+                        expr
+
         """
 
     def p_chained(self, args):
@@ -125,22 +148,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP
         expr_pjiff                 ::= expr pjump_iff
         # expr_pjift                 ::= expr pjump_ift
-
-        if_exp     ::= expr
-                       POP_JUMP_IF_FALSE
-                       expr
-                       JUMP_FORWARD
-                       bb_end_start
-                       expr
-                       bb_doms_end_start
-
-        if_exp_not ::= expr
-                       POP_JUMP_IF_TRUE
-                       expr
-                       JUMP_FORWARD
-                       bb_end_start
-                       expr
-                       bb_doms_end_start
 
         list_iter                  ::= list_if37
         list_iter                  ::= list_if37_not
@@ -274,10 +281,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # experimental. Matches AST better though
         expr ::= constant
 
-        expr ::= if_exp
-        expr ::= if_exp_not
-        expr ::= if_exp_true
-
         expr ::= list
         expr ::= list_comp
 
@@ -321,6 +324,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         branch_op ::= and_or bb_doms_end_opt
         branch_op ::= or_and bb_doms_end_opt
 
+        branch_op ::= if_exp bb_doms_end_opt
+        branch_op ::= if_exp_not bb_doms_end_opt
+        branch_op ::= if_exp_true bb_doms_end_opt
+
+
         # A "branch_op_compound" is a branch_op with a non-branching unary or binary operator at the end.
         # For example, in: "not a and b", the "not" is at the end after "a and b" and is non-branching.
         # But it appears at the beginning in source code.
@@ -347,12 +355,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         constant ::= LOAD_STR
         constant ::= LOAD_CODE
 
-
-        # if_exp_true are are IfExp which always evaluate true, e.g.:
-        #      x = a if 1 else b
-        # There is dead or non-optional remnants of the condition code though,
-        # and we use that to match on to reconstruct the source more accurately
-        if_exp_true    ::= expr JUMP_FORWARD expr COME_FROM
 
         # named_expr is also known as the "walrus op" :=
         named_expr        ::= expr DUP_TOP store

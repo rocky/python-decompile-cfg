@@ -180,7 +180,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         # it. It does *not* have to be the last stmt of
         # a list of stmts or c_stmts
         last_stmt  ::= forelselaststmt
-        last_stmt  ::= iflaststmt
+        # last_stmt  ::= iflaststmt
 
         stmt   ::= delete
         delete ::= DELETE_FAST
@@ -450,8 +450,8 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         # "else" statements in "ifelstmtl" similar to others of this ilk.
         testexpr_cf ::= testexpr come_froms
 
-        ifelsestmtc ::= testexpr_cf c_stmts_opt jb_cf else_suitec
-        iflaststmt  ::= testexpr stmts_opt JUMP_FORWARD
+        # ifelsestmtc ::= testexpr_cf c_stmts_opt jb_cf else_suitec
+        # iflaststmt  ::= testexpr stmts_opt JUMP_FORWARD
         """
 
     def p_38async(self, args):
