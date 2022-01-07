@@ -1,6 +1,6 @@
-PHONY=check clean dist distclean test test-unit test-functional rmChangeLog clean_pyc nosetests \
+check=PHONY clean dist distclean test test-unit test-functional rmChangeLog clean_pyc nosetests \
       check-bytecode-3 check-bytecode-3-short \
-      grammar-coverage-3.10
+      grammar-coverage-3.8
 
 GIT2CL ?= git2cl
 PYTHON ?= python
@@ -22,26 +22,26 @@ check:
 	$(PYTHON) -V && PYTHON_VERSION=`$(PYTHON) -V 2>&1 | cut -d ' ' -f 2 | cut -d'.' -f1,2 | head -1`; \
 	$(MAKE) check-$(PYTHON_VERSION)
 
-#: Run working tests from Python 3.10
-check-3.9 check-3.10: check-bytecode
+#: Run working tests from Python 3.8
+check-3.9 check-3.8: check-bytecode
 
-#	$(PYTHON) test_pythonlib.py --bytecode-3.10-run --verify-run
-#	$(PYTHON) test_pythonlib.py --bytecode-3.10 --syntax-verify $(COMPILE)
+#	$(PYTHON) test_pythonlib.py --bytecode-3.8-run --verify-run
+#	$(PYTHON) test_pythonlib.py --bytecode-3.8 --syntax-verify $(COMPILE)
 
 #: Check deparsing bytecode 3.x only
 check-bytecode-3:
 	$(PYTHON) test_pythonlib.py \
-	--bytecode-3.10
+	--bytecode-3.8
 
 #: Check deparsing bytecode on all Python 2 and Python 3 versions
 check-bytecode: check-bytecode-3
 
 #: Get grammar coverage for Python 3.7
-grammar-coverage-3.10:
+grammar-coverage-3.8:
 	rm $(COVER_DIR)/spark-grammar-3.7.cover || /bin/true
-	SPARK_PARSER_COVERAGE=$(COVER_DIR)/spark-grammar-3.10.cover $(PYTHON) test_pythonlib.py --bytecode-3.10-run --verify-run
-	SPARK_PARSER_COVERAGE=$(COVER_DIR)/spark-grammar-3.10.cover $(PYTHON) test_pythonlib.py --bytecode-3.10 --syntax-verify $(COMPILE)
-	SPARK_PARSER_COVERAGE=$(COVER_DIR)/spark-grammar-3.10.cover $(PYTHON) test_pyenvlib.py --3.10.0 --max=1000
+	SPARK_PARSER_COVERAGE=$(COVER_DIR)/spark-grammar-3.8.cover $(PYTHON) test_pythonlib.py --bytecode-3.8-run --verify-run
+	SPARK_PARSER_COVERAGE=$(COVER_DIR)/spark-grammar-3.8.cover $(PYTHON) test_pythonlib.py --bytecode-3.8 --syntax-verify $(COMPILE)
+	SPARK_PARSER_COVERAGE=$(COVER_DIR)/spark-grammar-3.8.cover $(PYTHON) test_pyenvlib.py --3.8.0 --max=1000
 
 clean: clean-py-dis clean-dis clean-unverified
 

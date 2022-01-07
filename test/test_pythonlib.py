@@ -56,7 +56,7 @@ test_options = {
     "test": ("test", PYC, "test"),
 }
 
-for vers in ("3.10",):
+for vers in ("3.8",):
     bytecode = "bytecode_%s" % vers
     key = "bytecode-%s" % vers
     test_options[key] = (bytecode, PYC, bytecode, vers)
@@ -77,10 +77,10 @@ def help():
         """Usage-Examples:
 
   # compile, decompyle and verify short tests for Python 3.7:
-  test_pythonlib.py --bytecode-3.10 --syntax-verify --compile
+  test_pythonlib.py --bytecode-3.8 --syntax-verify --compile
 
   # decompile all of Python's installed lib files
-  test_pythonlib.py --3.10
+  test_pythonlib.py --3.8
 """
     )
     sys.exit(1)

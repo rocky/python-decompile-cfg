@@ -122,13 +122,21 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         expr_pjiff                 ::= expr pjump_iff
         # expr_pjift                 ::= expr pjump_ift
 
-        if_exp ::= expr
-                   POP_JUMP_IF_FALSE
-                   expr
-                   JUMP_FORWARD
-                   bb_end_start
-                   expr
-                   bb_doms_end_start
+        if_exp     ::= expr
+                       POP_JUMP_IF_FALSE
+                       expr
+                       JUMP_FORWARD
+                       bb_end_start
+                       expr
+                       bb_doms_end_start
+
+        if_exp_not ::= expr
+                       POP_JUMP_IF_TRUE
+                       expr
+                       JUMP_FORWARD
+                       bb_end_start
+                       expr
+                       bb_doms_end_start
 
         list_iter                  ::= list_if37
         list_iter                  ::= list_if37_not
@@ -263,7 +271,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         expr ::= constant
 
         expr ::= if_exp
-        # expr ::= if_exp_not
+        expr ::= if_exp_not
         expr ::= if_exp_true
 
         expr ::= list
@@ -384,6 +392,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                     dom_start_opt
                                     RETURN_VALUE
                                     bb_doms_end_opt
+
+        return_expr_lambda      ::= dom_start_opt
+                                    expr
+                                    bb_end_start
+                                    RETURN_VALUE
+                                    bb_doms_end
 
         # FIXME: generalize this
         return_expr_lambda      ::= dom_start_opt

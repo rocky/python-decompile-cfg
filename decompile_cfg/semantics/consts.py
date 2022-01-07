@@ -58,7 +58,7 @@ PRECEDENCE = {
     "if_exp":                 28, # IfExp ( a if x else b)
     "if_exp_lambda":          28, # IfExp involving a lambda expression
     "if_exp_not_lambda":      28, # negated IfExp involving a lambda expression
-    "if_exp_not":             28,
+    "if_exp_not":             28, # IfExp ( a if not x else b)
     "if_exp_true":            28, # (a if True else b)
     "if_exp_ret":             28,
 
@@ -88,9 +88,9 @@ PRECEDENCE = {
     "BINARY_MULTIPLY":        8,  # *
     "BINARY_TRUE_DIVIDE":     8,  # Division /
 
-    "unary_op":               6,  # +x, -x, ~x
+    "unary_op":               6,  # Positive, negative, bitwise NOT: +x, -x, ~x
 
-    "BINARY_POWER":           4,  # Exponentiation, *
+    "BINARY_POWER":           4,  # Exponentiation: *
 
     "await_expr":             3,  # await x, *
 
@@ -415,7 +415,7 @@ TABLE_DIRECT = {
         (0, "expr"),
         ),
 
-    "if_exp":           (
+    "if_exp": (
         "%p if %c else %c",
         (2, "expr", PRECEDENCE["if_exp"]),
         (0, "expr"),
@@ -443,12 +443,23 @@ TABLE_DIRECT = {
         (-1, "return_call_lambda"),
     ),
 
+    # The arg 1 is dead-code
+    "if_exp_dead_code": ( "%c if True else %c",
+                          (0, "return_expr_lambda"),
+                          (1, "return_expr_lambda") ),
 
     "if_exp_lambda":    (
         "%c if %c else %c",
         (2, "expr"),
         (0, ("expr", "branch_op")),
         (-1, "return_expr_lambda"),
+    ),
+
+    "if_exp_not": (
+        "%p if not %c else %c",
+        (2, "expr", PRECEDENCE["if_exp"]),
+        (0, "expr"),
+        (5, "expr"),
     ),
 
     "if_exp_not_lambda": (
@@ -461,17 +472,8 @@ TABLE_DIRECT = {
     # The arg2 is dead-code
     "if_expr_true":     ( "%p if 1 else %c", (0, "expr", 27), 2 ),
 
-    # The arg 1 is dead-code
-    "if_exp_dead_code": ( "%c if True else %c",
-                          (0, "return_expr_lambda"),
-                          (1, "return_expr_lambda") ),
-
     "if_exp_true":      ( "%p if 1 else %c", (0, "expr", 27), 2 ),
     "if_exp_ret":       ( "%p if %p else %p", (2, 27), (0, 27), (-1, 27) ),
-    "if_exp_not":       ( "%p if not %p else %p",
-                          (2, 27),
-                          (0, "expr", PRECEDENCE["unary_not"]),
-                          (4, 27) ),
 
     "ifelsestmt":	( "%|if %c:\n%+%c%-%|else:\n%+%c%-", 0, 1, 3 ),
     "ifelsestmtc":	( "%|if %c:\n%+%c%-%|else:\n%+%c%-", 0, 1, 3 ),

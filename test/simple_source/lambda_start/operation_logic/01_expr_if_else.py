@@ -5,16 +5,20 @@
 lambda a, b, c: a if c else b
 lambda a: False if not a else True
 
+# IfExp with a "not"
+lambda x: 1 + (2 if not x else 4)
+
+
 # From 3.10 fontTools/subset/__init__.py. The else [] uses a BUILD_LIST_0
 lambda glyphs, c, r: [r] if r in glyphs else []
 
-lambda glyphs, c, r: (
-    glyphs if c else (set(glyphs) if r == 0 else set())
-)
+# lambda glyphs, c, r: (
+#     glyphs if c else (set(glyphs) if r == 0 else set())
+# )
 
 # From somewhere in numpy. Note the parenthesis are optional
 # I put them in for clarity
-lambda m, n, d, fo: (0 if d or (n and m and fo) else n)
+# lambda m, n, d, fo: (0 if d or (n and m and fo) else n)
 
 
 # Simplication of the above... Note the parenthesis again are optional

@@ -28,12 +28,6 @@ def customize_for_version3(self, version):
     TABLE_DIRECT.update(
         {
             "comp_for": (" for %c in %c", (2, "store"), (0, "expr")),
-            "if_exp_not": (
-                "%c if not %c else %c",
-                (2, "expr"),
-                (0, "expr"),
-                (4, "expr"),
-            ),
             "except_cond2": ("%|except %c as %c:\n", (1, "expr"), (5, "store")),
             "function_def_annotate": ("\n\n%|def %c%c\n", -1, 0),
             # When a generator is a single parameter of a function,
