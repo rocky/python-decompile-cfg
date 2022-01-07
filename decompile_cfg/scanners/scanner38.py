@@ -38,6 +38,9 @@ class Scanner38(Scanner38Base):
     pass
 
     def ingest(self, co, classname=None, code_objects={}, show_asm=None) -> tuple:
+        tokens, customize = Scanner38Base.ingest(
+            self, co, classname, code_objects, show_asm
+        )
         try:
             tokens, customize = Scanner38Base.ingest(
                 self, co, classname, code_objects, show_asm

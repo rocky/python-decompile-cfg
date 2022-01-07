@@ -17,7 +17,7 @@ from decompile_cfg.parsers.parse_heads import PythonBaseParser, nop_func
 from decompile_cfg.parsers.p38.lambda_custom import Python38LambdaCustom
 from decompile_cfg.parsers.reduce_check.and_check import and_ok
 
-class Python38FullCustom(PythonBaseParser):
+class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
     def add_make_function_rule(self, rule, opname, attr, customize):
         """Python 3.3 added a an addtional LOAD_STR before MAKE_FUNCTION and
         this has an effect on many rules.
@@ -100,8 +100,130 @@ class Python38FullCustom(PythonBaseParser):
         """
         )
 
+    def custom_classfunc_rule_full(self, opname, token, customize, next_token):
+
+        args_pos, args_kw = self.get_pos_kw(token)
+
+        # Additional exprs for * and ** args:
+        #  0 if neither
+        #  1 for CALL_FUNCTION_VAR or CALL_FUNCTION_KW
+        #  2 for * and ** args (CALL_FUNCTION_VAR_KW).
+        # Yes, this computation based on instruction name is a little bit hoaky.
+        nak = (len(opname) - len("CALL_FUNCTION")) // 3
+        uniq_param = args_kw + args_pos
+
+        if frozenset(("GET_AWAITABLE", "YIELD_FROM")).issubset(self.seen_ops):
+            rule = (
+                "async_call ::= expr "
+                + ("expr " * args_pos)
+                + ("kwarg " * args_kw)
+                + "expr " * nak
+                + token.kind
+                + " GET_AWAITABLE LOAD_CONST YIELD_FROM"
+            )
+            self.add_unique_rule(rule, token.kind, uniq_param, customize)
+            self.add_unique_rule(
+                "expr ::= async_call", token.kind, uniq_param, customize
+            )
+
+        if opname.startswith("CALL_FUNCTION_KW"):
+            self.addRule("expr ::= call_kw36", nop_func)
+            values = "expr " * token.attr
+            rule = "call_kw36 ::= expr {values} LOAD_CONST {opname}".format(**locals())
+            self.add_unique_rule(rule, token.kind, token.attr, customize)
+        elif opname == "CALL_FUNCTION_EX_KW":
+            self.addRule(
+                """expr        ::= call_ex_kw4
+                   call_ex_kw4 ::= expr
+                                   expr
+                                   BUILD_MAP_0 expr DICT_MERGE
+                                   CALL_FUNCTION_EX_KW
+                """,
+                nop_func,
+            )
+            if "BUILD_MAP_UNPACK_WITH_CALL" in self.seen_op_basenames:
+                self.addRule(
+                    """expr       ::= call_ex_kw
+                      call_ex_kw  ::= expr expr build_map_unpack_with_call
+                                      CALL_FUNCTION_EX_KW
+                             """,
+                    nop_func,
+                )
+            if "DICT_MERGE" in self.seen_ops:
+                self.addRule(
+                    f"""expr               ::= call_ex_kw3
+                        tuple_list_starred ::= BUILD_LIST_1 expr LIST_EXTEND LIST_TO_TUPLE
+                        call_ex_kw3        ::= expr
+                                               {("expr " * args_pos)}
+                                               tuple_list_starred
+                                               BUILD_MAP_0 expr DICT_MERGE
+                                               CALL_FUNCTION_EX_KW
+                     """,
+                    nop_func,
+                )
+            if "BUILD_TUPLE_UNPACK_WITH_CALL" in self.seen_op_basenames:
+                # FIXME: should this be parameterized by EX value?
+                self.addRule(
+                    """expr        ::= call_ex_kw3
+                       call_ex_kw3 ::= expr
+                                       build_tuple_unpack_with_call
+                                       expr
+                                      CALL_FUNCTION_EX_KW
+                    """,
+                    nop_func,
+                )
+                if "BUILD_MAP_UNPACK_WITH_CALL" in self.seen_op_basenames:
+                    # FIXME: should this be parameterized by EX value?
+                    self.addRule(
+                        """expr        ::= call_ex_kw2
+                           call_ex_kw2 ::= expr
+                           build_tuple_unpack_with_call
+                           build_map_unpack_with_call
+                           CALL_FUNCTION_EX_KW
+                        """,
+                        nop_func,
+                    )
+
+        elif opname == "CALL_FUNCTION_EX":
+            # FIXME probably not right. Probably the number of expr's should match
+            # the number after BUILD_LIST_
+            self.addRule(
+                """expr               ::= call_ex
+                   exprs              ::= expr+
+                   tuple_list_starred ::= BUILD_LIST_1 expr LIST_EXTEND LIST_TO_TUPLE
+                   call_ex            ::= expr exprs CALL_FUNCTION_EX
+                """,
+                nop_func,
+            )
+            if "BUILD_MAP_UNPACK_WITH_CALL" in self.seen_ops:
+                self.addRule(
+                    """expr        ::= call_ex_kw
+                       call_ex_kw  ::= expr expr
+                       build_map_unpack_with_call CALL_FUNCTION_EX
+                     """,
+                    nop_func,
+                )
+            if "BUILD_TUPLE_UNPACK_WITH_CALL" in self.seen_ops:
+                self.addRule(
+                    """expr        ::= call_ex_kw3
+                       call_ex_kw3 ::= expr
+                                       build_tuple_unpack_with_call
+                                       %s
+                                       CALL_FUNCTION_EX
+                    """
+                    % "expr "
+                    * token.attr,
+                    nop_func,
+                )
+                pass
+
+            pass
+        else:
+            self.custom_classfunc_rule_lambda(opname, token, customize, next_token)
+
     def customize_grammar_rules_full38(self, tokens, customize):
 
+        self.customize_grammar_rules_lambda38(tokens, customize)
 
         self.reduce_check_table = {
             "and1": and_ok
@@ -820,73 +942,7 @@ class Python38FullCustom(PythonBaseParser):
 
         return
 
-    def custom_classfunc_rule(self, opname, token, customize, next_token):
-        """
-        call ::= expr {expr}^n CALL_FUNCTION_n
-        call ::= expr {expr}^n CALL_FUNCTION_VAR_n
-        call ::= expr {expr}^n CALL_FUNCTION_VAR_KW_n
-        call ::= expr {expr}^n CALL_FUNCTION_KW_n
-
-        classdefdeco2 ::= LOAD_BUILD_CLASS mkfunc {expr}^n-1 CALL_FUNCTION_n
-        """
-        args_pos, args_kw = self.get_pos_kw(token)
-
-        # Additional exprs for * and ** args:
-        #  0 if neither
-        #  1 for CALL_FUNCTION_VAR or CALL_FUNCTION_KW
-        #  2 for * and ** args (CALL_FUNCTION_VAR_KW).
-        # Yes, this computation based on instruction name is a little bit hoaky.
-        nak = (len(opname) - len("CALL_FUNCTION")) // 3
-        uniq_param = args_kw + args_pos
-
-        if opname.startswith("CALL_FUNCTION_VAR"):
-            token.kind = self.call_fn_name(token)
-            if opname.endswith("KW"):
-                kw = "expr "
-            else:
-                kw = ""
-            rule = (
-                "call ::= expr expr "
-                + ("expr " * args_pos)
-                + ("kwarg " * args_kw)
-                + kw
-                + token.kind
-            )
-
-            # Note: semantic actions make use of the fact of whether "args_pos"
-            # zero or not in creating a template rule.
-            self.add_unique_rule(rule, token.kind, args_pos, customize)
-        else:
-            token.kind = self.call_fn_name(token)
-            uniq_param = args_kw + args_pos
-
-            # Note: 3.5+ have subclassed this method; so we don't handle
-            # 'CALL_FUNCTION_VAR' or 'CALL_FUNCTION_EX' here.
-            rule = (
-                "call ::= expr "
-                + ("expr " * args_pos)
-                + ("kwarg " * args_kw)
-                + "expr " * nak
-                + token.kind
-            )
-
-            self.add_unique_rule(rule, token.kind, uniq_param, customize)
-
-            if "LOAD_BUILD_CLASS" in self.seen_ops:
-                if (
-                    next_token == "CALL_FUNCTION"
-                    and next_token.attr == 1
-                    and args_pos > 1
-                ):
-                    rule = "classdefdeco2 ::= LOAD_BUILD_CLASS mkfunc %s%s_%d" % (
-                        ("expr " * (args_pos - 1)),
-                        opname,
-                        args_pos,
-                    )
-                    self.add_unique_rule(rule, token.kind, uniq_param, customize)
-
     def reduce_is_invalid(self, rule, ast, tokens, first, last):
-        from trepan.api import debug; debug()
         invalid = Python38LambdaCustom.reduce_is_invalid(self, rule, ast, tokens, first, last)
         if invalid:
             return invalid

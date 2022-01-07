@@ -290,8 +290,12 @@ class Scanner38Base(Scanner):
                     next_inst.opname == "LOAD_GLOBAL"
                     and next_inst.argval == "AssertionError"
                 ):
-                    jump_val = get_jump_val(inst.argval, self.version)
+                    # FIXME: 3.10 needs this, but 3.8 doesn't. Why?
+                    # jump_val = get_jump_val(inst.argval, self.version)
+                    jump_val = inst.argval
                     raise_idx = self.offset2inst_index[self.prev_op[jump_val]]
+                    while self.insts[raise_idx].optype == "pseudo":
+                        raise_idx -= 1
                     raise_inst = self.insts[raise_idx]
                     if raise_inst.opname.startswith("RAISE_VARARGS"):
                         self.load_asserts.add(next_inst.offset)

@@ -5,6 +5,8 @@ import subprocess
 import tempfile
 import functools
 
+from io import StringIO
+
 from decompile_cfg import code_deparse
 from decompile_cfg.semantics.pysource import PARSER_DEFAULT_DEBUG
 
@@ -15,8 +17,6 @@ from xdis import Bytecode, get_opcode
 
 opc = get_opcode(PYTHON_VERSION_TRIPLE, IS_PYPY)
 Bytecode = functools.partial(Bytecode, opc=opc)
-import six
-
 
 def _dis_to_text(co):
     return Bytecode(co).dis()
@@ -127,7 +127,7 @@ def validate_decompile(text, mode="exec"):
 
     deparsed = code_deparse(
         original_code,
-        out=six.StringIO(),
+        out=StringIO(),
         version=PYTHON_VERSION_TRIPLE,
         debug_opts=debug_opts,
         compile_mode=mode,

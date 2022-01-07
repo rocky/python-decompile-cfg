@@ -566,7 +566,7 @@ TABLE_DIRECT = {
         "(%c or %c) and %c",
         (0, "or_parts"),
         (1, "expr"),
-        (2, "jifop_expr"),
+        (2, "jifop"),
         ),
 
     "or_part": (

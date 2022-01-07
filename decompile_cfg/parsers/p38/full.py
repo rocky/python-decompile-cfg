@@ -40,7 +40,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         self.customize_grammar_rules_full38(tokens, customize)
 
     ###############################################
-    #  Python 3.10 grammar rules with statements
+    #  Python 3.8 grammar rules with statements
     ###############################################
     def p_stmt_loop(self, args):
         """
@@ -555,9 +555,14 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         stmt ::= classdefdeco
         classdefdeco ::= classdefdeco1 store
 
-        # In 3.7 there are some LOAD_GLOBALs we don't convert to LOAD_ASSERT
         stmt    ::= assert2
-        assert2 ::= expr POP_JUMP_IF_TRUE LOAD_GLOBAL expr CALL_FUNCTION_1 RAISE_VARARGS_1
+        assert2 ::= expr
+                    POP_JUMP_IF_TRUE
+                    LOAD_ASSERT
+                    expr
+                    CALL_FUNCTION_1
+                    RAISE_VARARGS_1
+                    bb_end_start
 
         # "assert_invert" tests on the negative of the condition given
         stmt          ::= assert_invert
