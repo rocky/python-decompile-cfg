@@ -34,9 +34,16 @@ from collections import deque
 
 from xdis import check_object_path, iscode, load_module
 from decompile_cfg.scanner import get_scanner
-from decompile_cfg.semantics.pysource import code_deparse, PARSER_DEFAULT_DEBUG, TREE_DEFAULT_DEBUG
+from decompile_cfg.semantics.pysource import (
+    code_deparse,
+    PARSER_DEFAULT_DEBUG,
+    TREE_DEFAULT_DEBUG,
+)
 
-def disco_deparse(version: str, co, compile_mode, code_type, out, is_pypy, debug_opts) -> None:
+
+def disco_deparse(
+    version: str, co, compile_mode, code_type, out, is_pypy, debug_opts
+) -> None:
     """
     diassembles and deparses a given code block 'co'
     """
@@ -52,10 +59,14 @@ def disco_deparse(version: str, co, compile_mode, code_type, out, is_pypy, debug
     scanner = get_scanner(version, is_pypy=is_pypy)
 
     queue = deque([co])
-    disco_deparse_loop(scanner.ingest, compile_mode, code_type, queue, real_out, is_pypy, debug_opts)
+    disco_deparse_loop(
+        scanner.ingest, compile_mode, code_type, queue, real_out, is_pypy, debug_opts
+    )
 
 
-def disco_deparse_loop(disasm, compile_mode, code_type, queue, real_out, is_pypy, debug_opts):
+def disco_deparse_loop(
+    disasm, compile_mode, code_type, queue, real_out, is_pypy, debug_opts
+):
     while len(queue) > 0:
         co = queue.popleft()
         skip_token_scan = False
@@ -105,8 +116,8 @@ def decompile_code_type(
     try:
         filename = check_object_path(filename)
     except ValueError as e:
-       print(f"Skipping {filename}:\n{e}")
-       return
+        print(f"Skipping {filename}:\n{e}")
+        return
 
     (version, timestamp, magic_int, co, is_pypy, source_size, sip_hash) = load_module(
         filename
@@ -122,7 +133,10 @@ def decompile_code_type(
                 version, bytecode, compile_mode, code_type, is_pypy, debug_opts
             )
     else:
-        disco_deparse(version, co, compile_mode, code_type, outstream, is_pypy, debug_opts)
+        disco_deparse(
+            version, co, compile_mode, code_type, outstream, is_pypy, debug_opts
+        )
+
 
 def decompile_lambda_fns(
     filename: str,
@@ -138,7 +152,10 @@ def decompile_lambda_fns(
     If given a Python source file (".py") file, we'll
     decompile all lambdas of the corresponding compiled object.
     """
-    decompile_code_type(filename, "lambda", "<lambda>", outstream, showasm, showast, showgrammar)
+    decompile_code_type(
+        filename, "lambda", "<lambda>", outstream, showasm, showast, showgrammar
+    )
+
 
 def decompile_list_comprehensions(
     filename: str,
@@ -154,7 +171,10 @@ def decompile_list_comprehensions(
     If given a Python source file (".py") file, we'll
     decompile all list_comprehensions of the corresponding compiled object.
     """
-    decompile_code_type(filename, "exec", "<listcomp>", outstream, showasm, showast, showgrammar)
+    decompile_code_type(
+        filename, "exec", "<listcomp>", outstream, showasm, showast, showgrammar
+    )
+
 
 def _test() -> None:
     """Simple test program to disassemble a file."""

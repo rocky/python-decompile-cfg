@@ -30,6 +30,7 @@ from decompile_cfg.semantics.pysource import code_deparse, PARSER_DEFAULT_DEBUG
 from decompile_cfg.semantics.fragments import code_deparse as code_deparse_fragments
 from decompile_cfg.semantics.linemap import deparse_code_with_map
 
+
 def _get_outstream(outfile: str) -> Any:
     dir = os.path.dirname(outfile)
     failed_file = outfile + "_failed"
@@ -44,7 +45,7 @@ def _get_outstream(outfile: str) -> Any:
 
 def decompile(
     co,
-    bytecode_version: str=PYTHON_VERSION_TRIPLE,
+    bytecode_version: str = PYTHON_VERSION_TRIPLE,
     out=sys.stdout,
     showasm=None,
     showast={},
@@ -421,9 +422,7 @@ else:
         return ""
 
 
-def status_msg(
-    do_verify, tot_files, okay_files, failed_files, verify_failed_files
-):
+def status_msg(do_verify, tot_files, okay_files, failed_files, verify_failed_files):
     if tot_files == 1:
         if failed_files:
             return "\n# decompile failed"

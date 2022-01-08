@@ -31,7 +31,7 @@ def and_ok(
         # Make sure jump at the end of and_parts jumps right after "expr"
         and_parts = ast[0]
         pop_jump_if_false = and_parts.last_child()
-        if  pop_jump_if_false != "POP_JUMP_IF_FALSE":
+        if pop_jump_if_false != "POP_JUMP_IF_FALSE":
             return True
 
         expr_node = ast[-1]
