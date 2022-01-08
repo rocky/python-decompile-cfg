@@ -1045,7 +1045,7 @@ class SourceWalker(GenericASTTraversal, object):
     def n_generator_exp(self, node):
         self.write("(")
         code_index = -6
-        self.comprehension_walk(node, iter_index=6, code_index=code_index)
+        self.comprehension_walk(node, iter_index=5, code_index=code_index)
         self.write(")")
         self.prune()
 
