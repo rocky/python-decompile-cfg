@@ -1064,7 +1064,7 @@ class SourceWalker(GenericASTTraversal, object):
 
     n_dict_comp = n_set_comp
 
-    def comprehension_walk_newer(self, node, iter_index: int, code_index=-5):
+    def comprehension_walk_newer(self, node, iter_index: int, code_index: int=-5):
         """Non-closure-based comprehensions the way they are done in Python3
         and some Python 2.7. Note: there are also other set comprehensions.
         """
@@ -1089,12 +1089,15 @@ class SourceWalker(GenericASTTraversal, object):
 
         # skip over: sstmt, stmt, return, return_expr
         # and other singleton derivations
+        if ast == "lambda_start":
+            if ast[0] in ("dom_start", "dom_start_opt"):
+                ast = ast[1]
 
         while len(ast) == 1 or (
-            ast in ("sstmt", "return", "return_expr")
+            ast in ("sstmt", "return", "return_expr", "return_expr_lambda")
         ):
             self.prec = 100
-            ast = ast[0]
+            ast = ast[1] if ast[0] in ("dom_start", "dom_start_opt") else ast[0]
 
         # Pick out important parts of the comprehension:
         # * the variable we iterate over: "store"

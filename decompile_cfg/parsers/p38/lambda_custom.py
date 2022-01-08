@@ -164,11 +164,10 @@ class Python38LambdaCustom(Python38BaseParser):
         # Determine if we have an iteration CALL_FUNCTION_1.
         has_get_iter_call_function1 = False
         for i, token in enumerate(tokens):
-            # The GET_ITER path might be obsolete
             if (
                 token == "GET_ITER"
                 and i < n - 2
-                and tokens[i + 1] == "CALL_FUNCTION_1"
+                and self.call_fn_name(tokens[i + 1]) == "CALL_FUNCTION_1"
             ):
                 has_get_iter_call_function1 = True
 
@@ -327,31 +326,6 @@ class Python38LambdaCustom(Python38BaseParser):
                     """
                     self.add_unique_doc_rules(rules_str, customize)
 
-            elif opname == "SETUP_WITH":
-                rules_str = """
-                with       ::= expr SETUP_WITH POP_TOP suite_stmts_opt COME_FROM_WITH
-                               WITH_CLEANUP_START WITH_CLEANUP_FINISH END_FINALLY
-
-                # Removes POP_BLOCK LOAD_CONST from 3.6-
-                withasstmt ::= expr SETUP_WITH store suite_stmts_opt COME_FROM_WITH
-                               WITH_CLEANUP_START WITH_CLEANUP_FINISH END_FINALLY
-                """
-                if self.version < (3, 8):
-                    rules_str += """
-                    with       ::= expr SETUP_WITH POP_TOP suite_stmts_opt POP_BLOCK
-                                   LOAD_CONST
-                                   WITH_CLEANUP_START WITH_CLEANUP_FINISH END_FINALLY
-                    """
-                else:
-                    rules_str += """
-                    with        ::= expr SETUP_WITH POP_TOP suite_stmts_opt POP_BLOCK
-                                   BEGIN_FINALLY COME_FROM_WITH
-                                   WITH_CLEANUP_START WITH_CLEANUP_FINISH
-                                   END_FINALLY
-                    """
-                self.addRule(rules_str, nop_func)
-                pass
-
             elif opname.startswith("BUILD_STRING"):
                 v = token.attr
                 rules_str = """
@@ -472,6 +446,9 @@ class Python38LambdaCustom(Python38BaseParser):
                 )
                 custom_ops_processed.add(opname)
 
+            elif opname == "LOAD_CLOSURE":
+                self.addRule("""load_closure ::= LOAD_CLOSURE+""", nop_func)
+
             elif opname == "LOAD_DICTCOMP":
                 if has_get_iter_call_function1:
                     rule_pat = (
@@ -481,6 +458,8 @@ class Python38LambdaCustom(Python38BaseParser):
                     self.add_make_function_rule(rule_pat, opname, token.attr, customize)
                     pass
                 custom_ops_processed.add(opname)
+
+
 
             elif opname == "LOAD_GENEXPR":
                 self.addRule("load_genexpr ::= LOAD_GENEXPR", nop_func)
@@ -622,24 +601,24 @@ class Python38LambdaCustom(Python38BaseParser):
                 pass
 
             # Has to come before MAKE_FUNCTION
-            elif opname == "MAKE_FUNCTION_8":
-                if "LOAD_DICTCOMP" in self.seen_ops:
-                    # Is there something general going on here?
-                    rule = """
-                       expr      ::= dict_comp
-                       dict_comp ::= load_closure LOAD_DICTCOMP LOAD_STR
-                                     MAKE_FUNCTION_8 expr
-                                     GET_ITER CALL_FUNCTION_1
-                       """
-                    self.addRule(rule, nop_func)
-                elif "LOAD_SETCOMP" in self.seen_ops:
-                    self.addRule("expr ::= set_comp", nop_func)
-                    rule = """
-                       set_comp ::= load_closure LOAD_SETCOMP LOAD_STR
-                                    MAKE_FUNCTION_8 expr
-                                    GET_ITER CALL_FUNCTION_1
-                       """
-                    self.addRule(rule, nop_func)
+            # elif opname == "MAKE_FUNCTION_8":
+            #     if "LOAD_DICTCOMP" in self.seen_ops:
+            #         # Is there something general going on here?
+            #         rule = """
+            #            expr      ::= dict_comp
+            #            dict_comp ::= load_closure LOAD_DICTCOMP LOAD_STR
+            #                          MAKE_FUNCTION_8 expr
+            #                          GET_ITER CALL_FUNCTION_1
+            #            """
+            #         self.addRule(rule, nop_func)
+            #     elif "LOAD_SETCOMP" in self.seen_ops:
+            #         self.addRule("expr ::= set_comp", nop_func)
+            #         rule = """
+            #            set_comp ::= load_closure LOAD_SETCOMP LOAD_STR
+            #                         MAKE_FUNCTION_8 expr
+            #                         GET_ITER CALL_FUNCTION_1
+            #            """
+            #         self.addRule(rule, nop_func)
 
             elif opname_base.startswith("MAKE_FUNCTION"):
                 args_pos, args_kw, annotate_args, closure = token.attr
@@ -783,6 +762,33 @@ class Python38LambdaCustom(Python38BaseParser):
                 )
                 self.add_unique_rule(rule, opname, token.attr, customize)
                 pass
+
+            # Does this go here or in full which seems more full.
+            elif opname == "SETUP_WITH":
+                rules_str = """
+                with       ::= expr SETUP_WITH POP_TOP suite_stmts_opt COME_FROM_WITH
+                               WITH_CLEANUP_START WITH_CLEANUP_FINISH END_FINALLY
+
+                # Removes POP_BLOCK LOAD_CONST from 3.6-
+                withasstmt ::= expr SETUP_WITH store suite_stmts_opt COME_FROM_WITH
+                               WITH_CLEANUP_START WITH_CLEANUP_FINISH END_FINALLY
+                """
+                if self.version < (3, 8):
+                    rules_str += """
+                    with       ::= expr SETUP_WITH POP_TOP suite_stmts_opt POP_BLOCK
+                                   LOAD_CONST
+                                   WITH_CLEANUP_START WITH_CLEANUP_FINISH END_FINALLY
+                    """
+                else:
+                    rules_str += """
+                    with        ::= expr SETUP_WITH POP_TOP suite_stmts_opt POP_BLOCK
+                                   BEGIN_FINALLY COME_FROM_WITH
+                                   WITH_CLEANUP_START WITH_CLEANUP_FINISH
+                                   END_FINALLY
+                    """
+                self.addRule(rules_str, nop_func)
+                pass
+
 
     def reduce_is_invalid(self, rule: list, ast, tokens, first: int, last: int):
         lhs = rule[0]

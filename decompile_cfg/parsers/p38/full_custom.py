@@ -524,181 +524,20 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                     nop_func,
                 )
                 custom_ops_processed.add(opname)
+
             elif opname == "LOAD_BUILD_CLASS":
                 self.custom_build_class_rule(opname, i, token, tokens, customize)
                 # Note: don't add to custom_ops_processed.
+
             elif opname == "LOAD_CLASSDEREF":
                 # Python 3.4+
                 self.addRule("expr ::= LOAD_CLASSDEREF", nop_func)
                 custom_ops_processed.add(opname)
+
             elif opname == "LOAD_CLASSNAME":
                 self.addRule("expr ::= LOAD_CLASSNAME", nop_func)
                 custom_ops_processed.add(opname)
-            elif opname_base.startswith("MAKE_FUNCTION"):
-                args_pos, args_kw, annotate_args, closure = token.attr
-                stack_count = args_pos + args_kw + annotate_args
-                if closure:
-                    if args_pos:
-                        rule = """
-                             expr        ::= lambda_body
-                             lambda_body ::= %s%s%s%s
-                             """ % (
-                            "expr " * stack_count,
-                            "load_closure " * closure,
-                            "BUILD_TUPLE_1 LOAD_LAMBDA LOAD_STR ",
-                            opname,
-                        )
-                    else:
-                        rule = """
-                             expr        ::= lambda_body
-                             lambda_body ::= %s%s%s""" % (
-                            "load_closure " * closure,
-                            "LOAD_LAMBDA LOAD_STR ",
-                            opname,
-                        )
-                    self.add_unique_rule(rule, opname, token.attr, customize)
 
-                else:
-                    rule = """
-                         expr        ::= lambda_body
-                         lambda_body ::= %sLOAD_LAMBDA LOAD_STR %s""" % (
-                        ("expr " * stack_count),
-                        opname,
-                    )
-                    self.add_unique_rule(rule, opname, token.attr, customize)
-
-                rule = "mkfunc ::= %s%s%s%s" % (
-                    "expr " * stack_count,
-                    "load_closure " * closure,
-                    "LOAD_CODE LOAD_STR ",
-                    opname,
-                )
-                self.add_unique_rule(rule, opname, token.attr, customize)
-
-                if has_get_iter_call_function1:
-                    rule_pat = (
-                        "generator_exp ::= %sload_genexpr %%s%s expr "
-                        "GET_ITER CALL_FUNCTION_1" % ("expr " * args_pos, opname)
-                    )
-                    self.add_make_function_rule(rule_pat, opname, token.attr, customize)
-                    rule_pat = """
-                           expr          ::= generator_exp
-                           generator_exp ::= %sload_closure load_genexpr %%s%s expr
-                           GET_ITER CALL_FUNCTION_1""" % (
-                        "expr " * args_pos,
-                        opname,
-                    )
-                    self.add_make_function_rule(rule_pat, opname, token.attr, customize)
-                    if is_pypy or (i >= 2 and tokens[i - 2] == "LOAD_LISTCOMP"):
-                        # 3.6+ sometimes bundles all of the
-                        # 'exprs' in the rule above into a
-                        # tuple.
-                        rule_pat = (
-                            "list_comp ::= load_closure LOAD_LISTCOMP %%s%s "
-                            "expr GET_ITER CALL_FUNCTION_1" % (opname,)
-                        )
-                        self.add_make_function_rule(
-                            rule_pat, opname, token.attr, customize
-                        )
-                        rule_pat = (
-                            "list_comp ::= %sLOAD_LISTCOMP %%s%s expr "
-                            "GET_ITER CALL_FUNCTION_1" % ("expr " * args_pos, opname)
-                        )
-                        self.add_make_function_rule(
-                            rule_pat, opname, token.attr, customize
-                        )
-
-                if (i >= 2 and tokens[i - 2] == "LOAD_LAMBDA"):
-                    rule_pat = """
-                        expr        ::= lambda_body
-                        lambda_body ::= %s%sLOAD_LAMBDA %%s%s
-                        """ % (
-                        ("expr " * args_pos),
-                        ("kwarg " * args_kw),
-                        opname,
-                    )
-                    self.add_make_function_rule(rule_pat, opname, token.attr, customize)
-                continue
-
-                args_pos, args_kw, annotate_args, closure = token.attr
-
-                j = 2
-
-                if has_get_iter_call_function1:
-                    rule_pat = (
-                        "generator_exp ::= %sload_genexpr %%s%s expr "
-                        "GET_ITER CALL_FUNCTION_1" % ("expr " * args_pos, opname)
-                    )
-                    self.add_make_function_rule(rule_pat, opname, token.attr, customize)
-
-                    if i >= j and tokens[i - j] == "LOAD_LISTCOMP":
-                        # In the tokens we saw:
-                        #   LOAD_LISTCOMP LOAD_CONST MAKE_FUNCTION (>= 3.3) or
-                        #   LOAD_LISTCOMP MAKE_FUNCTION (< 3.3) or
-                        #   and have GET_ITER CALL_FUNCTION_1
-                        # Todo: For Pypy we need to modify this slightly
-                        rule_pat = (
-                            "list_comp ::= %sLOAD_LISTCOMP %%s%s expr "
-                            "GET_ITER CALL_FUNCTION_1" % ("expr " * args_pos, opname)
-                        )
-                        self.add_make_function_rule(
-                            rule_pat, opname, token.attr, customize
-                        )
-
-                # FIXME: Fold test  into add_make_function_rule
-                if (i >= j and tokens[i - j] == "LOAD_LAMBDA"):
-                    rule_pat = """
-                        expr        ::= lambda_body
-                        lambda_body ::= %s%sLOAD_LAMBDA %%s%s
-                        """ % (
-                        ("expr " * args_pos),
-                        ("kwarg " * args_kw),
-                        opname,
-                    )
-                    self.add_make_function_rule(rule_pat, opname, token.attr, customize)
-
-                if args_kw == 0:
-                    kwargs = "no_kwargs"
-                    self.add_unique_rule("no_kwargs ::=", opname, token.attr, customize)
-                else:
-                    kwargs = "kwargs"
-
-                # positional args before keyword args
-                rule = "mkfunc ::= %s%s %s%s" % (
-                    "expr " * args_pos,
-                    kwargs,
-                    "LOAD_CODE LOAD_STR ",
-                    opname,
-                )
-                self.add_unique_rule(rule, opname, token.attr, customize)
-
-            elif opname == "MAKE_FUNCTION_8":
-                if "LOAD_DICTCOMP" in self.seen_ops:
-                    # Is there something general going on here?
-                    rule = """
-                       expr      ::= dict_comp
-                       dict_comp ::= load_closure LOAD_DICTCOMP LOAD_STR
-                                     MAKE_FUNCTION_8 expr
-                                     GET_ITER CALL_FUNCTION_1
-                       """
-                    self.addRule(rule, nop_func)
-                elif "LOAD_SETCOMP" in self.seen_ops:
-                    self.addRule("expr ::= set_comp", nop_func)
-                    rule = """
-                       set_comp ::= load_closure LOAD_SETCOMP LOAD_STR
-                                    MAKE_FUNCTION_8 expr
-                                    GET_ITER CALL_FUNCTION_1
-                       """
-                    self.addRule(rule, nop_func)
-
-            elif opname == "RETURN_VALUE_LAMBDA":
-                self.addRule(
-                    """
-                    return_expr_lambda ::= return_expr RETURN_VALUE_LAMBDA
-                    """,
-                    nop_func,
-                )
-                custom_ops_processed.add(opname)
             elif opname == "RAISE_VARARGS_0":
                 self.addRule(
                     """
@@ -730,6 +569,14 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                 )
                 custom_ops_processed.add(opname)
 
+            elif opname == "RETURN_VALUE_LAMBDA":
+                self.addRule(
+                    """
+                    return_expr_lambda ::= return_expr RETURN_VALUE_LAMBDA
+                    """,
+                    nop_func,
+                )
+                custom_ops_processed.add(opname)
             elif opname == "SETUP_EXCEPT":
                 self.addRule(
                     """
@@ -765,6 +612,8 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                   with_suffix ::= WITH_CLEANUP_START WITH_CLEANUP_FINISH END_FINALLY
                 """
                 self.addRule(rules_str, nop_func)
+
+            # FIXME: reconcile with same code in lambda_custom.py
             elif opname == "SETUP_WITH":
                 rules_str = """
                   stmt        ::= with
