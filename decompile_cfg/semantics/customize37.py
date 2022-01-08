@@ -1145,6 +1145,8 @@ def customize_for_version37(self, version):
             pass
 
         kwargs = node[2]
+        if kwargs == "arg":
+            kwargs = kwargs[0]
         if kwargs == "expr":
             kwargs = kwargs[0]
         call_function_ex = node[-1]

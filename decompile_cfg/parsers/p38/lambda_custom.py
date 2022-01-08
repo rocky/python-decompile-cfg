@@ -17,10 +17,9 @@ Grammar Customization rules for Python 3.10's Lambda expression grammar.
 """
 
 from decompile_cfg.parsers.p38.base import Python38BaseParser
-from decompile_cfg.parsers.parse_heads import ParserError, PythonParserLambda, PythonBaseParser, nop_func
+from decompile_cfg.parsers.parse_heads import ParserError, nop_func
 from decompile_cfg.parsers.reduce_check.and_check import and_ok
 from decompile_cfg.parsers.reduce_check.if_exp_check import if_exp_ok
-from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 from spark_parser.spark import rule2str
 
 class Python38LambdaCustom(Python38BaseParser):
@@ -353,6 +352,44 @@ class Python38LambdaCustom(Python38BaseParser):
                 )
             ) or opname.startswith("CALL_FUNCTION_KW"):
 
+                self.addRule(
+                    """expr        ::= call_ex_kw4
+                       call_ex_kw4 ::= arg arg arg
+                                       CALL_FUNCTION_EX_KW
+                     """,
+                    nop_func,
+                )
+                if "BUILD_MAP_UNPACK_WITH_CALL" in self.seen_op_basenames:
+                    self.addRule(
+                        """expr        ::= call_ex_kw
+                           call_ex_kw  ::= expr expr build_map_unpack_with_call
+                                           CALL_FUNCTION_EX_KW
+                        """,
+                        nop_func,
+                    )
+                if "BUILD_TUPLE_UNPACK_WITH_CALL" in self.seen_op_basenames:
+                    # FIXME: should this be parameterized by EX value?
+                    self.addRule(
+                        """expr        ::= call_ex_kw3
+                           call_ex_kw3 ::= expr
+                                           build_tuple_unpack_with_call
+                                           expr
+                                           CALL_FUNCTION_EX_KW
+                                 """,
+                        nop_func,
+                    )
+                if "BUILD_MAP_UNPACK_WITH_CALL" in self.seen_op_basenames:
+                    # FIXME: should this be parameterized by EX value?
+                    self.addRule(
+                        """expr        ::= call_ex_kw2
+                           call_ex_kw2 ::= expr
+                                           build_tuple_unpack_with_call
+                                           build_map_unpack_with_call
+                                           CALL_FUNCTION_EX_KW
+                             """,
+                        nop_func,
+                    )
+
                 if opname == "CALL_FUNCTION" and token.attr == 1:
                     rule = """
                      expr         ::= dict_comp
@@ -363,8 +400,11 @@ class Python38LambdaCustom(Python38BaseParser):
                     """
                     self.addRule(rule, nop_func)
 
-                self.custom_classfunc_rule_lambda(opname, token, customize, tokens[i + 1])
-                # Note: don't add to custom_ops_processed.
+                # Don't add to custom_ops_processed for CALL_FUNCTION_EX_KW, since
+                # the the call_ex_... rules above cover this.
+                if opname != "CALL_FUNCTION_EX_KW":
+                    self.custom_classfunc_rule_lambda(opname, token, customize, tokens[i + 1])
+
 
             elif opname_base == "CALL_METHOD":
                 # PyPy and Python 3.7+ only - DRY with parse2
@@ -599,26 +639,6 @@ class Python38LambdaCustom(Python38BaseParser):
                     self.add_unique_rule(rule, opname, token.attr, customize)
 
                 pass
-
-            # Has to come before MAKE_FUNCTION
-            # elif opname == "MAKE_FUNCTION_8":
-            #     if "LOAD_DICTCOMP" in self.seen_ops:
-            #         # Is there something general going on here?
-            #         rule = """
-            #            expr      ::= dict_comp
-            #            dict_comp ::= load_closure LOAD_DICTCOMP LOAD_STR
-            #                          MAKE_FUNCTION_8 expr
-            #                          GET_ITER CALL_FUNCTION_1
-            #            """
-            #         self.addRule(rule, nop_func)
-            #     elif "LOAD_SETCOMP" in self.seen_ops:
-            #         self.addRule("expr ::= set_comp", nop_func)
-            #         rule = """
-            #            set_comp ::= load_closure LOAD_SETCOMP LOAD_STR
-            #                         MAKE_FUNCTION_8 expr
-            #                         GET_ITER CALL_FUNCTION_1
-            #            """
-            #         self.addRule(rule, nop_func)
 
             elif opname_base.startswith("MAKE_FUNCTION"):
                 args_pos, args_kw, annotate_args, closure = token.attr

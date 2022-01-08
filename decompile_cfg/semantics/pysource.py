@@ -2085,7 +2085,7 @@ class SourceWalker(GenericASTTraversal, object):
             if k.startswith("CALL_METHOD"):
                 # This happens in PyPy and Python 3.7+
                 TABLE_R[k] = ("%c(%P)", 0, (1, -1, ", ", 100))
-            elif self.version >= (3, 6) and k.startswith("CALL_FUNCTION_KW"):
+            elif k.startswith("CALL_FUNCTION_KW"):
                 TABLE_R[k] = ("%c(%P)", 0, (1, -1, ", ", 100))
             elif op == "CALL_FUNCTION":
                 TABLE_R[k] = (
