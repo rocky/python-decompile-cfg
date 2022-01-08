@@ -99,7 +99,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         # FIXME: simplify the compare_chain1 recursion?
         compare_chained1    ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop_opt
-                                compare_chained1 bb_doms_end_start_opt
+                                compare_chained1
         compare_chained1    ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop_opt
                                 compare_chained2 bb_doms_end_start_opt
 
@@ -293,10 +293,19 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         expr ::= yield
         expr ::= yield_from
 
+        # In calls, we use "arg" rather than "expr" so we can
+        # bound expressions with conditional branches.
+        # Arg also matches Python's AST in a Call beter.
+        arg              ::= expr
+        arg              ::= branch_op bb_doms_end_start
+        arg              ::= branch_op bb_end_start
+
         attribute        ::= expr LOAD_METHOD
 
         # bin_op (formerly "binary_expr") is the Python AST BinOp
-        bin_op            ::= expr expr binary_operator
+        bin_op            ::= left right binary_operator
+        left              ::= arg
+        right             ::= arg
 
         binary_operator   ::= BINARY_ADD
         binary_operator   ::= BINARY_MULTIPLY
@@ -363,7 +372,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         subscript2        ::= expr expr DUP_TOP_TWO BINARY_SUBSCR
 
         # unary_op (formerly "unary_expr") is the Python AST UnaryOp
-        unary_op          ::= expr unary_operator
+        unary_op          ::= arg unary_operator
 
         unary_operator    ::= UNARY_POSITIVE
         unary_operator    ::= UNARY_NEGATIVE
@@ -424,10 +433,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                       RETURN_VALUE
                                       bb_doms_end
 
-        # Temporary until we have a rule generati this
+        # Temporary until we have a rule generating this
         return_expr_lambda      ::= if_exp_call_lambda
+
         return_call_lambda      ::= dom_start_opt
-                                    expr
+                                    args
                                     CALL_FUNCTION_1
                                     RETURN_VALUE
                                     bb_doms_end
@@ -435,7 +445,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         if_exp_call_lambda      ::= expr expr
                                     POP_JUMP_IF_FALSE
                                     bb_end_start
-                                    expr CALL_FUNCTION_1
+                                    args CALL_FUNCTION_1
                                     RETURN_VALUE
                                     dom_end dom_start
                                     return_call_lambda

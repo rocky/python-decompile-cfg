@@ -540,7 +540,7 @@ def customize_for_version37(self, version):
             self.template_engine(template, node)
 
             args_node = node[-2]
-            if args_node in ("pos_arg", "expr"):
+            if args_node in ("pos_arg", "arg", "expr"):
                 args_node = args_node[0]
             if args_node == "build_list_unpack":
                 template = ("*%P)", (0, len(args_node) - 1, ", *", 100))
@@ -564,7 +564,7 @@ def customize_for_version37(self, version):
         ):
             template = "(%c)(%p)" if node[0][0] == "lambda_body" else "%c(%p)"
             self.template_engine(
-                (template, (0, "expr"), (1, PRECEDENCE["yield"] - 1)), node
+                (template, (0, ("arg", "expr")), (1, PRECEDENCE["yield"] - 1)), node
             )
             self.prec = p
             self.prune()

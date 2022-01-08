@@ -54,7 +54,7 @@ class Python38LambdaCustom(Python38BaseParser):
                 kw = ""
             rule = (
                 "call ::= expr expr "
-                + ("expr " * args_pos)
+                + ("arg " * args_pos)
                 + ("kwarg " * args_kw)
                 + kw
                 + token.kind
@@ -70,10 +70,10 @@ class Python38LambdaCustom(Python38BaseParser):
             # Note: 3.5+ have subclassed this method; so we don't handle
             # 'CALL_FUNCTION_VAR' or 'CALL_FUNCTION_EX' here.
             rule = (
-                "call ::= expr "
-                + ("expr " * args_pos)
+                "call ::= arg "
+                + ("arg " * args_pos)
                 + ("kwarg " * args_kw)
-                + "expr " * nak
+                + "arg " * nak
                 + token.kind
             )
 

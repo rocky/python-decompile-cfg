@@ -1821,9 +1821,9 @@ class SourceWalker(GenericASTTraversal, object):
         exprs = node[1]
         assert exprs == "exprs"
         if len(exprs) == 1:
-            self.template_engine(("%c(*%p)", (0, "expr"), (1, "exprs", 100)), node)
+            self.template_engine(("%c(*%p)", (0, "arg"), (1, "exprs", 100)), node)
         else:
-            self.template_engine(("%c(", (0, "expr")), node)
+            self.template_engine(("%c(", (0, "arg")), node)
             # FIXME: we assume that any starred args here are under nonterminal
             # tuple_list_starred and are thus marked that way. So we don't
             # add "*"
@@ -2079,13 +2079,13 @@ class SourceWalker(GenericASTTraversal, object):
 
             if k.startswith("CALL_METHOD"):
                 # This happens in PyPy and Python 3.7+
-                TABLE_R[k] = ("%c(%P)", (0, "expr"), (1, -1, ", ", 100))
+                TABLE_R[k] = ("%c(%P)", (0, "arg"), (1, -1, ", ", 100))
             elif self.version >= (3, 6) and k.startswith("CALL_FUNCTION_KW"):
-                TABLE_R[k] = ("%c(%P)", (0, "expr"), (1, -1, ", ", 100))
+                TABLE_R[k] = ("%c(%P)", (0, "arg"), (1, -1, ", ", 100))
             elif op == "CALL_FUNCTION":
                 TABLE_R[k] = (
                     "%c(%P)",
-                    (0, "expr"),
+                    (0, "arg"),
                     (1, -2, ", ", PRECEDENCE["yield"] - 1),
                 )
             elif op in (

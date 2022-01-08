@@ -659,7 +659,7 @@ TABLE_DIRECT = {
     "unary_op": (
         "%c%c",
         (1, "unary_operator"),
-        (0, "expr")
+        (0, "arg")
         ),
 
     "unary_not": (
