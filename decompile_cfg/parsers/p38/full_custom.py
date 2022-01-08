@@ -16,6 +16,7 @@
 from decompile_cfg.parsers.parse_heads import PythonBaseParser, nop_func
 from decompile_cfg.parsers.p38.lambda_custom import Python38LambdaCustom
 from decompile_cfg.parsers.reduce_check.and_check import and_ok
+from decompile_cfg.parsers.reduce_check.if_exp_check import if_exp_ok
 
 class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
     def add_make_function_rule(self, rule, opname, attr, customize):
@@ -226,10 +227,12 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
         self.customize_grammar_rules_lambda38(tokens, customize)
 
         self.reduce_check_table = {
-            "and1": and_ok
+            "and1": and_ok,
+            "if_exp": if_exp_ok
         }
 
         self.check_reduce["and1"] = "AST"
+        self.check_reduce["if_exp_ok"] = "AST"
 
 
         # For a rough break out on the first word. This may

@@ -70,6 +70,13 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                        bb_end_start
                        expr
 
+        if_exp     ::= branch_op
+                       POP_JUMP_IF_FALSE
+                       expr
+                       JUMP_FORWARD
+                       bb_end_start
+                       expr
+
         if_exp_not ::= expr
                        POP_JUMP_IF_TRUE
                        expr

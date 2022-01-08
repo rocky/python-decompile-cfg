@@ -951,8 +951,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
 
         jf_cf        ::= JUMP_FORWARD COME_FROM
 
-        if_exp       ::= expr_pjif expr jf_cf expr COME_FROM
-
         except_suite ::= c_stmts_opt COME_FROM POP_EXCEPT jump_except COME_FROM
 
         jb_cfs      ::= come_from_opt JUMP_BACK come_froms

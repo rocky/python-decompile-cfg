@@ -18,7 +18,8 @@ Grammar Customization rules for Python 3.10's Lambda expression grammar.
 
 from decompile_cfg.parsers.p38.base import Python38BaseParser
 from decompile_cfg.parsers.parse_heads import ParserError, PythonParserLambda, PythonBaseParser, nop_func
-from decompile_cfg.parsers.reduce_check.if_exp_lambda import if_exp_lambda_ok
+from decompile_cfg.parsers.reduce_check.and_check import and_ok
+from decompile_cfg.parsers.reduce_check.if_exp_check import if_exp_ok
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 from spark_parser.spark import rule2str
 
@@ -94,11 +95,13 @@ class Python38LambdaCustom(Python38BaseParser):
 
     def customize_grammar_rules_lambda38(self, tokens, customize):
 
-        # self.reduce_check_table = {
-        #     "if_exp_lambda": if_exp_lambda_ok
-        # }
+        self.reduce_check_table = {
+            "and1": and_ok,
+            "if_exp": if_exp_ok
+        }
 
-        # self.check_reduce["if_exp_lambda"] = "AST"
+        self.check_reduce["and1"] = "AST"
+        self.check_reduce["if_exp"] = "AST"
 
         is_pypy = False
 
