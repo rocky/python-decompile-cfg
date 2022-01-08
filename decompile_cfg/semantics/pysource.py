@@ -1654,7 +1654,7 @@ class SourceWalker(GenericASTTraversal, object):
         for elem in flat_elems:
             if elem in ("ROT_THREE", "EXTENDED_ARG"):
                 continue
-            assert elem in ("expr", "list", "lists")
+            assert elem in ("expr", "arg", "list", "lists")
             line_number = self.line_number
             value = self.traverse(elem)
             if line_number != self.line_number:

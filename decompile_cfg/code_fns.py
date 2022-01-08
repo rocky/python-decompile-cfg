@@ -102,13 +102,18 @@ def decompile_code_type(
     If given a Python source file (".py") file, we'll
     decompile all lambdas of the corresponding compiled object.
     """
-    filename = check_object_path(filename)
+    try:
+        filename = check_object_path(filename)
+    except ValueError as e:
+       print(f"Skipping {filename}:\n{e}")
+       return
+
     (version, timestamp, magic_int, co, is_pypy, source_size, sip_hash) = load_module(
         filename
     )
 
     # maybe a second -a will do before as well
-    asm = "after" if showasm else None
+    # asm = "after" if showasm else None
 
     debug_opts = {"asm": showasm, "tree": showast, "grammar": showgrammar}
     if isinstance(co, list):
@@ -118,7 +123,6 @@ def decompile_code_type(
             )
     else:
         disco_deparse(version, co, compile_mode, code_type, outstream, is_pypy, debug_opts)
-    co = None
 
 def decompile_lambda_fns(
     filename: str,
