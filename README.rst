@@ -9,7 +9,7 @@ Introduction
 ------------
 
 *decompile-cfg* translates Python bytecode back into equivalent Python
-source code. It accepts Python version 3.10 bytecode.
+source code. It accepts Python version 3.8 bytecode.
 
 For decompilation of older Python bytecode see decompyle3_.
 
@@ -76,7 +76,7 @@ Requirements
 
 The code here can be run on Python versions 3.7 or later. The bytecode
 files it can read have been tested on Python bytecodes from versions
-3.10.
+3.8.
 
 Installation
 ------------
