@@ -1039,8 +1039,6 @@ class SourceWalker(GenericASTTraversal, object):
         self.preorder(iter_expr)
         self.preorder(ast[iter_index])
         self.prec = p
-        # for n in rest:
-        #     self.preorder(n)
 
     def n_generator_exp(self, node):
         self.write("(")
@@ -1074,12 +1072,8 @@ class SourceWalker(GenericASTTraversal, object):
 
         code_obj = node[code_index].attr
         assert iscode(code_obj), node[code_index]
-        try:
-            self.debug_opts["asm"]
-        except:
-            from trepan.api import debug
+        self.debug_opts["asm"]
 
-            debug()
         code = Code(code_obj, self.scanner, self.currentclass, self.debug_opts["asm"])
 
         ast = self.build_ast(
@@ -1645,7 +1639,7 @@ class SourceWalker(GenericASTTraversal, object):
             self.write("(")
             endchar = ")"
         else:
-            from trepan.api import debug; debug()
+            # from trepan.api import debug; debug()
             raise TypeError(
                 "Internal Error: n_build_list expects list, tuple, set, or unpack"
             )

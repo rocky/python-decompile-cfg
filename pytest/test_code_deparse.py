@@ -17,14 +17,15 @@ def run_deparse(expr: str, compile_mode: bool, debug=False) -> object:
         compile_mode = "eval"
     code = compile(expr + "\n", "<string %s>" % expr, compile_mode)
     if debug:
-        import dis;
+        import dis
+
         print(dis.dis(code))
     deparsed = code_deparse(code, out=out, compile_mode=orig_compile_mode, debug_opts=DEFAULT_DEBUG_OPTS)
     return deparsed
 
 
 # FIXME: DRY this code
-@pytest.mark.skip(reason="Decompiler not finished yet for 3.10")
+@pytest.mark.skip(reason="Decompiler not finished yet for 3.8")
 def test_single_mode() -> None:
     expressions = (
         "1",
@@ -59,7 +60,7 @@ def test_single_mode() -> None:
             maybe_show_tree(deparsed, deparsed.ast)
         assert deparsed.text == expr + "\n" if deparsed.text.endswith("\n") else expr
 
-@pytest.mark.skip(reason="Decompiler not finished yet for 3.10")
+@pytest.mark.skip(reason="Decompiler not finished yet for 3.8")
 def test_eval_mode():
     expressions = (
         "1",
@@ -105,6 +106,7 @@ def test_lambda_mode():
             deparsed.showast = {"Full": True}
             maybe_show_tree(deparsed, deparsed.ast)
         assert deparsed.text == expr
+
 
 if __name__ == "__main__":
     # test_eval_mode()
