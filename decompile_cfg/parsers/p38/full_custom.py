@@ -185,40 +185,6 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                         nop_func,
                     )
 
-        elif opname == "CALL_FUNCTION_EX":
-            # FIXME probably not right. Probably the number of expr's should match
-            # the number after BUILD_LIST_
-            self.addRule(
-                """expr               ::= call_ex
-                   exprs              ::= expr+
-                   tuple_list_starred ::= BUILD_LIST_1 expr LIST_EXTEND LIST_TO_TUPLE
-                   call_ex            ::= expr exprs CALL_FUNCTION_EX
-                """,
-                nop_func,
-            )
-            if "BUILD_MAP_UNPACK_WITH_CALL" in self.seen_ops:
-                self.addRule(
-                    """expr        ::= call_ex_kw
-                       call_ex_kw  ::= expr expr
-                       build_map_unpack_with_call CALL_FUNCTION_EX
-                     """,
-                    nop_func,
-                )
-            if "BUILD_TUPLE_UNPACK_WITH_CALL" in self.seen_ops:
-                self.addRule(
-                    """expr        ::= call_ex_kw3
-                       call_ex_kw3 ::= expr
-                                       build_tuple_unpack_with_call
-                                       %s
-                                       CALL_FUNCTION_EX
-                    """
-                    % "expr "
-                    * token.attr,
-                    nop_func,
-                )
-                pass
-
-            pass
         else:
             self.custom_classfunc_rule_lambda(opname, token, customize, next_token)
 

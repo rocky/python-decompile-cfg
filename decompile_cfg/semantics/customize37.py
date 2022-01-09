@@ -1,4 +1,4 @@
-#  Copyright (c) 2019-2021 by Rocky Bernstein
+#  Copyright (c) 2019-2022 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -114,7 +114,7 @@ def customize_for_version37(self, version):
             "await_expr": ("await %p", (0, PRECEDENCE["await_expr"] - 1)),
             "await_stmt": ("%|%c\n", 0),
 
-            "call_ex": ("%c(%C, *%p)", (0, "expr"), (1, -1, ", "), (-1, 100)),
+            "call_ex": ("%c(%p)", (0, "expr"), (1, 100)),
 
             "compare_chained1a_37": (
                 "%p %p",
@@ -1376,19 +1376,21 @@ def customize_for_version37(self, version):
     # self.n_kwargs_only_36 = kwargs_only_36
 
     def n_starred(node):
-        l = len(node)
-        assert l > 0
+        node_len = len(node)
+        assert node_len > 0
         pos_args = node[0]
+        if pos_args == "arg":
+            pos_args = pos_args[0]
         if pos_args == "expr":
             pos_args = pos_args[0]
         if pos_args == "tuple":
+            star_start = 1
             build_tuple = pos_args[0]
             if build_tuple.kind.startswith("BUILD_TUPLE"):
                 tuple_len = 0
             else:
-                tuple_len = len(node) - 1
-            star_start = 1
-            template = "%C", (0, -1, ", ")
+                tuple_len = len(node) - 2
+            template = "%P", (0, -1, ", ", 100)
             self.template_engine(template, pos_args)
             if tuple_len == 0:
                 self.write("*()")
@@ -1397,7 +1399,7 @@ def customize_for_version37(self, version):
             self.write(", ")
         else:
             star_start = 0
-        if l > 1:
+        if node_len > 1:
             template = ("*%C", (star_start, -1, ", *"))
         else:
             template = ("*%c", (star_start, "expr"))

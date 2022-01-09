@@ -1591,18 +1591,13 @@ class SourceWalker(GenericASTTraversal, object):
             self.write("[")
             endchar = "]"
 
-        elif lastnodetype.startswith("LIST_EXTEND"):
-            # FIXME: generalize
-            if lastnode.attr == 1:
-                if len(node) > 1 and node[1] == "LOAD_CONST":
-                    self.write(list(node[1].attr))
-                elif len(node) == 1:
-                    self.preorder(node[0])
-            else:
-                assert False, "BUILD_LIST .. LIST_EXTEND needs work"
-            self.prec = p
-            self.prune()
-            return
+        elif lastnodetype.startswith("BUILD_MAP_UNPACK"):
+            self.write("{*")
+            endchar = "}"
+
+        elif lastnodetype.startswith("BUILD_SET"):
+            self.write("{")
+            endchar = "}"
 
         elif lastnodetype.startswith("BUILD_TUPLE"):
             # Tuples can appear places that can NOT
@@ -1622,24 +1617,10 @@ class SourceWalker(GenericASTTraversal, object):
                 endchar = ")"
                 pass
 
-        elif lastnodetype.startswith("BUILD_SET"):
-            self.write("{")
-            endchar = "}"
         elif lastnodetype.startswith("ROT_TWO"):
             self.write("(")
             endchar = ")"
-        elif node.kind == "list":
-            # FIXME: Something in tree building went weird. We had:
-            # list
-            #    BUILD_LIST_0          0
-            # but the "BUILD_LIST_0 is gone as a child.
-            self.write("[]")
-            self.prec = p
-            self.prune()
-            return
-        elif node.kind == "tuple":
-            self.write("(")
-            endchar = ")"
+
         else:
             # from trepan.api import debug; debug()
             raise TypeError(
@@ -1744,7 +1725,7 @@ class SourceWalker(GenericASTTraversal, object):
             self.write("(")
             endchar = ")"
         else:
-            from trepan.api import debug; debug()
+            # from trepan.api import debug; debug()
             raise TypeError(
                 "Internal Error: n_build_list expects list, tuple, set, or unpack"
             )
@@ -1813,21 +1794,6 @@ class SourceWalker(GenericASTTraversal, object):
             if n[0] == "unpack":
                 n[0].kind = "unpack_w_parens"
         self.default(node)
-
-    def n_call_ex(self, node):
-        assert len(node) == 3
-        exprs = node[1]
-        assert exprs == "exprs"
-        if len(exprs) == 1:
-            self.template_engine(("%c(*%p)", (0, "arg"), (1, "exprs", 100)), node)
-        else:
-            self.template_engine(("%c(", (0, "arg")), node)
-            # FIXME: we assume that any starred args here are under nonterminal
-            # tuple_list_starred and are thus marked that way. So we don't
-            # add "*"
-            # We should check this though.
-            self.template_engine(("%P)", (0, maxint, ", ", 100)), exprs)
-        self.prune()
 
     def n_except_cond2(self, node):
         unpack_node = -3 if node[-1] == "come_from_opt" else -2
@@ -2085,7 +2051,7 @@ class SourceWalker(GenericASTTraversal, object):
             elif op == "CALL_FUNCTION":
                 TABLE_R[k] = (
                     "%c(%P)",
-                    (0, "arg"),
+                    (0, ("expr", "arg")),
                     (1, -2, ", ", PRECEDENCE["yield"] - 1),
                 )
             elif op in (

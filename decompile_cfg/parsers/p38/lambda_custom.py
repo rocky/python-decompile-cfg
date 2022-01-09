@@ -64,20 +64,55 @@ class Python38LambdaCustom(Python38BaseParser):
             # zero or not in creating a template rule.
             self.add_unique_rule(rule, token.kind, args_pos, customize)
         else:
-            token.kind = self.call_fn_name(token)
-            uniq_param = args_kw + args_pos
+            if opname == "CALL_FUNCTION_EX":
+                # FIXME probably not right. Probably the number of expr's should match
+                # the number after BUILD_LIST_
+                # FIXME: can BUILD_LIST_1 appear?
+                self.addRule(
+                    """
+                             expr        ::= call_ex
+                             starred     ::= expr
+                             call_ex     ::= expr starred CALL_FUNCTION_EX
+                             """,
+                    nop_func,
+                )
+                if "BUILD_MAP_UNPACK_WITH_CALL" in self.seen_ops:
+                    self.addRule(
+                        """expr        ::= call_ex_kw
+                           call_ex_kw  ::= expr expr
+                           build_map_unpack_with_call CALL_FUNCTION_EX
+                         """,
+                        nop_func,
+                    )
+                if "BUILD_TUPLE_UNPACK_WITH_CALL" in self.seen_ops:
+                    self.addRule(
+                        """expr        ::= call_ex_kw3
+                           call_ex_kw3 ::= expr
+                                           build_tuple_unpack_with_call
+                                           %s
+                                           CALL_FUNCTION_EX
+                        """
+                        % "expr "
+                        * token.attr,
+                        nop_func,
+                    )
+                    pass
+                pass
 
-            # Note: 3.5+ have subclassed this method; so we don't handle
-            # 'CALL_FUNCTION_VAR' or 'CALL_FUNCTION_EX' here.
-            rule = (
-                "call ::= arg "
-                + ("arg " * args_pos)
-                + ("kwarg " * args_kw)
-                + "arg " * nak
-                + token.kind
-            )
+            else:
+                # FIXME: Is this correct still? Note: 3.5+ have subclassed this method; so we don't handle
+                # 'CALL_FUNCTION_VAR'.
+                token.kind = self.call_fn_name(token)
 
-            self.add_unique_rule(rule, token.kind, uniq_param, customize)
+                rule = (
+                    "call ::= arg "
+                    + ("arg " * args_pos)
+                    + ("kwarg " * args_kw)
+                    + "expr " * nak
+                    + token.kind
+                )
+
+                self.add_unique_rule(rule, token.kind, uniq_param, customize)
 
             if "LOAD_BUILD_CLASS" in self.seen_ops:
                 if (
@@ -340,7 +375,6 @@ class Python38LambdaCustom(Python38BaseParser):
                     self.add_unique_doc_rules(rules_str, customize)
 
             elif opname == "BUILD_MAP_UNPACK_WITH_CALL":
-                from trepan.api import debug; debug()
                 v = token.attr
                 rule = "build_map_unpack_with_call ::= %s%s" % ("expr " * v, opname)
                 self.addRule(rule, nop_func)
@@ -355,7 +389,7 @@ class Python38LambdaCustom(Python38BaseParser):
                     + opname
                 )
                 self.addRule(rule, nop_func)
-                rule = "starred ::= %s %s" % ("expr " * v, opname)
+                rule = "starred ::= %s%s" % ("arg " * v, opname)
                 self.addRule(rule, nop_func)
 
             elif opname in frozenset(
