@@ -63,8 +63,8 @@ def main_bin(show_asm, show_grammar, tree, tree_plus, verify, recurse_dirs, outf
 
     out_base = None
     source_paths = []
-    timestamp = False
-    timestampfmt = "# %Y.%m.%d %H:%M:%S %Z"
+    # timestamp = False
+    # timestampfmt = "# %Y.%m.%d %H:%M:%S %Z"
     pyc_paths = files
 
     # expand directory if specified

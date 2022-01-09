@@ -256,11 +256,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         list_if     ::= expr list_if_end list_iter
         list_if     ::= expr jump_if_false_cf   list_iter
+        list_if     ::= expr pjump_iff list_iter
 
         list_if_end ::= pjump_iff BB_END dom_start
 
         # Need to fix or remove
-        list_if     ::= expr pjump_iff list_iter come_from_opt
         list_if_or_not ::= expr_pjit expr_pjit COME_FROM list_iter
         list_if_not_end ::= pjump_ift _come_froms
         list_if_not ::= expr list_if_not_end list_iter come_from_opt
