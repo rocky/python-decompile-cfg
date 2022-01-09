@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2021 Rocky Bernstein <rocky@gnu.org>
+# Copyright (C) 2018-2022 Rocky Bernstein <rocky@gnu.org>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -87,7 +87,7 @@ def decompile(
         write("# -*- coding: %s -*-" % source_encoding)
     write(
         "# decompile_cfg version %s\n"
-        "# %sPython bytecode %s%s\n# Decompiled from: %sPython %s"
+        "# %sPython bytecode version base %s%s\n# Decompiled from: %sPython %s"
         % (
             __version__,
             co_pypy_str,
@@ -427,7 +427,7 @@ def status_msg(do_verify, tot_files, okay_files, failed_files, verify_failed_fil
         if failed_files:
             return "\n# decompile failed"
         elif verify_failed_files:
-            return f"\n# decompile run verification failed"
+            return "\n# decompile run verification failed"
         else:
             return "\n# Successfully decompiled file"
             pass

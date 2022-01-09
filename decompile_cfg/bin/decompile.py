@@ -6,10 +6,8 @@
 #
 
 import click
-import getopt
 import os
 import sys
-import getopt
 
 from xdis.version_info import version_tuple_to_str
 
@@ -102,8 +100,8 @@ def main_bin(show_asm, show_grammar, tree, tree_plus, verify, recurse_dirs, outf
             out_base = outfile
             outfile = None
 
-    if timestamp:
-        print(time.strftime(timestampfmt))
+    # if timestamp:
+    #     print(time.strftime(timestampfmt))
 
     show_ast = {"before": tree or tree_plus, "after": tree_plus}
     result = main(
@@ -128,8 +126,8 @@ def main_bin(show_asm, show_grammar, tree, tree_plus, verify, recurse_dirs, outf
     except (KeyboardInterrupt):
         pass
 
-    if timestamp:
-        print(time.strftime(timestampfmt))
+    # if timestamp:
+    #     print(time.strftime(timestampfmt))
 
     return
 

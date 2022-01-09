@@ -192,8 +192,9 @@ TREE_DEFAULT_DEBUG = {"before": False, "after": False}
 DEFAULT_DEBUG_OPTS = {
     "asm": False,
     "tree": TREE_DEFAULT_DEBUG,
-    "grammar": dict(PARSER_DEFAULT_DEBUG)
-    }
+    "grammar": dict(PARSER_DEFAULT_DEBUG),
+}
+
 
 class SourceWalkerError(Exception):
     def __init__(self, errmsg):
@@ -317,7 +318,8 @@ class SourceWalker(GenericASTTraversal, object):
             self.println(
                 """
 ---- begin after transform
-""" + " "
+"""
+                + " "
             )
         if self.showast.get(phase, False):
             maybe_show_tree(self, ast)
@@ -368,7 +370,7 @@ class SourceWalker(GenericASTTraversal, object):
                 else:
                     child = self.str_with_template1(node, indent, None)
             else:
-                inst = node.format(line_prefix="")
+                inst = node.format(line_prefix="L.")
                 if inst.startswith("\n"):
                     # Nuke leading \n
                     inst = inst[1:]
@@ -624,7 +626,7 @@ class SourceWalker(GenericASTTraversal, object):
         if n == "LOAD_CONST" and repr(n.pattr)[0] == "-":
             self.prec = 6
 
-        # print(n.kind, p, "<", self.prec)
+        # print("XXX", n.kind, p, "<", self.prec)
         # print(self.f.getvalue())
 
         if p < self.prec:
@@ -1062,7 +1064,7 @@ class SourceWalker(GenericASTTraversal, object):
 
     n_dict_comp = n_set_comp
 
-    def comprehension_walk_newer(self, node, iter_index: int, code_index: int=-5):
+    def comprehension_walk_newer(self, node, iter_index: int, code_index: int = -5):
         """Non-closure-based comprehensions the way they are done in Python3
         and some Python 2.7. Note: there are also other set comprehensions.
         """
@@ -1142,7 +1144,7 @@ class SourceWalker(GenericASTTraversal, object):
 
         have_not = False
 
-        # Iterate to find the innermost store
+        # Iterate to find the inner-most "store".
         # We'll come back to the list iteration below.
 
         while n in ("list_iter", "list_afor", "list_afor2", "comp_iter"):
@@ -1273,7 +1275,7 @@ class SourceWalker(GenericASTTraversal, object):
         list_if = None
         assert n == "comp_iter"
 
-        # find innermost node
+        # Find inner-most node.
         while n == "comp_iter":
             n = n[0]  # recurse one step
             # FIXME: adjust for set comprehension
@@ -1770,8 +1772,7 @@ class SourceWalker(GenericASTTraversal, object):
         self.write(endchar)
         self.indent_less(INDENT_PER_LEVEL)
 
-        if add_parens:
-            self.write(")")
+        self.write(")")
 
         self.prec = p
         self.prune()
@@ -2412,7 +2413,7 @@ def code_deparse(
     elif compile_mode == "exec":
         expected_start = "stmts"
     elif compile_mode == "single":
-        expected_start = "stmts"
+        expected_start = "single_start"
     else:
         expected_start = None
     if expected_start:
