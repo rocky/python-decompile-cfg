@@ -1111,10 +1111,10 @@ def customize_for_version37(self, version):
             self.write(", ")
 
         self.write("*")
-        self.preorder(node[2][1])
+        self.preorder(node[1][1])
         self.write(", ")
 
-        kwargs = node[4]
+        kwargs = node[2]
         if kwargs == "expr":
             kwargs = kwargs[0]
         if kwargs == "expr" and kwargs[0] != "dict":

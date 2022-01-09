@@ -138,10 +138,7 @@ class Python38LambdaCustom(Python38BaseParser):
             [opname[: opname.rfind("_")] for opname in self.seen_ops]
         )
 
-        # Note: BUILD_TUPLE_UNPACK_WITH_CALL gets considered by
-        # default because it starts with BUILD. So we'll set to ignore it from
-        # the start.
-        custom_ops_processed = set(("BUILD_TUPLE_UNPACK_WITH_CALL", "DICT_MERGE"))
+        custom_ops_processed = set(["DICT_MERGE"])
 
         # Loop over instructions adding custom grammar rules based on
         # a specific instruction seen.
@@ -226,7 +223,7 @@ class Python38LambdaCustom(Python38BaseParser):
                 else:
                     v = token.attr
                     if v == 0:
-                        rules_str = f"""
+                        rules_str = """
                             dict ::= BUILD_MAP_0
                             expr ::= dict
                         """
@@ -342,6 +339,25 @@ class Python38LambdaCustom(Python38BaseParser):
                     """
                     self.add_unique_doc_rules(rules_str, customize)
 
+            elif opname == "BUILD_MAP_UNPACK_WITH_CALL":
+                from trepan.api import debug; debug()
+                v = token.attr
+                rule = "build_map_unpack_with_call ::= %s%s" % ("expr " * v, opname)
+                self.addRule(rule, nop_func)
+
+            elif opname == "BUILD_TUPLE_UNPACK_WITH_CALL":
+                v = token.attr
+                rule = (
+                    "build_tuple_unpack_with_call ::= "
+                    + "expr1024 " * int(v // 1024)
+                    + "expr32 " * int((v // 32) % 32)
+                    + "expr " * (v % 32)
+                    + opname
+                )
+                self.addRule(rule, nop_func)
+                rule = "starred ::= %s %s" % ("expr " * v, opname)
+                self.addRule(rule, nop_func)
+
             elif opname in frozenset(
                 (
                     "CALL_FUNCTION",
@@ -359,7 +375,7 @@ class Python38LambdaCustom(Python38BaseParser):
                      """,
                     nop_func,
                 )
-                if "BUILD_MAP_UNPACK_WITH_CALL" in self.seen_op_basenames:
+                if "BUILD_MAP_UNPACK_WITH" in self.seen_op_basenames:
                     self.addRule(
                         """expr        ::= call_ex_kw
                            call_ex_kw  ::= expr expr build_map_unpack_with_call
@@ -367,7 +383,8 @@ class Python38LambdaCustom(Python38BaseParser):
                         """,
                         nop_func,
                     )
-                if "BUILD_TUPLE_UNPACK_WITH_CALL" in self.seen_op_basenames:
+
+                if "BUILD_TUPLE_UNPACK_WITH" in self.seen_op_basenames:
                     # FIXME: should this be parameterized by EX value?
                     self.addRule(
                         """expr        ::= call_ex_kw3
@@ -378,7 +395,8 @@ class Python38LambdaCustom(Python38BaseParser):
                                  """,
                         nop_func,
                     )
-                if "BUILD_MAP_UNPACK_WITH_CALL" in self.seen_op_basenames:
+
+                if "BUILD_MAP_UNPACK_WITH" in self.seen_op_basenames:
                     # FIXME: should this be parameterized by EX value?
                     self.addRule(
                         """expr        ::= call_ex_kw2
@@ -402,7 +420,7 @@ class Python38LambdaCustom(Python38BaseParser):
 
                 # Don't add to custom_ops_processed for CALL_FUNCTION_EX_KW, since
                 # the the call_ex_... rules above cover this.
-                if opname != "CALL_FUNCTION_EX_KW":
+                if opname not in ("CALL_FUNCTION_EX_KW", "CALL_FUNCTION_KW"):
                     self.custom_classfunc_rule_lambda(opname, token, customize, tokens[i + 1])
 
 
@@ -424,7 +442,7 @@ class Python38LambdaCustom(Python38BaseParser):
 
             elif opname == "DICT_UPDATE":
                 self.add_unique_doc_rules(
-                    f"""
+                    """
                     dicts_unpack ::= dicts_unpack dict_update
                     dicts_unpack ::= dict_update
 
