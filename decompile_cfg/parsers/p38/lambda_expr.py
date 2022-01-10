@@ -138,6 +138,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         bb_doms_end_opt  ::= bb_doms_end?
         doms_end         ::= DOM_END+
         dom_end_opt      ::= dom_end?
+        dom_end_start    ::= dom_end dom_start
+        dom_end_start_opt ::= dom_end_start?
+
 
         bb_end_start          ::= BB_END dom_start
         bb_doms_end_start     ::= bb_doms_end dom_start
@@ -241,7 +244,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         list_iter ::= list_if_or_not
         list_iter ::= lc_body
 
-        lc_body   ::= expr LIST_APPEND
+        lc_body   ::= expr dom_end_start_opt LIST_APPEND
 
         jump_back ::= JUMP_BACK bb_doms_end_start
 
