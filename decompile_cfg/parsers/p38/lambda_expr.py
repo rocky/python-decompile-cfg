@@ -270,6 +270,20 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         """
 
+    def p_comprehension_set(self, args):
+        """
+        comp_iter     ::= comp_body
+        comp_iter     ::= comp_for
+        comp_body     ::= gen_comp_body
+        gen_comp_body ::= expr
+                          YIELD_VALUE
+                          BB_END DOM_END BB_START POP_TOP
+        gen_comp_body ::= branch_op
+                          bb_end_start
+                          YIELD_VALUE
+                          bb_doms_end_start POP_TOP
+        """
+
     def p_expr(self, args):
         """
         # expressions going to terminal symbols

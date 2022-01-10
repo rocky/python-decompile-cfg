@@ -852,14 +852,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
 
         """
 
-    def p_set_comp(self, args):
-        """
-        comp_iter     ::= comp_body
-        comp_iter     ::= comp_for
-        comp_body     ::= gen_comp_body
-        gen_comp_body ::= yield BB_END DOM_END BB_START POP_TOP
-        """
-
     def p_stmt3(self, args):
         """
         if_exp_lambda      ::= expr_pjif expr return_if_lambda
