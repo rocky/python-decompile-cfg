@@ -466,6 +466,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         #    lambda n: (n & 1) and True if n >= 95 else False
         if_exp_lambda      ::= branch_op
                                POP_JUMP_IF_FALSE
+                               bb_end_start_opt
                                expr
                                RETURN_VALUE
                                BB_END
@@ -473,9 +474,19 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         if_exp_lambda      ::= expr
                                POP_JUMP_IF_FALSE
+                               bb_end_start_opt
                                expr
                                RETURN_VALUE
                                bb_end_start
+                               return_expr_lambda
+
+
+        if_exp_lambda      ::= expr
+                               POP_JUMP_IF_FALSE
+                               bb_end_start_opt
+                               expr
+                               RETURN_VALUE
+                               dom_end dom_start
                                return_expr_lambda
 
 

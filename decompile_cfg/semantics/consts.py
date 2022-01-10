@@ -457,7 +457,7 @@ TABLE_DIRECT = {
 
     "if_exp_lambda":    (
         "%c if %c else %c",
-        (2, "expr"),
+        (3, "expr"),
         (0, ("expr", "branch_op")),
         (-1, "return_expr_lambda"),
     ),
