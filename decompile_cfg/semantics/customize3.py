@@ -112,8 +112,8 @@ def customize_for_version3(self, version):
             n = n[0]
 
             if n == "list_for":
-                stores.append(n[3])
-                n = n[4]
+                stores.append(n[2])
+                n = n[3]
                 if n[0] == "list_for":
                     # Dog-paddle down largely singleton reductions
                     # to find the collection (expr)
@@ -131,7 +131,8 @@ def customize_for_version3(self, version):
                 else:
                     list_ifs.append([1])
                 # FIXME: figure out what is up with come_from_opt - we have bb stuff
-                n = n[-2] if n[-1] == "come_from_opt" else n[-1]
+                last_kind = n[-1].kind
+                n = n[-2] if last_kind.startswith("bb") or last_kind.startswith("dom") else n[-1]
                 pass
             elif n == "list_if37":
                 list_ifs.append(n)
@@ -141,7 +142,7 @@ def customize_for_version3(self, version):
                 collections.append(n[0][0])
                 n = n[1]
                 stores.append(n[1][0])
-                n = n[3]
+                n = n[2]
             pass
 
         assert n == "lc_body", ast

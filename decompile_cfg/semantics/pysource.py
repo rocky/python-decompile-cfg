@@ -1154,16 +1154,16 @@ class SourceWalker(GenericASTTraversal, object):
             elif n == "list_afor2":
                 if n[1] == "store":
                     store = n[1]
-                n = n[3]
+                n = n[2]
             else:
                 n = n[0]
 
             if n in ("list_for", "comp_for"):
-                if n[3] == "store" and not store:
-                    store = n[3]
+                if n[2] == "store" and not store:
+                    store = n[2]
                     if not comp_store:
                         comp_store = store
-                n = n[4]
+                n = n[3]
             elif n in (
                 "list_if",
                 "list_if_not",

@@ -192,7 +192,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                          JUMP_BACK
                          bb_doms_end_start
 
-        for_iter       ::= bb_end_start FOR_ITER
+        for_iter       ::= bb_end_start FOR_ITER bb_end_start
 
         # FIXME: go over:
 
@@ -250,7 +250,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         list_for  ::= expr
                       for_iter
-                      bb_end_start
                       store list_iter
                       jump_back
                       bb_doms_end_start_opt
