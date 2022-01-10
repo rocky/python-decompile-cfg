@@ -63,6 +63,37 @@ class Python38LambdaCustom(Python38BaseParser):
             # Note: semantic actions make use of the fact of whether "args_pos"
             # zero or not in creating a template rule.
             self.add_unique_rule(rule, token.kind, args_pos, customize)
+
+        # Has to come before generic CALL_FUNCTION else below
+        elif opname == "CALL_FUNCTION_EX_KW":
+            self.addRule(
+                """expr        ::= call_ex_kw4
+                   call_ex_kw4 ::= expr
+                                   expr
+                                   BUILD_MAP_0 expr DICT_MERGE
+                                   CALL_FUNCTION_EX_KW
+                """,
+                nop_func,
+            )
+            if "DICT_MERGE" in self.seen_ops:
+                self.addRule(
+                    f"""expr               ::= call_ex_kw3
+                        tuple_list_starred ::= BUILD_LIST_1 expr LIST_EXTEND LIST_TO_TUPLE
+                        call_ex_kw3        ::= expr
+                                               {("expr " * args_pos)}
+                                               tuple_list_starred
+                                               BUILD_MAP_0 expr DICT_MERGE
+                                               CALL_FUNCTION_EX_KW
+                     """,
+                    nop_func,
+                )
+
+        if opname.startswith("CALL_FUNCTION_KW"):
+            self.addRule("expr ::= call_kw36", nop_func)
+            values = "expr " * token.attr
+            rule = "call_kw36 ::= expr {values} LOAD_CONST {opname}".format(**locals())
+            self.add_unique_rule(rule, token.kind, token.attr, customize)
+
         else:
             if opname == "CALL_FUNCTION_EX":
                 # FIXME probably not right. Probably the number of expr's should match
@@ -76,7 +107,7 @@ class Python38LambdaCustom(Python38BaseParser):
                              """,
                     nop_func,
                 )
-                if "BUILD_MAP_UNPACK_WITH_CALL" in self.seen_ops:
+                if opname == "BUILD_MAP_UNPACK_WITH_CALL":
                     self.addRule(
                         """expr        ::= call_ex_kw
                            call_ex_kw  ::= expr expr
@@ -84,7 +115,7 @@ class Python38LambdaCustom(Python38BaseParser):
                          """,
                         nop_func,
                     )
-                if "BUILD_TUPLE_UNPACK_WITH_CALL" in self.seen_ops:
+                if opname == "BUILD_TUPLE_UNPACK_WITH_CALL":
                     self.addRule(
                         """expr        ::= call_ex_kw3
                            call_ex_kw3 ::= expr
@@ -271,6 +302,32 @@ class Python38LambdaCustom(Python38BaseParser):
                             expr ::= dict
                         """
                     self.add_unique_doc_rules(rules_str, customize)
+
+                if opname == "BUILD_MAP_UNPACK_WITH_CALL":
+                    self.addRule(
+                        """expr       ::= call_ex_kw
+                          call_ex_kw  ::= expr expr build_map_unpack_with_call
+                                          CALL_FUNCTION_EX_KW
+                        """,
+                        nop_func,
+                    )
+                    v = token.attr
+                    rule = "build_map_unpack_with_call ::= %s%s" % ("expr " * v, opname)
+                    self.addRule(rule, nop_func)
+
+
+                if opname == "BUILD_TUPLE_UNPACK_WITH_CALL":
+                    # FIXME: should this be parameterized by EX value?
+                    self.addRule(
+                        """expr        ::= call_ex_kw3
+                           call_ex_kw3 ::= expr
+                                           build_tuple_unpack_with_call
+                                           expr
+                                           CALL_FUNCTION_EX_KW
+                        """,
+                        nop_func,
+                    )
+
 
             elif opname_base in (
                 "BUILD_SET",
