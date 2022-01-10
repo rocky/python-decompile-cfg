@@ -155,6 +155,7 @@ class Python38LambdaCustom(Python38BaseParser):
                 "LOAD",
                 "MAKE",
                 "SETUP",
+                "UNPACK",
             )
         )
 
@@ -861,6 +862,15 @@ class Python38LambdaCustom(Python38BaseParser):
                 self.addRule(rules_str, nop_func)
                 pass
 
+            elif opname_base == "UNPACK_SEQUENCE":
+                rule = (
+                    """
+                    store  ::= unpack
+                    unpack ::= """
+                    + opname
+                    + " store" * token.attr
+                )
+                self.addRule(rule, nop_func)
 
     def reduce_is_invalid(self, rule: list, ast, tokens, first: int, last: int):
         lhs = rule[0]

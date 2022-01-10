@@ -677,15 +677,6 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                 )
                 self.addRule(rule, nop_func)
 
-            elif opname_base == "UNPACK_SEQUENCE":
-                rule = (
-                    """
-                    store  ::= unpack
-                    unpack ::= """
-                    + opname
-                    + " store" * token.attr
-                )
-                self.addRule(rule, nop_func)
             pass
 
         # self.reduce_check_table = {
