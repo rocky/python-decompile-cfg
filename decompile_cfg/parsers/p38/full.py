@@ -169,13 +169,8 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
                            bb_doms_end
 
         stmt ::= set_comp_func
-        set_comp_func ::= BUILD_SET_0
-                          LOAD_FAST
-                          for_iter store comp_iter
-                          JUMP_BACK
-                          dom_end_start_opt
-                          RETURN_VALUE
-                          bb_doms_end
+                 RETURN_VALUE
+                 bb_doms_end
 
         # last_stmt is a Python statement for which
         # end is a "return" or raise statement and

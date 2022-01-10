@@ -1090,7 +1090,7 @@ class SourceWalker(GenericASTTraversal, object):
                 ast = ast[1]
 
         while len(ast) == 1 or (
-            ast in ("sstmt", "return", "return_expr", "return_expr_lambda")
+            ast in ("stmt", "sstmt", "return", "return_expr", "return_expr_lambda")
         ):
             self.prec = 100
             ast = ast[1] if ast[0] in ("dom_start", "dom_start_opt") else ast[0]
@@ -1140,7 +1140,8 @@ class SourceWalker(GenericASTTraversal, object):
         comp_store = None
         if n == "comp_iter":
             comp_for = n
-            comp_store = ast[3]
+            if not store:
+                comp_store = ast[3]
 
         have_not = False
 

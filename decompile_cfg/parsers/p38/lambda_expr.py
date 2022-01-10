@@ -214,6 +214,13 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         dict_comp_body ::= expr expr MAP_ADD
         set_comp_body  ::= expr SET_ADD
+
+        set_comp_func ::= BUILD_SET_0
+                          LOAD_FAST
+                          bb_end_start_opt
+                          for_iter store comp_iter
+                          JUMP_BACK
+                          dom_end_start_opt
         """
 
     def p_comprehension_dict(self, args):
@@ -440,6 +447,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         return_expr_lambda      ::= dom_start_opt
                                     genexpr_func
                                     LOAD_CONST
+                                    RETURN_VALUE
+                                    bb_doms_end
+
+        return_expr_lambda      ::= dom_start_opt
+                                    set_comp_func
                                     RETURN_VALUE
                                     bb_doms_end
 
