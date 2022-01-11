@@ -750,6 +750,24 @@ class Python38LambdaCustom(Python38BaseParser):
 
                 pass
 
+            # Needs to come before the general MAKE_FUNCTION test
+            elif opname == "MAKE_FUNCTION_8":
+                if "LOAD_DICTCOMP" in self.seen_ops:
+                    # Is there something general going on here?
+                    rule = """
+                       dict_comp ::= load_closure LOAD_DICTCOMP LOAD_STR
+                                     MAKE_FUNCTION_8 expr
+                                     GET_ITER CALL_FUNCTION_1
+                       """
+                    self.addRule(rule, nop_func)
+                elif "LOAD_SETCOMP" in self.seen_ops:
+                    rule = """
+                       set_comp ::= load_closure LOAD_SETCOMP LOAD_STR
+                                    MAKE_FUNCTION_8 expr
+                                    GET_ITER CALL_FUNCTION_1
+                       """
+                    self.addRule(rule, nop_func)
+
             elif opname_base.startswith("MAKE_FUNCTION"):
                 args_pos, args_kw, annotate_args, closure = token.attr
                 stack_count = args_pos + args_kw + annotate_args

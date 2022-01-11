@@ -163,11 +163,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
 
         stmt ::= dict_comp_func
 
-        for_iter       ::= _come_froms FOR_ITER
-        dict_comp_func ::= BUILD_MAP_0 LOAD_FAST for_iter store
-                           comp_iter JUMP_BACK _come_froms RETURN_VALUE
-                           bb_doms_end
-
         stmt ::= set_comp_func
                  RETURN_VALUE
                  bb_doms_end
