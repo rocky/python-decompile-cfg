@@ -466,6 +466,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                     RETURN_VALUE
                                     bb_doms_end
 
+        return_expr_lambda      ::= dom_start_opt
+                                    dict_comp_func
+
         return_expr_lambda      ::= if_exp_lambda
         return_expr_lambda      ::= if_exp_binop_lambda
         return_expr_lambda      ::= if_exp_not_lambda

@@ -1064,37 +1064,48 @@ class SourceWalker(GenericASTTraversal, object):
 
     n_dict_comp = n_set_comp
 
+    def get_comprehension_function(self, node, code_index: int):
+        """
+        Build the body of a comprehension function and then
+        find the comprehension node buried in the tree which may
+        be surrounded with start-like symbols or dominiators,.
+        """
+        self.prec = 27
+        code_node = node[code_index]
+        code_obj = code_node.attr
+        assert iscode(code_obj), code_node
+
+        code = Code(code_obj, self.scanner, self.currentclass, self.debug_opts["asm"])
+
+        tree = self.build_ast(
+            code._tokens, code._customize, code, is_lambda=self.is_lambda)
+
+        self.customize(code._customize)
+
+        # skip over: sstmt, stmt, return, return_expr
+        # and other singleton derivations
+        if tree == "lambda_start":
+            if tree[0] in ("dom_start", "dom_start_opt"):
+                tree = tree[1]
+
+        while len(tree) == 1 or (
+            tree in ("stmt", "sstmt", "return", "return_expr", "return_expr_lambda")
+        ):
+            self.prec = 100
+            tree = tree[1] if tree[0] in ("dom_start", "dom_start_opt") else tree[0]
+        return tree
+
+
     def comprehension_walk_newer(self, node, iter_index: int, code_index: int = -5):
         """Non-closure-based comprehensions the way they are done in Python3
         and some Python 2.7. Note: there are also other set comprehensions.
         """
         # FIXME: DRY with listcomp_closure3
+
+        #? Is this needed
         p = self.prec
-        self.prec = 27
 
-        code_obj = node[code_index].attr
-        assert iscode(code_obj), node[code_index]
-        self.debug_opts["asm"]
-
-        code = Code(code_obj, self.scanner, self.currentclass, self.debug_opts["asm"])
-
-        ast = self.build_ast(
-            code._tokens, code._customize, code, is_lambda=self.is_lambda
-        )
-        self.customize(code._customize)
-
-        # skip over: sstmt, stmt, return, return_expr
-        # and other singleton derivations
-        if ast == "lambda_start":
-            if ast[0] in ("dom_start", "dom_start_opt"):
-                ast = ast[1]
-
-        while len(ast) == 1 or (
-            ast in ("stmt", "sstmt", "return", "return_expr", "return_expr_lambda")
-        ):
-            self.prec = 100
-            ast = ast[1] if ast[0] in ("dom_start", "dom_start_opt") else ast[0]
-
+        ast = self.get_comprehension_function(node, code_index)
         # Pick out important parts of the comprehension:
         # * the variable we iterate over: "store"
         # * the results we accumulate: "n"
@@ -1259,15 +1270,8 @@ class SourceWalker(GenericASTTraversal, object):
         See if we can combine code.
         """
         p = self.prec
-        self.prec = 27
 
-        code = Code(node[1].attr, self.scanner, self.currentclass)
-        ast = self.build_ast(code._tokens, code._customize, code)
-        self.customize(code._customize)
-
-        # Remove single reductions as in ("stmts", "sstmt"):
-        while len(ast) == 1:
-            ast = ast[0]
+        ast = self.get_comprehension_function(node, 1)
 
         store = ast[3]
         collection = node[collection_index]
