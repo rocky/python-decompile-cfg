@@ -343,17 +343,18 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         right             ::= arg
 
         binary_operator   ::= BINARY_ADD
-        binary_operator   ::= BINARY_MULTIPLY
         binary_operator   ::= BINARY_AND
+        binary_operator   ::= BINARY_FLOOR_DIVIDE
+        binary_operator   ::= BINARY_LSHIFT
+        binary_operator   ::= BINARY_MATRIX_MULTIPLY
+        binary_operator   ::= BINARY_MODULO
+        binary_operator   ::= BINARY_MULTIPLY
         binary_operator   ::= BINARY_OR
-        binary_operator   ::= BINARY_XOR
+        binary_operator   ::= BINARY_POWER
+        binary_operator   ::= BINARY_RSHIFT
         binary_operator   ::= BINARY_SUBTRACT
         binary_operator   ::= BINARY_TRUE_DIVIDE
-        binary_operator   ::= BINARY_FLOOR_DIVIDE
-        binary_operator   ::= BINARY_MODULO
-        binary_operator   ::= BINARY_LSHIFT
-        binary_operator   ::= BINARY_RSHIFT
-        binary_operator   ::= BINARY_POWER
+        binary_operator   ::= BINARY_XOR
 
         # Note: we use "branch_op" in an implementation-specific way.
         #
