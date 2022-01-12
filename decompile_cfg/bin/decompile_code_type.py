@@ -88,6 +88,7 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
 
     success = 0
     skipped = 0
+    skipped = 0
     total = 0
     for filename in files:
         print(f"total: {total}, success: {success}")
@@ -112,9 +113,12 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
                     or filename.endswith(".pyo")
                     or os.path.isdir(filename)
                 ):
-                    decompile_fn(filename, outfile, showasm=asm, showgrammar=show_grammar, showast=show_ast)
+                    succeeded = decompile_fn(filename, outfile, showasm=asm, showgrammar=show_grammar, showast=show_ast)
                     print()
-                    success += 1
+                    if succeeded:
+                        success += 1
+                    elif succeeded is None:
+                        skipped += 1
                     total += 1
             else:
                 print(f"Can't read {filename}; skipping", file=outfile)
@@ -128,7 +132,7 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
             print(sys.exc_info()[1])
             total += 1
         pass
-    print(f"total: {total}, success: {success}")
+    print(f"total: {total}, success: {success}, skipped: {skipped}")
     return
 
 

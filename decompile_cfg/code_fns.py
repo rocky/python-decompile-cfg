@@ -30,6 +30,7 @@ want to run on earlier Python versions.
 """
 
 import sys
+from typing import Optional
 from collections import deque
 
 from xdis import check_object_path, iscode, load_module
@@ -39,6 +40,7 @@ from decompile_cfg.semantics.pysource import (
     PARSER_DEFAULT_DEBUG,
     TREE_DEFAULT_DEBUG,
 )
+from py_compile import PyCompileError
 
 
 def disco_deparse(
@@ -106,7 +108,7 @@ def decompile_code_type(
     showasm=None,
     showast=TREE_DEFAULT_DEBUG,
     showgrammar=PARSER_DEFAULT_DEBUG,
-) -> None:
+) -> bool:
     """
     decompile all of the lambda functions in a python byte-code file (.pyc)
 
@@ -115,9 +117,9 @@ def decompile_code_type(
     """
     try:
         filename = check_object_path(filename)
-    except ValueError as e:
+    except (PyCompileError, ValueError) as e:
         print(f"Skipping {filename}:\n{e}")
-        return
+        return None
 
     (version, timestamp, magic_int, co, is_pypy, source_size, sip_hash) = load_module(
         filename
@@ -136,6 +138,7 @@ def decompile_code_type(
         disco_deparse(
             version, co, compile_mode, code_type, outstream, is_pypy, debug_opts
         )
+    return True
 
 
 def decompile_lambda_fns(
@@ -145,14 +148,14 @@ def decompile_lambda_fns(
     showasm=None,
     showast=TREE_DEFAULT_DEBUG,
     showgrammar=PARSER_DEFAULT_DEBUG,
-) -> None:
+) -> Optional[bool]:
     """
     decompile all of the lambda functions in a python byte-code file (.pyc)
 
     If given a Python source file (".py") file, we'll
     decompile all lambdas of the corresponding compiled object.
     """
-    decompile_code_type(
+    return decompile_code_type(
         filename, "lambda", "<lambda>", outstream, showasm, showast, showgrammar
     )
 
@@ -164,14 +167,14 @@ def decompile_list_comprehensions(
     showasm=None,
     showast=TREE_DEFAULT_DEBUG,
     showgrammar=PARSER_DEFAULT_DEBUG,
-) -> None:
+) -> Optional[bool]:
     """
     decompile all of the lambda functions in a python byte-code file (.pyc)
 
     If given a Python source file (".py") file, we'll
     decompile all list_comprehensions of the corresponding compiled object.
     """
-    decompile_code_type(
+    return decompile_code_type(
         filename, "exec", "<listcomp>", outstream, showasm, showast, showgrammar
     )
 
