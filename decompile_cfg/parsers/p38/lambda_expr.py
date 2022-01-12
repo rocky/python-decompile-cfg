@@ -192,7 +192,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                          JUMP_BACK
                          bb_doms_end_start
 
-        for_iter       ::= bb_end_start FOR_ITER
+        for_iter       ::= bb_end_start FOR_ITER bb_end_start
 
         # FIXME: go over:
 
@@ -214,6 +214,13 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         dict_comp_body ::= expr expr MAP_ADD
         set_comp_body  ::= expr SET_ADD
+
+        set_comp_func ::= BUILD_SET_0
+                          LOAD_FAST
+                          bb_end_start_opt
+                          for_iter store comp_iter
+                          JUMP_BACK
+                          dom_end_start_opt
         """
 
     def p_comprehension_dict(self, args):
@@ -228,12 +235,15 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         comp_iter     ::= comp_if
         comp_iter     ::= comp_if_not
 
-        # c_or       ::= or
-        # c_or       ::= c_or_parts expr
-        # c_or_parts ::= expr_pjift+
-
-        # or_jump_if_false_cf    ::= or POP_JUMP_IF_FALSE COME_FROM
-        # c_or_jump_if_false_cf  ::= c_or POP_JUMP_IF_FALSE_BACK COME_FROM
+        dict_comp_func ::= BUILD_MAP_0
+                          LOAD_FAST
+                          for_iter
+                          store
+                          comp_iter
+                          JUMP_BACK
+                          bb_doms_end_start
+                          RETURN_VALUE
+                          bb_doms_end
         """
 
     def p_comprehension_list(self, args):
@@ -250,7 +260,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         list_for  ::= expr
                       for_iter
-                      bb_end_start
                       store list_iter
                       jump_back
                       bb_doms_end_start_opt
@@ -275,6 +284,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         comp_iter     ::= comp_body
         comp_iter     ::= comp_for
         comp_body     ::= gen_comp_body
+
+
         gen_comp_body ::= expr
                           YIELD_VALUE
                           BB_END DOM_END BB_START POP_TOP
@@ -282,6 +293,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           bb_end_start
                           YIELD_VALUE
                           bb_doms_end_start POP_TOP
+
         """
 
     def p_expr(self, args):
@@ -331,17 +343,18 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         right             ::= arg
 
         binary_operator   ::= BINARY_ADD
-        binary_operator   ::= BINARY_MULTIPLY
         binary_operator   ::= BINARY_AND
+        binary_operator   ::= BINARY_FLOOR_DIVIDE
+        binary_operator   ::= BINARY_LSHIFT
+        binary_operator   ::= BINARY_MATRIX_MULTIPLY
+        binary_operator   ::= BINARY_MODULO
+        binary_operator   ::= BINARY_MULTIPLY
         binary_operator   ::= BINARY_OR
-        binary_operator   ::= BINARY_XOR
+        binary_operator   ::= BINARY_POWER
+        binary_operator   ::= BINARY_RSHIFT
         binary_operator   ::= BINARY_SUBTRACT
         binary_operator   ::= BINARY_TRUE_DIVIDE
-        binary_operator   ::= BINARY_FLOOR_DIVIDE
-        binary_operator   ::= BINARY_MODULO
-        binary_operator   ::= BINARY_LSHIFT
-        binary_operator   ::= BINARY_RSHIFT
-        binary_operator   ::= BINARY_POWER
+        binary_operator   ::= BINARY_XOR
 
         # Note: we use "branch_op" in an implementation-specific way.
         #
@@ -443,6 +456,19 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                     LOAD_CONST
                                     RETURN_VALUE
                                     bb_doms_end
+
+        return_expr_lambda      ::= dom_start_opt
+                                    set_comp_func
+                                    RETURN_VALUE
+                                    bb_doms_end
+
+        return_expr_lambda      ::= dom_start_opt
+                                    dict_comp_func
+                                    RETURN_VALUE
+                                    bb_doms_end
+
+        return_expr_lambda      ::= dom_start_opt
+                                    dict_comp_func
 
         return_expr_lambda      ::= if_exp_lambda
         return_expr_lambda      ::= if_exp_binop_lambda
