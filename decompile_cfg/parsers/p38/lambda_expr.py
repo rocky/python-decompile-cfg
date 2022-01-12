@@ -164,23 +164,23 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # Python3 scanner adds LOAD_LISTCOMP. Python3 does list comprehension like
         # other comprehensions (set, dictionary).
 
-        gen_comp_body  ::= expr
-                           bb_doms_end_start_opt
-                           YIELD_VALUE bb_doms_end_start
-                           POP_TOP
+        gen_comp_body   ::= expr
+                            bb_doms_end_start_opt
+                            YIELD_VALUE bb_doms_end_start
+                            POP_TOP
 
-        genexpr_func   ::= LOAD_FAST
-                           bb_end_start
-                           FOR_ITER
-                           bb_end_start
-                           store
-                           comp_iter
-                           JUMP_BACK
-                           bb_doms_end_start
+        generator_exp   ::= LOAD_FAST
+                            bb_end_start
+                            FOR_ITER
+                            bb_end_start
+                            store
+                             comp_iter
+                            JUMP_BACK
+                            bb_doms_end_start
 
-        for_iter       ::= bb_end_start
-                           FOR_ITER
-                           bb_end_start
+        for_iter        ::= bb_end_start
+                            FOR_ITER
+                            bb_end_start
 
         # FIXME: go over:
 
@@ -439,7 +439,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         # FIXME: generalize this
         return_expr_lambda      ::= dom_start_opt
-                                    genexpr_func
+                                    generator_exp
                                     LOAD_CONST
                                     RETURN_VALUE
                                     bb_doms_end

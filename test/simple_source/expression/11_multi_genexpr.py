@@ -13,7 +13,7 @@
 # comp_iter ::= comp_body
 # comp_for ::= expr _for store comp_iter JUMP_BACK
 # comp_iter ::= comp_for
-# genexpr_func ::= LOAD_FAST FOR_ITER store comp_iter JUMP_BACK
+# generator_exp ::= LOAD_FAST FOR_ITER store comp_iter JUMP_BACK
 
 def multi_genexpr(blog_posts):
 

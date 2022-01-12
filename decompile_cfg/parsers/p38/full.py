@@ -191,7 +191,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         returns ::= return
         returns ::= _stmts return
 
-        stmt ::= genexpr_func
+        stmt ::= generator_exp
         """
         pass
 
