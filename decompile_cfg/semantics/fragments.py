@@ -371,7 +371,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
             start = len(self.f.getvalue()) + len(self.indent)
             self.write(self.indent, "return")
             if self.return_none or node != SyntaxTree(
-                "return", [SyntaxTree("return_expr", [NONE]), Token("RETURN_END_IF")]
+                "return", [SyntaxTree("return_expr", [NONE]), Token("RETURN_VALUE")]
             ):
                 self.write(" ")
                 self.preorder(node[0])

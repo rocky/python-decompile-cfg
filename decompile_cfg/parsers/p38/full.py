@@ -433,9 +433,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         inplace_op       ::= INPLACE_MATRIX_MULTIPLY
         binary_operator  ::= BINARY_MATRIX_MULTIPLY
 
-        # FIXME: do we need these?
-        return_if_stmt ::= return_expr RETURN_END_IF POP_BLOCK
-
         jb_cf     ::= JUMP_BACK COME_FROM
         ifelsestmtc ::= testexpr c_stmts_opt JUMP_FORWARD else_suitec
 
@@ -520,7 +517,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
 
         return_if_stmts ::= return_if_stmt come_from_opt
         return_if_stmts ::= _stmts return_if_stmt _come_froms
-        return_if_stmt  ::= return_expr RETURN_END_IF
         returns         ::= _stmts return_if_stmt
 
 
@@ -827,8 +823,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         # FIXME: simplify this
         return_expr_or_cond ::= if_exp_ret
         return_expr_or_cond ::= return_expr
-
-        if_exp_ret ::= expr POP_JUMP_IF_FALSE expr RETURN_END_IF COME_FROM return_expr_or_cond
 
         testfalse ::= or POP_JUMP_IF_FALSE COME_FROM
         testfalse ::= nand
@@ -1236,7 +1230,7 @@ if __name__ == "__main__":
 
     p = Python38FullParser(start_symbol="stmts")
     modified_tokens = set(
-        """JUMP_BACK CONTINUE RETURN_END_IF COME_FROM
+        """JUMP_BACK CONTINUE
            LOAD_GENEXPR LOAD_ASSERT LOAD_SETCOMP LOAD_DICTCOMP LOAD_CLASSNAME
            LAMBDA_MARKER RETURN_LAST
         """.split()
