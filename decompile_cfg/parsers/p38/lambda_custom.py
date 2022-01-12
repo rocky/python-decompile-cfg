@@ -524,10 +524,10 @@ class Python38LambdaCustom(Python38BaseParser):
                 # number of apply equiv arguments:
                 nak = (len(opname_base) - len("CALL_METHOD")) // 3
                 rule = (
-                    "call ::= expr "
-                    + ("expr " * args_pos)
+                    "call ::= arg "
+                    + ("arg " * args_pos)
                     + ("kwarg " * args_kw)
-                    + "expr " * nak
+                    + "arg " * nak
                     + opname
                 )
                 self.add_unique_rule(rule, opname, token.attr, customize)
