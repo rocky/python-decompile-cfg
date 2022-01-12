@@ -157,23 +157,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         expr_jifop                 ::= expr JUMP_IF_FALSE_OR_POP
         expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP
         expr_pjiff                 ::= expr pjump_iff
-        # expr_pjift                 ::= expr pjump_ift
-
-        list_iter                  ::= list_if37
-        list_iter                  ::= list_if37_not
-        list_if37                  ::= c_compare_chained37_false list_iter
-        list_if37_not              ::= compare_chained37 list_iter
-
-        # A reduction check distinguishes between "and" and "and_not"
-        # based on whether the POP_IF_JUMP location matches the location of the
-        # POP_JUMP_IF_FALSE.
-
-        # Do we need these?
-        # and_not                    ::= expr_pjif expr_pjit
-        # or_and_not                 ::= expr_pjit and_not COME_FROM
-        # not_and_not                ::= not expr_pjif COME_FROM
-        #
-        # expr                       ::= if_exp_37a
         """
 
     def p_comprehension(self, args):
@@ -181,18 +164,23 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # Python3 scanner adds LOAD_LISTCOMP. Python3 does list comprehension like
         # other comprehensions (set, dictionary).
 
-        gen_comp_body  ::= expr YIELD_VALUE bb_doms_end_start POP_TOP
+        gen_comp_body  ::= expr
+                           bb_doms_end_start_opt
+                           YIELD_VALUE bb_doms_end_start
+                           POP_TOP
 
-        genexpr_func ::= LOAD_FAST
-                         bb_end_start
-                         FOR_ITER
-                         bb_end_start
-                         store
-                         comp_iter
-                         JUMP_BACK
-                         bb_doms_end_start
+        genexpr_func   ::= LOAD_FAST
+                           bb_end_start
+                           FOR_ITER
+                           bb_end_start
+                           store
+                           comp_iter
+                           JUMP_BACK
+                           bb_doms_end_start
 
-        for_iter       ::= bb_end_start FOR_ITER bb_end_start
+        for_iter       ::= bb_end_start
+                           FOR_ITER
+                           bb_end_start
 
         # FIXME: go over:
 
@@ -228,7 +216,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         comp_if       ::= expr_pjif comp_iter
         comp_if       ::= expr_pjiff comp_iter
         comp_if       ::= or_jump_if_false_cf comp_iter
-        comp_if       ::= c_or_jump_if_false_cf comp_iter
         comp_if_not   ::= expr pjump_ift comp_iter
 
         comp_iter     ::= comp_body
