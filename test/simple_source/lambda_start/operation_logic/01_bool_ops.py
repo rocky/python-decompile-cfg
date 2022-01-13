@@ -1,7 +1,14 @@
 # FIXME: We don't have statements in yet.
+# These are an accumulation of lambda expressions involving logical operations.
+# They were culled from all lambda's on my disk under Python 3.8.
+
 # we can turn this into a self-checking program when we do.
 # """This program is self-checking!"""
 
+# NOTE: Formatting may be weird because we want the additional line numbers
+# in debugging.
+
+# fmt: off
 lambda a: a
 lambda a, b: a or b
 lambda a, b, c: a or b or c
@@ -30,3 +37,21 @@ lambda glyphs, c, r: r in glyphs
 lambda x: x is False
 
 lambda x, y: ((y and x) or (y and x) or 0.0)
+
+lambda m, n, d, fo: d or (n and m and d)
+
+lambda x, y: ((y and x) or (y and x) or 0.0)
+
+# From imaplib.py
+lambda x: (x[0], x[1][0] and '" "'.join(x[1]) or "")
+
+# From sympy/integrals/manualintegrate.py
+lambda integrand, symbol: (
+    all(arg.is_Pow or arg.is_polynomial(symbol) for arg in integrand.args)
+    or isinstance(integrand, str)
+    or isinstance(integrand, int))
+
+lambda integrand, symbol: (
+    all(arg or symbol for arg in integrand.args)
+    or int(integrand)
+    or bool(symbol))

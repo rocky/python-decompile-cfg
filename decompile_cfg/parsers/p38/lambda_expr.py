@@ -120,8 +120,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         jifop       ::= JUMP_IF_FALSE_OR_POP bb_end_start
         jifop_opt   ::= JUMP_IF_FALSE_OR_POP bb_end_start_opt
         jitop       ::= JUMP_IF_TRUE_OR_POP BB_END dom_start
-        jifop_expr  ::= JUMP_IF_FALSE_OR_POP bb_doms_end dom_start expr
-        jitop_expr  ::= JUMP_IF_TRUE_OR_POP bb_doms_end dom_start expr
         """
 
     # Dominator and basic block pseudo operations needed
@@ -191,9 +189,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # one may be a continue - sometimes classifies a JUMP_BACK
         # as a CONTINUE. The two are kind of the same in a comprehension.
 
-        # comp_for       ::= expr get_for_iter store comp_iter CONTINUE _come_froms
-        # comp_for       ::= expr get_for_iter store comp_iter JUMP_BACK _come_froms
-
         # get_for_iter   ::= GET_ITER _come_froms FOR_ITER
 
         comp_body      ::= dict_comp_body
@@ -215,7 +210,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         """ "
         comp_if       ::= expr_pjif comp_iter
         comp_if       ::= expr_pjiff comp_iter
-        comp_if       ::= or_jump_if_false_cf comp_iter
         comp_if_not   ::= expr pjump_ift comp_iter
 
         comp_iter     ::= comp_body
@@ -237,7 +231,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         """
         list_iter ::= list_for
         list_iter ::= list_if
-        list_iter ::= list_if_not
         list_iter ::= list_if_or_not
         list_iter ::= lc_body
 
@@ -254,16 +247,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         list_comp ::= BUILD_LIST_0 list_iter
 
         list_if     ::= expr list_if_end list_iter
-        list_if     ::= expr jump_if_false_cf   list_iter
         list_if     ::= expr pjump_iff list_iter
 
         list_if_end ::= pjump_iff BB_END dom_start
-
-        # Need to fix or remove
-        list_if_or_not ::= expr_pjit expr_pjit COME_FROM list_iter
-        list_if_not_end ::= pjump_ift _come_froms
-        list_if_not ::= expr list_if_not_end list_iter come_from_opt
-
         """
 
     def p_comprehension_set(self, args):
@@ -307,7 +293,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         expr ::= list_comp
 
         expr ::= named_expr
-        expr ::= not
         expr ::= subscript
         expr ::= subscript2
         expr ::= unary_not
@@ -416,9 +401,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         pjump_iff          ::= POP_JUMP_IF_FALSE
         pjump_iff          ::= POP_JUMP_IF_FALSE_BACK
-
-        # pjump              ::= pjump_iff
-        # pjump              ::= pjump_ift
         """
 
     def p_lambda(self, args):
@@ -460,7 +442,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         return_expr_lambda      ::= if_exp_lambda
         return_expr_lambda      ::= if_exp_binop_lambda
         return_expr_lambda      ::= if_exp_not_lambda
-        return_expr_lambda      ::= if_exp_dead_code
 
         # return_expr_lambda with a binary operator before the return
         return_expr_binop_lambda  ::= dom_start_opt

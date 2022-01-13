@@ -278,7 +278,6 @@ class Python38LambdaCustom(Python38BaseParser):
                 else:
                     rule_str = f"""
                      list  ::= {'expr ' * v}{opname}
-                     expr  ::= list
                     """
                     self.add_unique_doc_rules(rule_str, customize)
 
