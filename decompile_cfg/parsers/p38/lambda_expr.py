@@ -115,6 +115,13 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                 ROT_TWO POP_TOP
                                 bb_doms_end_start_opt
 
+        compare_chained     ::= expr
+                                compare_chained1
+                                bb_doms_end_start
+                                ROT_TWO POP_TOP
+                                bb_doms_end_start_opt
+
+
         # FIXME: simplify the compare_chain1 recursion?
         compare_chained1    ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop_opt
                                 compare_chained1
