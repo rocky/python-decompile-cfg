@@ -79,14 +79,17 @@ def customize_for_version3(self, version):
         assert iscode(code_obj), node[1]
         code = Code(code_obj, self.scanner, self.currentclass, self.debug_opts["asm"])
 
-        ast = self.build_ast(code._tokens, code._customize, code, is_lambda = self.compile_mode == "lambda")
+        ast = self.build_ast(
+            code._tokens,
+            code._customize,
+            code,
+            is_lambda=self.compile_mode in ("lambda", "listcomp"),
+        )
         self.customize(code._customize)
 
         # skip over: sstmt, stmt, return, return_expr
         # and other singleton derivations
-        while len(ast) == 1 or (
-            ast in ("sstmt", "return", "return_expr")
-        ):
+        while len(ast) == 1 or (ast in ("sstmt", "return", "return_expr")):
             self.prec = 100
             ast = ast[0]
 
@@ -132,7 +135,11 @@ def customize_for_version3(self, version):
                     list_ifs.append([1])
                 # FIXME: figure out what is up with come_from_opt - we have bb stuff
                 last_kind = n[-1].kind
-                n = n[-2] if last_kind.startswith("bb") or last_kind.startswith("dom") else n[-1]
+                n = (
+                    n[-2]
+                    if last_kind.startswith("bb") or last_kind.startswith("dom")
+                    else n[-1]
+                )
                 pass
             elif n == "list_if37":
                 list_ifs.append(n)

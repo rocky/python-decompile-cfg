@@ -70,12 +70,23 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                        bb_end_start
                        expr
 
-        if_exp     ::= branch_op
-                       POP_JUMP_IF_FALSE
-                       expr
-                       JUMP_FORWARD
-                       bb_end_start
-                       expr
+        if_exp      ::= branch_op
+                        POP_JUMP_IF_FALSE
+                        expr
+                        JUMP_FORWARD
+                        bb_end_start
+                        expr
+
+
+        if_exp_loop ::= expr
+                        POP_JUMP_IF_FALSE
+                        expr
+                        POP_JUMP_IF_FALSE_BACK
+                        JUMP_FORWARD
+                        bb_end_start
+                        expr
+
+
 
         if_exp_not ::= expr
                        POP_JUMP_IF_TRUE
@@ -126,18 +137,20 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
     # to assist control flow
     def p_dom(self, args):
         """
-        dom_start        ::= DOM_START BB_START
-        dom_start_opt    ::= dom_start?
-        dom_end          ::= BB_END DOM_END
-        bb_end_start     ::= BB_END dom_start
-        bb_end_start_opt ::= bb_end_start?
-        dom_end_opt      ::= dom_end?
-        bb_doms_end      ::= BB_END doms_end
-        bb_doms_end_opt  ::= bb_doms_end?
-        doms_end         ::= DOM_END+
-        dom_end_opt      ::= dom_end?
-        dom_end_start    ::= dom_end dom_start
-        dom_end_start_opt ::= dom_end_start?
+        dom_start          ::= DOM_START BB_START
+        dom_start_opt      ::= dom_start?
+        dom_end            ::= BB_END DOM_END
+        bb_end_start       ::= BB_END dom_start
+        bb_end_start_opt   ::= bb_end_start?
+        dom_end_opt        ::= dom_end?
+        bb_doms_end        ::= BB_END doms_end
+        bb_doms_end_opt    ::= bb_doms_end?
+        doms_end           ::= DOM_END+
+        dom_end_opt        ::= dom_end?
+        dom_end_start      ::= dom_end dom_start
+        dom_end_start_opt  ::= dom_end_start?
+        doms_end_start     ::= bb_doms_end dom_start
+        doms_end_start_opt ::= bb_doms_end dom_start
 
 
         bb_end_start          ::= BB_END dom_start
@@ -234,6 +247,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         list_iter ::= list_if_or_not
         list_iter ::= lc_body
 
+        lc_body   ::= expr doms_end_start_opt LIST_APPEND
         lc_body   ::= expr dom_end_start_opt LIST_APPEND
 
         jump_back ::= JUMP_BACK bb_doms_end_start
@@ -342,6 +356,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         branch_op ::= or_and bb_doms_end_opt
 
         branch_op ::= if_exp bb_doms_end_opt
+        branch_op ::= if_exp_loop
         branch_op ::= if_exp_not bb_doms_end_opt
         branch_op ::= if_exp_true bb_doms_end_opt
 
@@ -400,7 +415,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         pjump_ift          ::= POP_JUMP_IF_TRUE_BACK
 
         pjump_iff          ::= POP_JUMP_IF_FALSE
-        pjump_iff          ::= POP_JUMP_IF_FALSE_BACK
+        pjump_iff          ::= POP_JUMP_IF_FALSE_BACK dom_end_start_opt
         """
 
     def p_lambda(self, args):

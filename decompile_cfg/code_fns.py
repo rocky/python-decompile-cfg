@@ -175,7 +175,7 @@ def decompile_list_comprehensions(
     decompile all list_comprehensions of the corresponding compiled object.
     """
     return decompile_code_type(
-        filename, "exec", "<listcomp>", outstream, showasm, showast, showgrammar
+        filename, "listcomp", "<listcomp>", outstream, showasm, showast, showgrammar
     )
 
 

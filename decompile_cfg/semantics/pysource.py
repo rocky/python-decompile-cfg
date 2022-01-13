@@ -1105,24 +1105,30 @@ class SourceWalker(GenericASTTraversal, object):
         #? Is this needed
         p = self.prec
 
-        ast = self.get_comprehension_function(node, code_index)
+        # FIXME? Nonterminals in grammar maybe should be split out better?
+        # Maybe test on self.compile_mode?
+        if isinstance(node[0], Token) and node[0].kind.startswith("LOAD"):
+            tree = self.get_comprehension_function(node, code_index)
+        else:
+            tree = node
+
         # Pick out important parts of the comprehension:
         # * the variable we iterate over: "store"
         # * the results we accumulate: "n"
 
         store = None
         if node == "list_comp_async":
-            n = ast[2][1]
+            n = tree[2][1]
         else:
-            n = ast[iter_index]
+            n = tree[iter_index]
 
-        if ast in (
+        if tree in (
             "set_comp_func",
             "dict_comp_func",
             "list_comp",
             "set_comp_func_header",
         ):
-            for k in ast:
+            for k in tree:
                 if k == "comp_iter":
                     n = k
                 elif k == "store":
@@ -1130,8 +1136,8 @@ class SourceWalker(GenericASTTraversal, object):
                     pass
                 pass
             pass
-        elif ast == "list_comp_async":
-            store = ast[2][1]
+        elif tree == "list_comp_async":
+            store = tree[2][1]
         else:
             # FIXME: we get this when we parse lambda's explicitly.
             # And here we've already printed/handled the list comprehension
@@ -1152,9 +1158,10 @@ class SourceWalker(GenericASTTraversal, object):
         if n == "comp_iter":
             comp_for = n
             if not store:
-                comp_store = ast[3]
+                comp_store = tree[3]
 
         have_not = False
+        for_node = None
 
         # Iterate to find the inner-most "store".
         # We'll come back to the list iteration below.
@@ -1171,6 +1178,7 @@ class SourceWalker(GenericASTTraversal, object):
                 n = n[0]
 
             if n in ("list_for", "comp_for"):
+                for_node = n
                 if n[2] == "store" and not store:
                     store = n[2]
                     if not comp_store:
@@ -1223,14 +1231,18 @@ class SourceWalker(GenericASTTraversal, object):
             self.preorder(store)
 
         self.write(" in ")
-        self.preorder(node[in_node_index])
+        if self.compile_mode == "listcomp":
+            self.preorder(for_node[0])
+        else:
+            self.preorder(node[in_node_index])
 
         # Here is where we handle nested list iterations.
-        if ast == "list_comp":
-            list_iter = ast[1]
+        if tree == "list_comp":
+            list_iter = tree[1]
             assert list_iter == "list_iter"
-            if list_iter[0] == "list_for":
-                self.preorder(list_iter[0][4])
+            list_for = list_iter[0]
+            if list_for == "list_for":
+                self.preorder(list_for[3])
                 self.prec = p
                 return
             pass
@@ -1271,12 +1283,12 @@ class SourceWalker(GenericASTTraversal, object):
         """
         p = self.prec
 
-        ast = self.get_comprehension_function(node, 1)
+        tree = self.get_comprehension_function(node, 1)
 
-        store = ast[3]
+        store = tree[3]
         collection = node[collection_index]
 
-        n = ast[4]
+        n = tree[4]
         list_if = None
         assert n == "comp_iter"
 
@@ -1304,7 +1316,7 @@ class SourceWalker(GenericASTTraversal, object):
                 pass
             pass
 
-        assert n == "comp_body", ast
+        assert n == "comp_body", tree
 
         self.preorder(n[0])
         self.write(" for ")
@@ -2295,6 +2307,7 @@ class SourceWalker(GenericASTTraversal, object):
             self.p.insts = self.scanner.insts
             self.p.offset2inst_index = self.scanner.offset2inst_index
             self.p.opc = self.scanner.opc
+            # from trepan.api import debug; debug()
             ast = python_parser.parse(self.p, tokens, customize, is_lambda=is_lambda)
 
             self.p.insts = p_insts
@@ -2366,7 +2379,7 @@ def code_deparse(
         tokens,
         customize,
         co,
-        is_lambda=(compile_mode == "lambda"),
+        is_lambda=(compile_mode in ("lambda", "listcomp")),
         isTopLevel=isTopLevel,
     )
 
@@ -2375,7 +2388,7 @@ def code_deparse(
         return None
 
     # FIXME use a lookup table here.
-    if compile_mode == "lambda":
+    if compile_mode in ("lambda", "listcomp"):
         expected_start = "lambda_start"
     elif compile_mode == "eval":
         expected_start = "expr_start"
@@ -2387,6 +2400,7 @@ def code_deparse(
         expected_start = "single_start"
     else:
         expected_start = None
+
     if expected_start:
         assert (
             deparsed.ast == expected_start
@@ -2409,7 +2423,7 @@ def code_deparse(
         deparsed.ast,
         name=co.co_name,
         customize=customize,
-        is_lambda=compile_mode == "lambda",
+        is_lambda=compile_mode in ("lambda", "listcomp"),
         debug_opts=debug_opts,
     )
 
