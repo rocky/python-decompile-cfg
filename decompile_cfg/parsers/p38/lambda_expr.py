@@ -242,28 +242,32 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
     def p_comprehension_list(self, args):
         """
-        list_iter ::= list_for
-        list_iter ::= list_if
-        list_iter ::= list_if_or_not
-        list_iter ::= lc_body
+        list_iter       ::= list_for
+        list_iter       ::= list_if
+        list_iter       ::= list_if_not
+        list_iter       ::= lc_body
 
-        lc_body   ::= expr doms_end_start_opt LIST_APPEND
-        lc_body   ::= expr dom_end_start_opt LIST_APPEND
+        lc_body         ::= expr doms_end_start_opt LIST_APPEND
+        lc_body         ::= expr dom_end_start_opt LIST_APPEND
 
-        jump_back ::= JUMP_BACK bb_doms_end_start
+        jump_back       ::= JUMP_BACK bb_doms_end_start
 
-        list_for  ::= expr
-                      for_iter
-                      store list_iter
-                      jump_back
-                      bb_doms_end_start_opt
+        list_for        ::= expr
+                            for_iter
+                            store list_iter
+                            jump_back
+                            bb_doms_end_start_opt
 
-        list_comp ::= BUILD_LIST_0 list_iter
+        list_comp       ::= BUILD_LIST_0 list_iter
 
-        list_if     ::= expr list_if_end list_iter
-        list_if     ::= expr pjump_iff list_iter
+        list_if         ::= expr list_if_end list_iter
+        list_if         ::= expr pjump_iff list_iter
 
-        list_if_end ::= pjump_iff BB_END dom_start
+        list_if_end     ::= pjump_iff bb_end_start
+
+        list_if_not     ::= expr list_if_not_end list_iter
+        list_if_not_end ::= pjump_ift
+        # list_if_not_end ::= pjump_ift bb_end_start_opt
         """
 
     def p_comprehension_set(self, args):
