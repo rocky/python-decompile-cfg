@@ -86,8 +86,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                         bb_end_start
                         expr
 
-
-
         if_exp_not ::= expr
                        POP_JUMP_IF_TRUE
                        expr
@@ -187,7 +185,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             YIELD_VALUE bb_doms_end_start
                             POP_TOP
 
-        generator_exp   ::= LOAD_FAST
+        generator_exp   ::= expr_or_arg
                             bb_end_start
                             FOR_ITER
                             bb_end_start
@@ -216,10 +214,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         comp_body      ::= gen_comp_body
 
         dict_comp_body ::= expr expr MAP_ADD
-        set_comp_body  ::= expr SET_ADD
+        set_comp_body  ::= LOAD_FAST SET_ADD
 
         set_comp_func ::= BUILD_SET_0
-                          LOAD_FAST
+                          expr_or_arg
                           bb_end_start_opt
                           for_iter store comp_iter
                           JUMP_BACK
@@ -237,7 +235,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         comp_iter     ::= comp_if_not
 
         dict_comp_func ::= BUILD_MAP_0
-                          LOAD_FAST
+                          expr_or_arg
                           for_iter
                           store
                           comp_iter
@@ -259,7 +257,13 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         jump_back       ::= JUMP_BACK bb_doms_end_start
 
-        list_for        ::= expr
+        expr_or_arg     ::= LOAD_ARG
+        expr_or_arg     ::= expr
+
+
+        # A leading "expr" is used when we have nested list comprehensions. E.g.
+        #   ... for dir in dirs for filename in files
+        list_for        ::= expr_or_arg
                             for_iter
                             store list_iter
                             jump_back
