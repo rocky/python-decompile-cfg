@@ -1,6 +1,6 @@
 # FIXME: We don't have statements in yet.
 # These are an accumulation of lambda expressions involving all of the varied kinds of
-# variable parameters
+# variable parameters.
 # They were culled from all lambda's on my disk under Python 3.8.
 
 # NOTE: Formatting may be weird because we want the additional line numbers
