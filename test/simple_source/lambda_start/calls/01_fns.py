@@ -43,3 +43,9 @@ lambda *paths: join(*((sep,)+paths))
 lambda x: func(
     pu(x, window, domain),
     *args)
+
+# From pint/registry.py
+lambda x, case_sensitive, values, eval_token: eval_token(
+    x,
+    case_sensitive=case_sensitive,
+    **values)
