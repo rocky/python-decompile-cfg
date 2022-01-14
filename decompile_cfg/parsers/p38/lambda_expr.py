@@ -119,15 +119,23 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                 ROT_TWO POP_TOP
                                 bb_doms_end_start_opt
 
+        compare_chained     ::= expr
+                                compare_chained1c
 
         # FIXME: simplify the compare_chain1 recursion?
         compare_chained1    ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop_opt
                                 compare_chained1
-        compare_chained1    ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop_opt
-                                compare_chained2 bb_doms_end_start_opt
 
-        compare_chained2    ::= expr COMPARE_OP JUMP_FORWARD
-        compare_chained2    ::= expr COMPARE_OP RETURN_VALUE
+        compare_chained1   ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop_opt
+                               compare_chained2 bb_doms_end_start_opt
+
+        compare_chained2   ::= expr COMPARE_OP JUMP_FORWARD
+        compare_chained2   ::= expr COMPARE_OP RETURN_VALUE
+
+        # When used in an "if" of a comprehension
+        compare_chained_comprehension  ::= expr DUP_TOP ROT_THREE COMPARE_OP pjump_iff_forward
+                                           compare_chained2_comprehension
+        compare_chained2_comprehension ::= expr COMPARE_OP POP_JUMP_IF_FALSE_BACK JUMP_FORWARD
         """
 
     # Conditional jumps with dominator information included
@@ -261,6 +269,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         list_iter       ::= list_for
         list_iter       ::= list_if
         list_iter       ::= list_if_and_or
+        list_iter       ::= list_if_chained
         list_iter       ::= list_if_not
         list_iter       ::= lc_body
 
@@ -277,6 +286,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         list_if         ::= expr list_if_end list_iter
         list_if         ::= expr pjump_iff_loop list_iter
+        list_if_chained ::= expr compare_chained_comprehension
+                            bb_end_start
+                            POP_TOP JUMP_LOOP
+                            bb_doms_end_start
+                            list_iter
 
         list_if_and_or  ::= expr pjump_iff
                             expr
