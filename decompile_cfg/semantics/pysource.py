@@ -168,7 +168,6 @@ from decompile_cfg.semantics.consts import (
     PRECEDENCE,
     escape,
     minint,
-    maxint,
 )
 
 
@@ -1203,6 +1202,8 @@ class SourceWalker(GenericASTTraversal, object):
                         store = n[1]
                     n = n[2]
                     pass
+            elif n.kind == "list_if_and_or":
+                n = n[-1]
             pass
 
         assert store, "Couldn't find store in list/set comprehension"
@@ -1299,7 +1300,7 @@ class SourceWalker(GenericASTTraversal, object):
             if n == "list_for":
                 store = n[2]
                 n = n[3]
-            elif n in ("list_if", "list_if_not", "comp_if", "comp_if_not"):
+            elif n in ("list_if", "list_if_not", "list_if_and_or", "comp_if", "comp_if_not"):
                 # FIXME: just a guess
                 if n[0].kind == "expr":
                     list_if = n
