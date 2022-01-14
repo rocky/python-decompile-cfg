@@ -1234,7 +1234,11 @@ class SourceWalker(GenericASTTraversal, object):
 
         self.write(" in ")
         if self.compile_mode == "listcomp":
-            self.preorder(for_node[0])
+            if for_node is None:
+                assert node[3] == "expr"
+                self.preorder(node[3])
+            else:
+                self.preorder(for_node[0])
         else:
             self.preorder(node[in_node_index])
 
