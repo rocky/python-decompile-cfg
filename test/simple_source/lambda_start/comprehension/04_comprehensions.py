@@ -10,7 +10,6 @@
 # in debugging.
 
 # fmt: off
-
 lambda f: (yield from f())
 
 # From sympy/integrals/manualintegrate.py
@@ -20,7 +19,22 @@ lambda integrand, symbol: (
      in integrand()})
 
 # From sympy/polys/matrices/sdm.py:
-lambda n, ddm: {j:ddm for j in n if ddm}
-lambda i, ddm: {j:ddm[i][j] for j in range(5) if ddm[i][j]}
-lambda getrow: ((i, getrow(i)) for i in range(10))
-lambda irows: {i: row for i, row in irows if row}
+lambda n, ddm: {j
+                for j
+                in n
+                if ddm}
+
+lambda i, ddm: {ddm[i][j]
+                for j
+                in range(5)
+                if ddm[i][j]}
+
+# Generator
+lambda getrow: ((i, getrow(i))
+                for i
+                in range(10))
+
+lambda irows: {i
+               for i, row
+               in irows
+               if row}

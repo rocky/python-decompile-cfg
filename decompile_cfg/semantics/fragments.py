@@ -1,4 +1,4 @@
-#  Copyright (c) 2015-2021 by Rocky Bernstein
+#  Copyright (c) 2015-2022 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -908,7 +908,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
             self.set_pos_info(node[0], start - 1, start)
             self.comprehension_walk3(node, 1, 0)
         elif node[0].kind == "load_closure":
-            self.setcomprehension_walk3(node, collection_index=4)
+            self.closure_walk(node, collection_index=4)
         else:
             self.comprehension_walk(node, iter_index=4)
         self.write("}")
@@ -964,22 +964,18 @@ class FragmentsWalker(pysource.SourceWalker, object):
         self.write("]")
         self.prune()
 
-    def setcomprehension_walk3(self, node, collection_index):
-        """Set comprehensions the way they are done in Python3.
-        They're more other comprehensions, e.g. set comprehensions
-        See if we can combine code.
+    def closure_walk(self, node, collection_index):
+        """Dictionary and Set comprehensions using closures.
         """
         p = self.prec
         self.prec = 27
 
-        code = Code(node[1].attr, self.scanner, self.currentclass)
-        ast = self.build_ast(code._tokens, code._customize, code)
-        self.customize(code._customize)
-        ast = ast[0][0][0]
-        store = ast[3]
+        tree = self.get_comprehension_function(node, 1)
+
+        store = tree[4]
         collection = node[collection_index]
 
-        n = ast[4]
+        n = tree[5]
         list_if = None
         assert n == "comp_iter"
 
@@ -994,13 +990,16 @@ class FragmentsWalker(pysource.SourceWalker, object):
                 # FIXME: just a guess
                 if n[0].kind == "expr":
                     list_if = n
+                elif n[0].kind in ("expr_pjif", "expr_pjiff"):
+                    list_if = n
+                    n = n[1]
                 else:
                     list_if = n[1]
                 n = n[2]
                 pass
             pass
 
-        assert n == "comp_body", ast
+        assert n == "comp_body", tree
 
         self.preorder(n[0])
         self.write(" for ")

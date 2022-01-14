@@ -1055,7 +1055,7 @@ class SourceWalker(GenericASTTraversal, object):
         if node[0] in ["LOAD_SETCOMP", "LOAD_DICTCOMP"]:
             self.comprehension_walk_newer(node, 1, 0)
         elif node[0].kind == "load_closure":
-            self.setcomprehension_walk3(node, collection_index=4)
+            self.closure_walk(node, collection_index=4)
         else:
             self.comprehension_walk(node, iter_index=4)
         self.write("}")
@@ -1203,6 +1203,7 @@ class SourceWalker(GenericASTTraversal, object):
                     n = n[2]
                     pass
             elif n.kind == "list_if_and_or":
+                if_node = n[-1][0]
                 n = n[-1]
             pass
 
@@ -1244,8 +1245,8 @@ class SourceWalker(GenericASTTraversal, object):
             list_for = list_iter[0]
             if list_for == "list_for":
                 self.preorder(list_for[3])
+                comp_store = None
                 self.prec = p
-                return
             pass
 
         if comp_store:
@@ -1277,20 +1278,19 @@ class SourceWalker(GenericASTTraversal, object):
 
     n_list_comp_async = n_list_comp
 
-    def setcomprehension_walk3(self, node, collection_index: int):
-        """Set comprehensions the way they are done in Python3.
-        They're more other comprehensions, e.g. set comprehensions
-        See if we can combine code.
+    def closure_walk(self, node, collection_index: int):
+        """Dictionary and Set comprehensions using closures.
         """
         p = self.prec
 
         tree = self.get_comprehension_function(node, 1)
 
-        store = tree[3]
+        store = tree[4]
         collection = node[collection_index]
 
-        n = tree[4]
+        n = tree[5]
         list_if = None
+
         assert n == "comp_iter"
 
         # Find inner-most node.
@@ -1307,9 +1307,6 @@ class SourceWalker(GenericASTTraversal, object):
                     n = n[2]
                 elif n[0].kind in ("expr_pjif", "expr_pjiff"):
                     list_if = n
-                    n = n[1]
-                elif n[0].kind in ("or_jump_if_false_cf", "c_or_jump_if_false_cf"):
-                    list_if = n[1]
                     n = n[1]
                 else:
                     list_if = n[1]

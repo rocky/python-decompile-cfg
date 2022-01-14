@@ -191,20 +191,20 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             bb_end_start
                             store
                              comp_iter
-                            JUMP_BACK
+                            JUMP_LOOP
                             bb_doms_end_start
 
-        for_iter        ::= bb_end_start
+        for_iter        ::= bb_end_start_opt
                             FOR_ITER
                             bb_end_start
 
         # FIXME: go over:
 
         # comp_iter      ::= comp_for
-        # comp_for       ::= expr gen_comp_body JUMP_BACK bb_doms_end_start
+        # comp_for       ::= expr gen_comp_body JUMP_LOOP bb_doms_end_start
 
-        # Our "continue" heuristic -  in two successive JUMP_BACKS, the first
-        # one may be a continue - sometimes classifies a JUMP_BACK
+        # Our "continue" heuristic -  in two successive JUMP_LOOPS, the first
+        # one may be a continue - sometimes classifies a JUMP_LOOP
         # as a CONTINUE. The two are kind of the same in a comprehension.
 
         # get_for_iter   ::= GET_ITER _come_froms FOR_ITER
@@ -212,16 +212,26 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         comp_body      ::= dict_comp_body
         comp_body      ::= set_comp_body
         comp_body      ::= gen_comp_body
+        comp_body      ::= list_comp_body
 
         dict_comp_body ::= expr expr MAP_ADD
         set_comp_body  ::= LOAD_FAST SET_ADD
+        list_comp_body ::= LOAD_FAST LIST_APPEND
 
         set_comp_func ::= BUILD_SET_0
                           expr_or_arg
                           bb_end_start_opt
                           for_iter store comp_iter
-                          JUMP_BACK
+                          JUMP_LOOP
                           dom_end_start_opt
+
+        list_comp_func ::= BUILD_LIST_0
+                           expr_or_arg
+                           bb_end_start_opt
+                           for_iter store comp_iter
+                           JUMP_LOOP
+                           dom_end_start_opt
+
         """
 
     def p_comprehension_dict(self, args):
@@ -236,10 +246,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         dict_comp_func ::= BUILD_MAP_0
                           expr_or_arg
+                          bb_end_start_opt
                           for_iter
                           store
                           comp_iter
-                          JUMP_BACK
+                          JUMP_LOOP
                           bb_doms_end_start
                           RETURN_VALUE
                           bb_doms_end
@@ -256,24 +267,16 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         lc_body         ::= expr doms_end_start_opt LIST_APPEND
         lc_body         ::= expr dom_end_start_opt LIST_APPEND
 
-        jump_back       ::= JUMP_BACK bb_doms_end_start
+        jump_loop       ::= JUMP_LOOP bb_doms_end_start
 
         expr_or_arg     ::= LOAD_ARG
         expr_or_arg     ::= expr
 
 
-        # A leading "expr" is used when we have nested list comprehensions. E.g.
-        #   ... for dir in dirs for filename in files
-        list_for        ::= expr_or_arg
-                            for_iter
-                            store list_iter
-                            jump_back
-                            bb_doms_end_start_opt
-
         list_comp       ::= BUILD_LIST_0 list_iter
 
         list_if         ::= expr list_if_end list_iter
-        list_if         ::= expr pjump_iff list_iter
+        list_if         ::= expr pjump_iff_loop list_iter
 
         list_if_and_or  ::= expr pjump_iff
                             expr
@@ -283,12 +286,21 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             pjump_iff
                             list_iter
 
-        list_if_end     ::= pjump_iff bb_end_start
+        list_if_end     ::= pjump_iff_loop bb_end_start
 
 
         list_if_not     ::= expr list_if_not_end list_iter
         list_if_not_end ::= pjump_ift
         # list_if_not_end ::= pjump_ift bb_end_start_opt
+
+        # A leading "expr" is used when we have nested list comprehensions. E.g.
+        #   ... for dir in dirs for filename in files
+        list_for        ::= expr_or_arg
+                            for_iter
+                            store list_iter
+                            jump_loop
+                            bb_doms_end_start_opt
+
         """
 
     def p_comprehension_set(self, args):
@@ -439,8 +451,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         pjump_ift          ::= POP_JUMP_IF_TRUE
         pjump_ift          ::= POP_JUMP_IF_TRUE_BACK
 
-        pjump_iff          ::= POP_JUMP_IF_FALSE
-        pjump_iff          ::= POP_JUMP_IF_FALSE_BACK dom_end_start_opt
+        pjump_iff          ::= pjump_iff_forward
+        pjump_iff          ::= pjump_iff_loop
+        pjump_iff_forward  ::= POP_JUMP_IF_FALSE dom_end_start_opt
+        pjump_iff_loop     ::= POP_JUMP_IF_FALSE_BACK dom_end_start_opt
         """
 
     def p_lambda(self, args):
@@ -612,7 +626,7 @@ if __name__ == "__main__":
     # But that doesn't appear here.
     p = Python38LambdaParser(start_symbol="lambda_start")
     modified_tokens = set(
-        """JUMP_BACK CONTINUE BB_END BB_START DOM_END DOM_START""".split()
+        """JUMP_LOOP CONTINUE BB_END BB_START DOM_END DOM_START""".split()
     )
 
     dump_and_check(p, (3, 8), modified_tokens, set(["lambda_start"]))
