@@ -286,6 +286,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         list_comp       ::= BUILD_LIST_0 list_iter
 
         list_if         ::= expr list_if_end list_iter
+        list_if         ::= branch_op list_if_end list_iter
+
         list_if         ::= expr pjump_iff_loop list_iter
         list_if_chained ::= expr compare_chained_comprehension
                             bb_end_start
@@ -301,7 +303,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             pjump_iff
                             list_iter
 
-        list_if_end     ::= pjump_iff_loop bb_end_start
+        list_if_end     ::= pjump_iff bb_end_start_opt
+        ## list_if_end     ::= pjump_iff bb_end_start_opt
 
 
         list_if_not     ::= expr list_if_not_end list_iter
