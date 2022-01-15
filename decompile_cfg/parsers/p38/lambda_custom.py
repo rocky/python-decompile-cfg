@@ -544,7 +544,6 @@ class Python38LambdaCustom(Python38BaseParser):
                     customize,
                 )
 
-
             elif opname == "FORMAT_VALUE":
                 rules_str = """
                     expr              ::= formatted_value1
@@ -567,6 +566,13 @@ class Python38LambdaCustom(Python38BaseParser):
                     """,
                     customize,
                 )
+
+            elif opname == "GET_AWAITABLE":
+                rule_str = """
+                    await_expr ::= expr GET_AWAITABLE LOAD_CONST YIELD_FROM
+                    expr       ::= await_expr
+                """
+                self.add_unique_doc_rules(rule_str, customize)
 
             elif opname == "LIST_TO_TUPLE":
                 rule_str = """

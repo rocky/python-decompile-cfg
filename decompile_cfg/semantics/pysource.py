@@ -1180,6 +1180,7 @@ class SourceWalker(GenericASTTraversal, object):
         # Find the list comprehension body. It is the inner-most
         # node that is not list_.. .
         if_node = None
+        if_node_parent = None
         comp_for = None
         comp_store = None
         if n == "comp_iter":
@@ -1211,6 +1212,7 @@ class SourceWalker(GenericASTTraversal, object):
                     if not comp_store:
                         comp_store = store
                 n = n[3]
+                assert n == "list_iter"
             elif n in (
                 "list_if",
                 "list_if_not",
@@ -1225,6 +1227,7 @@ class SourceWalker(GenericASTTraversal, object):
                         if_node = n[0]
                     n = n[1]
                 else:
+                    if_node_parent = n
                     if_node = n[0]
                     if n[1] == "store":
                         store = n[1]
@@ -1261,7 +1264,7 @@ class SourceWalker(GenericASTTraversal, object):
             self.preorder(store)
 
         self.write(" in ")
-        if self.compile_mode == "listcomp":
+        if self.compile_mode in ("dictcomp", "listcomp", "gencomp", "setcomp"):
             if for_node is None:
                 assert node[3] == "expr"
                 self.preorder(node[3])
@@ -1276,9 +1279,15 @@ class SourceWalker(GenericASTTraversal, object):
             assert list_iter == "list_iter"
             list_for = list_iter[0]
             if list_for == "list_for":
-                self.preorder(list_for[3])
+                # In the grammar we have:
+                #    list_for ::= _  for_iter store list_iter ...
+                list_iter_inner = list_for[3]
+                assert list_iter_inner == "list_iter"
+                self.preorder(list_iter_inner)
+                if if_node_parent == list_iter_inner[0]:
+                    self.prec = p
+                    return
                 comp_store = None
-                self.prec = p
             pass
 
         if comp_store:
@@ -1627,11 +1636,18 @@ class SourceWalker(GenericASTTraversal, object):
 
     def n_list(self, node):
         """
-        prettyprint a list or tuple
+        prettyprint a dict, list, set or tuple.
         """
         p = self.prec
-        self.prec = PRECEDENCE["yield"] - 1
-        lastnode = node.pop()
+
+        if len(node) == 1:
+            lastnode = node[0]
+            flat_elems = []
+        else:
+            self.prec = PRECEDENCE["yield"] - 1
+            lastnode = node.pop()
+            flat_elems = flatten_list(node)
+
         lastnodetype = lastnode.kind
 
         if lastnodetype.startswith("BUILD_LIST"):
@@ -1674,8 +1690,6 @@ class SourceWalker(GenericASTTraversal, object):
             raise TypeError(
                 "Internal Error: n_build_list expects list, tuple, set, or unpack"
             )
-
-        flat_elems = flatten_list(node)
 
         self.indent_more(INDENT_PER_LEVEL)
         sep = ""

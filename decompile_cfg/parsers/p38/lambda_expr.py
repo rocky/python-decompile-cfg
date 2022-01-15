@@ -198,7 +198,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             FOR_ITER
                             bb_end_start
                             store
-                             comp_iter
+                            comp_iter
                             JUMP_LOOP
                             bb_doms_end_start
 
@@ -308,8 +308,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
 
         list_if_not     ::= expr list_if_not_end list_iter
-        list_if_not_end ::= pjump_ift
-        # list_if_not_end ::= pjump_ift bb_end_start_opt
+        list_if_not_end ::= pjump_ift bb_end_start_opt
 
         # A leading "expr" is used when we have nested list comprehensions. E.g.
         #   ... for dir in dirs for filename in files
