@@ -275,6 +275,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         lc_body         ::= expr doms_end_start_opt LIST_APPEND
         lc_body         ::= expr dom_end_start_opt LIST_APPEND
+        lc_body         ::= branch_op bb_end_start LIST_APPEND
 
         jump_loop       ::= JUMP_LOOP bb_doms_end_start
 
@@ -491,6 +492,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         return_expr_lambda      ::= dom_start_opt
                                     generator_exp
                                     LOAD_CONST
+                                    RETURN_VALUE
+                                    bb_doms_end
+
+        return_expr_lambda      ::= dom_start_opt
+                                    list_comp_func
                                     RETURN_VALUE
                                     bb_doms_end
 

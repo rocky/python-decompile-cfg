@@ -67,10 +67,6 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
     # Use stdout if outfile is None
     if outfile is not None:
         if os.path.isdir(outfile):
-            out_base = outfile
-            outfile = None
-        elif len(pyc_paths) > 1:
-            out_base = outfile
             outfile = None
 
     # maybe a second -a will do before as well
