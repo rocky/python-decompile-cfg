@@ -562,7 +562,8 @@ class Python38LambdaCustom(Python38BaseParser):
                 self.add_unique_doc_rules(
                     """
                     expr      ::= get_iter
-                    get_iter  ::= expr GET_ITER
+                    get_iter  ::= expr bb_doms_end_start_opt GET_ITER
+                    get_iter  ::= expr bb_end_start_opt GET_ITER
                     """,
                     customize,
                 )

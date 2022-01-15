@@ -1378,6 +1378,7 @@ def customize_for_version37(self, version):
     def n_starred(node):
         node_len = len(node)
         assert node_len > 0
+
         pos_args = node[0]
         if pos_args == "arg":
             pos_args = pos_args[0]
@@ -1386,6 +1387,9 @@ def customize_for_version37(self, version):
         if pos_args == "tuple":
             star_start = 1
             build_tuple = pos_args[0]
+            if build_tuple == "arg":
+                build_tuple = build_tuple[0]
+                star_start = 0
             if build_tuple.kind.startswith("BUILD_TUPLE"):
                 tuple_len = 0
             else:
@@ -1402,7 +1406,7 @@ def customize_for_version37(self, version):
         if node_len > 1:
             template = ("*%C", (star_start, -1, ", *"))
         else:
-            template = ("*%c", (star_start, "expr"))
+            template = ("*%c", (star_start, ("arg", "expr")))
 
         self.template_engine(template, node)
         self.prune()

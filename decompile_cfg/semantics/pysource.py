@@ -1650,7 +1650,7 @@ class SourceWalker(GenericASTTraversal, object):
 
         lastnodetype = lastnode.kind
 
-        if lastnodetype.startswith("BUILD_LIST"):
+        if lastnodetype.startswith("BUILD_LIST") or lastnodetype == "expr":
             self.write("[")
             endchar = "]"
 
@@ -1687,6 +1687,7 @@ class SourceWalker(GenericASTTraversal, object):
             endchar = ")"
 
         else:
+            # from trepan.api import debug; debug()
             raise TypeError(
                 "Internal Error: n_build_list expects list, tuple, set, or unpack"
             )
@@ -1944,8 +1945,6 @@ class SourceWalker(GenericASTTraversal, object):
                 index = entry[arg]
                 if isinstance(index, tuple):
                     if isinstance(index[1], str):
-                        # if node[index[0]] != index[1]:
-                        #     from trepan.api import debug; debug()
                         assert (
                             node[index[0]] == index[1]
                         ), "at %s[%d], expected '%s' node; got '%s'" % (

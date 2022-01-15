@@ -223,7 +223,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         comp_body      ::= list_comp_body
 
         dict_comp_body ::= expr expr MAP_ADD
-        set_comp_body  ::= LOAD_FAST SET_ADD
+        set_comp_body  ::= expr SET_ADD
         list_comp_body ::= LOAD_FAST LIST_APPEND
 
         set_comp_func ::= BUILD_SET_0

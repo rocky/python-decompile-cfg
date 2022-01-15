@@ -1045,7 +1045,6 @@ class Python38FullParser(Python38Parser, Python38LambdaParser):
 
         except_stmt        ::= except_cond1a except_suite come_from_opt
 
-        get_iter           ::= expr GET_ITER
         for38              ::= expr get_iter store for_block JUMP_BACK _come_froms
         for38              ::= expr get_for_iter store for_block JUMP_BACK _come_froms
         for38              ::= expr get_for_iter store for_block JUMP_BACK _come_froms POP_BLOCK
