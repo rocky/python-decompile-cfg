@@ -606,18 +606,6 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                                        with_suffix
                     """
                 self.addRule(rules_str, nop_func)
-
-            elif opname_base in ("UNPACK_EX",):
-                before_count, after_count = token.attr
-                rule = (
-                    """
-                        store  ::= unpack
-                        unpack ::= """
-                    + opname
-                    + " store" * (before_count + after_count + 1)
-                )
-                self.addRule(rule, nop_func)
-
             pass
 
         # self.reduce_check_table = {

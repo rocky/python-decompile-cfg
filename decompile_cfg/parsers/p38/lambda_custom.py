@@ -937,6 +937,17 @@ class Python38LambdaCustom(Python38BaseParser):
                 self.addRule(rules_str, nop_func)
                 pass
 
+            elif opname_base in ("UNPACK_EX",):
+                before_count, after_count = token.attr
+                rule = (
+                    """
+                        store  ::= unpack
+                        unpack ::= """
+                    + opname
+                    + " store" * (before_count + after_count + 1)
+                )
+                self.addRule(rule, nop_func)
+
             elif opname_base == "UNPACK_SEQUENCE":
                 rule = (
                     """

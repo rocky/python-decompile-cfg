@@ -554,7 +554,7 @@ TABLE_DIRECT = {
     "list_iter":        ( "%c", 0 ),
     "list_if":	        (
         " if %p%c",
-        (0, "expr", 27), 2 ),
+        (0, ("expr", "branch_op"), 27), 2 ),
 
     "list_if_and_or": (
         " if %p and %c or %c",

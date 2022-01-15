@@ -119,6 +119,8 @@ def flatten_list(node):
     """
     flat_elems = []
     for elem in node:
+        if elem == "arg":
+            elem = elem[0]
         if elem == "expr1024":
             for subelem in elem:
                 assert subelem == "expr32"

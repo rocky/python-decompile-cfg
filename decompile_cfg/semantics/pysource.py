@@ -985,26 +985,40 @@ class SourceWalker(GenericASTTraversal, object):
         assert iscode(cn.attr)
 
         code = Code(cn.attr, self.scanner, self.currentclass)
-        ast = self.build_ast(code._tokens, code._customize, code)
+
+        # FIXME: is there a way we can avoid this?
+        # The problem is that in filterint top-level list comprehensions we can
+        # encounter comprehensions of other kinds, and lambdas
+        if self.compile_mode in ("listcomp",):   # add other comprehensions to this list
+            p_save = self.p
+            self.p = get_python_parser(
+                self.version,
+                compile_mode="exec",
+                is_pypy=self.is_pypy,
+            )
+            tree = self.build_ast(code._tokens, code._customize, code)
+            self.p = p_save
+        else:
+            tree = self.build_ast(code._tokens, code._customize, code)
         self.customize(code._customize)
 
         # Remove single reductions as in ("stmts", "sstmt"):
-        while len(ast) == 1:
-            ast = ast[0]
+        while len(tree) == 1:
+            tree = tree[0]
 
-        if ast == "stmts":
+        if tree == "stmts":
             # FIXME: rest is a return None?
             # Verify this
-            # rest = ast[1:]
-            ast = ast[0]
-        elif ast == "lambda_start":
-            assert len(ast) <= 3
-            ast = ast[-2]
-            if ast == "return_expr_lambda":
-                ast = ast[1]
+            # rest = tree[1:]
+            tree = tree[0]
+        elif tree == "lambda_start":
+            assert len(tree) <= 3
+            tree = tree[-2]
+            if tree == "return_expr_lambda":
+                tree = tree[1]
             pass
 
-        n = ast[iter_index]
+        n = tree[iter_index]
         assert n == "comp_iter", n
 
         # Find the comprehension body. It is the inner-most
@@ -1030,7 +1044,7 @@ class SourceWalker(GenericASTTraversal, object):
         else:
             iter_var_index = iter_index - 1
         self.write(" for ")
-        self.preorder(ast[iter_var_index])
+        self.preorder(tree[iter_var_index])
         self.write(" in ")
         if node[2] == "expr":
             iter_expr = node[2]
@@ -1038,7 +1052,7 @@ class SourceWalker(GenericASTTraversal, object):
             iter_expr = node[-3]
         assert iter_expr == "expr"
         self.preorder(iter_expr)
-        self.preorder(ast[iter_index])
+        self.preorder(tree[iter_index])
         self.prec = p
 
     def n_generator_exp(self, node):
@@ -1076,8 +1090,22 @@ class SourceWalker(GenericASTTraversal, object):
 
         code = Code(code_obj, self.scanner, self.currentclass, self.debug_opts["asm"])
 
-        tree = self.build_ast(
-            code._tokens, code._customize, code, is_lambda=self.is_lambda)
+        # FIXME: is there a way we can avoid this?
+        # The problem is that in filterint top-level list comprehensions we can
+        # encounter comprehensions of other kinds, and lambdas
+        if self.compile_mode in ("listcomp",):   # add other comprehensions to this list
+            p_save = self.p
+            self.p = get_python_parser(
+                self.version,
+                compile_mode="exec",
+                is_pypy=self.is_pypy,
+            )
+            tree = self.build_ast(
+                code._tokens, code._customize, code, is_lambda=self.is_lambda)
+            self.p = p_save
+        else:
+            tree = self.build_ast(
+                code._tokens, code._customize, code, is_lambda=self.is_lambda)
 
         self.customize(code._customize)
 
@@ -1618,13 +1646,15 @@ class SourceWalker(GenericASTTraversal, object):
             self.write("{")
             endchar = "}"
 
-        elif lastnodetype.startswith("BUILD_TUPLE"):
+        elif lastnodetype.startswith("BUILD_TUPLE") or node == "tuple":
             # Tuples can appear places that can NOT
             # have parenthesis around them, like array
             # subscripts. We check for that by seeing
             # if a tuple item is some sort of slice.
             no_parens = False
             for n in node:
+                if n == "arg":
+                    n = n[0]
                 if n == "expr" and n[0].kind.startswith("build_slice"):
                     no_parens = True
                     break
@@ -1641,7 +1671,6 @@ class SourceWalker(GenericASTTraversal, object):
             endchar = ")"
 
         else:
-            # from trepan.api import debug; debug()
             raise TypeError(
                 "Internal Error: n_build_list expects list, tuple, set, or unpack"
             )
@@ -1653,7 +1682,7 @@ class SourceWalker(GenericASTTraversal, object):
         for elem in flat_elems:
             if elem in ("ROT_THREE", "EXTENDED_ARG"):
                 continue
-            assert elem in ("expr", "arg", "list", "lists")
+            assert elem in ("expr", "arg", "list", "lists", "branch_op")
             line_number = self.line_number
             value = self.traverse(elem)
             if line_number != self.line_number:
@@ -1663,7 +1692,7 @@ class SourceWalker(GenericASTTraversal, object):
                     sep += " "
             self.write(sep, value)
             sep = ","
-        if lastnode.attr == 1 and lastnodetype.startswith("BUILD_TUPLE"):
+        if lastnodetype.startswith("BUILD_TUPLE") and lastnode.attr == 1:
             self.write(",")
         self.write(endchar)
         self.indent_less(INDENT_PER_LEVEL)
@@ -2309,11 +2338,11 @@ class SourceWalker(GenericASTTraversal, object):
             self.p.insts = self.scanner.insts
             self.p.offset2inst_index = self.scanner.offset2inst_index
             self.p.opc = self.scanner.opc
-            # from trepan.api import debug; debug()
             ast = python_parser.parse(self.p, tokens, customize, is_lambda=is_lambda)
 
             self.p.insts = p_insts
         except (heads.ParserError, AssertionError) as e:
+            # from trepan.api import debug; debug()
             raise ParserError(e, tokens, self.p.debug["reduce"])
 
         checker(ast, False, self.ast_errors)
