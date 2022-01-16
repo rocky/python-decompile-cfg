@@ -35,65 +35,71 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # Note: reduction-rule checks are needed for many of the below;
         # the rules in of themselves are not sufficient.
 
-        and        ::= expr_jifop
-                       dom_start_opt
-                       expr
+        and           ::= expr_jifop
+                          dom_start_opt
+                          expr
 
-        and_part   ::= expr_pjif
-        and_parts  ::= and_part+
+        and_part      ::= expr_pjif
+        and_parts     ::= and_part+
 
-        and1       ::= and_parts expr
+        and1          ::= and_parts expr
 
-        or         ::= expr_jitop
-                       dom_start_opt
-                       expr
+        or            ::= expr_jitop
+                          dom_start_opt
+                          expr
 
-        or_part    ::= expr_pjit
-        or_parts   ::= or_part+
+        or_part       ::= expr_pjit
+        or_parts      ::= or_part+
 
-        or1        ::= or_parts expr
+        or1           ::= or_parts expr
 
-        and_or     ::= and_parts
-                       expr
-                       jitop
-                       expr
+        and_or        ::= and_parts
+                          expr
+                          jitop
+                          expr
 
-        or_and     ::= or_parts
-                       expr
-                       jifop
-                       expr
+        or_and        ::= or_parts
+                          expr
+                          jifop
+                          expr
 
-        if_exp     ::= expr
-                       POP_JUMP_IF_FALSE
-                       bb_end_start_opt
-                       expr
-                       JUMP_FORWARD
-                       bb_end_start
-                       expr
+        if_exp        ::= expr
+                          POP_JUMP_IF_FALSE
+                          bb_end_start_opt
+                          expr
+                          JUMP_FORWARD
+                          bb_end_start
+                          expr
 
-        if_exp      ::= expr
-                        POP_JUMP_IF_TRUE
-                        bb_end_start_opt
-                        expr
-                        JUMP_FORWARD
-                        bb_end_start
-                        expr
+        if_exp         ::= expr
+                           POP_JUMP_IF_TRUE
+                           bb_end_start_opt
+                           expr
+                           JUMP_FORWARD
+                           bb_end_start
+                           expr
 
-        if_exp      ::= expr
-                        POP_JUMP_IF_FALSE
-                        bb_end_start
-                        expr
-                        JUMP_FORWARD
-                        dom_end_start
-                        expr
+        if_exp         ::= expr
+                           POP_JUMP_IF_FALSE
+                           bb_end_start
+                           expr
+                           JUMP_FORWARD
+                           dom_end_start
+                           expr
 
-        if_exp_loop ::= expr
-                        POP_JUMP_IF_FALSE
-                        expr
-                        POP_JUMP_IF_FALSE_BACK
-                        JUMP_FORWARD
-                        bb_end_start
-                        expr
+        if_exp_compare ::= compare
+                           expr
+                           JUMP_FORWARD
+                           bb_doms_end_start
+                           expr
+
+        if_exp_loop    ::= expr
+                           POP_JUMP_IF_FALSE
+                           expr
+                           POP_JUMP_IF_FALSE_BACK
+                           JUMP_FORWARD
+                           bb_end_start
+                           expr
 
         # FIXME: How is this not the same as if_exp above?
         # Distinguish in semantic action?
@@ -130,8 +136,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                 ROT_TWO POP_TOP
                                 bb_doms_end_start_opt
 
-        compare_chained     ::= expr
-                                compare_chained1c
+        compare_chained     ::= compare_chained37_false
 
         # FIXME: simplify the compare_chain1 recursion?
         compare_chained1    ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop_opt
@@ -147,6 +152,17 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         compare_chained_comprehension  ::= expr DUP_TOP ROT_THREE COMPARE_OP pjump_iff_forward
                                            compare_chained2_comprehension
         compare_chained2_comprehension ::= expr COMPARE_OP POP_JUMP_IF_FALSE_BACK JUMP_FORWARD
+
+        chained_parts      ::= chained_part+
+        chained_part       ::= expr DUP_TOP ROT_THREE COMPARE_OP bb_doms_end_start_opt POP_JUMP_IF_FALSE
+
+        compare_chained37_false     ::= expr compare_chained1b_false_37
+        compare_chained1b_false_37  ::= chained_parts
+                                        compare_chained2b_false_37
+                                        POP_TOP jump bb_doms_end_start_opt
+
+        compare_chained2b_false_37 ::= expr COMPARE_OP bb_end_start_opt POP_JUMP_IF_FALSE
+                                       jump_or_break bb_end_start
         """
 
     # Conditional jumps with dominator information included
@@ -422,6 +438,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         branch_op ::= if_exp bb_doms_end_opt
         branch_op ::= if_exp bb_doms_end dom_start
+        branch_op ::= if_exp_compare bb_doms_end_opt
         branch_op ::= if_exp_loop
         branch_op ::= if_exp_not bb_doms_end_opt
         branch_op ::= if_exp_true bb_doms_end_opt
@@ -478,6 +495,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
     def p_jump(self, args):
         """
+        jump               ::= JUMP_FORWARD
+        jump               ::= JUMP_LOOP
+        jump_or_break      ::= jump
+        jump_or_break      ::= BREAK_LOOP
+
         pjump_ift          ::= POP_JUMP_IF_TRUE
         pjump_ift          ::= POP_JUMP_IF_TRUE_BACK
 

@@ -171,29 +171,14 @@ def customize_for_version37(self, version):
                 '%[1]{pattr.replace("-", " ")} %p',
                 (0, PRECEDENCE["compare"] - 1),
             ),
-            "c_compare_chained2b_false_37": (
-                ' %[1]{pattr.replace("-", " ")} %p',
-                (0, PRECEDENCE["compare"] - 1),
-            ),
             "compare_chained2a_false_37": (
                 '%[1]{pattr.replace("-", " ")} %p',
-                (0, PRECEDENCE["compare"] - 1),
-            ),
-            "c_compare_chained2a_false_37": (
-                ' %[1]{pattr.replace("-", " ")} %p',
                 (0, PRECEDENCE["compare"] - 1),
             ),
             "compare_chained2c_37": (
                 "%p %p",
                 (0, PRECEDENCE["compare"] - 1),
                 (1, PRECEDENCE["compare"] - 1),
-            ),
-            "c_try_except": ("%|try:\n%+%c%-%c\n\n", 1, (3, "c_except_handler")),
-            "if_exp37": (
-                "%p if %c else %c",
-                (1, "expr", 27),
-                0,
-                -2,  # Must be from end since beginnings might not match
             ),
             "except_return": ("%|except:\n%+%c%-", 3),
             "if_exp_37a": (
