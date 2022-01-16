@@ -306,7 +306,7 @@ class SourceWalker(GenericASTTraversal, object):
         customize_for_version(self, is_pypy, version)
         return
 
-    def maybe_show_tree(self, ast, phase):
+    def maybe_show_tree(self, tree, phase):
         if self.showast.get("before", False):
             self.println(
                 """
@@ -321,38 +321,38 @@ class SourceWalker(GenericASTTraversal, object):
                 + " "
             )
         if self.showast.get(phase, False):
-            maybe_show_tree(self, ast)
+            maybe_show_tree(self, tree)
 
-    def str_with_template(self, ast) -> str:
+    def str_with_template(self, tree) -> str:
         stream = sys.stdout
-        stream.write(self.str_with_template1(ast, "", None))
+        stream.write(self.str_with_template1(tree, "", None))
         stream.write("\n")
 
-    def str_with_template1(self, ast, indent, sibNum=None) -> str:
-        rv = str(ast.kind)
+    def str_with_template1(self, tree, indent, sibNum=None) -> str:
+        rv = str(tree.kind)
 
         if sibNum is not None:
             rv = "%2d. %s" % (sibNum, rv)
         enumerate_children = False
-        if len(ast) > 1:
-            rv += f" ({len(ast)})"
+        if len(tree) > 1:
+            rv += f" ({len(tree)})"
             enumerate_children = True
 
-        if ast in PRECEDENCE:
-            rv += f", precedence {PRECEDENCE[ast]}"
+        if tree in PRECEDENCE:
+            rv += f", precedence {PRECEDENCE[tree]}"
 
-        mapping = self._get_mapping(ast)
+        mapping = self._get_mapping(tree)
         table = mapping[0]
-        key = ast
+        key = tree
         for i in mapping[1:]:
             key = key[i]
             pass
 
-        if ast.transformed_by is not None:
-            if ast.transformed_by is True:
+        if tree.transformed_by is not None:
+            if tree.transformed_by is True:
                 rv += " transformed"
             else:
-                rv += " transformed by %s" % ast.transformed_by
+                rv += " transformed by %s" % tree.transformed_by
                 pass
             pass
         if key.kind in table:
@@ -361,7 +361,7 @@ class SourceWalker(GenericASTTraversal, object):
         rv = indent + rv
         indent += "    "
         i = 0
-        for node in ast:
+        for node in tree:
 
             if hasattr(node, "__repr1__"):
                 if enumerate_children:
@@ -503,7 +503,7 @@ class SourceWalker(GenericASTTraversal, object):
 
     def n_return_call_lambda(self, node):
 
-        # Understand were non-psuedo instructions lie.
+        # Understand where the non-psuedo instructions lie.
         opt_start = 1 if node[0].kind in ("dom_start_opt", "dom_start") else 0
         call_index = -3 if node[-1].kind == "bb_doms_end" else -2
 
@@ -2185,23 +2185,23 @@ class SourceWalker(GenericASTTraversal, object):
 
         indent = self.indent
         # self.println(indent, '#flags:\t', int(code.co_flags))
-        ast = self.build_ast(code._tokens, code._customize, code)
+        tree = self.build_ast(code._tokens, code._customize, code)
 
         # save memory by deleting no-longer-used structures
         code._tokens = None
 
-        assert ast == "stmts"
+        assert tree == "stmts"
 
-        if ast[0] == "docstring":
-            self.println(self.traverse(ast[0]))
-            del ast[0]
+        if tree[0] == "docstring":
+            self.println(self.traverse(tree[0]))
+            del tree[0]
 
-        first_stmt = ast[0]
+        first_stmt = tree[0]
         try:
             if first_stmt == NAME_MODULE:
                 if self.hide_internal:
-                    del ast[0]
-                    first_stmt = ast[0]
+                    del tree[0]
+                    first_stmt = tree[0]
             pass
         except:
             pass
@@ -2224,11 +2224,11 @@ class SourceWalker(GenericASTTraversal, object):
 
         if have_qualname:
             if self.hide_internal:
-                del ast[0]
+                del tree[0]
             pass
 
         globals, nonlocals = find_globals_and_nonlocals(
-            ast, set(), set(), code, self.version
+            tree, set(), set(), code, self.version
         )
         # Add "global" declaration statements at the top
         # of the function
@@ -2239,7 +2239,7 @@ class SourceWalker(GenericASTTraversal, object):
             self.println(indent, "nonlocal ", nl)
 
         old_name = self.name
-        self.gen_source(ast, code.co_name, code._customize)
+        self.gen_source(tree, code.co_name, code._customize)
         self.name = old_name
 
         # save memory by deleting no-longer-used structures
@@ -2250,7 +2250,7 @@ class SourceWalker(GenericASTTraversal, object):
 
     def gen_source(
         self,
-        ast,
+        tree,
         name,
         customize,
         is_lambda=False,
@@ -2265,11 +2265,11 @@ class SourceWalker(GenericASTTraversal, object):
         self.name = name
         self.debug_opts = debug_opts
         # if code would be empty, append 'pass'
-        if len(ast) == 0:
+        if len(tree) == 0:
             self.println(self.indent, "pass")
         else:
             self.customize(customize)
-            self.text = self.traverse(ast, is_lambda=is_lambda)
+            self.text = self.traverse(tree, is_lambda=is_lambda)
             self.println(self.text)
         self.name = old_name
         self.return_none = rn
