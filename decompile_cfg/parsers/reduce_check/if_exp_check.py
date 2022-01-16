@@ -25,23 +25,24 @@ def if_exp_ok(
     #    print(tokens[i])
     # print(ast)
     # print(rule)
-    test_pjif = ast[1]
-    assert test_pjif == "POP_JUMP_IF_FALSE"
-    orelse_expr = ast[5]
+    test_pji = ast[1]
+    assert test_pji.kind.startswith("POP_JUMP_IF_")
+    orelse_expr = ast[6]
     assert orelse_expr == "expr"
 
     # Make "if" test conditional jump goes to the "orelse" location.
-    if test_pjif.attr != orelse_expr.first_child().offset:
+    if test_pji.attr != orelse_expr.first_child().offset:
         return False
 
-    body_expr = ast[2]
+    body_expr = ast[3]
     assert body_expr == "expr"
+
     if body_expr[0] == "branch_op":
 
         # Make sure all jumps in body_expr don't jump into
         # the middle of the orelse part.
-        offset = ast[2].first_child().offset
-        jump_forward = ast[3]
+        offset = body_expr.first_child().offset
+        jump_forward = ast[4]
         assert jump_forward == "JUMP_FORWARD"
         jf_offset = jump_forward.offset
         last_offset = tokens[last].offset

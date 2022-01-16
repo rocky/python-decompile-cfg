@@ -65,18 +65,27 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         if_exp     ::= expr
                        POP_JUMP_IF_FALSE
+                       bb_end_start_opt
                        expr
                        JUMP_FORWARD
                        bb_end_start
                        expr
 
-        if_exp      ::= branch_op
-                        POP_JUMP_IF_FALSE
+        if_exp      ::= expr
+                        POP_JUMP_IF_TRUE
+                        bb_end_start_opt
                         expr
                         JUMP_FORWARD
                         bb_end_start
                         expr
 
+        if_exp      ::= expr
+                        POP_JUMP_IF_FALSE
+                        bb_end_start
+                        expr
+                        JUMP_FORWARD
+                        dom_end_start
+                        expr
 
         if_exp_loop ::= expr
                         POP_JUMP_IF_FALSE
@@ -86,6 +95,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                         bb_end_start
                         expr
 
+        # FIXME: How is this not the same as if_exp above?
+        # Distinguish in semantic action?
         if_exp_not ::= expr
                        POP_JUMP_IF_TRUE
                        expr
@@ -410,9 +421,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         branch_op ::= or_and bb_doms_end_opt
 
         branch_op ::= if_exp bb_doms_end_opt
+        branch_op ::= if_exp bb_doms_end dom_start
         branch_op ::= if_exp_loop
         branch_op ::= if_exp_not bb_doms_end_opt
         branch_op ::= if_exp_true bb_doms_end_opt
+        branch_op ::= if_exp2 bb_doms_end_opt
 
 
         # A "branch_op_compound" is a branch_op with a non-branching unary or binary operator at the end.

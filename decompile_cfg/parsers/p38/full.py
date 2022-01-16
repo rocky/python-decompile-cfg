@@ -255,6 +255,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         assign ::= expr DUP_TOP designList
         assign ::= expr store
         assign ::= branch_op dom_start store
+        assign ::= expr bb_end_start store
 
         stmt ::= assign2
         stmt ::= assign3
