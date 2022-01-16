@@ -1212,7 +1212,7 @@ class SourceWalker(GenericASTTraversal, object):
                     if not comp_store:
                         comp_store = store
                 n = n[3]
-                assert n == "list_iter"
+                assert n.kind in ("list_iter", "comp_iter")
             elif n in (
                 "list_if",
                 "list_if_not",
@@ -1787,6 +1787,7 @@ class SourceWalker(GenericASTTraversal, object):
         elif lastnodetype.startswith("ROT_TWO"):
             self.write("(")
             endchar = ")"
+
         else:
             # from trepan.api import debug; debug()
             raise TypeError(

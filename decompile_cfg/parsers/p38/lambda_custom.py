@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Grammar Customization rules for Python 3.10's Lambda expression grammar.
+Grammar Customization rules for Python 3.8's Lambda expression grammar.
 """
 
 from decompile_cfg.parsers.p38.base import Python38BaseParser
@@ -175,7 +175,6 @@ class Python38LambdaCustom(Python38BaseParser):
         # but we'll do a finer check after the rough breakout.
         customize_instruction_basenames = frozenset(
             (
-                "BUILD",
                 "BEFORE",
                 "BUILD",
                 "CALL",
@@ -558,6 +557,13 @@ class Python38LambdaCustom(Python38BaseParser):
                 """
                 self.add_unique_doc_rules(rules_str, customize)
 
+            elif opname == "GET_AWAITABLE":
+                rule_str = """
+                    await_expr ::= expr GET_AWAITABLE LOAD_CONST YIELD_FROM
+                    expr       ::= await_expr
+                """
+                self.add_unique_doc_rules(rule_str, customize)
+
             elif opname == "GET_ITER":
                 self.add_unique_doc_rules(
                     """
@@ -567,13 +573,6 @@ class Python38LambdaCustom(Python38BaseParser):
                     """,
                     customize,
                 )
-
-            elif opname == "GET_AWAITABLE":
-                rule_str = """
-                    await_expr ::= expr GET_AWAITABLE LOAD_CONST YIELD_FROM
-                    expr       ::= await_expr
-                """
-                self.add_unique_doc_rules(rule_str, customize)
 
             elif opname == "LIST_TO_TUPLE":
                 rule_str = """
