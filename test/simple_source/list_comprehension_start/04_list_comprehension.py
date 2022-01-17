@@ -8,14 +8,14 @@
 
 # NOTE: Formatting may be weird because we want the additional line numbers
 # in debugging.
-x = [1, 2, 3]
+ary = [1, 2, 3]
 n = 10
 
 # fmt: off
 [
  i
  for i
- in x]
+ in ary]
 
 [
  i * i
@@ -50,7 +50,7 @@ n = 10
     b
     for
     i, b in
-    x]
+    ary]
 
 # From py3_test_grammar.py
 [
@@ -67,4 +67,4 @@ tuple(
       else
       ord(*arg)
       for arg
-      in x])
+      in ary])

@@ -57,8 +57,11 @@ n = 10
      if (addr_pair and __name__) or (addr_pair and __file__)]
 
 [l
- for l in
- ary if 2 <= l <= 8]
+ for l
+ in  ary
+ if 2 <=
+ l
+ <= 8]
 
 # From 3.8 pywt/_swt.py iswtn()
 [{k:
@@ -101,24 +104,31 @@ n = 10
   in __file__]
 
 
-# # From 3.8 numpy/lib/function_base.py
-# [broadcast_shape + tuple(dim_sizes[dim] for dim in core_dims)
-#             for core_dims in list_of_core_dims]
+# From 3.8 numpy/lib/function_base.py
+[n + tuple(ary2[dim] for dim in core_dims)
+            for core_dims in ary2]
 
 
-# # From 3.8 prompt_toolkit/layout/processors.py
-# [
-#  (style, self.char * len(text), *handler)
-#  for style, text, *handler in ti.fragments
-#  ]
+# From 3.8 prompt_toolkit/layout/processors.py
+[
+ (style,
+  5 * len(ary2),
+  *ary)
+ for style,
+ text,
+ *handler
+ in ary2
+]
 
 
-# # From 3.8 scipy/_lib/_util.py
-# [
-#  p.name for p in sig.parameters.values()
-#  if p.kind in [inspect.Parameter.POSITIONAL_OR_KEYWORD,
-#                inspect.Parameter.POSITIONAL_ONLY]
-#  ]
+# From 3.8 scipy/_lib/_util.py
+[
+ p
+ for p
+ in ary
+ if p.kind in
+ [1, 2]
+ ]
 
 # # From 3.8 scipy/linalg/tests/test_lapack.py
 # [(dtype, trans)
