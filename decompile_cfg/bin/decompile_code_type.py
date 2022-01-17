@@ -9,6 +9,7 @@ import sys
 
 from xdis.version_info import version_tuple_to_str
 from decompile_cfg.code_fns import decompile_list_comprehensions, decompile_lambda_fns
+from decompile_cfg.main import decompile_file
 from decompile_cfg.version import __version__
 
 if click.__version__ >= "7.":
@@ -20,12 +21,13 @@ program, ext = os.path.splitext(os.path.basename(__file__))
 
 PATTERNS = ("*.pyc", "*.pyo")
 
+
 @click.command()
 @click.option(
     "--format",
     "-F",
     "code_format",
-    type=click.Choice(["lambda", "list-comprehension"], **case_sensitive),
+    type=click.Choice(["lambda", "list-comprehension", "exec"], **case_sensitive),
 )
 @click.version_option(version=__version__)
 @click.option("--asm/--no-asm", "-a", "show_asm", default=False)
@@ -60,14 +62,19 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
         decompile_fn = decompile_lambda_fns
     elif code_format == "list-comprehension":
         decompile_fn = decompile_list_comprehensions
+    elif code_format == "exec":
+        decompile_fn = decompile_file
     else:
         print(f"Unexpected code_format {code_format}")
         return 1
 
     # Use stdout if outfile is None
-    if outfile is not None:
+    if outfile is None:
+        outfile = sys.stdout
+    else:
         if os.path.isdir(outfile):
             outfile = None
+
 
     # maybe a second -a will do before as well
     asm = "after" if show_asm else None
@@ -98,8 +105,18 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
                             or filepath.endswith(".py")
                             or filepath.endswith(".pyo")
                         ):
-                            decompile_fn(filepath, outfile)
+                            succeeded = decompile_fn(
+                                filepath,
+                                outfile,
+                                showasm=asm,
+                                showgrammar=show_grammar,
+                                showast=show_ast,
+                            )
                             print()
+                            if succeeded:
+                                success += 1
+                            elif succeeded is None:
+                                skipped += 1
                             success += 1
                             total += 1
             elif os.path.exists(filename) and not os.path.islink(filename):
@@ -109,7 +126,13 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
                     or filename.endswith(".pyo")
                     or os.path.isdir(filename)
                 ):
-                    succeeded = decompile_fn(filename, outfile, showasm=asm, showgrammar=show_grammar, showast=show_ast)
+                    succeeded = decompile_fn(
+                        filename,
+                        outfile,
+                        showasm=asm,
+                        showgrammar=show_grammar,
+                        showast=show_ast,
+                    )
                     print()
                     if succeeded:
                         success += 1

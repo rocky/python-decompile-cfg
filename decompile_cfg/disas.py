@@ -30,13 +30,20 @@ want to run on earlier Python versions.
 """
 
 import sys
+from typing import Optional
 from collections import deque
 
 from xdis import check_object_path, iscode, load_module
 from decompile_cfg.scanner import get_scanner
+from decompile_cfg.semantics.pysource import (
+    PARSER_DEFAULT_DEBUG,
+    TREE_DEFAULT_DEBUG,
+)
+
+DEFAULT_DEBUG_OPTS = {"asm": False, "tree": PARSER_DEFAULT_DEBUG, "grammar": TREE_DEFAULT_DEBUG}
 
 
-def disco(version: str, co, out=None, is_pypy=False) -> None:
+def disco(version: str, co, out=None, is_pypy=False, asm_opts={}) -> None:
     """
     diassembles and deparses a given code block 'co'
     """
@@ -52,10 +59,10 @@ def disco(version: str, co, out=None, is_pypy=False) -> None:
     scanner = get_scanner(version, is_pypy=is_pypy)
 
     queue = deque([co])
-    disco_loop(scanner.ingest, queue, real_out)
+    disco_loop(scanner.ingest, queue, real_out, is_pypy, asm_opts)
 
 
-def disco_loop(disasm, queue, real_out):
+def disco_loop(disasm, queue, real_out, is_pypy, asm_opts):
     while len(queue) > 0:
         co = queue.popleft()
         if co.co_name != "<module>":
@@ -64,7 +71,7 @@ def disco_loop(disasm, queue, real_out):
                 % (co.co_name, co.co_firstlineno, co.co_filename),
                 file=real_out,
             )
-        tokens, customize = disasm(co)
+        tokens, customize = disasm(co, asm_opts)
         for t in tokens:
             if iscode(t.pattr):
                 queue.append(t.pattr)
@@ -89,7 +96,11 @@ def disco_loop(disasm, queue, real_out):
 #     co = None
 
 
-def disassemble_file(filename: str, outstream=None) -> None:
+def disassemble_file(
+    filename: str,
+    outstream=None,
+    showasm=None,
+    ) -> Optional[bool]:
     """
     disassemble Python byte-code file (.pyc)
 
@@ -101,10 +112,10 @@ def disassemble_file(filename: str, outstream=None) -> None:
         filename
     )
     if type(co) == list:
-        for con in co:
-            disco(version, con, outstream)
+        for bytecode in co:
+            disco(version, bytecode, outstream, is_pypy=is_pypy)
     else:
-        disco(version, co, outstream, is_pypy=is_pypy)
+        disco(version, bytecode, outstream, is_pypy=is_pypy)
     co = None
 
 

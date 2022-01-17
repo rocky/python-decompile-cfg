@@ -98,6 +98,12 @@ def do_tests(src_dir, obj_patterns, target_dir, opts):
         )
 
     files = []
+
+    if opts["compile_type"] == "lambda":
+        src_dir += "/lambda"
+    else:
+        src_dir += "/exec"
+
     # Change directories so use relative rather than
     # absolute paths. This speeds up things, and allows
     # main() to write to a relative-path destination.
@@ -182,6 +188,7 @@ if __name__ == "__main__":
             "verify-run",
             "syntax-verify",
             "all",
+            "lambda",
             "compile",
             "coverage",
             "no-rm",
@@ -197,6 +204,7 @@ if __name__ == "__main__":
         "start_with": None,
         "rmtree": True,
         "coverage": False,
+        "compile_type": "exec",
     }
 
     for opt, val in opts:
@@ -206,6 +214,8 @@ if __name__ == "__main__":
             test_opts["do_verify"] = "verify-run"
         elif opt == "--compile":
             test_opts["do_compile"] = True
+        elif opt == "--lambda":
+            test_opts["compile_type"] = "lambda"
         elif opt == "--start-with":
             test_opts["start_with"] = val
         elif opt == "--no-rm":
