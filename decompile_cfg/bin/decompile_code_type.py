@@ -27,7 +27,9 @@ PATTERNS = ("*.pyc", "*.pyo")
     "--format",
     "-F",
     "code_format",
-    type=click.Choice(["lambda", "list-comprehension", "exec"], **case_sensitive),
+    type=click.Choice(
+        ["lambda", "list-comprehension", "exec"], **case_sensitive,
+    ),
 )
 @click.version_option(version=__version__)
 @click.option("--asm/--no-asm", "-a", "show_asm", default=False)
@@ -74,7 +76,6 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
     else:
         if os.path.isdir(outfile):
             outfile = None
-
 
     # maybe a second -a will do before as well
     asm = "after" if show_asm else None
