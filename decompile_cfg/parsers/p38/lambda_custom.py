@@ -281,7 +281,17 @@ class Python38LambdaCustom(Python38BaseParser):
                     self.add_unique_doc_rules(rule_str, customize)
 
             elif opname_base.startswith("BUILD_MAP"):
-                if opname == "BUILD_MAP_n":
+                if opname == "BUILD_MAP_UNPACK":
+                    self.addRule(
+                        f"""
+                        expr        ::= dict_unpack
+                        dict_unpack ::= {"expr " * token.attr} BUILD_MAP_UNPACK
+                        """,
+                        nop_func,
+                    )
+                    pass
+
+                elif opname == "BUILD_MAP_n":
                     # PyPy sometimes has no count. Sigh.
                     # FIXME...
                     pass

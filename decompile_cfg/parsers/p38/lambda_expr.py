@@ -430,6 +430,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # they have basic block and dominator pseudo instructions.
 
         branch_op ::= or bb_doms_end_opt
+        branch_op ::= or bb_end_start
         branch_op ::= or1 bb_doms_end_opt
         branch_op ::= and bb_doms_end_opt
         branch_op ::= and1 bb_doms_end_opt

@@ -163,10 +163,6 @@ def customize_for_version37(self, version):
                 '%[1]{pattr.replace("-", " ")} %p',
                 (0, PRECEDENCE["compare"] - 1),
             ),
-            "c_compare_chained2a_37": (
-                '%[1]{pattr.replace("-", " ")} %p',
-                (0, PRECEDENCE["compare"] - 1),
-            ),
             "compare_chained2b_false_37": (
                 '%[1]{pattr.replace("-", " ")} %p',
                 (0, PRECEDENCE["compare"] - 1),
@@ -179,6 +175,10 @@ def customize_for_version37(self, version):
                 "%p %p",
                 (0, PRECEDENCE["compare"] - 1),
                 (1, PRECEDENCE["compare"] - 1),
+            ),
+            "dict_unpack": (
+                "{**%C}",
+                (0, -1, ", **")
             ),
             "except_return": ("%|except:\n%+%c%-", 3),
             "if_exp_37a": (
@@ -270,7 +270,6 @@ def customize_for_version37(self, version):
                 (1, "expr_pjif"),
             ),
             "nand": ("not (%c and %c)", (0, "and_parts"), (1, ("expr", "expr_pjit")),),
-            "c_nand": ("not (%c and %c)", (0, "and_parts"), (1, "expr_pjitt"),),
             "or_parts": (
                 "%P or %c",
                 (0, -1, "or ", PRECEDENCE["or"]),
@@ -289,7 +288,6 @@ def customize_for_version37(self, version):
                 ),
             ),
             "try_except36": ("%|try:\n%+%c%-%c\n\n", 1, -2),
-            "c_try_except36": ("%|try:\n%+%c%-%c\n\n", 1, 2),
             "tryfinally36": ("%|try:\n%+%c%-%|finally:\n%+%c%-\n\n", (1, "returns"), 3),
             "tryfinally_return_stmt1": (
                 "%|try:\n%+%c%-%|finally:\n%+%c%-\n\n",
