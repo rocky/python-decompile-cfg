@@ -311,7 +311,7 @@ class Python38LambdaCustom(Python38BaseParser):
                         """
                     self.add_unique_doc_rules(rules_str, customize)
 
-                if opname == "BUILD_MAP_UNPACK_WITH_CALL":
+                if opname.startswith("BUILD_MAP_UNPACK_WITH_CALL"):
                     self.addRule(
                         """expr       ::= call_ex_kw
                           call_ex_kw  ::= expr expr build_map_unpack_with_call
@@ -324,6 +324,12 @@ class Python38LambdaCustom(Python38BaseParser):
                     self.addRule(rule, nop_func)
 
 
+            elif opname_base in (
+                "BUILD_SET",
+                "BUILD_TUPLE",
+            ):
+                v = token.attr
+
                 if opname == "BUILD_TUPLE_UNPACK_WITH_CALL":
                     # FIXME: should this be parameterized by EX value?
                     self.addRule(
@@ -335,13 +341,6 @@ class Python38LambdaCustom(Python38BaseParser):
                         """,
                         nop_func,
                     )
-
-
-            elif opname_base in (
-                "BUILD_SET",
-                "BUILD_TUPLE",
-            ):
-                v = token.attr
 
                 is_LOAD_CLOSURE = False
                 if opname_base == "BUILD_TUPLE":

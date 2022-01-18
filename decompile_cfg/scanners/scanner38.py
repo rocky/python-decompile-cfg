@@ -55,6 +55,11 @@ class Scanner38(Scanner38Base):
             if t.op == self.opc.CALL_FUNCTION_EX and t.attr & 1:
                 t.kind = "CALL_FUNCTION_EX_KW"
                 pass
+            elif t.op == self.opc.BUILD_MAP_UNPACK_WITH_CALL:
+                t.kind = "BUILD_MAP_UNPACK_WITH_CALL_%d" % t.attr
+            # FIXME: add this later
+            # elif (not self.is_pypy) and t.op == self.opc.BUILD_TUPLE_UNPACK_WITH_CALL:
+            #     t.kind = "BUILD_TUPLE_UNPACK_WITH_CALL_%d" % t.attr
             elif t.op == self.opc.BUILD_STRING:
                 t.kind = "BUILD_STRING_%s" % t.attr
             elif t.op == self.opc.CALL_FUNCTION_KW:
