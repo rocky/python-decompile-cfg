@@ -386,7 +386,7 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
 
                     stmt                 ::= generator_exp_async
 
-                    func_async_prefix    ::= _come_froms SETUP_EXCEPT GET_ANEXT LOAD_CONST YIELD_FROM
+                    func_async_prefix    ::= _come_froms SETUP_FINALLY GET_ANEXT LOAD_CONST YIELD_FROM
                     func_async_middle    ::= POP_BLOCK JUMP_FORWARD COME_FROM_EXCEPT
                                              DUP_TOP LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
                                              END_FINALLY COME_FROM
