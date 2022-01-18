@@ -1058,7 +1058,15 @@ class SourceWalker(GenericASTTraversal, object):
     def n_generator_exp(self, node):
         self.write("(")
         code_index = -6
-        self.comprehension_walk(node, iter_index=5, code_index=code_index)
+        if node[0].kind in ("load_closure", "load_genexpr"):
+            is_lambda = self.is_lambda
+            if node[0].kind == "load_genexpr":
+                self.is_lambda = False
+            self.closure_walk(node, collection_index=4)
+            self.is_lambda = is_lambda
+        else:
+            code_index = -6
+            self.comprehension_walk(node, iter_index=5, code_index=code_index)
         self.write(")")
         self.prune()
 
@@ -1085,6 +1093,9 @@ class SourceWalker(GenericASTTraversal, object):
         """
         self.prec = 27
         code_node = node[code_index]
+        if code_node == "load_genexpr":
+            code_node = code_node[0]
+
         code_obj = code_node.attr
         assert iscode(code_obj), code_node
 
@@ -1093,7 +1104,7 @@ class SourceWalker(GenericASTTraversal, object):
         # FIXME: is there a way we can avoid this?
         # The problem is that in filterint top-level list comprehensions we can
         # encounter comprehensions of other kinds, and lambdas
-        if self.compile_mode in ("listcomp",):   # add other comprehensions to this list
+        if self.compile_mode in ("listcomp",):  # add other comprehensions to this list
             p_save = self.p
             self.p = get_python_parser(
                 self.version,
@@ -1324,12 +1335,17 @@ class SourceWalker(GenericASTTraversal, object):
         """
         p = self.prec
 
-        tree = self.get_comprehension_function(node, 1)
+        code_index = 0 if node[0] == "load_genexpr" else 1
+        tree = self.get_comprehension_function(node, code_index=code_index)
+
+        if tree == "stmts":
+            tree = tree[0]
 
         store = tree[4]
         collection = node[collection_index]
 
-        n = tree[5]
+        iter_index = 4 if tree == "genexpr_func_async" else 5
+        n = tree[iter_index]
         list_if = None
 
         assert n == "comp_iter"
@@ -1350,8 +1366,12 @@ class SourceWalker(GenericASTTraversal, object):
                     list_if = n
                     n = n[1]
                 else:
-                    list_if = n[1]
-                    n = n[2]
+                    if len(n) == 2:
+                        list_if = n[0]
+                        n = n[1]
+                    else:
+                        list_if = n[1]
+                        n = n[2]
                 pass
             pass
 
