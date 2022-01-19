@@ -1341,10 +1341,15 @@ class SourceWalker(GenericASTTraversal, object):
         if tree == "stmts":
             tree = tree[0]
 
-        store = tree[4]
-        collection = node[collection_index]
+        if tree == "genexpr_func_async":
+            store = tree[2]
+            iter_index = 3
+            collection_index = 3
+        else:
+            store = tree[4]
+            iter_index = 5
 
-        iter_index = 4 if tree == "genexpr_func_async" else 5
+        collection = node[collection_index]
         n = tree[iter_index]
         list_if = None
 

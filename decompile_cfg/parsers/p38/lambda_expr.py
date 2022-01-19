@@ -217,7 +217,14 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         gen_comp_body   ::= expr
                             bb_doms_end_start_opt
-                            YIELD_VALUE bb_doms_end_start
+                            YIELD_VALUE
+                            bb_doms_end_start
+                            POP_TOP
+
+        gen_comp_body   ::= expr
+                            bb_doms_end_start_opt
+                            YIELD_VALUE
+                            bb_end_start
                             POP_TOP
 
         generator_exp   ::= expr_or_arg
@@ -233,10 +240,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             FOR_ITER
                             bb_end_start
 
-        # FIXME: go over:
-
-        # comp_iter      ::= comp_for
-        # comp_for       ::= expr gen_comp_body JUMP_LOOP bb_doms_end_start
+        comp_iter      ::= comp_for
+        comp_for       ::= expr gen_comp_body JUMP_LOOP bb_doms_end_start
 
         # Our "continue" heuristic -  in two successive JUMP_LOOPS, the first
         # one may be a continue - sometimes classifies a JUMP_LOOP
