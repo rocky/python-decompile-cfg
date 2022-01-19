@@ -580,8 +580,10 @@ class Python38LambdaCustom(Python38BaseParser):
                                             END_ASYNC_FOR
 
                     genexpr_func_async  ::= LOAD_FAST func_async_prefix
-                                            store comp_iter
-                                            JUMP_BACK COME_FROM_FINALLY
+                                            store
+                                            comp_iter
+                                            JUMP_LOOP
+                                            bb_end_start
                                             END_ASYNC_FOR
                    """,
                     nop_func,
