@@ -1060,8 +1060,6 @@ class SourceWalker(GenericASTTraversal, object):
         code_index = -6
         if node[0].kind in ("load_closure", "load_genexpr"):
             is_lambda = self.is_lambda
-            if node[0].kind == "load_genexpr":
-                self.is_lambda = False
             self.closure_walk(node, collection_index=4)
             self.is_lambda = is_lambda
         else:

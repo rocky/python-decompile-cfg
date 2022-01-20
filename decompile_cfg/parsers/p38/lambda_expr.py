@@ -477,6 +477,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         constant ::= LOAD_STR
         constant ::= LOAD_CODE
 
+        genexpr_func      ::= LOAD_FAST _come_froms FOR_ITER store comp_iter
+                              JUMP_LOOP _come_froms
+
 
         # named_expr is also known as the "walrus op" :=
         named_expr        ::= expr DUP_TOP store

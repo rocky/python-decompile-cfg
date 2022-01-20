@@ -570,6 +570,14 @@ class Python38LambdaCustom(Python38BaseParser):
                 self.addRule(
                     """
                     expr                 ::= generator_exp_async
+                    expr                 ::= list_comp_async
+
+                    func_async_prefix   ::= _come_froms SETUP_EXCEPT GET_ANEXT LOAD_CONST YIELD_FROM
+
+                    func_async_middle   ::= POP_BLOCK JUMP_FORWARD COME_FROM_EXCEPT
+                                            DUP_TOP LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
+                                            END_FINALLY bb_end_start
+
                     generator_exp_async  ::= load_genexpr LOAD_STR MAKE_FUNCTION_0 expr
                                              GET_AITER CALL_FUNCTION_1
 
@@ -578,24 +586,30 @@ class Python38LambdaCustom(Python38BaseParser):
                                              JUMP_LOOP bb_end_start
                                              POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
 
-                    expr                 ::= list_comp_async
+                    genexpr_func_async  ::= LOAD_ARG func_async_prefix
+                                            store
+                                            func_async_middle comp_iter
+                                            JUMP_LOOP bb_end_start
+                                            POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
+
+                    get_aiter           ::= expr GET_AITER
+
+                    list_afor           ::= get_aiter list_afor2
+                    list_afor2           ::= func_async_prefix
+                                             store func_async_middle list_iter
+                                             JUMP_LOOP bb_end_start
+                                             POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
+
                     list_comp_async      ::= LOAD_LISTCOMP LOAD_STR MAKE_FUNCTION_0
                                              expr GET_AITER CALL_FUNCTION_1
                                              GET_AWAITABLE LOAD_CONST
                                              YIELD_FROM
 
-                    expr                 ::= list_comp_async
-                    list_afor2           ::= func_async_prefix
-                                             store func_async_middle list_iter
-                                             JUMP_LOOP bb_end_start
-                                             POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
                     list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
                     list_comp_async      ::= LOAD_LISTCOMP LOAD_STR MAKE_FUNCTION_0
                                              expr GET_AITER CALL_FUNCTION_1
                                              GET_AWAITABLE LOAD_CONST
                                              YIELD_FROM
-                    get_aiter            ::= expr GET_AITER
-                    list_afor            ::= get_aiter list_afor2
                     list_iter            ::= list_afor
                    """,
                     nop_func,
