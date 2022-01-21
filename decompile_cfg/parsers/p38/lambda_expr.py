@@ -96,7 +96,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         if_exp_loop    ::= expr
                            POP_JUMP_IF_FALSE
                            expr
-                           POP_JUMP_IF_FALSE_BACK
+                           POP_JUMP_IF_FALSE_LOOP
                            JUMP_FORWARD
                            bb_end_start
                            expr
@@ -152,7 +152,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         compare_chained1_comprehension  ::= expr DUP_TOP ROT_THREE COMPARE_OP pjump_iff_forward
                                            compare_chained2_comprehension
 
-        compare_chained2_comprehension ::= expr COMPARE_OP POP_JUMP_IF_FALSE_BACK JUMP_FORWARD
+        compare_chained2_comprehension ::= expr COMPARE_OP POP_JUMP_IF_FALSE_LOOP JUMP_FORWARD
 
         chained_parts      ::= chained_part+
         chained_part       ::= expr DUP_TOP ROT_THREE COMPARE_OP bb_doms_end_start_opt POP_JUMP_IF_FALSE
@@ -524,12 +524,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         jump_or_break      ::= BREAK_LOOP
 
         pjump_ift          ::= POP_JUMP_IF_TRUE
-        pjump_ift          ::= POP_JUMP_IF_TRUE_BACK
+        pjump_ift          ::= POP_JUMP_IF_TRUE_LOOP
 
         pjump_iff          ::= pjump_iff_forward
         pjump_iff          ::= pjump_iff_loop
         pjump_iff_forward  ::= POP_JUMP_IF_FALSE dom_end_start_opt
-        pjump_iff_loop     ::= POP_JUMP_IF_FALSE_BACK dom_end_start_opt
+        pjump_iff_loop     ::= POP_JUMP_IF_FALSE_LOOP dom_end_start_opt
         """
 
     def p_lambda(self, args):

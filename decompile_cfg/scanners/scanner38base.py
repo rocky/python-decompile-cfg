@@ -517,7 +517,7 @@ class Scanner38Base(Scanner):
                     opname = "JUMP_FORWARD"
 
             elif opname.startswith("POP_JUMP_IF_") and not inst.jumps_forward():
-                opname += "_BACK"
+                opname += "_LOOP"
             elif inst.offset in self.load_asserts:
                 opname = "LOAD_ASSERT"
 

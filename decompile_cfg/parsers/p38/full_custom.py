@@ -101,34 +101,6 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
         """
         )
 
-    def custom_classfunc_rule_full(self, opname, token, customize, next_token):
-
-        args_pos, args_kw = self.get_pos_kw(token)
-
-        # Additional exprs for * and ** args:
-        #  0 if neither
-        #  1 for CALL_FUNCTION_VAR or CALL_FUNCTION_KW
-        #  2 for * and ** args (CALL_FUNCTION_VAR_KW).
-        # Yes, this computation based on instruction name is a little bit hoaky.
-        nak = (len(opname) - len("CALL_FUNCTION")) // 3
-        uniq_param = args_kw + args_pos
-
-        if frozenset(("GET_AWAITABLE", "YIELD_FROM")).issubset(self.seen_ops):
-            rule = (
-                "async_call ::= expr "
-                + ("expr " * args_pos)
-                + ("kwarg " * args_kw)
-                + "expr " * nak
-                + token.kind
-                + " GET_AWAITABLE LOAD_CONST YIELD_FROM"
-            )
-            self.add_unique_rule(rule, token.kind, uniq_param, customize)
-            self.add_unique_rule(
-                "expr ::= async_call", token.kind, uniq_param, customize
-            )
-
-        self.custom_classfunc_rule_lambda(opname, token, customize, next_token)
-
     def customize_grammar_rules_full38(self, tokens, customize):
 
         self.customize_grammar_rules_lambda38(tokens, customize)
@@ -403,10 +375,6 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                     nop_func,
                 )
                 custom_ops_processed.add(opname)
-
-            elif opname == "LOAD_BUILD_CLASS":
-                self.custom_build_class_rule(opname, i, token, tokens, customize)
-                # Note: don't add to custom_ops_processed.
 
             elif opname == "LOAD_CLASSDEREF":
                 # Python 3.4+
