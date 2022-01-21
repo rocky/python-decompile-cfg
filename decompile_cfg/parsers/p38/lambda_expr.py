@@ -149,20 +149,27 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         compare_chained2   ::= expr COMPARE_OP RETURN_VALUE
 
         # When used in an "if" of a comprehension
-        compare_chained_comprehension  ::= expr DUP_TOP ROT_THREE COMPARE_OP pjump_iff_forward
+        compare_chained1_comprehension  ::= expr DUP_TOP ROT_THREE COMPARE_OP pjump_iff_forward
                                            compare_chained2_comprehension
+
         compare_chained2_comprehension ::= expr COMPARE_OP POP_JUMP_IF_FALSE_BACK JUMP_FORWARD
 
         chained_parts      ::= chained_part+
         chained_part       ::= expr DUP_TOP ROT_THREE COMPARE_OP bb_doms_end_start_opt POP_JUMP_IF_FALSE
 
         compare_chained37_false     ::= expr compare_chained1b_false_37
+        compare_chained37_false     ::= expr
+                                        compare_chained
+
         compare_chained1b_false_37  ::= chained_parts
                                         compare_chained2b_false_37
                                         POP_TOP jump bb_doms_end_start_opt
 
         compare_chained2b_false_37 ::= expr COMPARE_OP bb_end_start_opt POP_JUMP_IF_FALSE
                                        jump_or_break bb_end_start
+
+
+
         """
 
     # Conditional jumps with dominator information included
@@ -326,6 +333,13 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             POP_TOP JUMP_LOOP
                             bb_doms_end_start
                             list_iter
+
+        list_if_chained ::= expr compare_chained
+                            bb_end_start_opt
+                            POP_TOP JUMP_LOOP
+                            bb_doms_end_start
+                            list_iter
+
 
         list_if_and_or  ::= expr pjump_iff
                             expr

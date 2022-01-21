@@ -1174,6 +1174,7 @@ class SourceWalker(GenericASTTraversal, object):
             pass
         elif tree == "list_comp_async":
             store = tree[2][1]
+            n = tree[2][2]
         else:
             # FIXME: we get this when we parse lambda's explicitly.
             # And here we've already printed/handled the list comprehension
@@ -1221,6 +1222,10 @@ class SourceWalker(GenericASTTraversal, object):
                     if not comp_store:
                         comp_store = store
                 n = n[3]
+                assert n.kind in ("list_iter", "comp_iter")
+            elif n in ("list_if_chained",):
+                if_node = node[0]
+                n = n[-1]
                 assert n.kind in ("list_iter", "comp_iter")
             elif n in (
                 "list_if",
@@ -1274,7 +1279,13 @@ class SourceWalker(GenericASTTraversal, object):
 
         self.write(" in ")
         if self.compile_mode in ("dictcomp", "listcomp", "gencomp", "setcomp"):
-            if for_node is None:
+            if node == "list_comp_async":
+                self.preorder(node[1])
+            elif for_node is None:
+                try:
+                    node[3]
+                except:
+                    from trepan.api import debug; debug()
                 assert node[3] == "expr"
                 self.preorder(node[3])
             else:

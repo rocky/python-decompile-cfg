@@ -182,7 +182,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
 
         stmt   ::= return
 
-        return ::= return_expr RETURN_VALUE bb_doms_end
+        return ::= return_expr RETURN_VALUE bb_doms_end_opt
 
         # "returns" nonterminal is a sequence of statements that ends in a RETURN statement.
         # In later Python versions with jump optimization, this can cause JUMPs
