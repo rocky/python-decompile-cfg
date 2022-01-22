@@ -43,11 +43,11 @@ maxint = sys.maxsize
 # call((.. op ..)).
 
 NO_PARENTHESIS_EVER = 100
+
 # fmt: off
 PRECEDENCE = {
-
-    "named_expr":             40, # :=
-    "yield":                  38, # Needs to be below named_expr
+    "named_expr":             40,  # :=
+    "yield":                  38,  # Needs to be below named_expr
     "yield_from":             38,
     "tuple_list_starred":     38,  # *x, *y, *z - about at the level of yield?
     "dict_unpack":            38,  # **kwargs
@@ -162,8 +162,8 @@ TAB = " " * 4
 INDENT_PER_LEVEL = " "  # additional intent per pretty-print level
 
 TABLE_R = {
-    'STORE_ATTR':	( '%c.%[1]{pattr}', 0),
-    'DELETE_ATTR':	( '%|del %c.%[-1]{pattr}\n', 0 ),
+    "STORE_ATTR": ("%c.%[1]{pattr}", 0),
+    "DELETE_ATTR": ("%|del %c.%[-1]{pattr}\n", 0),
 }
 
 TABLE_DIRECT = {
@@ -179,7 +179,7 @@ TABLE_DIRECT = {
     "BINARY_POWER":             ( "**",),
     "BINARY_RSHIFT":            ( ">>",),
     "BINARY_SUBTRACT":          ( "-" ,),
-    "BINARY_TRUE_DIVIDE":       ( "/" ,),   # Not in <= 2.1
+    "BINARY_TRUE_DIVIDE":       ( "/" ,),   # Not in <= 2.1; 2.6 generates INPLACE_DIVIDE only?
     "BINARY_XOR":               ( "^" ,),
     "DELETE_FAST":              ( "%|del %{pattr}\n", ),
     "DELETE_GLOBAL":            ( "%|del %{pattr}\n", ),

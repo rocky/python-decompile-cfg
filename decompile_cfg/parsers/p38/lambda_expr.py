@@ -149,7 +149,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         compare_chained2   ::= expr COMPARE_OP RETURN_VALUE
 
         # When used in an "if" of a comprehension
-        compare_chained1_comprehension  ::= expr DUP_TOP ROT_THREE COMPARE_OP pjump_iff_forward
+        compare_chained_comprehension  ::= expr DUP_TOP ROT_THREE COMPARE_OP pjump_iff_forward
                                            compare_chained2_comprehension
 
         compare_chained2_comprehension ::= expr COMPARE_OP POP_JUMP_IF_FALSE_LOOP JUMP_FORWARD
