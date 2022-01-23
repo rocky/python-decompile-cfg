@@ -575,7 +575,7 @@ TABLE_DIRECT = {
 
     "list_if_chained":  (
         " if %p%c %c",
-        (0, "expr", 27),
+        (0, "list_if_compare", 27),
         1,
         -1),
 

@@ -328,18 +328,14 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         list_if         ::= branch_op list_if_end list_iter
 
         list_if         ::= expr pjump_iff_loop list_iter
-        list_if_chained ::= expr compare_chained_comprehension
+        list_if_chained ::= list_if_compare
                             bb_end_start
                             POP_TOP JUMP_LOOP
                             bb_doms_end_start
                             list_iter
 
-        list_if_chained ::= expr compare_chained
-                            bb_end_start_opt
-                            POP_TOP JUMP_LOOP
-                            bb_doms_end_start
-                            list_iter
-
+        list_if_compare ::= expr compare_chained_comprehension
+        list_if_compare ::= expr compare_chained
 
         list_if_and_or  ::= expr pjump_iff
                             expr
