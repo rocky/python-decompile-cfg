@@ -57,11 +57,13 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           expr
                           jitop
                           expr
+                          dom_end_start_opt
 
         or_and        ::= or_parts
                           expr
                           jifop
                           expr
+                          dom_end_start_opt
 
         if_exp        ::= expr
                           POP_JUMP_IF_FALSE
@@ -96,7 +98,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         if_exp_loop    ::= expr
                            POP_JUMP_IF_FALSE
                            expr
-                           POP_JUMP_IF_FALSE_BACK
+                           POP_JUMP_IF_FALSE_LOOP
                            JUMP_FORWARD
                            bb_end_start
                            expr
@@ -151,18 +153,25 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # When used in an "if" of a comprehension
         compare_chained_comprehension  ::= expr DUP_TOP ROT_THREE COMPARE_OP pjump_iff_forward
                                            compare_chained2_comprehension
-        compare_chained2_comprehension ::= expr COMPARE_OP POP_JUMP_IF_FALSE_BACK JUMP_FORWARD
+
+        compare_chained2_comprehension ::= expr COMPARE_OP POP_JUMP_IF_FALSE_LOOP JUMP_FORWARD
 
         chained_parts      ::= chained_part+
         chained_part       ::= expr DUP_TOP ROT_THREE COMPARE_OP bb_doms_end_start_opt POP_JUMP_IF_FALSE
 
         compare_chained37_false     ::= expr compare_chained1b_false_37
+        compare_chained37_false     ::= expr
+                                        compare_chained
+
         compare_chained1b_false_37  ::= chained_parts
                                         compare_chained2b_false_37
                                         POP_TOP jump bb_doms_end_start_opt
 
         compare_chained2b_false_37 ::= expr COMPARE_OP bb_end_start_opt POP_JUMP_IF_FALSE
                                        jump_or_break bb_end_start
+
+
+
         """
 
     # Conditional jumps with dominator information included
@@ -321,11 +330,14 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         list_if         ::= branch_op list_if_end list_iter
 
         list_if         ::= expr pjump_iff_loop list_iter
-        list_if_chained ::= expr compare_chained_comprehension
+        list_if_chained ::= list_if_compare
                             bb_end_start
                             POP_TOP JUMP_LOOP
                             bb_doms_end_start
                             list_iter
+
+        list_if_compare ::= expr compare_chained_comprehension
+        list_if_compare ::= expr compare_chained
 
         list_if_and_or  ::= expr pjump_iff
                             expr
@@ -510,12 +522,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         jump_or_break      ::= BREAK_LOOP
 
         pjump_ift          ::= POP_JUMP_IF_TRUE
-        pjump_ift          ::= POP_JUMP_IF_TRUE_BACK
+        pjump_ift          ::= POP_JUMP_IF_TRUE_LOOP
 
         pjump_iff          ::= pjump_iff_forward
         pjump_iff          ::= pjump_iff_loop
         pjump_iff_forward  ::= POP_JUMP_IF_FALSE dom_end_start_opt
-        pjump_iff_loop     ::= POP_JUMP_IF_FALSE_BACK dom_end_start_opt
+        pjump_iff_loop     ::= POP_JUMP_IF_FALSE_LOOP dom_end_start_opt
         """
 
     def p_lambda(self, args):

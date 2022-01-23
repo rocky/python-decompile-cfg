@@ -218,6 +218,8 @@ class PythonBaseParser(GenericASTBuilder):
         represented by the attr field of token"""
         # Low byte indicates number of positional paramters,
         # high byte number of keyword parameters
+        if token.attr is None:
+            from trepan.api import debug; debug()
         args_pos = token.attr & 0xFF
         args_kw = (token.attr >> 8) & 0xFF
         return args_pos, args_kw

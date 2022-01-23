@@ -46,6 +46,20 @@ class Python38LambdaCustom(Python38BaseParser):
         nak = (len(opname) - len("CALL_FUNCTION")) // 3
         uniq_param = args_kw + args_pos
 
+        if frozenset(("GET_AWAITABLE", "YIELD_FROM")).issubset(self.seen_ops):
+            rule = (
+                "async_call ::= expr "
+                + ("expr " * args_pos)
+                + ("kwarg " * args_kw)
+                + "expr " * nak
+                + token.kind
+                + " GET_AWAITABLE LOAD_CONST YIELD_FROM"
+            )
+            self.add_unique_rule(rule, token.kind, uniq_param, customize)
+            self.add_unique_rule(
+                "expr ::= async_call", token.kind, uniq_param, customize
+            )
+
         if opname.startswith("CALL_FUNCTION_VAR"):
             token.kind = self.call_fn_name(token)
             if opname.endswith("KW"):
@@ -572,11 +586,11 @@ class Python38LambdaCustom(Python38BaseParser):
                     expr                 ::= generator_exp_async
                     expr                 ::= list_comp_async
 
-                    func_async_prefix   ::= _come_froms SETUP_EXCEPT GET_ANEXT LOAD_CONST YIELD_FROM
-
                     func_async_middle   ::= POP_BLOCK JUMP_FORWARD COME_FROM_EXCEPT
                                             DUP_TOP LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
                                             END_FINALLY bb_end_start
+
+                    func_async_prefix   ::= _come_froms SETUP_EXCEPT GET_ANEXT LOAD_CONST YIELD_FROM
 
                     generator_exp_async  ::= load_genexpr LOAD_STR MAKE_FUNCTION_0 expr
                                              GET_AITER CALL_FUNCTION_1
@@ -592,13 +606,9 @@ class Python38LambdaCustom(Python38BaseParser):
                                             JUMP_LOOP bb_end_start
                                             POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
 
-                    get_aiter           ::= expr GET_AITER
+                    get_aiter            ::= expr GET_AITER
 
-                    list_afor           ::= get_aiter list_afor2
-                    list_afor2           ::= func_async_prefix
-                                             store func_async_middle list_iter
-                                             JUMP_LOOP bb_end_start
-                                             POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
+                    list_afor            ::= get_aiter list_afor2
 
                     list_comp_async      ::= LOAD_LISTCOMP LOAD_STR MAKE_FUNCTION_0
                                              expr GET_AITER CALL_FUNCTION_1
@@ -619,21 +629,43 @@ class Python38LambdaCustom(Python38BaseParser):
             elif opname == "GET_ANEXT":
                 self.addRule(
                     """
-                    func_async_prefix   ::= bb_end_start_opt SETUP_FINALLY GET_ANEXT LOAD_CONST YIELD_FROM POP_BLOCK
-                    list_afor2          ::= func_async_prefix
-                                            store
-                                            list_iter
-                                            JUMP_LOOP
-                                            bb_end_start
-                                            END_ASYNC_FOR
-
                     expr                 ::= genexpr_func_async
+                    expr                 ::= list_comp_async
+
+                    func_async_prefix    ::= bb_end_start_opt
+                                             SETUP_FINALLY GET_ANEXT LOAD_CONST YIELD_FROM POP_BLOCK
+
                     genexpr_func_async   ::= LOAD_ARG func_async_prefix
                                              store
                                              comp_iter
                                              JUMP_LOOP
                                              bb_doms_end_start
                                              END_ASYNC_FOR
+
+                    list_afor2           ::= func_async_prefix
+                                             store
+                                             list_iter
+                                             JUMP_LOOP
+                                             bb_end_start
+                                             END_ASYNC_FOR
+
+                    list_afor2           ::= func_async_prefix
+                                             store
+                                             list_iter
+                                             JUMP_LOOP
+                                             bb_doms_end_start
+                                             END_ASYNC_FOR
+
+                    list_afor2           ::= func_async_prefix
+                                             store
+                                             func_async_middle
+                                             list_iter
+                                             JUMP_LOOP
+                                             bb_end_start
+                                             POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
+
+                    list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
+
                    """,
                     nop_func,
                 )

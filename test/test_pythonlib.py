@@ -76,7 +76,7 @@ def help():
     print(
         """Usage-Examples:
 
-  # compile, decompyle and verify short tests for Python 3.7:
+  # compile, decompile and verify short tests for Python 3.7:
   test_pythonlib.py --bytecode-3.8 --syntax-verify --compile
 
   # decompile all of Python's installed lib files

@@ -1,4 +1,4 @@
-#  Copyright (c) 2019-2021 by Rocky Bernstein
+#  Copyright (c) 2019-2022 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -58,7 +58,10 @@ def customize_for_version38(self, version):
                 (3, "for_block"),
                 -1,
             ),
-            "except_cond1a": ("%|except %c:\n", (1, "expr"),),
+            "except_cond1a": (
+                "%|except %c:\n",
+                (1, "expr"),
+            ),
             "except_cond_as": (
                 "%|except %c as %c:\n",
                 (1, "expr"),
@@ -116,7 +119,10 @@ def customize_for_version38(self, version):
                 (1, "testexpr"),
                 (2, ("c_stmts", "pass")),
             ),
-            "whileTruestmt38": ("%|while True:\n%+%c%-\n\n", (1, "c_stmts", "pass"),),
+            "whileTruestmt38": (
+                "%|while True:\n%+%c%-\n\n",
+                (1, "c_stmts", "pass"),
+            ),
             "try_elsestmtl38": (
                 "%|try:\n%+%c%-%c%|else:\n%+%c%-",
                 (1, "suite_stmts_opt"),
@@ -187,7 +193,26 @@ def customize_for_version38(self, version):
         }
     )
 
-    def suite_stmts_return(node):
+    def n_list_afor(node):
+        if len(node) == 2:
+            # list_afor ::= get_iter list_afor
+            self.comprehension_walk_newer(node, 0)
+            self.prune()
+        else:
+            list_iter_index = 2 if node[2] == "list_iter" else 3
+            self.template_engine(
+                (
+                    " async for %[1]{%c} in %c%[1]{%c}",
+                    (1, "store"),
+                    (0, "get_aiter"),
+                    (list_iter_index, "list_iter"),
+                ),
+                node,
+            )
+
+    self.n_list_afor = n_list_afor
+
+    def n_suite_stmts_return(node):
         if len(node) > 1:
             assert len(node) == 2
             self.template_engine(
@@ -197,4 +222,4 @@ def customize_for_version38(self, version):
             self.template_engine(("%|return %c", (0, "expr")), node)
         self.prune()
 
-    self.n_suite_stmts_return = suite_stmts_return
+    self.n_suite_stmts_return = n_suite_stmts_return
