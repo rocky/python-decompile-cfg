@@ -57,11 +57,13 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           expr
                           jitop
                           expr
+                          dom_end_start_opt
 
         or_and        ::= or_parts
                           expr
                           jifop
                           expr
+                          dom_end_start_opt
 
         if_exp        ::= expr
                           POP_JUMP_IF_FALSE
