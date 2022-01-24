@@ -893,6 +893,30 @@ class Python38LambdaCustom(Python38BaseParser):
                             self.addRule(rule, nop_func)
 
                     if args_pos:
+                        if opname == "MAKE_FUNCTION_9":
+                            # This was seen ion line 447 of Python 3.8
+                            # This is needed for Python 3.8 line 447 of site-packages/nltk/tgrep.py
+                            # line 447:
+                            #    lambda i: lambda n, m=None, l=None: ...
+                            # which has
+                            #  L. 447         0  LOAD_CONST               (None, None)
+                            #                 2  LOAD_CLOSURE             'i'
+                            #                 4  LOAD_CLOSURE             'predicate'
+                            #                 6  BUILD_TUPLE_2         2
+                            #                 8  LOAD_LAMBDA              '<code_object <lambda>>'
+                            #                10  LOAD_STR                 '_tgrep_relation_action.<locals>.<lambda>.<locals>.<lambda>'
+                            #                12  MAKE_FUNCTION_9          'default, closure'
+                            # FIXME: Possibly we need to generalize for more nested lambda's of lambda's?
+                            rule = """
+                                 expr        ::= lambda_body
+                                 lambda_body ::= %s%s%s%s
+                                 """ % (
+                                "expr " * stack_count,
+                                "load_closure " * closure,
+                                "BUILD_TUPLE_2 LOAD_LAMBDA LOAD_STR ",
+                                opname,
+                            )
+                            self.add_unique_rule(rule, opname, token.attr, customize)
                         rule = """
                              expr        ::= lambda_body
                              lambda_body ::= %s%s%s%s
@@ -902,6 +926,7 @@ class Python38LambdaCustom(Python38BaseParser):
                             "BUILD_TUPLE_1 LOAD_LAMBDA LOAD_STR ",
                             opname,
                         )
+
                     else:
                         rule = """
                              expr        ::= lambda_body
