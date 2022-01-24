@@ -101,6 +101,8 @@ def do_tests(src_dir, obj_patterns, target_dir, opts):
 
     if opts["compile_type"] == "lambda":
         src_dir += "/lambda"
+    elif opts["compile_type"] == "dict-comprehension":
+        src_dir += "/dict-comprehension"
     elif opts["compile_type"] == "list-comprehension":
         src_dir += "/list-comprehension"
     else:
@@ -190,6 +192,7 @@ if __name__ == "__main__":
             "verify-run",
             "syntax-verify",
             "all",
+            "dict-comprehension",
             "lambda",
             "list-comprehension",
             "compile",
@@ -219,6 +222,8 @@ if __name__ == "__main__":
             test_opts["do_compile"] = True
         elif opt == "--lambda":
             test_opts["compile_type"] = "lambda"
+        elif opt == "--dict-comprehension":
+            test_opts["compile_type"] = "dict-comprehension"
         elif opt == "--list-comprehension":
             test_opts["compile_type"] = "list-comprehension"
         elif opt == "--start-with":
