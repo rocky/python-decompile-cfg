@@ -238,13 +238,25 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           JUMP_LOOP
                           bb_doms_end_start_opt
 
-        comp_if       ::= expr_pjif comp_iter
-        comp_if       ::= expr_pjiff comp_iter
-        comp_if_not   ::= expr pjump_ift comp_iter
+        comp_if         ::= expr_pjif comp_iter
+
+        comp_if         ::= expr_pjiff
+                            comp_iter
+        comp_if_not     ::= expr pjump_ift
+                            comp_iter
+        comp_if_not_and ::= expr_pjif
+                            expr POP_JUMP_IF_TRUE_LOOP
+                            bb_end_start
+                            comp_iter
+        comp_if_not_and ::= expr_pjif
+                            expr POP_JUMP_IF_TRUE_LOOP
+                            bb_doms_end_start
+                            comp_iter
 
         comp_iter     ::= comp_body
         comp_iter     ::= comp_if
         comp_iter     ::= comp_if_not
+        comp_iter     ::= comp_if_not_and
 
         comp_iter      ::= comp_for
         comp_for       ::= expr gen_comp_body JUMP_LOOP bb_doms_end_start

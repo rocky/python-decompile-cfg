@@ -332,10 +332,21 @@ TABLE_DIRECT = {
 
     "comp_iter": ( "%c", 0 ),
     "comp_if":	 ( " if %c%c", 0, 1 ),
+
     "comp_if_not": (
         " if not %p%c",
          (0, "expr", PRECEDENCE["unary_not"]), 2
          ),
+
+    # Note: Adding "if" is handled inside the
+    # comprehension
+    "comp_if_not_and": (
+        "not (%p and %p) ",
+        (0, "expr_pjif", PRECEDENCE["and"] ),
+        (1, "expr", PRECEDENCE["and"] ),
+        ),
+
+
     "comp_body":( "", ), # ignore when recursing
 
     "compare_single":	    ( '%p %[-1]{pattr.replace("-", " ")} %p',
