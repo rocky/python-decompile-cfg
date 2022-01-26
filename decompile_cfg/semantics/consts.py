@@ -354,6 +354,14 @@ TABLE_DIRECT = {
         (1, "expr", PRECEDENCE["and"] ),
         ),
 
+    # Note: Adding "if" is handled inside the
+    # comprehension
+    "comp_if_not_or": (
+        "not (%p or %p)",
+        (0, "expr_pjif", PRECEDENCE["and"] ),
+        (1, "expr", PRECEDENCE["and"] ),
+        ),
+
 
     "comp_body":( "", ), # ignore when recursing
 

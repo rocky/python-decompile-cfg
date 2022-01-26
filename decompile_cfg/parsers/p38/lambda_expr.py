@@ -220,8 +220,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         """
 
     def p_comprehension(self, args):
-        """
-        comp_body      ::= dict_comp_body
+        """comp_body      ::= dict_comp_body
         comp_body      ::= set_comp_body
         comp_body      ::= gen_comp_body
         comp_body      ::= list_comp_body
@@ -238,10 +237,21 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           JUMP_LOOP
                           bb_doms_end_start_opt
 
-        comp_if         ::= expr_pjif comp_iter
+        # Not that in `comp_if_xxx`, we always start with an
+        # `expr `and end with a `comp_iter`.
+        # FIXME: Maybe we can refactor this grammar to
+        # redue redundancy?
+
+        comp_if         ::= expr_pjif
+                            comp_iter
 
         comp_if         ::= expr_pjiff
                             comp_iter
+
+        # We have a bunch of these comp_if_<logic expression>
+        # because the logic operation bleeds into the
+        # "if" of the comprehension. Note thet specific position of
+        # POP_JUMP_IF_xxx_LOOOP stays the same.
         comp_if_or      ::= expr_pjit
                             expr POP_JUMP_IF_FALSE_LOOP
                             bb_end_start
@@ -256,12 +266,17 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             expr POP_JUMP_IF_TRUE_LOOP
                             bb_doms_end_start
                             comp_iter
+        comp_if_not_or  ::= expr_pjif
+                            expr POP_JUMP_IF_FALSE_LOOP
+                            bb_end_start_opt
+                            comp_iter
 
         comp_iter     ::= comp_body
         comp_iter     ::= comp_if
         comp_iter     ::= comp_if_or
         comp_iter     ::= comp_if_not
         comp_iter     ::= comp_if_not_and
+        comp_iter     ::= comp_if_not_or
 
         comp_iter      ::= comp_for
         comp_for       ::= expr gen_comp_body JUMP_LOOP bb_doms_end_start
