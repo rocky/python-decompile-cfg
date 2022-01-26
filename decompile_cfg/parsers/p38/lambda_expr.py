@@ -489,7 +489,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         branch_op ::= or1 bb_doms_end_opt
         branch_op ::= and bb_doms_end_opt
         branch_op ::= and1 bb_doms_end_opt
-        branch_op ::= and_or bb_doms_end_opt
+        branch_op ::= and_or block_break
         branch_op ::= or_and bb_doms_end_opt
 
         branch_op ::= if_exp bb_doms_end_opt

@@ -1,6 +1,8 @@
 # These are an accumulation of list comprehensions using using "if".
 # They were culled from all list comprehensions on my disk under Python 3.8.
 
+# Formatting is weird so we can use line numbers to associated with specific parts of code.
+
 # fmt: off
 [1 for
    f
@@ -51,6 +53,20 @@
      ]
 
 
-[i for i in __name__
- if (i if isinstance(__file__, str)
-     else i) == 'x']
+[i
+ for i
+ in __name__
+ if (
+     i if
+     isinstance(__file__, str)
+     else i)
+ == 'x']
+
+# From 3.8 pattern/text/__init__.py
+# Bug was .. if ( .. and .. or ) not in xxx
+[w
+ for w
+ in __file__
+ if (isinstance(w, str)
+     and __file__ or w)
+ not in __name__]
