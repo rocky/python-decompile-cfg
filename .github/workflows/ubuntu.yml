@@ -1,0 +1,32 @@
+name: decompile-cfg (ubuntu)
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # Until the next xdis release
+        # pip install git+git://github.com/rocky/python-xdis.git#egg=xdis
+        # Until the next control-flow release
+        pip install git+git://github.com/rocky/python-control-flow.git#egg=control_flow
+        pip install -e .
+        pip install -r requirements-dev.txt
+    - name: Test decompile-cfg
+      run: |
+        make check
