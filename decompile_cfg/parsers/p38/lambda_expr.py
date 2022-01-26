@@ -57,13 +57,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           expr
                           jitop
                           expr
-                          dom_end_start_opt
 
         or_and        ::= or_parts
                           expr
                           jifop
                           expr
-                          dom_end_start_opt
 
         if_exp        ::= expr
                           POP_JUMP_IF_FALSE
@@ -154,7 +152,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         compare_chained_comprehension  ::= expr DUP_TOP ROT_THREE COMPARE_OP pjump_iff_forward
                                            compare_chained2_comprehension
 
-        compare_chained2_comprehension ::= expr COMPARE_OP POP_JUMP_IF_FALSE_LOOP JUMP_FORWARD
+        compare_chained2_comprehension ::= expr
+                                           COMPARE_OP
+                                           POP_JUMP_IF_FALSE_LOOP
+                                           JUMP_FORWARD
+                                           bb_end_start_opt
 
         chained_parts      ::= chained_part+
         chained_part       ::= expr DUP_TOP ROT_THREE COMPARE_OP bb_doms_end_start_opt POP_JUMP_IF_FALSE
@@ -247,6 +249,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         comp_if         ::= expr_pjiff
                             comp_iter
+        comp_if_chained ::= list_if_compare
+                            bb_end_start
+                            POP_TOP JUMP_LOOP
+                            bb_doms_end_start
+                            comp_iter
+
 
         # We have a bunch of these comp_if_<logic expression>
         # because the logic operation bleeds into the
@@ -273,6 +281,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         comp_iter     ::= comp_body
         comp_iter     ::= comp_if
+        comp_iter     ::= comp_if_chained
         comp_iter     ::= comp_if_or
         comp_iter     ::= comp_if_not
         comp_iter     ::= comp_if_not_and

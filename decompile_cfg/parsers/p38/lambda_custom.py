@@ -646,6 +646,8 @@ class Python38LambdaCustom(Python38BaseParser):
 
                     func_async_prefix    ::= bb_end_start_opt
                                              SETUP_FINALLY GET_ANEXT LOAD_CONST YIELD_FROM POP_BLOCK
+                    func_async_prefix    ::= bb_doms_end_start
+                                             SETUP_FINALLY GET_ANEXT LOAD_CONST YIELD_FROM POP_BLOCK
 
                     genexpr_func_async   ::= LOAD_ARG func_async_prefix
                                              store
