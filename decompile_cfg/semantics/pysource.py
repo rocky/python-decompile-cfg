@@ -521,7 +521,7 @@ class SourceWalker(GenericASTTraversal, object):
     # So we'll add a # at the end of the return lambda so the rest is ignored
     def n_return_expr_lambda(self, node):
 
-        # Understand were non-psuedo instructions lie.
+        # Understand where non-pseudo instructions lie.
         opt_start = 1 if node[0].kind in ("dom_start_opt", "dom_start") else 0
         opt_end = 1 if node[-1].kind == "bb_doms_end" else 0
 
@@ -1091,6 +1091,7 @@ class SourceWalker(GenericASTTraversal, object):
         find the comprehension node buried in the tree which may
         be surrounded with start-like symbols or dominiators,.
         """
+        p = self.prec
         self.prec = 27
         code_node = node[code_index]
         if code_node == "load_genexpr":
@@ -1328,12 +1329,12 @@ class SourceWalker(GenericASTTraversal, object):
         self.write(" in ")
 
         if node == "list_afor":
-                list_afor2 = node[1]
-                assert list_afor2 == "list_afor2"
-                list_iter = list_afor2[2]
-                assert list_iter == "list_iter"
-                self.preorder(collection_node)
-                if_nodes = []
+            list_afor2 = node[1]
+            assert list_afor2 == "list_afor2"
+            list_iter = list_afor2[2]
+            assert list_iter == "list_iter"
+            self.preorder(collection_node)
+            if_nodes = []
         elif self.compile_mode in ("dictcomp", "listcomp", "gencomp", "setcomp"):
             if node == "list_comp_async":
                 self.preorder(node[1])
@@ -1602,6 +1603,9 @@ class SourceWalker(GenericASTTraversal, object):
                     sep = line_separator
                     pass
             pass
+        elif node == "dict_comp_async":
+            # Handled this condition above
+            pass
         else:
             if node[0] == "LOAD_STR":
                 return
@@ -1623,7 +1627,8 @@ class SourceWalker(GenericASTTraversal, object):
 
         self.indent_more(INDENT_PER_LEVEL)
         sep = INDENT_PER_LEVEL[:-1]
-        self.write("{")
+        if node[0] != "dict_entry":
+            self.write("{")
         line_number = self.line_number
 
         if node[0].kind == "BUILD_MAP_0":
@@ -2514,7 +2519,7 @@ def code_deparse(
         tokens,
         customize,
         co,
-        is_lambda=(compile_mode in ("lambda", "listcomp")),
+        is_lambda=(compile_mode in ("lambda", "listcomp", "dictcomp")),
         isTopLevel=isTopLevel,
     )
 
@@ -2523,7 +2528,7 @@ def code_deparse(
         return None
 
     # FIXME use a lookup table here.
-    if compile_mode in ("lambda", "listcomp"):
+    if compile_mode in ("lambda", "listcomp", "dictcomp"):
         expected_start = "lambda_start"
     elif compile_mode == "eval":
         expected_start = "expr_start"
@@ -2547,7 +2552,7 @@ def code_deparse(
         deparsed.ast, set(), set(), co, version
     )
 
-    if compile_mode not in ("lambda", "listcomp"):
+    if compile_mode not in ("lambda", "listcomp", "dictcomp"):
         assert not nonlocals
 
     deparsed.FUTURE_UNICODE_LITERALS = (
@@ -2559,7 +2564,7 @@ def code_deparse(
         deparsed.ast,
         name=co.co_name,
         customize=customize,
-        is_lambda=compile_mode in ("lambda", "listcomp"),
+        is_lambda=compile_mode in ("lambda", "listcomp", "dictcomp"),
         debug_opts=debug_opts,
     )
 
