@@ -22,7 +22,7 @@ async def arange(n):
      in range(10)
      ]
 
-# From Python 3.8 test/test_asyncgen.py
+# From Python 3.8 test/test_coroutines.py
 
 def make_brange(n):
     return (i * 2
@@ -49,3 +49,11 @@ async def run_list2():
         for i in
         ord(pair)
         if i > 30]
+
+
+    return [i
+            async for i
+            in range(5)
+            if 0 <
+            i <
+            4]
