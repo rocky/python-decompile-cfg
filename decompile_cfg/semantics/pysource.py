@@ -991,7 +991,7 @@ class SourceWalker(GenericASTTraversal, object):
         # FIXME: is there a way we can avoid this?
         # The problem is that in filterint top-level list comprehensions we can
         # encounter comprehensions of other kinds, and lambdas
-        if self.compile_mode in ("listcomp",):   # add other comprehensions to this list
+        if self.compile_mode in ("listcomp", "dictcomp"):   # add other comprehensions to this list
             p_save = self.p
             self.p = get_python_parser(
                 self.version,
@@ -1104,7 +1104,7 @@ class SourceWalker(GenericASTTraversal, object):
         # FIXME: is there a way we can avoid this?
         # The problem is that in filterint top-level list comprehensions we can
         # encounter comprehensions of other kinds, and lambdas
-        if self.compile_mode in ("listcomp",):  # add other comprehensions to this list
+        if self.compile_mode in ("listcomp", "dictcomp"):  # add other comprehensions to this list
             p_save = self.p
             self.p = get_python_parser(
                 self.version,
@@ -1171,6 +1171,21 @@ class SourceWalker(GenericASTTraversal, object):
             else:
                 # ???
                 pass
+        elif node == "dict_comp_async":
+            # We have two different kinds of grammar rules:
+            #   dict_comp_async ::= LOAD_DICCOMP LOAD_STR MAKE_FUNCTION_0 expr ...
+            # and:
+            #  dict_comp_async  ::= BUILD_MAPT_0 LOAD_ARG list_afor2
+            if tree[0] == "BUILD_MAP_0":
+                genexpr_func_async = tree[1]
+                assert genexpr_func_async == "genexpr_func_async"
+                store = genexpr_func_async[2]
+                assert store == "store"
+                n = genexpr_func_async[3]
+            else:
+                # ???
+                pass
+
         elif node == "list_afor":
             collection_node = node[0]
             list_afor2 = node[1]
@@ -1196,6 +1211,9 @@ class SourceWalker(GenericASTTraversal, object):
                 pass
             pass
         elif tree == "list_comp_async":
+            # Handled this condition above
+            pass
+        elif node == "dict_comp_async":
             # Handled this condition above
             pass
         else:
@@ -1294,7 +1312,7 @@ class SourceWalker(GenericASTTraversal, object):
         if node != "list_afor":
             self.preorder(n[0])
 
-        if node.kind in ("list_comp_async", "list_afor"):
+        if node.kind in ("list_comp_async", "dict_comp_async", "list_afor"):
             self.write(" async")
             in_node_index = 3
         else:
