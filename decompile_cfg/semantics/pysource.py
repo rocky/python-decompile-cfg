@@ -521,7 +521,7 @@ class SourceWalker(GenericASTTraversal, object):
     # So we'll add a # at the end of the return lambda so the rest is ignored
     def n_return_expr_lambda(self, node):
 
-        # Understand were non-psuedo instructions lie.
+        # Understand where non-pseudo instructions lie.
         opt_start = 1 if node[0].kind in ("dom_start_opt", "dom_start") else 0
         opt_end = 1 if node[-1].kind == "bb_doms_end" else 0
 
@@ -991,7 +991,7 @@ class SourceWalker(GenericASTTraversal, object):
         # FIXME: is there a way we can avoid this?
         # The problem is that in filterint top-level list comprehensions we can
         # encounter comprehensions of other kinds, and lambdas
-        if self.compile_mode in ("listcomp",):   # add other comprehensions to this list
+        if self.compile_mode in ("listcomp", "dictcomp"):   # add other comprehensions to this list
             p_save = self.p
             self.p = get_python_parser(
                 self.version,
@@ -1034,8 +1034,8 @@ class SourceWalker(GenericASTTraversal, object):
                     n = n[3]
             elif n == "comp_if":
                 n = n[1]
-            elif n == "comp_if_not":
-                n = n[2]
+            elif n in ("comp_if_not", "comp_if_not_and", "comp_if_not_or", "comp_if_or"):
+                n = n[-1]
 
         assert n == "comp_body", n
 
@@ -1091,6 +1091,7 @@ class SourceWalker(GenericASTTraversal, object):
         find the comprehension node buried in the tree which may
         be surrounded with start-like symbols or dominiators,.
         """
+        p = self.prec
         self.prec = 27
         code_node = node[code_index]
         if code_node == "load_genexpr":
@@ -1104,7 +1105,7 @@ class SourceWalker(GenericASTTraversal, object):
         # FIXME: is there a way we can avoid this?
         # The problem is that in filterint top-level list comprehensions we can
         # encounter comprehensions of other kinds, and lambdas
-        if self.compile_mode in ("listcomp",):  # add other comprehensions to this list
+        if self.compile_mode in ("listcomp", "dictcomp"):  # add other comprehensions to this list
             p_save = self.p
             self.p = get_python_parser(
                 self.version,
@@ -1171,6 +1172,21 @@ class SourceWalker(GenericASTTraversal, object):
             else:
                 # ???
                 pass
+        elif node == "dict_comp_async":
+            # We have two different kinds of grammar rules:
+            #   dict_comp_async ::= LOAD_DICCOMP LOAD_STR MAKE_FUNCTION_0 expr ...
+            # and:
+            #  dict_comp_async  ::= BUILD_MAPT_0 LOAD_ARG list_afor2
+            if tree[0] == "BUILD_MAP_0":
+                genexpr_func_async = tree[1]
+                assert genexpr_func_async == "genexpr_func_async"
+                store = genexpr_func_async[2]
+                assert store == "store"
+                n = genexpr_func_async[3]
+            else:
+                # ???
+                pass
+
         elif node == "list_afor":
             collection_node = node[0]
             list_afor2 = node[1]
@@ -1198,6 +1214,9 @@ class SourceWalker(GenericASTTraversal, object):
         elif tree == "list_comp_async":
             # Handled this condition above
             pass
+        elif node == "dict_comp_async":
+            # Handled this condition above
+            pass
         else:
             # FIXME: we get this when we parse lambda's explicitly.
             # And here we've already printed/handled the list comprehension
@@ -1212,7 +1231,7 @@ class SourceWalker(GenericASTTraversal, object):
 
         # Find the list comprehension body. It is the inner-most
         # node that is not list_.. .
-        if_node = None
+        if_nodes = []
         if_node_parent = None
         comp_for = None
         comp_store = None
@@ -1220,8 +1239,6 @@ class SourceWalker(GenericASTTraversal, object):
             comp_for = n
             if not store:
                 comp_store = tree[3]
-
-        have_not = False
 
         # Iterate to find the inner-most "store".
         # We'll come back to the list iteration below.
@@ -1247,10 +1264,14 @@ class SourceWalker(GenericASTTraversal, object):
                 assert n.kind in ("list_iter", "comp_iter")
             elif n in ("list_if_chained",):
                 #  list_if_chained ::= list_if_compare ... list_iter
-                if_node = n[0]
-                assert if_node == "list_if_compare"
+                if_nodes.append(n[0])
+                assert n[0] == "list_if_compare"
                 n = n[-1]
                 assert n == "list_iter"
+            elif n in ("comp_if_not_and", "comp_if_or", "comp_if_not_or"):
+                if_nodes.append(n)
+                n = n[-1]
+                assert n == "comp_iter"
             elif n in (
                 "list_if",
                 "list_if_not",
@@ -1259,20 +1280,22 @@ class SourceWalker(GenericASTTraversal, object):
                 "comp_if",
                 "comp_if_not",
             ):
-                have_not = n in ("list_if_not", "comp_if_not", "list_if37_not")
                 if n in ("list_if37", "list_if37_not", "comp_if"):
                     if n == "comp_if":
-                        if_node = n[0]
+                        if_nodes.append(n[0])
                     n = n[1]
                 else:
-                    if_node_parent = n
-                    if_node = n[0]
+                    if n in ("comp_if_not",):
+                        if_nodes.append(n)
+                    else:
+                        if_node_parent = n
+                        if_nodes.append(n[0])
                     if n[1] == "store":
                         store = n[1]
                     n = n[2]
                     pass
             elif n.kind == "list_if_and_or":
-                if_node = n[-1][0]
+                if_nodes.append(n[-1][0])
                 n = n[-1]
             pass
 
@@ -1290,7 +1313,7 @@ class SourceWalker(GenericASTTraversal, object):
         if node != "list_afor":
             self.preorder(n[0])
 
-        if node.kind in ("list_comp_async", "list_afor"):
+        if node.kind in ("list_comp_async", "dict_comp_async", "list_afor"):
             self.write(" async")
             in_node_index = 3
         else:
@@ -1306,12 +1329,12 @@ class SourceWalker(GenericASTTraversal, object):
         self.write(" in ")
 
         if node == "list_afor":
-                list_afor2 = node[1]
-                assert list_afor2 == "list_afor2"
-                list_iter = list_afor2[2]
-                assert list_iter == "list_iter"
-                self.preorder(collection_node)
-                if_node = None
+            list_afor2 = node[1]
+            assert list_afor2 == "list_afor2"
+            list_iter = list_afor2[2]
+            assert list_iter == "list_iter"
+            self.preorder(collection_node)
+            if_nodes = []
         elif self.compile_mode in ("dictcomp", "listcomp", "gencomp", "setcomp"):
             if node == "list_comp_async":
                 self.preorder(node[1])
@@ -1342,13 +1365,18 @@ class SourceWalker(GenericASTTraversal, object):
 
         if comp_store:
             self.preorder(comp_for)
-        if if_node:
+        for if_node in if_nodes:
             self.write(" if ")
-            if have_not:
-                self.write("not ")
-                pass
-            self.prec = 27
-            self.preorder(if_node)
+            if if_node in ("comp_if_not_and", "comp_if_not_or", "comp_if_or"):
+                self.preorder(if_node)
+            else:
+                # FIXME: go over these to add more of this in the template,
+                # not here.
+                if if_node in ("list_if_not", "comp_if_not", "list_if37_not"):
+                    self.write("not ")
+                    pass
+                self.prec = 27
+                self.preorder(if_node[0])
             pass
         self.prec = p
 
@@ -1575,6 +1603,9 @@ class SourceWalker(GenericASTTraversal, object):
                     sep = line_separator
                     pass
             pass
+        elif node == "dict_comp_async":
+            # Handled this condition above
+            pass
         else:
             if node[0] == "LOAD_STR":
                 return
@@ -1596,7 +1627,8 @@ class SourceWalker(GenericASTTraversal, object):
 
         self.indent_more(INDENT_PER_LEVEL)
         sep = INDENT_PER_LEVEL[:-1]
-        self.write("{")
+        if node[0] != "dict_entry":
+            self.write("{")
         line_number = self.line_number
 
         if node[0].kind == "BUILD_MAP_0":
@@ -2487,7 +2519,7 @@ def code_deparse(
         tokens,
         customize,
         co,
-        is_lambda=(compile_mode in ("lambda", "listcomp")),
+        is_lambda=(compile_mode in ("lambda", "listcomp", "dictcomp")),
         isTopLevel=isTopLevel,
     )
 
@@ -2496,7 +2528,7 @@ def code_deparse(
         return None
 
     # FIXME use a lookup table here.
-    if compile_mode in ("lambda", "listcomp"):
+    if compile_mode in ("lambda", "listcomp", "dictcomp"):
         expected_start = "lambda_start"
     elif compile_mode == "eval":
         expected_start = "expr_start"
@@ -2520,7 +2552,7 @@ def code_deparse(
         deparsed.ast, set(), set(), co, version
     )
 
-    if compile_mode not in ("lambda", "listcomp"):
+    if compile_mode not in ("lambda", "listcomp", "dictcomp"):
         assert not nonlocals
 
     deparsed.FUTURE_UNICODE_LITERALS = (
@@ -2532,7 +2564,7 @@ def code_deparse(
         deparsed.ast,
         name=co.co_name,
         customize=customize,
-        is_lambda=compile_mode in ("lambda", "listcomp"),
+        is_lambda=compile_mode in ("lambda", "listcomp", "dictcomp"),
         debug_opts=debug_opts,
     )
 

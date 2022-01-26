@@ -57,13 +57,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           expr
                           jitop
                           expr
-                          dom_end_start_opt
 
         or_and        ::= or_parts
                           expr
                           jifop
                           expr
-                          dom_end_start_opt
 
         if_exp        ::= expr
                           POP_JUMP_IF_FALSE
@@ -154,7 +152,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         compare_chained_comprehension  ::= expr DUP_TOP ROT_THREE COMPARE_OP pjump_iff_forward
                                            compare_chained2_comprehension
 
-        compare_chained2_comprehension ::= expr COMPARE_OP POP_JUMP_IF_FALSE_LOOP JUMP_FORWARD
+        compare_chained2_comprehension ::= expr
+                                           COMPARE_OP
+                                           POP_JUMP_IF_FALSE_LOOP
+                                           JUMP_FORWARD
+                                           bb_end_start_opt
 
         chained_parts      ::= chained_part+
         chained_part       ::= expr DUP_TOP ROT_THREE COMPARE_OP bb_doms_end_start_opt POP_JUMP_IF_FALSE
@@ -220,9 +222,80 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         """
 
     def p_comprehension(self, args):
-        """
-        # Python3 scanner adds LOAD_LISTCOMP. Python3 does list comprehension like
-        # other comprehensions (set, dictionary).
+        """comp_body      ::= dict_comp_body
+        comp_body      ::= set_comp_body
+        comp_body      ::= gen_comp_body
+        comp_body      ::= list_comp_body
+
+        comp_for       ::= expr get_for_iter store comp_iter
+                           CONTINUE
+                           bb_end_start_opt
+
+        comp_for       ::= expr get_for_iter store comp_iter
+                          JUMP_LOOP
+                          bb_end_start_opt
+
+        comp_for       ::= expr get_for_iter store comp_iter
+                          JUMP_LOOP
+                          bb_doms_end_start_opt
+
+        # Not that in `comp_if_xxx`, we always start with an
+        # `expr `and end with a `comp_iter`.
+        # FIXME: Maybe we can refactor this grammar to
+        # redue redundancy?
+
+        comp_if         ::= expr_pjif
+                            comp_iter
+
+        comp_if         ::= expr_pjiff
+                            comp_iter
+        comp_if_chained ::= list_if_compare
+                            bb_end_start
+                            POP_TOP JUMP_LOOP
+                            bb_doms_end_start
+                            comp_iter
+
+
+        # We have a bunch of these comp_if_<logic expression>
+        # because the logic operation bleeds into the
+        # "if" of the comprehension. Note thet specific position of
+        # POP_JUMP_IF_xxx_LOOOP stays the same.
+        comp_if_or      ::= expr_pjit
+                            expr POP_JUMP_IF_FALSE_LOOP
+                            bb_end_start
+                            comp_iter
+        comp_if_not     ::= expr pjump_ift
+                            comp_iter
+        comp_if_not_and ::= expr_pjif
+                            expr POP_JUMP_IF_TRUE_LOOP
+                            bb_end_start
+                            comp_iter
+        comp_if_not_and ::= expr_pjif
+                            expr POP_JUMP_IF_TRUE_LOOP
+                            bb_doms_end_start
+                            comp_iter
+        comp_if_not_or  ::= expr_pjif
+                            expr POP_JUMP_IF_FALSE_LOOP
+                            bb_end_start_opt
+                            comp_iter
+
+        comp_iter     ::= comp_body
+        comp_iter     ::= comp_if
+        comp_iter     ::= comp_if_chained
+        comp_iter     ::= comp_if_or
+        comp_iter     ::= comp_if_not
+        comp_iter     ::= comp_if_not_and
+        comp_iter     ::= comp_if_not_or
+
+        comp_iter      ::= comp_for
+        comp_for       ::= expr gen_comp_body JUMP_LOOP bb_doms_end_start
+
+        expr_or_arg     ::= LOAD_ARG
+        expr_or_arg     ::= expr
+
+        for_iter        ::= bb_end_start_opt
+                            FOR_ITER
+                            bb_end_start
 
         gen_comp_body   ::= expr
                             bb_doms_end_start_opt
@@ -245,25 +318,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             JUMP_LOOP
                             bb_doms_end_start
 
-        for_iter        ::= bb_end_start_opt
-                            FOR_ITER
-                            bb_end_start
-
-        comp_iter      ::= comp_for
-        comp_for       ::= expr gen_comp_body JUMP_LOOP bb_doms_end_start
+        get_for_iter   ::= GET_ITER bb_end_start FOR_ITER bb_end_start_opt
 
         # Our "continue" heuristic -  in two successive JUMP_LOOPS, the first
         # one may be a continue - sometimes classifies a JUMP_LOOP
         # as a CONTINUE. The two are kind of the same in a comprehension.
 
-        # get_for_iter   ::= GET_ITER _come_froms FOR_ITER
-
-        comp_body      ::= dict_comp_body
-        comp_body      ::= set_comp_body
-        comp_body      ::= gen_comp_body
-        comp_body      ::= list_comp_body
-
-        dict_comp_body ::= expr expr MAP_ADD
         set_comp_body  ::= expr SET_ADD
         list_comp_body ::= LOAD_FAST LIST_APPEND
 
@@ -274,24 +334,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           JUMP_LOOP
                           dom_end_start_opt
 
-        list_comp_func ::= BUILD_LIST_0
-                           expr_or_arg
-                           bb_end_start_opt
-                           for_iter store comp_iter
-                           JUMP_LOOP
-                           dom_end_start_opt
-
         """
 
     def p_comprehension_dict(self, args):
         """ "
-        comp_if       ::= expr_pjif comp_iter
-        comp_if       ::= expr_pjiff comp_iter
-        comp_if_not   ::= expr pjump_ift comp_iter
-
-        comp_iter     ::= comp_body
-        comp_iter     ::= comp_if
-        comp_iter     ::= comp_if_not
+        dict_comp_body ::= expr expr MAP_ADD
 
         dict_comp_func ::= BUILD_MAP_0
                           expr_or_arg
@@ -307,6 +354,13 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
     def p_comprehension_list(self, args):
         """
+        list_comp_func ::= BUILD_LIST_0
+                           expr_or_arg
+                           bb_end_start_opt
+                           for_iter store comp_iter
+                           JUMP_LOOP
+                           dom_end_start_opt
+
         list_iter       ::= list_for
         list_iter       ::= list_if
         list_iter       ::= list_if_and_or
@@ -320,11 +374,15 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         jump_loop       ::= JUMP_LOOP bb_doms_end_start
 
-        expr_or_arg     ::= LOAD_ARG
-        expr_or_arg     ::= expr
-
-
         list_comp       ::= BUILD_LIST_0 list_iter
+
+        # A leading "expr" is used when we have nested list comprehensions. E.g.
+        #   ... for dir in dirs for filename in files
+        list_for        ::= expr_or_arg
+                            for_iter
+                            store list_iter
+                            jump_loop
+                            bb_doms_end_start_opt
 
         list_if         ::= expr list_if_end list_iter
         list_if         ::= branch_op list_if_end list_iter
@@ -353,15 +411,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         list_if_not     ::= expr list_if_not_end list_iter
         list_if_not_end ::= pjump_ift bb_end_start_opt
-
-        # A leading "expr" is used when we have nested list comprehensions. E.g.
-        #   ... for dir in dirs for filename in files
-        list_for        ::= expr_or_arg
-                            for_iter
-                            store list_iter
-                            jump_loop
-                            bb_doms_end_start_opt
-
         """
 
     def p_comprehension_set(self, args):

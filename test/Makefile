@@ -37,12 +37,16 @@ check-bytecode-3-lambda:
 	$(PYTHON) test_pythonlib.py \
 	--bytecode-3.8 --lambda
 
+check-bytecode-3-dict-comprehension:
+	$(PYTHON) test_pythonlib.py \
+	--bytecode-3.8 --dict-comprehension
+
 check-bytecode-3-list-comprehension:
 	$(PYTHON) test_pythonlib.py \
 	--bytecode-3.8 --list-comprehension
 
-#: Check deparsing bytecode on all Python 2 and Python 3 versions
-check-bytecode: check-bytecode-3-lambda check-bytecode-3-list-comprehension check-bytecode-3
+#: Check deparsing bytecode on all Python 3 versions
+check-bytecode: check-bytecode-3-lambda check-bytecode-3-dict-comprehension check-bytecode-3-list-comprehension check-bytecode-3
 
 #: Get grammar coverage for Python 3.7
 grammar-coverage-3.8:

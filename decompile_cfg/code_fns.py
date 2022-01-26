@@ -141,6 +141,25 @@ def decompile_code_type(
     return True
 
 
+def decompile_dict_comprehensions(
+    filename: str,
+    code_type,
+    outstream=None,
+    showasm=None,
+    showast=TREE_DEFAULT_DEBUG,
+    showgrammar=PARSER_DEFAULT_DEBUG,
+) -> Optional[bool]:
+    """
+    decompile all of the lambda functions in a python byte-code file (.pyc)
+
+    If given a Python source file (".py") file, we'll
+    decompile all dict_comprehensions of the corresponding compiled object.
+    """
+    return decompile_code_type(
+        filename, "listcomp", "<dictcomp>", outstream, showasm, showast, showgrammar
+    )
+
+
 def decompile_lambda_fns(
     filename: str,
     code_type,
