@@ -644,37 +644,21 @@ class Python38LambdaCustom(Python38BaseParser):
                     expr                 ::= BUILD_MAP_0 genexpr_func_async
                     expr                 ::= list_comp_async
 
-                    func_async_prefix    ::= bb_end_start_opt
-                                             SETUP_FINALLY GET_ANEXT LOAD_CONST YIELD_FROM POP_BLOCK
-                    func_async_prefix    ::= bb_doms_end_start
+                    func_async_prefix    ::= block_break
                                              SETUP_FINALLY GET_ANEXT LOAD_CONST YIELD_FROM POP_BLOCK
 
                     genexpr_func_async   ::= LOAD_ARG func_async_prefix
                                              store
                                              comp_iter
                                              JUMP_LOOP
-                                             bb_doms_end_start
-                                             END_ASYNC_FOR
-
-                    genexpr_func_async   ::= LOAD_ARG func_async_prefix
-                                             store
-                                             comp_iter
-                                             JUMP_LOOP
-                                             bb_end_start
+                                             block_break
                                              END_ASYNC_FOR
 
                     list_afor2           ::= func_async_prefix
                                              store
                                              list_iter
                                              JUMP_LOOP
-                                             bb_end_start
-                                             END_ASYNC_FOR
-
-                    list_afor2           ::= func_async_prefix
-                                             store
-                                             list_iter
-                                             JUMP_LOOP
-                                             bb_doms_end_start
+                                             block_break
                                              END_ASYNC_FOR
 
                     list_afor2           ::= func_async_prefix
@@ -703,8 +687,7 @@ class Python38LambdaCustom(Python38BaseParser):
                 self.add_unique_doc_rules(
                     """
                     expr      ::= get_iter
-                    get_iter  ::= expr bb_doms_end_start_opt GET_ITER
-                    get_iter  ::= expr bb_end_start_opt GET_ITER
+                    get_iter  ::= expr block_break GET_ITER
                     """,
                     customize,
                 )
