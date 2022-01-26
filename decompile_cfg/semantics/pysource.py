@@ -1034,8 +1034,8 @@ class SourceWalker(GenericASTTraversal, object):
                     n = n[3]
             elif n == "comp_if":
                 n = n[1]
-            elif n in ("comp_if_not", "comp_if_not_and"):
-                n = n[2]
+            elif n in ("comp_if_not", "comp_if_not_and", "comp_if_or"):
+                n = n[-1]
 
         assert n == "comp_body", n
 
@@ -1249,7 +1249,7 @@ class SourceWalker(GenericASTTraversal, object):
                 assert n[0] == "list_if_compare"
                 n = n[-1]
                 assert n == "list_iter"
-            elif n in ("comp_if_not_and",):
+            elif n in ("comp_if_not_and", "comp_if_or"):
                 if_nodes.append(n)
                 n = n[-1]
                 assert n == "comp_iter"
@@ -1348,7 +1348,7 @@ class SourceWalker(GenericASTTraversal, object):
             self.preorder(comp_for)
         for if_node in if_nodes:
             self.write(" if ")
-            if if_node in ("comp_if_not_and", ):
+            if if_node in ("comp_if_not_and", "comp_if_or"):
                 self.preorder(if_node)
             else:
                 # FIXME: go over these to add more of this in the template,

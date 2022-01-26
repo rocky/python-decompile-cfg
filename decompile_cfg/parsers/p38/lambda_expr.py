@@ -242,6 +242,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         comp_if         ::= expr_pjiff
                             comp_iter
+        comp_if_or      ::= expr_pjit
+                            expr POP_JUMP_IF_FALSE_LOOP
+                            bb_end_start
+                            comp_iter
         comp_if_not     ::= expr pjump_ift
                             comp_iter
         comp_if_not_and ::= expr_pjif
@@ -255,6 +259,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         comp_iter     ::= comp_body
         comp_iter     ::= comp_if
+        comp_iter     ::= comp_if_or
         comp_iter     ::= comp_if_not
         comp_iter     ::= comp_if_not_and
 
