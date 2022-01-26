@@ -208,6 +208,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         bb_doms_end_start     ::= bb_doms_end dom_start
         bb_doms_end_start_opt ::= bb_doms_end_start?
 
+        block_break        ::= bb_end_start_opt
+        block_break        ::= bb_doms_end_start
+
         """
 
     def p_conditionals(self, args):
@@ -222,7 +225,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         """
 
     def p_comprehension(self, args):
-        """comp_body      ::= dict_comp_body
+        """
+        comp_body      ::= dict_comp_body
         comp_body      ::= set_comp_body
         comp_body      ::= gen_comp_body
         comp_body      ::= list_comp_body
@@ -233,11 +237,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         comp_for       ::= expr get_for_iter store comp_iter
                           JUMP_LOOP
-                          bb_end_start_opt
+                          block_break
 
-        comp_for       ::= expr get_for_iter store comp_iter
-                          JUMP_LOOP
-                          bb_doms_end_start_opt
 
         # Not that in `comp_if_xxx`, we always start with an
         # `expr `and end with a `comp_iter`.
@@ -268,11 +269,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             comp_iter
         comp_if_not_and ::= expr_pjif
                             expr POP_JUMP_IF_TRUE_LOOP
-                            bb_end_start
-                            comp_iter
-        comp_if_not_and ::= expr_pjif
-                            expr POP_JUMP_IF_TRUE_LOOP
-                            bb_doms_end_start
+                            block_break
                             comp_iter
         comp_if_not_or  ::= expr_pjif
                             expr POP_JUMP_IF_FALSE_LOOP
@@ -300,13 +297,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         gen_comp_body   ::= expr
                             bb_doms_end_start_opt
                             YIELD_VALUE
-                            bb_doms_end_start
-                            POP_TOP
-
-        gen_comp_body   ::= expr
-                            bb_doms_end_start_opt
-                            YIELD_VALUE
-                            bb_end_start
+                            block_break
                             POP_TOP
 
         generator_exp   ::= expr_or_arg
@@ -465,8 +456,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # bound expressions with conditional branches.
         # Arg also matches Python's AST in a Call beter.
         arg              ::= expr
-        arg              ::= branch_op bb_doms_end_start
-        arg              ::= branch_op bb_end_start
+        arg              ::= branch_op block_break
 
         attribute        ::= expr LOAD_METHOD
 
@@ -495,8 +485,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # even from those that return True and False (like "is" and "in") is that
         # they have basic block and dominator pseudo instructions.
 
-        branch_op ::= or bb_doms_end_opt
-        branch_op ::= or bb_end_start
+        branch_op ::= or block_break
         branch_op ::= or1 bb_doms_end_opt
         branch_op ::= and bb_doms_end_opt
         branch_op ::= and1 bb_doms_end_opt
