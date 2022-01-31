@@ -51,7 +51,7 @@ def parse(p, tokens, customize, is_lambda):
 def get_python_parser(
     version, debug_parser=PARSER_DEFAULT_DEBUG, compile_mode="exec", is_pypy=False
 ):
-    """Returns parser object for Python version 3.10 depending on the parameters passed.  *compile_mode* is either
+    """Returns parser object for Python version 3.8 depending on the parameters passed.  *compile_mode* is either
     "exec", "eval", "eval_expr", or "single" or "lambda".
 
     * "lambda" is for the grammar that can appear in lambda statements.
