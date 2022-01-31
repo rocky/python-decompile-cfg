@@ -51,6 +51,13 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         or_part       ::= expr_pjit
         or_parts      ::= or_part+
 
+        or_loop       ::= expr_pjit_loop
+                          dom_start_opt
+                          expr
+
+        or_part_loop  ::= expr_pjit_loop
+        or_parts_loop ::= or_part_loop+
+
         or1           ::= or_parts expr
 
         and_or        ::= and_parts
@@ -219,6 +226,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         expr_pjif                  ::= expr POP_JUMP_IF_FALSE
         expr_pjit                  ::= expr POP_JUMP_IF_TRUE
+        expr_pjit_loop             ::= expr POP_JUMP_IF_TRUE_LOOP
         expr_jifop                 ::= expr JUMP_IF_FALSE_OR_POP
         expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP
         expr_pjiff                 ::= expr pjump_iff
@@ -260,8 +268,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # We have a bunch of these comp_if_<logic expression>
         # because the logic operation bleeds into the
         # "if" of the comprehension. Note thet specific position of
-        # POP_JUMP_IF_xxx_LOOOP stays the same.
-        comp_if_or      ::= expr_pjit
+        # POP_JUMP_IF_xxx_LOOP stays the same.
+        comp_if_or      ::= or_parts
+                            expr POP_JUMP_IF_FALSE_LOOP
+                            bb_end_start
+                            comp_iter
+        comp_if_or      ::= or_parts_loop
                             expr POP_JUMP_IF_FALSE_LOOP
                             bb_end_start
                             comp_iter
