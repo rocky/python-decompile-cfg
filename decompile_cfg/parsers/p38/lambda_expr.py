@@ -307,7 +307,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             store
                             comp_iter
                             JUMP_LOOP
-                            bb_doms_end_start
+                            block_break
 
         get_for_iter   ::= GET_ITER bb_end_start FOR_ITER bb_end_start_opt
 
@@ -323,8 +323,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           bb_end_start_opt
                           for_iter store comp_iter
                           JUMP_LOOP
-                          dom_end_start_opt
-
+                          block_break
         """
 
     def p_comprehension_dict(self, args):
