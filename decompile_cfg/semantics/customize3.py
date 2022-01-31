@@ -22,6 +22,7 @@ from decompile_cfg.scanner import Code
 from decompile_cfg.semantics.consts import TABLE_DIRECT
 from decompile_cfg.semantics.customize38 import customize_for_version38
 from decompile_cfg.semantics.customize37 import customize_for_version37
+from decompile_cfg.semantics.helper import is_lambda_mode
 
 
 def customize_for_version3(self, version):
@@ -83,7 +84,7 @@ def customize_for_version3(self, version):
             code._tokens,
             code._customize,
             code,
-            is_lambda=self.compile_mode in ("lambda", "listcomp"),
+            is_lambda=is_lambda_mode(self.compile_mode),
         )
         self.customize(code._customize)
 
