@@ -227,9 +227,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
     def p_comprehension(self, args):
         """
         comp_body      ::= dict_comp_body
-        comp_body      ::= set_comp_body
         comp_body      ::= gen_comp_body
         comp_body      ::= list_comp_body
+        comp_body      ::= set_comp_body
 
         comp_for       ::= expr get_for_iter store comp_iter
                            CONTINUE

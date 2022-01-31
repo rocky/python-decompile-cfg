@@ -674,6 +674,11 @@ TABLE_DIRECT = {
     "ret_or":           ( "%c or %c", 0, 2 ),
     "set_comp_body":    ( "%c", 0 ),
 
+    # "set_comp_func": (
+    #     "%|{%c for %c in %c }\n",
+    #     (5, "comp_iter"), (4, "store"), (1, "expr_or_arg")
+    #     ),
+
     "slice0": (
         "%c[:]",
         (0, "expr"),

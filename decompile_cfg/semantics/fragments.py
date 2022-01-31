@@ -2168,7 +2168,7 @@ if __name__ == "__main__":
         return fn.__code__
 
     def test():
-        import os, sys
+        import os, sys  # noqa
 
     def get_dups(li: list) -> set:
         dups = {}
