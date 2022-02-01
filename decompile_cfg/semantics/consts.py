@@ -475,7 +475,15 @@ TABLE_DIRECT = {
         (0, "expr"),
         ),
 
-    "if_exp": (
+    "if_exp_jump_false": (
+        "%p if %c else %c",
+        (3, "expr", PRECEDENCE["if_exp"]),
+        (0, "expr"),
+        (-1, "expr"),
+    ),
+
+    # Same as above. See if we can DRY
+    "if_exp_jump_true": (
         "%p if %c else %c",
         (3, "expr", PRECEDENCE["if_exp"]),
         (0, "expr"),

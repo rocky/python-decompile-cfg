@@ -2099,14 +2099,17 @@ class SourceWalker(GenericASTTraversal, object):
                     if isinstance(tup[1], str):
                          # if node[index] != nonterm_name:
                          #     from trepan.api import debug; debug()
-                         assert (
-                            node[index] == nonterm_name
-                        ), "at %s[%d], expected '%s' node; got '%s'" % (
-                            node.kind,
-                            arg,
-                            nonterm_name,
-                            node[index].kind,
-                        )
+                        try:
+                             assert (
+                                node[index] == nonterm_name
+                            ), "at %s[%d], expected '%s' node; got '%s'" % (
+                                node.kind,
+                                arg,
+                                nonterm_name,
+                                node[index].kind,
+                                )
+                        except:
+                            from trepan.api import debug; debug()
                     else:
                         assert (
                             node[tup[0]] in tup[1]

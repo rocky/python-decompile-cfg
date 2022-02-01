@@ -70,29 +70,32 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           jifop
                           expr
 
-        if_exp        ::= expr
-                          POP_JUMP_IF_FALSE
-                          bb_end_start_opt
-                          expr
-                          JUMP_FORWARD
-                          bb_end_start
-                          expr
+        if_exp        ::= if_exp_jump_false
+        if_exp        ::= if_exp_jump_true
 
-        if_exp         ::= expr
-                           POP_JUMP_IF_TRUE
-                           bb_end_start_opt
-                           expr
-                           JUMP_FORWARD
-                           bb_end_start
-                           expr
+        if_exp_jump_false ::= expr
+                              POP_JUMP_IF_FALSE
+                              bb_end_start_opt
+                              expr
+                              JUMP_FORWARD
+                              bb_end_start
+                              expr
 
-        if_exp         ::= expr
-                           POP_JUMP_IF_FALSE
-                           bb_end_start
-                           expr
-                           JUMP_FORWARD
-                           dom_end_start
-                           expr
+        if_exp_jump_true  ::= expr
+                              POP_JUMP_IF_TRUE
+                              bb_end_start_opt
+                              expr
+                              JUMP_FORWARD
+                              bb_end_start
+                              expr
+
+        if_exp_jump_false ::= expr
+                              POP_JUMP_IF_FALSE
+                              bb_end_start
+                              expr
+                              JUMP_FORWARD
+                              dom_end_start
+                              expr
 
         if_exp_compare ::= compare
                            expr
@@ -225,6 +228,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         branch_op                  ::= and POP_JUMP_IF_TRUE expr
 
         expr_pjif                  ::= expr POP_JUMP_IF_FALSE
+        expr_pjif_loop             ::= expr POP_JUMP_IF_FALSE_LOOP
         expr_pjit                  ::= expr POP_JUMP_IF_TRUE
         expr_pjit_loop             ::= expr POP_JUMP_IF_TRUE_LOOP
         expr_jifop                 ::= expr JUMP_IF_FALSE_OR_POP
@@ -258,6 +262,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         comp_if         ::= expr_pjiff
                             comp_iter
+
+        comp_if         ::= expr_pjif_loop
+                            comp_iter
+
         comp_if_chained ::= list_if_compare
                             bb_end_start
                             POP_TOP JUMP_LOOP

@@ -15,7 +15,7 @@
 
 # FIXME: this probably applies to lots of rules. Figure out a good name.
 def if_exp_ok(
-    self, lhs: str, n: int, rule, ast, tokens: list, first: int, last: int
+    self, lhs: str, n: int, rule, tree, tokens: list, first: int, last: int
 ) -> bool:
     """
     Returns True if we can't find any reason to disallow an "if_exp_lambda" reduction.
@@ -23,18 +23,21 @@ def if_exp_ok(
 
     # for i in range(first, last, 1):
     #    print(tokens[i])
-    # print(ast)
+    # print(tree)
     # print(rule)
-    test_pji = ast[1]
+    if tree[0].kind.startswith("if_exp_jump_"):
+        tree = tree[0]
+
+    test_pji = tree[1]
     assert test_pji.kind.startswith("POP_JUMP_IF_")
-    orelse_expr = ast[6]
+    orelse_expr = tree[6]
     assert orelse_expr == "expr"
 
     # Make "if" test conditional jump goes to the "orelse" location.
     if test_pji.attr != orelse_expr.first_child().offset:
         return False
 
-    body_expr = ast[3]
+    body_expr = tree[3]
     assert body_expr == "expr"
 
     if body_expr[0] == "branch_op":
@@ -42,7 +45,7 @@ def if_exp_ok(
         # Make sure all jumps in body_expr don't jump into
         # the middle of the orelse part.
         offset = body_expr.first_child().offset
-        jump_forward = ast[4]
+        jump_forward = tree[4]
         assert jump_forward == "JUMP_FORWARD"
         jf_offset = jump_forward.offset
         last_offset = tokens[last].offset
