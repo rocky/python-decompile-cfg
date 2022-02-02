@@ -55,8 +55,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           dom_start_opt
                           expr
 
-        or_part_loop  ::= expr_pjit_loop
-        or_parts_loop ::= or_part_loop+
+        or_part_true_loop  ::= expr_pjit_loop
+        or_parts_true_loop ::= or_part_true_loop+
+
+        or_part_false_loop  ::= expr_pjif_loop
+        or_parts_false_loop ::= or_part_false_loop+
 
         or1           ::= or_parts expr
 
@@ -281,10 +284,16 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             expr POP_JUMP_IF_FALSE_LOOP
                             bb_end_start
                             comp_iter
-        comp_if_or      ::= or_parts_loop
+        comp_if_or      ::= or_parts_true_loop
                             expr POP_JUMP_IF_FALSE_LOOP
                             bb_end_start
                             comp_iter
+
+        comp_if_or      ::= or_parts_false_loop
+                            expr POP_JUMP_IF_FALSE_LOOP
+                            bb_end_start
+                            comp_iter
+
         comp_if_not     ::= expr pjump_ift
                             comp_iter
         comp_if_not_and ::= expr_pjif
