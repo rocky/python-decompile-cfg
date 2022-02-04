@@ -294,8 +294,22 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             bb_end_start
                             comp_iter
 
-        comp_if_not     ::= expr pjump_ift
-                            comp_iter
+        # We need to have a reduction rule to disambiguate
+        # these "comp_if_not" and "comp_if". The difference is burried in the
+        # sense of the jump in
+        #     comp_iter -> comp_if_or -> or_parts_false_loop
+        # vs.:
+        #    comp_iter -> comp_if_or -> or_parts_true_loop
+        #
+        # If "true_loop then that goes with "comp_if_not"
+        # if "false_loop"  then that goes with comp_if"
+        #
+        # We might be able to do this in the grammar but it is a bit
+        # too pervasive and involved.
+
+        comp_if_not     ::= expr pjump_ift comp_iter
+        comp_if         ::= expr pjump_ift comp_iter
+
         comp_if_not_and ::= expr_pjif
                             expr POP_JUMP_IF_TRUE_LOOP
                             block_break

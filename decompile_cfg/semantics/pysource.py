@@ -1281,7 +1281,7 @@ class SourceWalker(GenericASTTraversal, object):
                 if n in ("list_if37", "list_if37_not", "comp_if"):
                     if n == "comp_if":
                         if_nodes.append(n[0])
-                    n = n[1]
+                    n = n[-1]
                 else:
                     if n in ("comp_if_not",):
                         if_nodes.append(n)
@@ -1290,7 +1290,7 @@ class SourceWalker(GenericASTTraversal, object):
                         if_nodes.append(n[0])
                     if n[1] == "store":
                         store = n[1]
-                    n = n[2]
+                    n = n[-1]
                     pass
             elif n.kind == "list_if_and_or":
                 if_nodes.append(n[-1][0])

@@ -331,19 +331,19 @@ TABLE_DIRECT = {
                               (2, "expr", 27), 0, 4 ),
 
     "comp_iter": ( "%c", 0 ),
-    "comp_if":	 ( " if %c%c", 0, 1 ),
+    "comp_if":	 ( " if %c%c", 0, -1 ),
 
     # Note: Adding "or" is handled inside the
     # comprehension
     "comp_if_or": (
         "%p or %p ",
-        (0, ("or_parts", "or_parts_true_loop"), PRECEDENCE["or"] ),
+        (0, ("or_parts", "or_parts_true_loop", "or_parts_false_loop"), PRECEDENCE["or"] ),
         (1, "expr", PRECEDENCE["or"] ),
         ),
 
     "comp_if_not": (
         " if not %p%c",
-         (0, "expr", PRECEDENCE["unary_not"]), 2
+         (0, "expr", PRECEDENCE["unary_not"]), -1
          ),
 
     # Note: Adding "if" is handled inside the
