@@ -1086,6 +1086,12 @@ class SourceWalker(GenericASTTraversal, object):
 
     n_dict_comp = n_set_comp
 
+    # In the old days this node would never get called because
+    # it was embedded insie some sort of comprehension
+    # Nowadays, we allow starting any code object, not just
+    # a top-level module. In doing so we can
+    # now encounter this outside of the embedding of
+    # a comprehension.
     def n_set_comp_async(self, node):
         self.write("{")
         assert node[0] in ["BUILD_SET_0", "BUILD_MAP_0"]
@@ -1404,6 +1410,12 @@ class SourceWalker(GenericASTTraversal, object):
 
     n_list_comp_async = n_list_comp
 
+    # In the old days this node would never get called because
+    # it was embedded insie some sort of comprehension
+    # Nowadays, we allow starting any code object, not just
+    # a top-level module. In doing so we can
+    # now encounter this outside of the embedding of
+    # a comprehension.
     def n_dict_comp_func(self, node):
         self.write("{")
         self.comprehension_walk_newer(node, 5, 0, collection_node=node[1])
