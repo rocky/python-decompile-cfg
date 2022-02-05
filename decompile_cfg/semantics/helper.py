@@ -137,7 +137,7 @@ def flatten_list(node):
     return flat_elems
 
 def is_lambda_mode(compile_mode: str) -> bool:
-    return compile_mode in ("dictcomp", "lambda", "listcomp", "setcomp")
+    return compile_mode in ("dictcomp", "genexpr", "lambda", "listcomp", "setcomp")
 
 def strip_quotes(s: str) -> str:
     if s.startswith("'''") and s.endswith("'''"):

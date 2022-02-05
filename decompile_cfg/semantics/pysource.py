@@ -1065,8 +1065,9 @@ class SourceWalker(GenericASTTraversal, object):
             self.closure_walk(node, collection_index=4 if isinstance(node[4], SyntaxTree) else 3)
             self.is_lambda = is_lambda
         else:
-            code_index = -6
-            self.comprehension_walk(node, iter_index=5, code_index=code_index)
+            self.comprehension_walk_newer(node, iter_index=5, collection_node=node[0])
+            # code_index = -6
+            # self.comprehension_walk(node, iter_index=5, code_index=code_index)
         self.write(")")
         self.prune()
 
@@ -1215,9 +1216,10 @@ class SourceWalker(GenericASTTraversal, object):
             n = tree[iter_index]
 
         if tree in (
-            "set_comp_func",
             "dict_comp_func",
+            "generator_exp",
             "list_comp",
+            "set_comp_func",
             "set_comp_func_header",
         ):
             for k in tree:
@@ -2583,7 +2585,7 @@ def code_deparse(
         deparsed.ast, set(), set(), co, version
     )
 
-    if compile_mode not in ("dictcomp", "lambda", "listcomp", "setcomp"):
+    if compile_mode not in ("dictcomp", "gencomp", "lambda", "listcomp", "setcomp"):
         assert not nonlocals
 
     deparsed.FUTURE_UNICODE_LITERALS = (
