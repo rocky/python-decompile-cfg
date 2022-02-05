@@ -14,19 +14,55 @@
 
 
 # FIXME: this probably applies to lots of rules. Figure out a good name.
-def if_exp_ok(
+def comp_if_ok(
     self, lhs: str, n: int, rule, tree, tokens: list, first: int, last: int
 ) -> bool:
     """
-    Returns True if we can't find any reason to disallow an "if_exp_lambda" reduction.
+    Rules for both "comp_if " and "comp_if_not".
+
+    Returns true if the jump loop parity (true false) matches the parity on the "if"
     """
+
+
+    # We need this  reduction rule to disambiguate
+    # these "comp_if_not" and "comp_if". The difference is burried in the
+    # sense of the jump in
+    #     comp_iter -> comp_if_or -> or_parts_false_loop
+    # vs.:
+    #    comp_iter -> comp_if_or -> or_parts_true_loop
+    #
+    # If "true_loop then that goes with "comp_if_not"
+    # if "false_loop"  then that goes with comp_if"
+    #
+    # We might be able to do this in the grammar but it is a bit
+    # too pervasive and involved.
 
     # for i in range(first, last, 1):
     #    print(tokens[i])
     # print(tree)
     # print(rule)
-    if tree[0].kind.startswith("if_exp_jump_"):
-        tree = tree[0]
+
+    if rule[1] != ("expr", "pjump_ift", "comp_iter"):
+        # We only handle RHS with the above
+        return True
+
+    comp_iter = tree[-1]
+    assert comp_iter == "comp_iter"
+
+    comp_if_or = comp_iter[0]
+    if comp_if_or != "comp_if_or":
+        return True
+
+    # If "or" fails and we jump to the loop we have an "if" condition.
+    if lhs == "comp_if" and comp_if_or[0].kind.endswith("true_loop"):
+        return False
+
+    # If "or" succeeds and we jump to the loop we have an "if not" condition.
+    if lhs == "comp_if_not" and comp_if_or[0].kind.endswith("false_loop"):
+        return False
+
+    return True
+
 
     test_pji = tree[1]
     assert test_pji.kind.startswith("POP_JUMP_IF_")

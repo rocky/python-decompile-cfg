@@ -20,6 +20,7 @@ from decompile_cfg.parsers.p38.base import Python38BaseParser
 from decompile_cfg.parsers.parse_heads import ParserError, nop_func
 from decompile_cfg.parsers.reduce_check.and_check import and_ok
 from decompile_cfg.parsers.reduce_check.if_exp_check import if_exp_ok
+from decompile_cfg.parsers.reduce_check.comp_if_check import comp_if_ok
 from spark_parser.spark import rule2str
 
 class Python38LambdaCustom(Python38BaseParser):
@@ -176,11 +177,15 @@ class Python38LambdaCustom(Python38BaseParser):
 
         self.reduce_check_table = {
             "and1": and_ok,
-            "if_exp": if_exp_ok
+            "if_exp": if_exp_ok,
+            "comp_if": comp_if_ok,
+            "comp_if_not": comp_if_ok,
         }
 
         self.check_reduce["and1"] = "AST"
         self.check_reduce["if_exp"] = "AST"
+        self.check_reduce["comp_if_not"] = "AST"
+        self.check_reduce["comp_if"] = "AST"
 
         is_pypy = False
 
@@ -596,6 +601,7 @@ class Python38LambdaCustom(Python38BaseParser):
                     expr                 ::= dict_comp_async
                     expr                 ::= generator_exp_async
                     expr                 ::= list_comp_async
+                    expr                 ::= set_comp_async
 
                     func_async_middle   ::= POP_BLOCK JUMP_FORWARD COME_FROM_EXCEPT
                                             DUP_TOP LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
@@ -632,6 +638,15 @@ class Python38LambdaCustom(Python38BaseParser):
                                              GET_AWAITABLE LOAD_CONST
                                              YIELD_FROM
                     list_iter            ::= list_afor
+
+                    set_comp_async       ::= LOAD_SETCOMP
+                                             LOAD_STR
+                                             MAKE_FUNCTION_0
+                                             expr
+                                             GET_AITER
+                                             CALL_FUNCTION_1
+
+
                    """,
                     nop_func,
                 )
@@ -640,9 +655,12 @@ class Python38LambdaCustom(Python38BaseParser):
             elif opname == "GET_ANEXT":
                 self.addRule(
                     """
+                    expr                 ::= dict_comp_async
                     expr                 ::= genexpr_func_async
-                    expr                 ::= BUILD_MAP_0 genexpr_func_async
                     expr                 ::= list_comp_async
+                    expr                 ::= set_comp_async
+
+                    dict_comp_async      ::= BUILD_MAP_0 genexpr_func_async
 
                     func_async_prefix    ::= block_break
                                              SETUP_FINALLY GET_ANEXT LOAD_CONST YIELD_FROM POP_BLOCK
@@ -670,6 +688,7 @@ class Python38LambdaCustom(Python38BaseParser):
                                              POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
 
                     list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
+                    set_comp_async       ::= BUILD_SET_0 genexpr_func_async
 
                    """,
                     nop_func,
