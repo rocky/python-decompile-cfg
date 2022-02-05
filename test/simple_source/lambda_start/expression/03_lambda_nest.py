@@ -16,3 +16,13 @@ def _istree(obj):
         and ord(n)
         )
         )(10)
+
+
+[(lambda a, b:
+  [a for
+   i in
+   b])(
+       j)
+ for j in
+ (1,2,3)
+ ]

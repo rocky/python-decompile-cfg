@@ -651,14 +651,14 @@ class FragmentsWalker(pysource.SourceWalker, object):
         assert iscode(cn.attr)
 
         code = Code(cn.attr, self.scanner, self.currentclass)
-        ast = self.build_ast(code._tokens, code._customize, code)
+        tree = self.build_ast(code._tokens, code._customize, code)
         self.customize(code._customize)
 
         # Remove single reductions as in ("stmts", "sstmt"):
-        while len(ast) == 1:
-            ast = ast[0]
+        while len(tree) == 1:
+            tree = tree[0]
 
-        n = ast[iter_index]
+        n = tree[iter_index]
 
         assert n == "comp_iter", n.kind
         # Find the comprehension body. It is the inner-most
@@ -672,10 +672,10 @@ class FragmentsWalker(pysource.SourceWalker, object):
                     n = n[3]
             elif n == "comp_if":
                 n = n[1]
-            elif n == "comp_if_not":
-                n = n[2]
+            elif n in ("comp_if_not", "comp_if_not_and", "comp_if_not_or", "comp_if_or"):
+                n = n[-1]
 
-        assert n == "comp_body", ast
+        assert n == "comp_body", n
 
         self.preorder(n[0])
         if node == "generator_exp_async":
@@ -685,9 +685,9 @@ class FragmentsWalker(pysource.SourceWalker, object):
             iter_var_index = iter_index - 1
         self.write(" for ")
         start = len(self.f.getvalue())
-        store = ast[iter_var_index]
+        store = tree[iter_var_index]
         self.preorder(store)
-        self.set_pos_info(ast[iter_index - 1], start, len(self.f.getvalue()))
+        self.set_pos_info(tree[iter_index - 1], start, len(self.f.getvalue()))
         self.write(" in ")
         start = len(self.f.getvalue())
 
@@ -700,8 +700,8 @@ class FragmentsWalker(pysource.SourceWalker, object):
         self.preorder(iter_expr)
         self.set_pos_info(iter_expr, start, len(self.f.getvalue()))
         start = len(self.f.getvalue())
-        self.preorder(ast[iter_index])
-        self.set_pos_info(ast[iter_index], start, len(self.f.getvalue()))
+        self.preorder(tree[iter_index])
+        self.set_pos_info(tree[iter_index], start, len(self.f.getvalue()))
         self.prec = p
 
     def comprehension_walk3(self, node, iter_index, code_index=-5):
@@ -718,20 +718,20 @@ class FragmentsWalker(pysource.SourceWalker, object):
         code_name = code.co_name
         code = Code(code, self.scanner, self.currentclass)
 
-        ast = self.build_ast(code._tokens, code._customize, code)
+        tree = self.build_ast(code._tokens, code._customize, code)
 
         self.customize(code._customize)
-        if ast[0] == "sstmt":
-            ast = ast[0]
+        if tree[0] == "sstmt":
+            tree = tree[0]
 
         # skip over stmt return return_expr
-        ast = ast[0][0][0]
+        tree = tree[0][0][0]
         store = None
-        if ast in ["set_comp_func", "dict_comp_func"]:
+        if tree in ["set_comp_func", "dict_comp_func"]:
             # Offset 0: BUILD_SET should have the span
             # of '{'
-            self.gen_source(ast, code_name, {})
-            for k in ast:
+            self.gen_source(tree, code_name, {})
+            for k in tree:
                 if k == "comp_iter":
                     n = k
                 elif k == "store":
@@ -740,8 +740,8 @@ class FragmentsWalker(pysource.SourceWalker, object):
                 pass
             pass
         else:
-            ast = ast[0][0]
-            n = ast[iter_index]
+            tree = tree[0][0]
+            n = tree[iter_index]
             assert n == "list_iter", n
 
         # FIXME: I'm not totally sure this is right.
@@ -753,7 +753,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
         comp_store = None
         if n == "comp_iter":
             comp_for = n
-            comp_store = ast[3]
+            comp_store = tree[3]
 
         have_not = False
         while n in ("list_iter", "comp_iter"):
@@ -773,7 +773,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
 
         # Python 2.7+ starts including set_comp_body
         # Python 3.5+ starts including set_comp_func
-        assert n.kind in ("lc_body", "comp_body", "set_comp_func", "set_comp_body"), ast
+        assert n.kind in ("lc_body", "comp_body", "set_comp_func", "set_comp_body"), tree
         assert store, "Couldn't find store in list/set comprehension"
 
         old_name = self.name
@@ -808,8 +808,8 @@ class FragmentsWalker(pysource.SourceWalker, object):
         fin = len(self.f.getvalue())
         self.set_pos_info(node[-3], start, fin, old_name)
 
-        if ast == "list_comp":
-            list_iter = ast[1]
+        if tree == "list_comp":
+            list_iter = tree[1]
             assert list_iter == "list_iter"
             if list_iter == "list_for":
                 self.preorder(list_iter[3])
@@ -840,17 +840,17 @@ class FragmentsWalker(pysource.SourceWalker, object):
         self.prec = 27
 
         code = Code(node[1].attr, self.scanner, self.currentclass)
-        ast = self.build_ast(code._tokens, code._customize, code)
+        tree = self.build_ast(code._tokens, code._customize, code)
         self.customize(code._customize)
         if node == "set_comp":
-            ast = ast[0][0][0]
+            tree = tree[0][0][0]
         else:
-            ast = ast[0][0][0][0][0]
+            tree = tree[0][0][0][0][0]
 
-        if ast == "expr":
-            ast = ast[0]
+        if tree == "expr":
+            tree = tree[0]
 
-        n = ast[1]
+        n = tree[1]
         collection = node[-3]
         list_if = None
         assert n == "list_iter"
@@ -872,7 +872,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
                 pass
             pass
 
-        assert n == "lc_body", ast
+        assert n == "lc_body", tree
 
         self.preorder(n[0])
         self.write(" for ")
@@ -894,7 +894,12 @@ class FragmentsWalker(pysource.SourceWalker, object):
     def n_generator_exp(self, node):
         start = len(self.f.getvalue())
         self.write("(")
-        code_index = -6
+        if node[0].kind in ("load_closure", "load_genexpr"):
+            is_lambda = self.is_lambda
+            self.closure_walk(node, collection_index=4)
+            self.is_lambda = is_lambda
+        else:
+            code_index = -6
         self.comprehension_walk(node, iter_index=4, code_index=code_index)
         self.write(")")
         self.set_pos_info(node, start, len(self.f.getvalue()))
@@ -964,7 +969,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
         self.write("]")
         self.prune()
 
-    def closure_walk(self, node, collection_index):
+    def closure_walk(self, node, collection_index: int):
         """Dictionary and Set comprehensions using closures.
         """
         p = self.prec
@@ -979,23 +984,28 @@ class FragmentsWalker(pysource.SourceWalker, object):
         list_if = None
         assert n == "comp_iter"
 
-        # find inner-most node
+        # Find inner-most node.
         while n == "comp_iter":
             n = n[0]  # recurse one step
             # FIXME: adjust for set comprehension
             if n == "list_for":
                 store = n[2]
                 n = n[3]
-            elif n in ("list_if", "list_if_not", "comp_if", "comp_if_not"):
+            elif n in ("list_if", "list_if_not", "list_if_and_or", "comp_if", "comp_if_not"):
                 # FIXME: just a guess
                 if n[0].kind == "expr":
                     list_if = n
+                    n = n[2]
                 elif n[0].kind in ("expr_pjif", "expr_pjiff"):
                     list_if = n
                     n = n[1]
                 else:
-                    list_if = n[1]
-                n = n[2]
+                    if len(n) == 2:
+                        list_if = n[0]
+                        n = n[1]
+                    else:
+                        list_if = n[1]
+                        n = n[2]
                 pass
             pass
 
@@ -1108,7 +1118,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
 
     def gen_source(
         self,
-        ast,
+        tree,
         name,
         customize,
         is_lambda=False,
@@ -1123,11 +1133,11 @@ class FragmentsWalker(pysource.SourceWalker, object):
         self.name = name
         self.debug_opts = debug_opts
         # if code would be empty, append 'pass'
-        if len(ast) == 0:
+        if len(tree) == 0:
             self.println(self.indent, "pass")
         else:
             self.customize(customize)
-            self.text = self.traverse(ast, is_lambda=is_lambda)
+            self.text = self.traverse(tree, is_lambda=is_lambda)
         self.name = old_name
         self.return_none = rn
 
@@ -1484,7 +1494,8 @@ class FragmentsWalker(pysource.SourceWalker, object):
     def n_dict(self, node):
         """
         prettyprint a dict
-        'dict' is something like k = {'a': 1, 'b': 42 }"
+        'dict' is something like k = {'a': 1, 'b': 42}"
+        We will use source-code line breaks to guide us when to break.
         """
         p = self.prec
         self.prec = 100
@@ -1585,7 +1596,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
 
     def n_list(self, node):
         """
-        prettyprint a list or tuple
+        prettyprint a dict, list, set or tuple.
         """
         p = self.prec
         self.prec = PRECEDENCE["yield"] - 1
@@ -1630,10 +1641,10 @@ class FragmentsWalker(pysource.SourceWalker, object):
         # if flat_elems > some_number, then group
         # do automatic wrapping
         for elem in flat_elems:
-            if elem == "ROT_THREE":
+            if elem in ("ROT_THREE", "EXTENDED_ARG"):
                 continue
-
-            assert elem == "expr"
+            assert elem in ("expr", "list", "lists")
+            line_number = self.line_number
             value = self.traverse(elem)
             self.node_append(sep, value, elem)
             sep = line_separator
@@ -1645,6 +1656,9 @@ class FragmentsWalker(pysource.SourceWalker, object):
         self.set_pos_info(n, start, finish)
         self.set_pos_info(node, start, finish)
         self.indent_less(INDENT_PER_LEVEL)
+
+        self.write(")")
+
         self.prec = p
         self.prune()
         return
@@ -1702,7 +1716,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
             elif typ == "r":
                 recurse_node = True
             elif typ == ",":
-                if lastC == 1:
+                if node.kind in ("unpack", "unpack_w_parens") and node[0].attr == 1:
                     self.write(",")
             elif typ == "b":
                 finish = len(self.f.getvalue())
@@ -1714,21 +1728,44 @@ class FragmentsWalker(pysource.SourceWalker, object):
                 index = entry[arg]
                 if isinstance(index, tuple):
                     if isinstance(index[1], str):
-                        assert node[index[0]] == index[1], (
-                            "at %s[%d], expected %s node; got %s"
-                            % (node.kind, arg, node[index[0]].kind, index[1])
+                        if node[index[0]] != index[1]:
+                            from trepan.api import debug; debug()
+                        assert (
+                            node[index[0]] == index[1]
+                        ), "at %s[%d], expected '%s' node; got '%s'" % (
+                            node.kind,
+                            arg,
+                            index[1],
+                            node[index[0]].kind,
                         )
                     else:
-                        assert node[index[0]] in index[1], (
-                            "at %s[%d], expected to be in '%s' node; got '%s'"
-                            % (node.kind, arg, index[1], node[index[0]].kind)
+                        assert (
+                            node[index[0]] in index[1]
+                        ), "at %s[%d], expected to be in '%s' node; got '%s'" % (
+                            node.kind,
+                            arg,
+                            index[1],
+                            node[index[0]].kind,
                         )
 
                     index = index[0]
-                assert isinstance(index, int), (
-                    "at %s[%d], %s should be int or tuple"
-                    % (node.kind, arg, type(index),)
+                assert isinstance(
+                    index, int
+                ), "at %s[%d], %s should be int or tuple" % (
+                    node.kind,
+                    arg,
+                    type(index),
                 )
+
+                try:
+                    node[index]
+                except IndexError:
+                    raise RuntimeError(
+                        f"""
+                        Expanding '{node.kind}' in template '{entry}[{arg}]':
+                        {index} is invalid; has only {len(node)} entries
+                        """
+                    )
                 self.preorder(node[index])
 
                 finish = len(self.f.getvalue())
@@ -1948,23 +1985,23 @@ def code_deparse(
     deparsed.ast = deparsed.build_ast(tokens, customize, co, isTopLevel=isTopLevel)
 
     # FIXME use a lookup table here.
-    if compile_mode == "lambda":
+    if is_lambda_mode(compile_mode):
         expected_start = "lambda_start"
     elif compile_mode == "eval":
-        expected_start = "expr_stmt"
+        expected_start = "expr_start"
     elif compile_mode == "expr":
         expected_start = "expr_start"
     elif compile_mode == "exec":
         expected_start = "stmts"
     elif compile_mode == "single":
-        expected_start = "stmts"
+        expected_start = "single_start"
     else:
         expected_start = None
+
     if expected_start:
         assert (
             deparsed.ast == expected_start
         ), f"Should have parsed grammar start to '{expected_start}'; got: {deparsed.ast.kind}"
-
     # save memory
     del tokens
 

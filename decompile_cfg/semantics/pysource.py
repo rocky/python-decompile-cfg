@@ -1060,10 +1060,9 @@ class SourceWalker(GenericASTTraversal, object):
 
     def n_generator_exp(self, node):
         self.write("(")
-        code_index = -6
         if node[0].kind in ("load_closure", "load_genexpr"):
             is_lambda = self.is_lambda
-            self.closure_walk(node, collection_index=4)
+            self.closure_walk(node, collection_index=4 if isinstance(node[4], SyntaxTree) else 3)
             self.is_lambda = is_lambda
         else:
             code_index = -6
