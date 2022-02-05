@@ -21,7 +21,7 @@ Step 1) Edit this file and add a new entry to 'test_options', eg.
   test_options['mylib'] = ('/usr/lib/mylib', PYOC, 'mylib')
 Step 2: Run the test:
   test_pythonlib.py --mylib	  # decompile 'mylib'
-  test_pythonlib.py --mylib --syntaix-verify # decompile verify 'mylib'
+  test_pythonlib.py --mylib --syntax-verify # decompile verify 'mylib'
 """
 
 import getopt, os, py_compile, sys, shutil, tempfile, time
@@ -105,6 +105,8 @@ def do_tests(src_dir, obj_patterns, target_dir, opts):
         src_dir += "/dict-comprehension"
     elif opts["compile_type"] == "list-comprehension":
         src_dir += "/list-comprehension"
+    elif opts["compile_type"] == "set-comprehension":
+        src_dir += "/set-comprehension"
     else:
         src_dir += "/exec"
 
@@ -195,6 +197,7 @@ if __name__ == "__main__":
             "dict-comprehension",
             "lambda",
             "list-comprehension",
+            "set-comprehension",
             "compile",
             "coverage",
             "no-rm",
@@ -226,6 +229,8 @@ if __name__ == "__main__":
             test_opts["compile_type"] = "dict-comprehension"
         elif opt == "--list-comprehension":
             test_opts["compile_type"] = "list-comprehension"
+        elif opt == "--set-comprehension":
+            test_opts["compile_type"] = "set-comprehension"
         elif opt == "--start-with":
             test_opts["start_with"] = val
         elif opt == "--no-rm":

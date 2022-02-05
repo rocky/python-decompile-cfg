@@ -10,7 +10,7 @@ from xdis.version_info import version_tuple_to_str
     "--format",
     "-F",
     "code_format",
-    type=click.Choice(["dict-comprehension", "lambda", "list-comprehension", "exec", "run"]),
+    type=click.Choice(["dict-comprehension", "lambda", "list-comprehension", "set-comprehension", "exec", "run"]),
 )
 @click.option("--asm/--no-asm", "-a", "show_asm", default=False)
 @click.option("--grammar/--no-grammar", "-g", default=False)
@@ -19,7 +19,7 @@ from xdis.version_info import version_tuple_to_str
 @click.option("--optimize", "-O", default=-1)
 @click.argument("files", nargs=-1, type=click.Path(readable=True), required=True)
 def main(code_format, show_asm, grammar, tree, tree_plus, optimize, files):
-    """Byte compile file and place it in the rigiht category of testing bytecode."""
+    """Byte compile file and place it in the right category of testing bytecode."""
 
     assert (2 <= len(sys.argv) <= 4)
     version = version_tuple_to_str(end=2, delimiter="")
