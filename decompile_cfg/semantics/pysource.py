@@ -1086,6 +1086,16 @@ class SourceWalker(GenericASTTraversal, object):
 
     n_dict_comp = n_set_comp
 
+    def n_set_comp_async(self, node):
+        self.write("{")
+        assert node[0] in ["BUILD_SET_0", "BUILD_MAP_0"]
+        self.comprehension_walk_newer(node[1], 3, 0, collection_node=node[1])
+        self.write("}")
+        self.prune()
+
+    n_dict_comp_async = n_set_comp_async
+
+
     def get_comprehension_function(self, node, code_index: int):
         """
         Build the body of a comprehension function and then
@@ -1146,7 +1156,7 @@ class SourceWalker(GenericASTTraversal, object):
 
         # FIXME? Nonterminals in grammar maybe should be split out better?
         # Maybe test on self.compile_mode?
-        if isinstance(node[0], Token) and node[0].kind.startswith("LOAD"):
+        if isinstance(node[0], Token) and node[0].kind.startswith("LOAD") and node != "genexpr_func_async":
             tree = self.get_comprehension_function(node, code_index)
         else:
             tree = node
@@ -1170,12 +1180,14 @@ class SourceWalker(GenericASTTraversal, object):
             else:
                 # ???
                 pass
-        elif node == "dict_comp_async":
+        elif node.kind in ("dict_comp_async", "set_comp_async"):
             # We have two different kinds of grammar rules:
-            #   dict_comp_async ::= LOAD_DICCOMP LOAD_STR MAKE_FUNCTION_0 expr ...
+            #   dict_comp_async ::= LOAD_DICTCOMP LOAD_STR MAKE_FUNCTION_0 expr ...
+            #   set_comp_async  ::= LOAD_SETCOMP LOAD_STR MAKE_FUNCTION_0 expr ...
             # and:
-            #  dict_comp_async  ::= BUILD_MAPT_0 LOAD_ARG list_afor2
-            if tree[0] == "BUILD_MAP_0":
+            #  dict_comp_async  ::= BUILD_MAP_0 genexpr_func_async
+            #  set_comp_async   ::= BUILD_SET_0 genexpr_func_async
+            if tree[0].kind in ("BUILD_MAP_0", "BUILD_SET_0"):
                 genexpr_func_async = tree[1]
                 assert genexpr_func_async == "genexpr_func_async"
                 store = genexpr_func_async[2]
@@ -1209,10 +1221,7 @@ class SourceWalker(GenericASTTraversal, object):
                     pass
                 pass
             pass
-        elif tree == "list_comp_async":
-            # Handled this condition above
-            pass
-        elif node == "dict_comp_async":
+        elif tree.kind in ("list_comp_async", "dict_comp_async", "genexpr_func_async"):
             # Handled this condition above
             pass
         else:
@@ -1236,7 +1245,7 @@ class SourceWalker(GenericASTTraversal, object):
         if n == "comp_iter":
             comp_for = n
             if not store:
-                comp_store = tree[3]
+                store = tree[3]
 
         # Iterate to find the inner-most "store".
         # We'll come back to the list iteration below.
@@ -1311,7 +1320,7 @@ class SourceWalker(GenericASTTraversal, object):
         if node != "list_afor":
             self.preorder(n[0])
 
-        if node.kind in ("list_comp_async", "dict_comp_async", "list_afor"):
+        if node.kind in ("list_comp_async", "dict_comp_async", "set_comp_async", "list_afor"):
             self.write(" async")
             in_node_index = 3
         else:
@@ -1334,7 +1343,7 @@ class SourceWalker(GenericASTTraversal, object):
             self.preorder(collection_node)
             if_nodes = []
         elif is_lambda_mode(self.compile_mode):
-            if node == "list_comp_async":
+            if node in ("list_comp_async",):
                 self.preorder(node[1])
             elif collection_node is None:
                 assert node[3] == "expr"
@@ -1609,7 +1618,7 @@ class SourceWalker(GenericASTTraversal, object):
                     sep = line_separator
                     pass
             pass
-        elif node == "dict_comp_async":
+        elif node.kind in "dict_comp_async":
             # Handled this condition above
             pass
         else:

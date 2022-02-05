@@ -645,9 +645,12 @@ class Python38LambdaCustom(Python38BaseParser):
             elif opname == "GET_ANEXT":
                 self.addRule(
                     """
+                    expr                 ::= dict_comp_async
                     expr                 ::= genexpr_func_async
-                    expr                 ::= BUILD_MAP_0 genexpr_func_async
                     expr                 ::= list_comp_async
+                    expr                 ::= set_comp_async
+
+                    dict_comp_async      ::= BUILD_MAP_0 genexpr_func_async
 
                     func_async_prefix    ::= block_break
                                              SETUP_FINALLY GET_ANEXT LOAD_CONST YIELD_FROM POP_BLOCK
@@ -675,6 +678,7 @@ class Python38LambdaCustom(Python38BaseParser):
                                              POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
 
                     list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
+                    set_comp_async       ::= BUILD_SET_0 genexpr_func_async
 
                    """,
                     nop_func,
