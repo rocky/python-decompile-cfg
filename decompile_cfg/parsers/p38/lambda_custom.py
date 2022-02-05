@@ -601,6 +601,7 @@ class Python38LambdaCustom(Python38BaseParser):
                     expr                 ::= dict_comp_async
                     expr                 ::= generator_exp_async
                     expr                 ::= list_comp_async
+                    expr                 ::= set_comp_async
 
                     func_async_middle   ::= POP_BLOCK JUMP_FORWARD COME_FROM_EXCEPT
                                             DUP_TOP LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
@@ -637,6 +638,15 @@ class Python38LambdaCustom(Python38BaseParser):
                                              GET_AWAITABLE LOAD_CONST
                                              YIELD_FROM
                     list_iter            ::= list_afor
+
+                    set_comp_async       ::= LOAD_SETCOMP
+                                             LOAD_STR
+                                             MAKE_FUNCTION_0
+                                             expr
+                                             GET_AITER
+                                             CALL_FUNCTION_1
+
+
                    """,
                     nop_func,
                 )

@@ -1094,8 +1094,10 @@ class SourceWalker(GenericASTTraversal, object):
     # a comprehension.
     def n_set_comp_async(self, node):
         self.write("{")
-        assert node[0] in ["BUILD_SET_0", "BUILD_MAP_0"]
-        self.comprehension_walk_newer(node[1], 3, 0, collection_node=node[1])
+        if node in node[0] in ["BUILD_SET_0", "BUILD_MAP_0"]:
+            self.comprehension_walk_newer(node[1], 3, 0, collection_node=node[1])
+        if node[0] in ["LOAD_SETCOMP", "LOAD_DICTCOMP"]:
+            self.comprehension_walk_newer(node, 1, 0)
         self.write("}")
         self.prune()
 
@@ -1238,7 +1240,7 @@ class SourceWalker(GenericASTTraversal, object):
             # Not sure what the best thi
             if n.kind == "return_expr_lambda":
                 self.prune()
-            assert n == "list_iter", n
+            assert n.kind in ("list_iter", "comp_iter"), n
 
         # FIXME: I'm not totally sure this is right.
 
