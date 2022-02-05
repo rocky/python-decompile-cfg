@@ -333,7 +333,7 @@ TABLE_DIRECT = {
     "comp_iter": ( "%c", 0 ),
     "comp_if":	 ( " if %c%c", 0, -1 ),
 
-    # Note: Adding "or" is handled inside the
+    # Note: Adding "if" is handled inside the
     # comprehension
     "comp_if_or": (
         "%p or %p ",

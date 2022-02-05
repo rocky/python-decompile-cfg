@@ -1035,7 +1035,12 @@ class SourceWalker(GenericASTTraversal, object):
                     n = n[3]
             elif n == "comp_if":
                 n = n[1]
-            elif n in ("comp_if_not", "comp_if_not_and", "comp_if_not_or", "comp_if_or"):
+            elif n in (
+                "comp_if_not",
+                "comp_if_not_and",
+                "comp_if_not_or",
+                "comp_if_or",
+            ):
                 n = n[-1]
 
         assert n == "comp_body", n
@@ -1062,7 +1067,9 @@ class SourceWalker(GenericASTTraversal, object):
         self.write("(")
         if node[0].kind in ("load_closure", "load_genexpr"):
             is_lambda = self.is_lambda
-            self.closure_walk(node, collection_index=4 if isinstance(node[4], SyntaxTree) else 3)
+            self.closure_walk(
+                node, collection_index=4 if isinstance(node[4], SyntaxTree) else 3
+            )
             self.is_lambda = is_lambda
         else:
             self.comprehension_walk_newer(node, iter_index=5, collection_node=node[0])
@@ -1103,7 +1110,6 @@ class SourceWalker(GenericASTTraversal, object):
 
     n_dict_comp_async = n_set_comp_async
 
-
     def get_comprehension_function(self, node, code_index: int):
         """
         Build the body of a comprehension function and then
@@ -1130,11 +1136,13 @@ class SourceWalker(GenericASTTraversal, object):
                 is_pypy=self.is_pypy,
             )
             tree = self.build_ast(
-                code._tokens, code._customize, code, is_lambda=self.is_lambda)
+                code._tokens, code._customize, code, is_lambda=self.is_lambda
+            )
             self.p = p_save
         else:
             tree = self.build_ast(
-                code._tokens, code._customize, code, is_lambda=self.is_lambda)
+                code._tokens, code._customize, code, is_lambda=self.is_lambda
+            )
 
         self.customize(code._customize)
 
@@ -1151,20 +1159,28 @@ class SourceWalker(GenericASTTraversal, object):
             tree = tree[1] if tree[0] in ("dom_start", "dom_start_opt") else tree[0]
         return tree
 
-
-    def comprehension_walk_newer(self, node, iter_index: Optional[int],
-                                 code_index: int = -5, collection_node=None):
+    def comprehension_walk_newer(
+        self,
+        node,
+        iter_index: Optional[int],
+        code_index: int = -5,
+        collection_node=None,
+    ):
         """Non-closure-based comprehensions the way they are done in Python3
         and some Python 2.7. Note: there are also other set comprehensions.
         """
         # FIXME: DRY with listcomp_closure3
 
-        #? Is this needed
+        # ? Is this needed
         p = self.prec
 
         # FIXME? Nonterminals in grammar maybe should be split out better?
         # Maybe test on self.compile_mode?
-        if isinstance(node[0], Token) and node[0].kind.startswith("LOAD") and node != "genexpr_func_async":
+        if (
+            isinstance(node[0], Token)
+            and node[0].kind.startswith("LOAD")
+            and node != "genexpr_func_async"
+        ):
             tree = self.get_comprehension_function(node, code_index)
         else:
             tree = node
@@ -1329,7 +1345,12 @@ class SourceWalker(GenericASTTraversal, object):
         if node != "list_afor":
             self.preorder(n[0])
 
-        if node.kind in ("list_comp_async", "dict_comp_async", "set_comp_async", "list_afor"):
+        if node.kind in (
+            "list_comp_async",
+            "dict_comp_async",
+            "set_comp_async",
+            "list_afor",
+        ):
             self.write(" async")
             in_node_index = 3
         else:
@@ -1428,8 +1449,7 @@ class SourceWalker(GenericASTTraversal, object):
     n_set_comp_func = n_dict_comp_func
 
     def closure_walk(self, node, collection_index: int):
-        """Dictionary and Set comprehensions using closures.
-        """
+        """Dictionary and Set comprehensions using closures."""
         p = self.prec
 
         code_index = 0 if node[0] == "load_genexpr" else 1
@@ -1449,17 +1469,23 @@ class SourceWalker(GenericASTTraversal, object):
         collection = node[collection_index]
         n = tree[iter_index]
         list_if = None
+        write_if = False
 
         assert n == "comp_iter"
 
         # Find inner-most node.
         while n == "comp_iter":
             n = n[0]  # recurse one step
-            # FIXME: adjust for set comprehension
-            if n == "list_for":
+            if n in ("list_for", "comp_for"):
                 store = n[2]
                 n = n[3]
-            elif n in ("list_if", "list_if_not", "list_if_and_or", "comp_if", "comp_if_not"):
+            elif n in (
+                "list_if",
+                "list_if_not",
+                "list_if_and_or",
+                "comp_if",
+                "comp_if_not",
+            ):
                 # FIXME: just a guess
                 if n[0].kind == "expr":
                     list_if = n
@@ -1475,7 +1501,10 @@ class SourceWalker(GenericASTTraversal, object):
                         list_if = n[1]
                         n = n[2]
                 pass
-            pass
+            elif n.kind in ("comp_if_or",):
+                write_if = True
+                list_if = n
+                n = n[-1]
 
         assert n == "comp_body", tree
 
@@ -1485,6 +1514,8 @@ class SourceWalker(GenericASTTraversal, object):
         self.write(" in ")
         self.preorder(collection)
         if list_if:
+            if write_if:
+                self.write(" if ")
             self.preorder(list_if)
         self.prec = p
 
@@ -2073,7 +2104,9 @@ class SourceWalker(GenericASTTraversal, object):
                 if isinstance(index, tuple):
                     if isinstance(index[1], str):
                         if node[index[0]] != index[1]:
-                            from trepan.api import debug; debug()
+                            from trepan.api import debug
+
+                            debug()
                         assert (
                             node[index[0]] == index[1]
                         ), "at %s[%d], expected '%s' node; got '%s'" % (
@@ -2121,19 +2154,21 @@ class SourceWalker(GenericASTTraversal, object):
                 if len(tup) == 3:
                     (index, nonterm_name, self.prec) = tup
                     if isinstance(tup[1], str):
-                         # if node[index] != nonterm_name:
-                         #     from trepan.api import debug; debug()
+                        # if node[index] != nonterm_name:
+                        #     from trepan.api import debug; debug()
                         try:
-                             assert (
+                            assert (
                                 node[index] == nonterm_name
                             ), "at %s[%d], expected '%s' node; got '%s'" % (
                                 node.kind,
                                 arg,
                                 nonterm_name,
                                 node[index].kind,
-                                )
+                            )
                         except:
-                            from trepan.api import debug; debug()
+                            from trepan.api import debug
+
+                            debug()
                     else:
                         assert (
                             node[tup[0]] in tup[1]

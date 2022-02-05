@@ -352,7 +352,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             JUMP_LOOP
                             block_break
 
-        get_for_iter   ::= GET_ITER bb_end_start FOR_ITER bb_end_start_opt
+        get_for_iter   ::= GET_ITER block_break FOR_ITER bb_end_start_opt
 
         # Our "continue" heuristic -  in two successive JUMP_LOOPS, the first
         # one may be a continue - sometimes classifies a JUMP_LOOP
