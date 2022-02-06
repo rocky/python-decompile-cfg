@@ -499,6 +499,14 @@ TABLE_DIRECT = {
         (0, "expr"),
         ),
 
+    "if_exp_and": (
+        "%p if %c and %c else %c",
+        (3, "expr", PRECEDENCE["if_exp"]),
+        (0, ("expr",)),
+        (2, ("and_parts")),
+        -1,  # Must be from end since beginnings might not match
+    ),
+
     # IfExp equivalent
     "if_exp_jump_false": (
         "%p if %c else %c",
