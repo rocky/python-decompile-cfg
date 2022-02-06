@@ -489,6 +489,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # experimental. Matches AST better though
         expr ::= constant
 
+        expr ::= genexpr_func
         expr ::= list
         expr ::= list_comp
 
@@ -534,19 +535,18 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # they have basic block and dominator pseudo instructions.
 
         branch_op ::= or block_break
-        branch_op ::= or1 bb_doms_end_opt
-        branch_op ::= and bb_doms_end_opt
-        branch_op ::= and1 bb_doms_end_opt
+        branch_op ::= or1 block_break
+        branch_op ::= and block_break
+        branch_op ::= and1 block_break
         branch_op ::= and_or block_break
-        branch_op ::= or_and bb_doms_end_opt
+        branch_op ::= or_and block_break
 
-        branch_op ::= if_exp bb_doms_end_opt
-        branch_op ::= if_exp bb_doms_end dom_start
+        branch_op ::= if_exp block_break
         branch_op ::= if_exp_compare bb_doms_end_opt
         branch_op ::= if_exp_loop
-        branch_op ::= if_exp_not bb_doms_end_opt
-        branch_op ::= if_exp_true bb_doms_end_opt
-        branch_op ::= if_exp2 bb_doms_end_opt
+        branch_op ::= if_exp_not block_break
+        branch_op ::= if_exp_true block_break
+        branch_op ::= if_exp2 block_break
 
 
         # A "branch_op_compound" is a branch_op with a non-branching unary or binary operator at the end.
@@ -575,8 +575,14 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         constant ::= LOAD_STR
         constant ::= LOAD_CODE
 
-        genexpr_func      ::= LOAD_FAST _come_froms FOR_ITER store comp_iter
-                              JUMP_LOOP _come_froms
+        genexpr_func      ::= LOAD_ARG
+                              block_break
+                              FOR_ITER
+                              bb_end_start
+                              store
+                              comp_iter
+                              JUMP_LOOP
+                              block_break
 
 
         # named_expr is also known as the "walrus op" :=
