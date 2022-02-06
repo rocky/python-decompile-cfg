@@ -140,19 +140,22 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         """
         # A compare_chained is two comparisions like x <= y <= z
 
-        compare_chained     ::= expr
-                                compare_chained1
-                                bb_end_start
-                                ROT_TWO POP_TOP
+        chained_part        ::= expr
+                                DUP_TOP ROT_THREE COMPARE_OP
                                 bb_doms_end_start_opt
+                                POP_JUMP_IF_FALSE
+        chained_parts       ::= chained_part+
 
         compare_chained     ::= expr
                                 compare_chained1
-                                bb_doms_end_start
+                                block_break
                                 ROT_TWO POP_TOP
                                 bb_doms_end_start_opt
 
+        compare_chained     ::= expr chained_parts
         compare_chained     ::= compare_chained37_false
+        compare_chained     ::= expr compare_chained1a_37
+
 
         # FIXME: simplify the compare_chain1 recursion?
         compare_chained1    ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop_opt
@@ -161,8 +164,16 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         compare_chained1   ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop_opt
                                compare_chained2 bb_doms_end_start_opt
 
+        compare_chained1a_37  ::= chained_parts
+                                  compare_chained2a_37
+                                  block_break
+                                  POP_TOP block_break
+
         compare_chained2   ::= expr COMPARE_OP JUMP_FORWARD
         compare_chained2   ::= expr COMPARE_OP RETURN_VALUE
+
+        compare_chained2a_37  ::= expr COMPARE_OP block_break POP_JUMP_IF_TRUE JUMP_FORWARD
+
 
         # When used in an "if" of a comprehension
         compare_chained_comprehension  ::= expr DUP_TOP ROT_THREE COMPARE_OP pjump_iff_forward
@@ -174,21 +185,27 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                            JUMP_FORWARD
                                            bb_end_start_opt
 
-        chained_parts      ::= chained_part+
-        chained_part       ::= expr DUP_TOP ROT_THREE COMPARE_OP bb_doms_end_start_opt POP_JUMP_IF_FALSE
-
-        compare_chained37_false     ::= expr compare_chained1b_false_37
+        compare_chained37_false     ::= expr compare_chained1b_false_loop
         compare_chained37_false     ::= expr
                                         compare_chained
 
-        compare_chained1b_false_37  ::= chained_parts
-                                        compare_chained2b_false_37
+        compare_chained1b_false_loop  ::= chained_parts
+                                        compare_chained2b_false_loop
                                         POP_TOP jump bb_doms_end_start_opt
 
-        compare_chained2b_false_37 ::= expr COMPARE_OP bb_end_start_opt POP_JUMP_IF_FALSE
-                                       jump_or_break bb_end_start
+        compare_chained1b_false_loop  ::= expr
+                                        compare_chained2b_false_loop
+                                        POP_TOP JUMP_LOOP bb_doms_end_start_opt
 
+        compare_chained2a_false_loop ::= expr COMPARE_OP
+                                        block_break
+                                        POP_JUMP_IF_FALSE_LOOP
 
+        compare_chained2b_false_loop ::= expr COMPARE_OP
+                                         bb_end_start_opt
+                                         POP_JUMP_IF_FALSE_LOOP
+                                         jump_or_break
+                                         block_break
 
         """
 
@@ -263,6 +280,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # FIXME: Maybe we can refactor this grammar to
         # redue redundancy?
 
+        comp_if         ::= expr_pjiff
         comp_if         ::= expr_pjif
                             comp_iter
 
@@ -297,10 +315,14 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             bb_end_start
                             comp_iter
 
+        # Here, the "or" is melded a little into the "comp_if" test
+        comp_if_or2     ::= compare compare_chained37_false comp_iter
+
         comp_if_or_not  ::= or_parts
                             expr POP_JUMP_IF_TRUE_LOOP
                             bb_end_start
                             comp_iter
+
 
         # We need to have a reduction rule to disambiguate
         # these "comp_if_not" and "comp_if". The difference is burried in the
@@ -337,6 +359,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         comp_iter     ::= comp_if
         comp_iter     ::= comp_if_chained
         comp_iter     ::= comp_if_or
+        comp_iter     ::= comp_if_or2
         comp_iter     ::= comp_if_or_not
         comp_iter     ::= comp_if_not
         comp_iter     ::= comp_if_not_and

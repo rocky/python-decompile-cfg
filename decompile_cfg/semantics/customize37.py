@@ -147,7 +147,7 @@ def customize_for_version37(self, version):
                 (1, PRECEDENCE["compare"] - 1),
             ),
             "chained_part": (
-                ' %[3]{pattr.replace("-", " ")} %p',
+                '%[3]{pattr.replace("-", " ")} %p',
                 (0, "expr", PRECEDENCE["compare"] - 1),
             ),
             "compare_chained_and": (
@@ -796,19 +796,6 @@ def customize_for_version37(self, version):
         self.prune()
 
     self.n_classdef36 = n_classdef36
-
-    def n_compare_chained(node):
-        if node[0] in (
-            "c_compare_chained37",
-            "c_compare_chained37_false",
-            "compare_chained37",
-            "compare_chained37_false",
-        ):
-            self.default(node[0])
-        else:
-            self.default(node)
-
-    self.n_compare_chained = self.n_c_compare_chained = n_compare_chained
 
     def n_importlist37(node):
         if len(node) == 1:

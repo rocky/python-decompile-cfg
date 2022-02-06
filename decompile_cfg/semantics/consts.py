@@ -341,6 +341,13 @@ TABLE_DIRECT = {
         (1, "expr", PRECEDENCE["or"] ),
         ),
 
+    # ""if" folded inside comprehension
+    "comp_if_or2": (
+        "%p or %p",
+        (0, "compare", PRECEDENCE["or"] ),
+        (1, "compare_chained37_false", PRECEDENCE["or"] ),
+        ),
+
     # Note: Adding "if" is handled inside the
     # comprehension
     "comp_if_or_not": (
@@ -378,7 +385,7 @@ TABLE_DIRECT = {
     "compare_chained":(
         "%p %p",
         (0, "expr", 29),
-        (1, "compare_chained1", 30)
+        (1, ("compare_chained1", "compare_chained1a_37", "compare_chained37_false"), 30)
         ),
 
     "compare_chained_comprehension": (
@@ -398,6 +405,15 @@ TABLE_DIRECT = {
         '%[1]{pattr.replace("-", " ")} %p',
         (0, 19)
         ),
+
+    "compare_chained2b_false_loop":	(
+        ' %[1]{pattr.replace("-", " ")} %p',
+        (0, 19)
+        ),
+
+    "compare_chained37_false":	(
+        "%c %c", 0, 1
+    ),
 
     "compare_chained2_comprehension":	(
         '%[1]{pattr.replace("-", " ")} %p',
@@ -483,6 +499,7 @@ TABLE_DIRECT = {
         (0, "expr"),
         ),
 
+    # IfExp equivalent
     "if_exp_jump_false": (
         "%p if %c else %c",
         (3, "expr", PRECEDENCE["if_exp"]),
