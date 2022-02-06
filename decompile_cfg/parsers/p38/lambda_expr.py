@@ -73,6 +73,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           jifop
                           expr
 
+        # Corresponds to AST IfExp; note this
+        # must include and "else" part.
+        # Don't confuse with comprehension if's
         if_exp        ::= if_exp_jump_false
         if_exp        ::= if_exp_jump_true
 
@@ -314,6 +317,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         comp_if_not     ::= expr pjump_ift comp_iter
         comp_if         ::= expr pjump_ift comp_iter
+
+        # Note the similarity with above "comp_if_not"
+        # the following was noticed with an "or True".
+        # We probably need to reduc check "comp_if"
+        # versus "comp_if_not".
+        comp_if         ::= expr pjump_ift bb_end_start comp_iter
 
         comp_if_not_and ::= expr_pjif
                             expr POP_JUMP_IF_TRUE_LOOP
