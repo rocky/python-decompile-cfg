@@ -672,7 +672,13 @@ class FragmentsWalker(pysource.SourceWalker, object):
                     n = n[3]
             elif n == "comp_if":
                 n = n[1]
-            elif n in ("comp_if_not", "comp_if_not_and", "comp_if_not_or", "comp_if_or"):
+            elif n in (
+                "comp_if_not",
+                "comp_if_not_and",
+                "comp_if_not_or",
+                "comp_if_or",
+                "comp_if_or_not",
+            ):
                 n = n[-1]
 
         assert n == "comp_body", n
@@ -773,7 +779,12 @@ class FragmentsWalker(pysource.SourceWalker, object):
 
         # Python 2.7+ starts including set_comp_body
         # Python 3.5+ starts including set_comp_func
-        assert n.kind in ("lc_body", "comp_body", "set_comp_func", "set_comp_body"), tree
+        assert n.kind in (
+            "lc_body",
+            "comp_body",
+            "set_comp_func",
+            "set_comp_body",
+        ), tree
         assert store, "Couldn't find store in list/set comprehension"
 
         old_name = self.name
@@ -970,8 +981,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
         self.prune()
 
     def closure_walk(self, node, collection_index: int):
-        """Dictionary and Set comprehensions using closures.
-        """
+        """Dictionary and Set comprehensions using closures."""
         p = self.prec
         self.prec = 27
 
@@ -991,7 +1001,13 @@ class FragmentsWalker(pysource.SourceWalker, object):
             if n == "list_for":
                 store = n[2]
                 n = n[3]
-            elif n in ("list_if", "list_if_not", "list_if_and_or", "comp_if", "comp_if_not"):
+            elif n in (
+                "list_if",
+                "list_if_not",
+                "list_if_and_or",
+                "comp_if",
+                "comp_if_not",
+            ):
                 # FIXME: just a guess
                 if n[0].kind == "expr":
                     list_if = n
@@ -1729,7 +1745,9 @@ class FragmentsWalker(pysource.SourceWalker, object):
                 if isinstance(index, tuple):
                     if isinstance(index[1], str):
                         if node[index[0]] != index[1]:
-                            from trepan.api import debug; debug()
+                            from trepan.api import debug
+
+                            debug()
                         assert (
                             node[index[0]] == index[1]
                         ), "at %s[%d], expected '%s' node; got '%s'" % (
@@ -1777,9 +1795,13 @@ class FragmentsWalker(pysource.SourceWalker, object):
                 assert isinstance(tup, tuple)
                 if len(tup) == 3:
                     (index, nonterm_name, self.prec) = tup
-                    assert node[index] == nonterm_name, (
-                        "at %s[%d], expected '%s' node; got '%s'"
-                        % (node.kind, arg, nonterm_name, node[index].kind)
+                    assert (
+                        node[index] == nonterm_name
+                    ), "at %s[%d], expected '%s' node; got '%s'" % (
+                        node.kind,
+                        arg,
+                        nonterm_name,
+                        node[index].kind,
                     )
                 else:
                     assert len(tup) == 2
@@ -2123,8 +2145,7 @@ def deparsed_find(tup, deparsed, code):
     """Return a NodeInfo nametuple for a fragment-deparsed `deparsed` at `tup`.
 
     `tup` is a name and offset tuple, `deparsed` is a fragment object
-    and `code` is instruction bytecode.
-"""
+    and `code` is instruction bytecode."""
     nodeInfo = None
     name, last_i = tup
     if not hasattr(deparsed, "offsets"):

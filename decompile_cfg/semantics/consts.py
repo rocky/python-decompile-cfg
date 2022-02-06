@@ -341,6 +341,14 @@ TABLE_DIRECT = {
         (1, "expr", PRECEDENCE["or"] ),
         ),
 
+    # Note: Adding "if" is handled inside the
+    # comprehension
+    "comp_if_or_not": (
+        "%p or not %p ",
+        (0, ("or_parts",), PRECEDENCE["or"] ),
+        (1, "expr", PRECEDENCE["or"] ),
+        ),
+
     "comp_if_not": (
         " if not %p%c",
          (0, "expr", PRECEDENCE["unary_not"]), -1
