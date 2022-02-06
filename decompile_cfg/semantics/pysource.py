@@ -526,7 +526,7 @@ class SourceWalker(GenericASTTraversal, object):
         opt_start = 1 if node[0].kind in ("dom_start_opt", "dom_start") else 0
         opt_end = 1 if node[-1].kind == "bb_doms_end" else 0
 
-        if node[0] == "if_exp_call_lambda":
+        if node[0] in ("if_exp_call_lambda", "genexpr_func_async"):
             self.preorder(node[0])
             self.prune()
         elif 2 <= len(node) - opt_start - opt_end <= 3:
@@ -1094,7 +1094,7 @@ class SourceWalker(GenericASTTraversal, object):
     n_dict_comp = n_set_comp
 
     # In the old days this node would never get called because
-    # it was embedded insie some sort of comprehension
+    # it was embedded inside some sort of comprehension
     # Nowadays, we allow starting any code object, not just
     # a top-level module. In doing so we can
     # now encounter this outside of the embedding of
@@ -1109,6 +1109,18 @@ class SourceWalker(GenericASTTraversal, object):
         self.prune()
 
     n_dict_comp_async = n_set_comp_async
+
+    # In the old days this node would never get called because
+    # it was embedded inside some sort of comprehension
+    # Nowadays, we allow starting any code object, not just
+    # a top-level module. In doing so we can
+    # now encounter this outside of the embedding of
+    # a comprehension.
+    def n_genexpr_func_async(self, node):
+        self.write("(")
+        self.comprehension_walk_newer(node, iter_index=3, collection_node=node)
+        self.write(")")
+        self.prune()
 
     def get_comprehension_function(self, node, code_index: int):
         """
@@ -1233,6 +1245,7 @@ class SourceWalker(GenericASTTraversal, object):
 
         if tree in (
             "dict_comp_func",
+            "genexpr_func_async",
             "generator_exp",
             "list_comp",
             "set_comp_func",
@@ -1246,7 +1259,7 @@ class SourceWalker(GenericASTTraversal, object):
                     pass
                 pass
             pass
-        elif tree.kind in ("list_comp_async", "dict_comp_async", "genexpr_func_async"):
+        elif tree.kind in ("list_comp_async", "dict_comp_async"):
             # Handled this condition above
             pass
         else:
@@ -1346,10 +1359,11 @@ class SourceWalker(GenericASTTraversal, object):
             self.preorder(n[0])
 
         if node.kind in (
-            "list_comp_async",
             "dict_comp_async",
-            "set_comp_async",
+            "genexpr_func_async",
             "list_afor",
+            "list_comp_async",
+            "set_comp_async",
         ):
             self.write(" async")
             in_node_index = 3
@@ -2622,7 +2636,7 @@ def code_deparse(
         deparsed.ast, set(), set(), co, version
     )
 
-    if compile_mode not in ("dictcomp", "gencomp", "lambda", "listcomp", "setcomp"):
+    if compile_mode not in ("dictcomp", "gencomp", "genexpr", "lambda", "listcomp", "setcomp"):
         assert not nonlocals
 
     deparsed.FUTURE_UNICODE_LITERALS = (

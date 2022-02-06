@@ -690,6 +690,9 @@ class Python38LambdaCustom(Python38BaseParser):
                     list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
                     set_comp_async       ::= BUILD_SET_0 genexpr_func_async
 
+                    return_expr_lambda   ::= genexpr_func_async
+                                             LOAD_CONST RETURN_VALUE
+                                             bb_doms_end_opt
                    """,
                     nop_func,
                 )
