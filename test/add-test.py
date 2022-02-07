@@ -10,7 +10,7 @@ from xdis.version_info import version_tuple_to_str
     "--format",
     "-F",
     "code_format",
-    type=click.Choice(["dict-comprehension", "lambda", "list-comprehension", "set-comprehension", "exec", "run"]),
+    type=click.Choice(["dict-comprehension", "generator", "lambda", "list-comprehension", "set-comprehension", "exec", "run"]),
 )
 @click.option("--asm/--no-asm", "-a", "show_asm", default=False)
 @click.option("--grammar/--no-grammar", "-g", default=False)

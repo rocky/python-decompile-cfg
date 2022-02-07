@@ -1,4 +1,4 @@
-# These are adapted from lset comprehensions found when byte compiling the
+# These are adapted from set comprehensions found when byte compiling the
 # entire set of 3.8 installed packages on my disk.
 # Many examples come from packages like sympy or numpy
 

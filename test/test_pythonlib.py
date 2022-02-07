@@ -195,6 +195,7 @@ if __name__ == "__main__":
             "syntax-verify",
             "all",
             "dict-comprehension",
+            "generator",
             "lambda",
             "list-comprehension",
             "set-comprehension",
@@ -227,6 +228,8 @@ if __name__ == "__main__":
             test_opts["compile_type"] = "lambda"
         elif opt == "--dict-comprehension":
             test_opts["compile_type"] = "dict-comprehension"
+        elif opt == "--generator":
+            test_opts["compile_type"] = "generator"
         elif opt == "--list-comprehension":
             test_opts["compile_type"] = "list-comprehension"
         elif opt == "--set-comprehension":
