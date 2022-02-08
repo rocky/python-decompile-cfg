@@ -1342,6 +1342,7 @@ class SourceWalker(GenericASTTraversal, object):
             elif n.kind == "list_if_and_or":
                 if_nodes.append(n[-1][0])
                 n = n[-1]
+                assert n == "list_iter"
             pass
 
         assert store, "Couldn't find store in list/set comprehension"
@@ -1507,7 +1508,9 @@ class SourceWalker(GenericASTTraversal, object):
                 "comp_if",
                 "comp_if_not",
             ):
-                # FIXME: just a guess
+                # FIXME: most of the grammar start with expr_...
+                # Some of the older ones can be: expr <jump> <iter>
+                # This may disappear though.
                 if n[0].kind == "expr":
                     list_if = n
                     n = n[2]
@@ -1529,8 +1532,6 @@ class SourceWalker(GenericASTTraversal, object):
                 n = n[-1]
                 assert n == "comp_iter"
 
-        if n != "comp_body":
-            from trepan.api import debug; debug()
         assert n == "comp_body", tree
 
         self.preorder(n[0])
@@ -2128,10 +2129,8 @@ class SourceWalker(GenericASTTraversal, object):
                 index = entry[arg]
                 if isinstance(index, tuple):
                     if isinstance(index[1], str):
-                        if node[index[0]] != index[1]:
-                            from trepan.api import debug
-
-                            debug()
+                        # if node[index[0]] != index[1]:
+                        #     from trepan.api import debug; debug()
                         assert (
                             node[index[0]] == index[1]
                         ), "at %s[%d], expected '%s' node; got '%s'" % (

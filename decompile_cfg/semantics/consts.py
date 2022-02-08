@@ -643,20 +643,25 @@ TABLE_DIRECT = {
     "lc_body": ( "", ),	# ignore when recursing
 
     "list_iter":        ( "%c", 0 ),
-    "list_if":	        (
+    "list_if": (
         " if %p%c",
-        (0, ("expr", "branch_op"), 27), 2 ),
+        (0, ("expr", "branch_op"), 27),
+        2
+    ),
 
     "list_if_and_or": (
         " if %p and %c or %c",
-        (0, "expr", 27),
-        2, 5),
+        (0, "expr_pjiff", 27),
+        (1, "expr_pjift"),
+        (3, "expr_pjiff")
+    ),
 
     "list_if_chained":  (
         " if %p%c %c",
         (0, "list_if_compare", 27),
         1,
-        -1),
+        -1
+    ),
 
     "list_if_not": (
         " if not %p%c",

@@ -267,7 +267,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         block_break        ::= bb_end_start_opt
         block_break        ::= bb_doms_end_start
-
         """
 
     def p_conditionals(self, args):
@@ -494,16 +493,13 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         list_if_compare ::= expr compare_chained_comprehension
         list_if_compare ::= expr compare_chained
 
-        list_if_and_or  ::= expr pjump_iff
-                            expr
-                            pjump_ift
+        list_if_and_or  ::= expr_pjiff
+                            expr_pjift
                             bb_end_start
-                            expr
-                            pjump_iff
+                            expr_pjiff
                             list_iter
 
         list_if_end     ::= pjump_iff bb_end_start_opt
-        ## list_if_end     ::= pjump_iff bb_end_start_opt
 
 
         list_if_not     ::= expr list_if_not_end list_iter
@@ -766,6 +762,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                BB_END
                                return_expr_lambda
 
+        # Something is weird about the bb_end_start
+        # in our parser in that if we replace it with say
+        # "block_break", we get parse errors
+        # Same deal in trying to combine the following to "if_exp_lambda"
+        # rules into one.
         if_exp_lambda      ::= expr
                                POP_JUMP_IF_FALSE
                                bb_end_start_opt
