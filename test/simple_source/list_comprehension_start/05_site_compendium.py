@@ -179,7 +179,8 @@ n = 10
  {tuple(i.evalf(2)
         for i
         in j)
-  for j in R}
+  for j
+  in R}
  for R in
  ["A", "B", "C"]
  ]
@@ -226,25 +227,16 @@ n = 10
 # #  _eapply(func, ei) if (cond is None or cond(ei)) else ei
 # #  for ei in e.args]
 
-# [5
-#  if (
-#     __file__
-#     or __name__
-#     ) else 6
-#  ]
+# From 3.8 matplotlib/dviread.py
+# The bug was in handling chained compare (32 < ch < 127)
+# inside a "if .. else".
 
-# # From 3.8 matplotlib/dviread.py
-# # [chr(ch) if 32 <= ch < 127 else '<%02x>' % ch
-# #                      for ch in special]
-
-
-# [ch
-#  if 32 <= ch < 127
-#  else '<%02x>'
-#  for ch
-#  in __file__
-#  ]
-
+[ch
+ if 32 <= ch < 127
+ else '<%02x>'
+ for ch
+ in __file__
+ ]
 
 # # From Python 3.8 matplotlib/tests/test_determinism.py
 # [

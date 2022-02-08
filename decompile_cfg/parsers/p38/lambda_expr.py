@@ -164,6 +164,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         compare_chained     ::= expr chained_parts
         compare_chained     ::= compare_chained37_false
         compare_chained     ::= expr compare_chained1a_37
+        compare_chained     ::= expr compare_chained1b_false
 
 
         # FIXME: simplify the compare_chain1 recursion?
@@ -195,26 +196,38 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                            bb_end_start_opt
 
         compare_chained37_false     ::= expr compare_chained1b_false_loop
+
         compare_chained37_false     ::= expr
                                         compare_chained
 
-        compare_chained1b_false_loop  ::= chained_parts
-                                        compare_chained2b_false_loop
-                                        POP_TOP jump bb_doms_end_start_opt
-
-        compare_chained1b_false_loop  ::= expr
-                                        compare_chained2b_false_loop
-                                        POP_TOP JUMP_LOOP bb_doms_end_start_opt
-
-        compare_chained2a_false_loop ::= expr COMPARE_OP
+        compare_chained2b_false     ::= expr COMPARE_OP
+                                        bb_end_start_opt
+                                        POP_JUMP_IF_FALSE
+                                        jump_or_break
                                         block_break
-                                        POP_JUMP_IF_FALSE_LOOP
 
-        compare_chained2b_false_loop ::= expr COMPARE_OP
-                                         bb_end_start_opt
-                                         POP_JUMP_IF_FALSE_LOOP
-                                         jump_or_break
-                                         block_break
+         compare_chained1b_false       ::= chained_parts
+                                           compare_chained2b_false
+                                           POP_TOP jump
+                                           bb_doms_end_start_opt
+
+         compare_chained1b_false_loop  ::= chained_parts
+                                           compare_chained2b_false_loop
+                                           POP_TOP jump bb_doms_end_start_opt
+
+        compare_chained1b_false_loop   ::= expr
+                                           compare_chained2b_false_loop
+                                           POP_TOP JUMP_LOOP bb_doms_end_start_opt
+
+        compare_chained2a_false_loop   ::= expr COMPARE_OP
+                                           block_break
+                                           POP_JUMP_IF_FALSE_LOOP
+
+        compare_chained2b_false_loop   ::= expr COMPARE_OP
+                                           bb_end_start_opt
+                                           POP_JUMP_IF_FALSE_LOOP
+                                           jump_or_break
+                                           block_break
 
         """
 
@@ -285,10 +298,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           block_break
 
 
-        # Not that in `comp_if_xxx`, we always start with an
-        # `expr `and end with a `comp_iter`.
+        # Note: `comp_if_xxx`, we always start with an
+        # `expr `and end with a `comp_iter`. Semantic actions
+        # expect this.
+        #
         # FIXME: Maybe we can refactor this grammar to
-        # redue redundancy?
+        # reduce redundancy?
 
         comp_if         ::= expr_pjif
                             comp_iter

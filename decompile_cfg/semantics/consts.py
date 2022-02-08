@@ -385,7 +385,13 @@ TABLE_DIRECT = {
     "compare_chained":(
         "%p %p",
         (0, "expr", 29),
-        (1, ("compare_chained1", "compare_chained1a_37", "compare_chained37_false"), 30)
+        (1, (
+            "compare_chained1",
+            "compare_chained1a_37",
+            "compare_chained1b_false",
+            "compare_chained37_false"
+            ),
+         30)
         ),
 
     "compare_chained_comprehension": (
@@ -399,6 +405,11 @@ TABLE_DIRECT = {
         '%[3]{pattr.replace("-", " ")} %p %p',
         (0, 19),
         (5, 19)
+        ),
+
+    "compare_chained2b_false":	(
+        ' %[1]{pattr.replace("-", " ")} %p',
+        (0, "expr", 19),
         ),
 
     "compare_chained2":	(
