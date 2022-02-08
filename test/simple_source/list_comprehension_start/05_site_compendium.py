@@ -4,18 +4,17 @@
 
 ary = [1, 2, 3]
 ary2 = [6, 8, 10]
-myset = {1, 2, 3}
 n = 10
 
 # fmt: off
-# From python3.8/ntpath.py
+# Adapted from line 769 of 3.8.12 ntpath.py
 [[c
   for c
   in ary
   if c
   and c != n]
  for s
- in myset]
+ in {"a", "b", "c"}]
 
 [c
  for c in ary
@@ -23,7 +22,7 @@ n = 10
  and c != n
  ]
 
-# From python3.8/functools.py
+# Adapted from python3.8/functools.py
 [n
  for
  n
@@ -31,7 +30,7 @@ n = 10
  if not n
  ]
 
-# From python3.8/lib2to3/tests/data/py3_test_grammar.py test_in_func()
+# Adapted from python3.8/lib2to3/tests/data/py3_test_grammar.py test_in_func()
 [0 <
  ary
  < 3
@@ -45,7 +44,7 @@ n = 10
  for filename in ary2]
 
 
-# From Python3.8 lib/python3.8/asyncio/base_events.py
+# Adapted from Python3.8 lib/python3.8/asyncio/base_events.py
 [
     addr_pair for addr_pair in __file__
     if((__name__ and addr_pair) or
@@ -63,7 +62,7 @@ n = 10
  l
  <= 8]
 
-# From 3.8 pywt/_swt.py iswtn()
+# Adapted from 3.8.12 line 730 pywt/_swt.py iswtn()
 [{k:
   v.real
   for k, v
@@ -80,7 +79,7 @@ n = 10
  in ary]
 
 
-# From lib/python3.8/base64.py
+# Adapted from lib/python3.8/base64.py
 # Warning! check result. If it starts "y" if ... be wery wery careful
 ["z" if __name__
  else
@@ -91,7 +90,7 @@ n = 10
    in __name__]
 
 
-# From 3.8 numpy/ma/mrecords.py
+# Adapted from 3.8 numpy/ma/mrecords.py
 [f"({','.join([str(i) for i in s])})"
  for s
  in [f
@@ -104,12 +103,12 @@ n = 10
   in __file__]
 
 
-# From 3.8 numpy/lib/function_base.py
+# Adapted from 3.8 numpy/lib/function_base.py
 [n + tuple(ary2[dim] for dim in core_dims)
             for core_dims in ary2]
 
 
-# From 3.8 prompt_toolkit/layout/processors.py
+# Adapted from 3.8 prompt_toolkit/layout/processors.py
 [
  (style,
   5 * len(ary2),
@@ -121,7 +120,7 @@ n = 10
 ]
 
 
-# From 3.8 scipy/_lib/_util.py
+# Adapted from 3.8 scipy/_lib/_util.py
 [
  p
  for p
@@ -138,7 +137,7 @@ n = 10
  if ary > 2
  ]
 
- # # From 3.8 scipy/linalg/tests/test_lapack.py
+ # # Adapted from 3.8 scipy/linalg/tests/test_lapack.py
 # [(dtype, trans)
 #  for dtype in DTYPES for trans in ['N', 'T', 'C']
 #  if not (trans == 'C' and dtype in REAL_DTYPES)]
@@ -149,17 +148,17 @@ n = 10
 #          and dtyp)]
 
 
-# # From 3.8 skiimage/filters/tests/test_thresholding.py
+# # Adapted from 3.8 skiimage/filters/tests/test_thresholding.py
 # [axis.texts for axis in ax if axis.texts != []]
 
-# # From Python 3.8 tqdm/asyncio.py
+# # Adapted from Python 3.8 tqdm/asyncio.py
 # # Note we need to add the "async def" for this list comprehension
 # async def gather(cls, *fs, loop=None, timeout=None, total=None, **tqdm_kwargs):
 #     [await f for f in cls.as_completed(loop=loop, timeout=timeout,
 #                                        total=total, **tqdm_kwargs)]
 
 
-# # From Python 3.8 sympy/tensor/tensor.py __new__()
+# # Adapted from Python 3.8 sympy/tensor/tensor.py __new__()
 # # Warning! produces duplicate if/else
 
 # [i for arg in args for i in (arg.args if isinstance(arg, (TensMul, Mul)) else [arg])]
@@ -174,7 +173,7 @@ n = 10
 #      else 5)
 #      ]
 
-# From 3.8 sympy/solvers/tests/test_solvers.py test_issue_8828()
+# Adapted from 3.8 sympy/solvers/tests/test_solvers.py test_issue_8828()
 [
  {tuple(i.evalf(2)
         for i
@@ -190,10 +189,6 @@ n = 10
         for j in R}
  for R in __file__]
 
-# [KroneckerDelta(*(key, value))
-#  for key, value in slns[0].items()]
-
-
 [10
  for
  i in ["a", "b", "c"]
@@ -204,7 +199,7 @@ n = 10
 
 # [i for i in free if (i.name if isinstance(x, str) else i) == x]
 
-# # From 3.8 sympy/geometry/util.py
+# Adapted From 3.8 sympy/geometry/util.py
 # (i.name if isinstance(x, str) else i) == x
 
 [5
@@ -222,12 +217,12 @@ n = 10
 #     ) else 7
 
 
-# # From 3.8 sympy/simplify/trigsimp.py
+# # Adapted from 3.8 sympy/simplify/trigsimp.py
 # # [
 # #  _eapply(func, ei) if (cond is None or cond(ei)) else ei
 # #  for ei in e.args]
 
-# From 3.8 matplotlib/dviread.py
+# Adapted from 3.8 matplotlib/dviread.py
 # The bug was in handling chained compare (32 < ch < 127)
 # inside a "if .. else".
 
@@ -238,7 +233,7 @@ n = 10
  in __file__
  ]
 
-# # From Python 3.8 matplotlib/tests/test_determinism.py
+# # Adapted from Python 3.8 matplotlib/tests/test_determinism.py
 # [
 #  subprocess.check_output(
 #      [sys.executable, "-R", "-c",
@@ -248,3 +243,15 @@ n = 10
 #           "MPLBACKEND": "Agg"})
 #  for _ in range(3)
 #  ]
+
+# Adapted from 3.8 test/test_named_expressions.py
+[(x, y, x/y)
+ for x in [1, 2, 3]
+ if (y := x)
+ > 0]
+
+# Adapted from Line 159 From 3.8. 12 sympy/concrete/delta.py
+ # Bug was probably *() form in function call
+[range(*(key, value))
+ for key, value
+ in [(1, 2), (3, 4)]]
