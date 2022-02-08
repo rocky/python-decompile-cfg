@@ -28,12 +28,12 @@
  in (0, 1, 2)
  )
 
-# # line 330 of 3.8.12 setuptools/config.py
-# # Problem was in handling or True
-# (
-#  path
-#  for path in __file__
-#  if (path or True))
+# line 330 of 3.8.12 setuptools/config.py
+# Problem was in handling or True
+(
+ path
+ for path in __file__
+ if (path or True))
 
 # Line 602 of 3.8.2 nltk/corpus/reader/framenet.py
 (1

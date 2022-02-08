@@ -130,7 +130,15 @@ n = 10
  [1, 2]
  ]
 
-# # From 3.8 scipy/linalg/tests/test_lapack.py
+[0 <
+ ary
+ < 3
+ for ary
+ in __file__
+ if ary > 2
+ ]
+
+ # # From 3.8 scipy/linalg/tests/test_lapack.py
 # [(dtype, trans)
 #  for dtype in DTYPES for trans in ['N', 'T', 'C']
 #  if not (trans == 'C' and dtype in REAL_DTYPES)]
@@ -166,33 +174,47 @@ n = 10
 #      else 5)
 #      ]
 
-# # From 3.8 sympy/solvers/tests/test_solvers.py test_issue_8828()
-# [{tuple(i.evalf(2) for i in j) for j in R} for R in [A, B, C]]
+# From 3.8 sympy/solvers/tests/test_solvers.py test_issue_8828()
+[
+ {tuple(i.evalf(2)
+        for i
+        in j)
+  for j in R}
+ for R in
+ ["A", "B", "C"]
+ ]
 
-# [{
-#   2
-#         for j in R}
-#  for R in __file__]
-
+[{
+  2
+        for j in R}
+ for R in __file__]
 
 # [KroneckerDelta(*(key, value))
 #  for key, value in slns[0].items()]
 
 
-# [j for i in p for j in i.args or (i,)]
-
+[10
+ for
+ i in ["a", "b", "c"]
+ for __file__
+ in i
+ or (i,)
+ ]
 
 # [i for i in free if (i.name if isinstance(x, str) else i) == x]
 
 # # From 3.8 sympy/geometry/util.py
 # (i.name if isinstance(x, str) else i) == x
 
-# 5 if (
-#     __file__
-#     or x
-#     ) else 7
+[5
+ if (
+    __file__
+    or __name__
+    ) else 7
+ ]
 
 # # And when this is a constant?
+
 # 5 if (
 #     __file__
 #     # or 6
