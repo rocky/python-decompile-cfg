@@ -266,6 +266,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         expr_jifop                 ::= expr JUMP_IF_FALSE_OR_POP
         expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP
         expr_pjiff                 ::= expr pjump_iff
+        expr_pjift                 ::= expr pjump_ift
         """
 
     def p_comprehension(self, args):
@@ -289,7 +290,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # FIXME: Maybe we can refactor this grammar to
         # redue redundancy?
 
-        comp_if         ::= expr_pjiff
         comp_if         ::= expr_pjif
                             comp_iter
 
@@ -346,14 +346,14 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # We might be able to do this in the grammar but it is a bit
         # too pervasive and involved.
 
-        comp_if_not     ::= expr pjump_ift comp_iter
-        comp_if         ::= expr pjump_ift comp_iter
+        comp_if_not     ::= expr_pjift comp_iter
+        comp_if         ::= expr_pjift comp_iter
 
         # Note the similarity with above "comp_if_not"
         # the following was noticed with an "or True".
         # We probably need to reduc check "comp_if"
         # versus "comp_if_not".
-        comp_if         ::= expr pjump_ift bb_end_start comp_iter
+        comp_if         ::= expr_pjift bb_end_start comp_iter
 
         comp_if_not_and ::= expr_pjif
                             expr POP_JUMP_IF_TRUE_LOOP

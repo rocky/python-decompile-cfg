@@ -1511,9 +1511,10 @@ class SourceWalker(GenericASTTraversal, object):
                 if n[0].kind == "expr":
                     list_if = n
                     n = n[2]
-                elif n[0].kind in ("expr_pjif", "expr_pjiff"):
+                elif n[0].kind.startswith("expr_pjif"):
                     list_if = n
-                    n = n[1]
+                    n = n[-1]
+                    assert n == "comp_iter"
                 else:
                     if len(n) == 2:
                         list_if = n[0]
@@ -1526,7 +1527,10 @@ class SourceWalker(GenericASTTraversal, object):
                 write_if = True
                 list_if = n
                 n = n[-1]
+                assert n == "comp_iter"
 
+        if n != "comp_body":
+            from trepan.api import debug; debug()
         assert n == "comp_body", tree
 
         self.preorder(n[0])
