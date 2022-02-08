@@ -1514,7 +1514,7 @@ class SourceWalker(GenericASTTraversal, object):
                 if n[0].kind == "expr":
                     list_if = n
                     n = n[2]
-                elif n[0].kind.startswith("expr_pjif"):
+                elif n[0].kind in ("expr_pjif", "expr_pjiff"):
                     list_if = n
                     n = n[-1]
                     assert n == "comp_iter"

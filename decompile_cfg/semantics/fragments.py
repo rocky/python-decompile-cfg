@@ -992,13 +992,14 @@ class FragmentsWalker(pysource.SourceWalker, object):
 
         n = tree[5]
         list_if = None
+        write_if = False
+
         assert n == "comp_iter"
 
         # Find inner-most node.
         while n == "comp_iter":
             n = n[0]  # recurse one step
-            # FIXME: adjust for set comprehension
-            if n == "list_for":
+            if n in ("list_for", "comp_for"):
                 store = n[2]
                 n = n[3]
             elif n in (
@@ -1008,13 +1009,15 @@ class FragmentsWalker(pysource.SourceWalker, object):
                 "comp_if",
                 "comp_if_not",
             ):
-                # FIXME: just a guess
+                # FIXME: most of the grammar start with expr_...
+                # Some of the older ones can be: expr <jump> <iter>
+                # This may disappear though.
                 if n[0].kind == "expr":
                     list_if = n
                     n = n[2]
                 elif n[0].kind in ("expr_pjif", "expr_pjiff"):
                     list_if = n
-                    n = n[1]
+                    n = n[-1]
                 else:
                     if len(n) == 2:
                         list_if = n[0]
@@ -1023,6 +1026,12 @@ class FragmentsWalker(pysource.SourceWalker, object):
                         list_if = n[1]
                         n = n[2]
                 pass
+            elif n.kind in ("comp_if_or", "comp_if_or2", "comp_if_or_not"):
+                write_if = True
+                list_if = n
+                n = n[-1]
+                assert n == "comp_iter"
+
             pass
 
         assert n == "comp_body", tree
@@ -1037,6 +1046,8 @@ class FragmentsWalker(pysource.SourceWalker, object):
         self.preorder(collection)
         self.set_pos_info(collection, start, len(self.f.getvalue()))
         if list_if:
+            if write_if:
+                self.write(" if ")
             start = len(self.f.getvalue())
             self.preorder(list_if)
             self.set_pos_info(list_if, start, len(self.f.getvalue()))
