@@ -22,7 +22,7 @@ n = 10
  and c != n
  ]
 
-# Adapted from python3.8/functools.py
+# Adapted from 3.8.12 functools.py
 [n
  for
  n
@@ -30,7 +30,7 @@ n = 10
  if not n
  ]
 
-# Adapted from python3.8/lib2to3/tests/data/py3_test_grammar.py test_in_func()
+# Adapted from 3.8.12 lib2to3/tests/data/py3_test_grammar.py test_in_func()
 [0 <
  ary
  < 3
@@ -44,7 +44,7 @@ n = 10
  for filename in ary2]
 
 
-# Adapted from Python3.8 lib/python3.8/asyncio/base_events.py
+# Adapted from 3.8.12  asyncio/base_events.py
 [
     addr_pair for addr_pair in __file__
     if((__name__ and addr_pair) or
@@ -62,7 +62,7 @@ n = 10
  l
  <= 8]
 
-# Adapted from 3.8.12 line 730 pywt/_swt.py iswtn()
+# Adapted from 3.8.12 line 730 site-packages/pywt/_swt.py iswtn()
 [{k:
   v.real
   for k, v
@@ -90,7 +90,7 @@ n = 10
    in __name__]
 
 
-# Adapted from 3.8 numpy/ma/mrecords.py
+# Adapted from 3.8.12 site-packages/numpy/ma/mrecords.py
 [f"({','.join([str(i) for i in s])})"
  for s
  in [f
@@ -103,12 +103,12 @@ n = 10
   in __file__]
 
 
-# Adapted from 3.8 numpy/lib/function_base.py
+# Adapted from 3.8.12 site-packages/numpy/lib/function_base.py
 [n + tuple(ary2[dim] for dim in core_dims)
             for core_dims in ary2]
 
 
-# Adapted from 3.8 prompt_toolkit/layout/processors.py
+# Adapted from 3.8.12 site-packages/prompt_toolkit/layout/processors.py
 [
  (style,
   5 * len(ary2),
@@ -120,7 +120,7 @@ n = 10
 ]
 
 
-# Adapted from 3.8 scipy/_lib/_util.py
+# Adapted from 3.8.12 site-packages/scipy/_lib/_util.py
 [
  p
  for p
@@ -199,7 +199,7 @@ n = 10
 
 # [i for i in free if (i.name if isinstance(x, str) else i) == x]
 
-# Adapted From 3.8 sympy/geometry/util.py
+# Adapted From 3.8 site-packages/sympy/geometry/util.py
 # (i.name if isinstance(x, str) else i) == x
 
 [5
@@ -217,7 +217,7 @@ n = 10
 #     ) else 7
 
 
-# # Adapted from 3.8 sympy/simplify/trigsimp.py
+# # Adapted from 3.8 site-packages/sympy/simplify/trigsimp.py
 # # [
 # #  _eapply(func, ei) if (cond is None or cond(ei)) else ei
 # #  for ei in e.args]
@@ -233,7 +233,7 @@ n = 10
  in __file__
  ]
 
-# # Adapted from Python 3.8 matplotlib/tests/test_determinism.py
+# # Adapted from Python 3.8 site-packages/matplotlib/tests/test_determinism.py
 # [
 #  subprocess.check_output(
 #      [sys.executable, "-R", "-c",
@@ -250,8 +250,29 @@ n = 10
  if (y := x)
  > 0]
 
-# Adapted from Line 159 From 3.8. 12 sympy/concrete/delta.py
+# Adapted from Line 159 From 3.8.12 sympy/concrete/delta.py
  # Bug was probably *() form in function call
 [range(*(key, value))
  for key, value
  in [(1, 2), (3, 4)]]
+
+
+# Adapted from line 100 of Python 3.8.12 site-packages/matplotlib/tests/test_determinism.py
+[
+ exec(
+     ["-R", "-c",
+      f"({_file__!r}, {__name__!r})"],
+     env={**os.environ,
+          "MPLBACKEND": "Agg"})
+ for _ in range(3)
+ ]
+
+
+# Adapted from line 61 of 3.8.12 site-packages/pattern/text/__init__.py
+# Bug was .. if ( .. and .. or ) not in xxx
+[w
+ for w
+ in __file__
+ if (isinstance(w, str)
+     and __file__ or w)
+ not in __name__]
