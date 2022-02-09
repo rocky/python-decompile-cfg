@@ -9,7 +9,7 @@ import sys
 
 from xdis.version_info import version_tuple_to_str
 from decompile_cfg.code_fns import (
-    decompile_all_code,
+    decompile_all_fragments,
     decompile_generators,
     decompile_dict_comprehensions,
     decompile_list_comprehensions,
@@ -36,7 +36,7 @@ PATTERNS = ("*.pyc", "*.pyo")
     "code_format",
     type=click.Choice(
         [
-            "all-code",
+            "code-fragments",
             "exec",
             "generator",
             "dict-comprehension",
@@ -76,8 +76,8 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
     if code_format is None:
         code_format = "lambda"
 
-    if code_format == "all-code":
-        decompile_fn = decompile_all_code
+    if code_format == "code-fragments":
+        decompile_fn = decompile_all_fragments
     elif code_format == "generator":
         decompile_fn = decompile_generators
     elif code_format == "lambda":

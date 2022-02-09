@@ -687,9 +687,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                     RETURN_VALUE
                                     bb_doms_end_opt
 
+        # We need a block_break because thre can be a jump
+        # in a conditional to just before the RETURN_VALUE
         return_expr_lambda      ::= dom_start_opt
                                     expr
-                                    bb_end_start
+                                    block_break
                                     RETURN_VALUE
                                     bb_doms_end
 

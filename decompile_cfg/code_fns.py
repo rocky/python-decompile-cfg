@@ -159,7 +159,7 @@ def decompile_dict_comprehensions(
     )
 
 
-def decompile_all_code(
+def decompile_all_fragments(
     filename: str,
     outstream=None,
     showasm=None,
@@ -268,7 +268,7 @@ def _test() -> None:
             sys.exit(2)
     else:
         fn = sys.argv[1]
-    decompile_all_code(fn)
+    decompile_all_fragments(fn)
 
 
 if __name__ == "__main__":
