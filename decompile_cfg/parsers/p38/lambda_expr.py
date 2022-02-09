@@ -279,6 +279,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         expr_pjit_loop             ::= expr POP_JUMP_IF_TRUE_LOOP
         expr_jifop                 ::= expr JUMP_IF_FALSE_OR_POP
         expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP
+
+        # FIXME: the below two names are horrible and can be confused with the above
+        # "expr_pji{f,t} rules. The differences that here we don't care if we
+        # loop or not whereas above the two are split out.
+
         expr_pjiff                 ::= expr pjump_iff
         expr_pjift                 ::= expr pjump_ift
         """
@@ -290,9 +295,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         comp_body      ::= list_comp_body
         comp_body      ::= set_comp_body
 
-        comp_for       ::= expr get_for_iter store comp_iter
-                           CONTINUE
-                           bb_end_start_opt
+        # I think this can be removed:
+        # comp_for       ::= expr get_for_iter store comp_iter
+        #                    CONTINUE
+        #                    bb_end_start_opt
 
         comp_for       ::= expr get_for_iter store comp_iter
                           JUMP_LOOP
@@ -665,8 +671,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         """
         jump               ::= JUMP_FORWARD
         jump               ::= JUMP_LOOP
+
+        # Note: full.py has jump_or_break ::= BREAK_LOOP
         jump_or_break      ::= jump
-        jump_or_break      ::= BREAK_LOOP
 
         pjump_ift          ::= POP_JUMP_IF_TRUE
         pjump_ift          ::= POP_JUMP_IF_TRUE_LOOP

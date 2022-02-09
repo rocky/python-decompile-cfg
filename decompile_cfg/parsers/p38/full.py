@@ -813,11 +813,9 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
 
     def p_jump3(self, args):
         """
-        # Do we need these?
-        # jump               ::= JUMP_FORWARD
-        # jump               ::= JUMP_LOOP
-        # jump_or_break      ::= jump
-        # jump_or_break      ::= BREAK_LOOP
+        # Do we need this?
+        # Note: lambda_expr.py has jump_or_break ::= jump
+        jump_or_break      ::= BREAK_LOOP
 
         return_expr ::= expr
 
