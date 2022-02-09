@@ -51,10 +51,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         or_part       ::= expr_pjit
         or_parts      ::= or_part+
 
-        or_loop       ::= expr_pjit_loop
-                          dom_start_opt
-                          expr
-
         or_part_true_loop  ::= expr_pjit_loop
         or_parts_true_loop ::= or_part_true_loop+
 
@@ -221,16 +217,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         compare_chained1b_false_loop   ::= expr
                                            compare_chained2b_false_loop
                                            POP_TOP JUMP_LOOP bb_doms_end_start_opt
-
-        compare_chained2a_false_loop   ::= expr COMPARE_OP
-                                           block_break
-                                           POP_JUMP_IF_FALSE_LOOP
-
-        compare_chained2b_false_loop   ::= expr COMPARE_OP
-                                           bb_end_start_opt
-                                           POP_JUMP_IF_FALSE_LOOP
-                                           jump_or_break
-                                           block_break
         """
 
     # Conditional jumps with dominator information included
@@ -257,9 +243,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         dom_end_opt        ::= dom_end?
         dom_end_start      ::= dom_end dom_start
         dom_end_start_opt  ::= dom_end_start?
-        doms_end_start     ::= bb_doms_end dom_start
         doms_end_start_opt ::= bb_doms_end dom_start
-
 
         bb_end_start          ::= BB_END dom_start
         bb_doms_end_start     ::= bb_doms_end dom_start
@@ -607,7 +591,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         branch_op ::= if_exp_loop
         branch_op ::= if_exp_not block_break
         branch_op ::= if_exp_true block_break
-        branch_op ::= if_exp2 block_break
 
 
         # A "branch_op_compound" is a branch_op with a non-branching unary or binary operator at the end.
@@ -817,25 +800,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
     def p_store(self, args):
         """
-        # Note. The below is right-recursive:
-        designList ::= store store
-        designList ::= store DUP_TOP designList
-
-        ## Can we replace with left-recursive, and redo with:
-        ##
-        ##   designList  ::= designLists store store
-        ##   designLists ::= designLists store DUP_TOP
-        ##   designLists ::=
-        ## Will need to redo semantic action
-
+        # Note: we are not seeing STORE_FAST or STORE_DEREF.
+        # Should this be moved to full.py?
         store           ::= STORE_DEREF
         store           ::= STORE_FAST
         store           ::= STORE_GLOBAL
         store           ::= STORE_NAME
-
-        store           ::= expr STORE_ATTR
-        store           ::= store_subscript
-        store_subscript ::= expr expr STORE_SUBSCR
         """
 
     def __init__(

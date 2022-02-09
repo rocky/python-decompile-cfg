@@ -251,16 +251,32 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
 
     def p_assign(self, args):
         """
-        stmt ::= assign
         assign ::= expr DUP_TOP designList
         assign ::= expr store
         assign ::= branch_op dom_start store
         assign ::= expr bb_end_start store
 
-        stmt ::= assign2
-        stmt ::= assign3
         assign2 ::= expr expr ROT_TWO store store
         assign3 ::= expr expr expr ROT_THREE ROT_TWO store store store
+
+        # Note. The below is right-recursive:
+        designList ::= store store
+        designList ::= store DUP_TOP designList
+
+        ## Can we replace with left-recursive, and redo with:
+        ##
+        ##   designList  ::= designLists store store
+        ##   designLists ::= designLists store DUP_TOP
+        ##   designLists ::=
+        ## Will need to redo semantic actions
+
+        store           ::= expr STORE_ATTR
+        store           ::= store_subscript
+        store_subscript ::= expr expr STORE_SUBSCR
+
+        stmt ::= assign
+        stmt ::= assign2
+        stmt ::= assign3
         """
 
     def p_await(self, args):
@@ -311,6 +327,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         forelselaststmtc ::= SETUP_LOOP expr get_for_iter store
                 for_block POP_BLOCK else_suitec _come_froms
         """
+
 
     def p_whilestmt(self, args):
         """
