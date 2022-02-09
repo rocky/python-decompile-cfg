@@ -44,7 +44,7 @@ from py_compile import PyCompileError
 
 
 def disco_deparse(
-    version: str, co, compile_mode, code_type, out, is_pypy, debug_opts
+    version: str, co, codename_map: dict, out, is_pypy, debug_opts
 ) -> None:
     """
     diassembles and deparses a given code block 'co'
@@ -62,17 +62,18 @@ def disco_deparse(
 
     queue = deque([co])
     disco_deparse_loop(
-        scanner.ingest, compile_mode, code_type, queue, real_out, is_pypy, debug_opts
+        scanner.ingest, codename_map, queue, real_out, is_pypy, debug_opts
     )
 
 
 def disco_deparse_loop(
-    disasm, compile_mode, code_type, queue, real_out, is_pypy, debug_opts
+        disasm, codename_map: dict, queue, real_out, is_pypy, debug_opts
 ):
+
     while len(queue) > 0:
         co = queue.popleft()
         skip_token_scan = False
-        if co.co_name == code_type:
+        if co.co_name in codename_map:
             print(
                 "\n# %s line %d of %s"
                 % (co.co_name, co.co_firstlineno, co.co_filename),
@@ -84,7 +85,7 @@ def disco_deparse_loop(
                 real_out,
                 debug_opts=debug_opts,
                 is_pypy=is_pypy,
-                compile_mode=compile_mode,
+                compile_mode=codename_map[co.co_name]
             )
             skip_token_scan = True
 
@@ -102,8 +103,7 @@ def disco_deparse_loop(
 
 def decompile_code_type(
     filename: str,
-    compile_mode,
-    code_type,
+    codename_map: dict,
     outstream=None,
     showasm=None,
     showast=TREE_DEFAULT_DEBUG,
@@ -132,18 +132,17 @@ def decompile_code_type(
     if isinstance(co, list):
         for bytecode in co:
             disco_deparse(
-                version, bytecode, compile_mode, code_type, is_pypy, debug_opts
+                version, bytecode, codename_map, is_pypy, debug_opts
             )
     else:
         disco_deparse(
-            version, co, compile_mode, code_type, outstream, is_pypy, debug_opts
+            version, co, codename_map, outstream, is_pypy, debug_opts
         )
     return True
 
 
 def decompile_dict_comprehensions(
     filename: str,
-    code_type,
     outstream=None,
     showasm=None,
     showast=TREE_DEFAULT_DEBUG,
@@ -156,13 +155,37 @@ def decompile_dict_comprehensions(
     decompile all dict_comprehensions of the corresponding compiled object.
     """
     return decompile_code_type(
-        filename, "dictcomp", "<dictcomp>", outstream, showasm, showast, showgrammar
+        filename, {"<dictcomp>":  "dictcomp"}, outstream, showasm, showast, showgrammar
+    )
+
+
+def decompile_all_code(
+    filename: str,
+    outstream=None,
+    showasm=None,
+    showast=TREE_DEFAULT_DEBUG,
+    showgrammar=PARSER_DEFAULT_DEBUG,
+) -> Optional[bool]:
+    """
+    decompile all of comprehensions, generators, and lambda in a python byte-code file (.pyc)
+
+    If given a Python source file (".py") file, we'll
+    decompile all dict_comprehensions of the corresponding compiled object.
+    """
+    return decompile_code_type(
+        filename, {
+            "<dictcomp>": "dictcomp",
+            "<genexpr>": "genexpr",
+            "<lambda>": "lambda",
+            "<listcomp>": "listcomp",
+            "<setcomp>": "setcomp"
+            },
+        outstream, showasm, showast, showgrammar
     )
 
 
 def decompile_generators(
     filename: str,
-    code_type,
     outstream=None,
     showasm=None,
     showast=TREE_DEFAULT_DEBUG,
@@ -175,13 +198,12 @@ def decompile_generators(
     decompile all dict_comprehensions of the corresponding compiled object.
     """
     return decompile_code_type(
-        filename, "genexpr", "<genexpr>", outstream, showasm, showast, showgrammar
+        filename, {"<genexpr>": "genexpr"}, outstream, showasm, showast, showgrammar
     )
 
 
 def decompile_lambda_fns(
     filename: str,
-    code_type,
     outstream=None,
     showasm=None,
     showast=TREE_DEFAULT_DEBUG,
@@ -194,13 +216,12 @@ def decompile_lambda_fns(
     decompile all lambdas of the corresponding compiled object.
     """
     return decompile_code_type(
-        filename, "lambda", "<lambda>", outstream, showasm, showast, showgrammar
+        filename, {"<lambda>": "lambda"}, outstream, showasm, showast, showgrammar
     )
 
 
 def decompile_list_comprehensions(
     filename: str,
-    code_type,
     outstream=None,
     showasm=None,
     showast=TREE_DEFAULT_DEBUG,
@@ -213,7 +234,7 @@ def decompile_list_comprehensions(
     decompile all list_comprehensions of the corresponding compiled object.
     """
     return decompile_code_type(
-        filename, "listcomp", "<listcomp>", outstream, showasm, showast, showgrammar
+        filename, {"<listcomp>": "listcomp"}, outstream, showasm, showast, showgrammar
     )
 
 
@@ -232,7 +253,7 @@ def decompile_set_comprehensions(
     decompile all list_comprehensions of the corresponding compiled object.
     """
     return decompile_code_type(
-        filename, "setcomp", "<setcomp>", outstream, showasm, showast, showgrammar
+        filename, {"<setcomp>": "setcomp"}, outstream, showasm, showast, showgrammar
     )
 
 
@@ -247,7 +268,7 @@ def _test() -> None:
             sys.exit(2)
     else:
         fn = sys.argv[1]
-    decompile_lambda_fns(fn)
+    decompile_all_code(fn)
 
 
 if __name__ == "__main__":
