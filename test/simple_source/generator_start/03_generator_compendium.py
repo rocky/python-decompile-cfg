@@ -2,11 +2,20 @@
 # entire set of 3.8 installed packages on my disk.
 # Many examples come from packages like sympy or numpy
 
+# fmt: off
 # generator bugs
-(i for i in range(10))
+(i
+ for i
+ in
+ range(10)
+ )
 
 # 3.8.12 weakrefset.py
-(e for s in ("a", "b") for e in s)
+(e
+ for s
+ in ("a", "b")
+ for e
+ in s)
 
 # Python 3.8.2 line 683 of git/refs/symbolic.py
 # Bug was in handling "or not"
@@ -36,6 +45,7 @@
  if (path or True))
 
 # Line 602 of 3.8.2 nltk/corpus/reader/framenet.py
+# Bug was handling looping jump of chained comparison inside comp_if.
 (1
  for x,
  y
@@ -46,7 +56,8 @@
  <= x
  < 6)
 
-# The problem was handing IfExp as part of a tuple
+# The problem was handing IfExp as part of a tuple, i.e.
+#  (None if .. and .. else)
 (
  (k,
   (None if
@@ -62,4 +73,7 @@
 # Bug was hooking genexpr_func_async to return_expr_lambda in grammar
 # and writing a semantic action for this when the code is decompiled
 # independant of the calling context.
-(i * 2 async for i in range(10))
+(i * 2
+ async
+ for i
+ in range(10))
