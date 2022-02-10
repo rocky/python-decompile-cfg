@@ -35,16 +35,16 @@
  for path in __file__
  if (path or True))
 
-# # Line 602 of 3.8.2 nltk/corpus/reader/framenet.py
-# (1
-#  for x,
-#  y
-#  in __file__
-#  if 2 <= y
-#  < 3
-#  or 5
-#  <= x
-#  < 6)
+# Line 602 of 3.8.2 nltk/corpus/reader/framenet.py
+(1
+ for x,
+ y
+ in __file__
+ if 2 <= y
+ < 3
+ or 5
+ <= x
+ < 6)
 
 # The problem was handing IfExp as part of a tuple
 (

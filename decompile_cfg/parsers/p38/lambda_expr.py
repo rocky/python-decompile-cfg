@@ -193,19 +193,18 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                            JUMP_FORWARD
                                            bb_end_start_opt
 
+        # We could propagate loop up through compare_chained and
+        # then  to comp_if_xxx etc (e.g comp_if_or2) but this would be
+        # too much work. The compromise here is to note the loop
+        # in a nonterminal and if we need it, have a reduction check
+        # test at the nonterminal symbol level.
         compare_chained37_false        ::= expr
                                            compare_chained1b_false_loop
 
         compare_chained37_false        ::= expr
                                            compare_chained
 
-        compare_chained2b_false        ::= expr COMPARE_OP
-                                           bb_end_start_opt
-                                           POP_JUMP_IF_FALSE
-                                           jump_or_break
-                                           block_break
-
-         compare_chained1b_false       ::= chained_parts
+        compare_chained1b_false        ::= chained_parts
                                            compare_chained2b_false
                                            POP_TOP jump
                                            bb_doms_end_start_opt
@@ -217,6 +216,20 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         compare_chained1b_false_loop   ::= expr
                                            compare_chained2b_false_loop
                                            POP_TOP JUMP_LOOP bb_doms_end_start_opt
+
+        compare_chained2b_false        ::= expr COMPARE_OP
+                                           bb_end_start_opt
+                                           POP_JUMP_IF_FALSE
+                                           jump_or_break
+                                           block_break
+
+
+        compare_chained2b_false_loop   ::= expr COMPARE_OP
+                                           bb_end_start_opt
+                                           POP_JUMP_IF_FALSE_LOOP
+                                           jump_or_break
+                                           block_break
+
         """
 
     # Conditional jumps with dominator information included
