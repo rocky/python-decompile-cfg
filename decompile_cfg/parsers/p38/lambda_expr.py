@@ -209,7 +209,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                            POP_TOP jump
                                            bb_doms_end_start_opt
 
-         compare_chained1b_false_loop  ::= chained_parts
+        compare_chained1b_false_loop   ::= chained_parts
                                            compare_chained2b_false_loop
                                            POP_TOP jump bb_doms_end_start_opt
 
@@ -624,9 +624,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         compare           ::= compare_chained
         compare           ::= compare_single
-        compare_in        ::= expr expr CONTAINS_OP
-        compare_is        ::= expr expr IS_OP
         compare_single    ::= expr expr COMPARE_OP
+
+        # Note: in 3.9+ only
+        compare_is        ::= expr expr IS_OP
+        compare_in        ::= expr expr CONTAINS_OP
 
         constant ::= LOAD_CONST
         constant ::= LOAD_STR
