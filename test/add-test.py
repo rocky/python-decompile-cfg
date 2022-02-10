@@ -24,6 +24,13 @@ def main(code_format, show_asm, grammar, tree, tree_plus, optimize, files):
     assert (2 <= len(sys.argv) <= 4)
     version = version_tuple_to_str(end=2, delimiter="")
     suffix = code_format
+    decompile_opts = ''
+    if show_asm:
+        decompile_opts += " -a"
+    if tree:
+        decompile_opts += " -t"
+    if tree_plus:
+        decompile_opts += " -T"
 
     for path in files:
         short = os.path.basename(path)
@@ -38,9 +45,9 @@ def main(code_format, show_asm, grammar, tree, tree_plus, optimize, files):
         print(f"byte-compiling {path} to {bytecode}")
         py_compile.compile(path, bytecode, optimize=optimize)
         if code_format in ("exec", "run"):
-            os.system(f"../bin/decompile-cfg -a -T {bytecode}")
+            os.system(f"../bin/decompile-cfg {decompile_opts} {bytecode}")
         else:
-            os.system(f"../bin/decompile-code -F {code_format} -a -T {bytecode}")
+            os.system(f"../bin/decompile-code -F {code_format} {decompile_opts} {bytecode}")
 
 if __name__ == "__main__":
     main()
