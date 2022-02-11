@@ -1,6 +1,13 @@
-check=PHONY clean dist distclean test test-unit test-functional rmChangeLog clean_pyc nosetests \
-      check-bytecode-3 check-bytecode-3-short \
-      grammar-coverage-3.8
+check=PHONY \
+      clean \
+      dist distclean \
+      check-bytecode-3 \
+      check-bytecode-3-short \
+      code-fragments \
+      grammar-coverage-3.8 \
+      nosetests \
+      rmChangeLog clean_pyc \
+      test test-unit test-functional
 
 GIT2CL ?= git2cl
 PYTHON ?= python
@@ -55,12 +62,15 @@ check-bytecode-3-set-comprehension:
 
 #: Check deparsing bytecode on all Python 3 versions
 check-bytecode: \
+	check-code-fragments \
+	check-bytecode-3
+
+check-code-fragments: \
 	check-bytecode-3-lambda \
 	check-bytecode-3-dict-comprehension \
 	check-bytecode-3-generator \
 	check-bytecode-3-list-comprehension \
-	check-bytecode-3-set-comprehension \
-	check-bytecode-3
+	check-bytecode-3-set-comprehension
 
 #: Get grammar coverage for Python 3.7
 grammar-coverage-3.8:

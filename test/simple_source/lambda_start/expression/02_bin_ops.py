@@ -2,20 +2,30 @@
 # These are an accumulation of lambda expressions involving logical operations.
 # They were culled from all lambda's on my disk under Python 3.8.
 
-# we can turn this into a self-checking program when we do.
-# """This program is self-checking!"""
-
 # NOTE: Formatting may be weird because we want the additional line numbers
 # in debugging.
 
 # fmt: off
 lambda A: A @ 1
-lambda x, y: x * y
+lambda b: b << 2 >> 3
+lambda c: 1 < c < 3
+lambda d:  1e300 * d * 1e300
+lambda e: -1e300 * e * 1e300
+lambda x, y: x * y - 1
 
-lambda a:  1e300 * a * 1e300
-lambda b: -1e300 * b * 1e300
 
 lambda a, b, c, d:  a | b & c ^ d
+lambda a, b, c, d:  a or b
+lambda a, b, c, d:  a or b or c or d
+lambda a, b, c, d:  a and b
+lambda a, b, c, d:  a and b and c and d
+lambda a, b, c, d:  a and b and c and not d
+lambda a, b, c, d:  a and b and not c
+lambda a, b, c, d:  a and b or c
+lambda a, b, c, d:  a and b or not c
+lambda a, b, c, d:  a or b and not c
+lambda a, b, c, d:  a or b and c
+lambda a, b, c, d:  a or b and not c
 
 lambda:  len(__file__) / 2
 lambda x: 5j + x
