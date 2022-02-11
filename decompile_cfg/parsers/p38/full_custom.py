@@ -163,6 +163,20 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
         # Loop over instructions adding custom grammar rules based on
         # a specific instruction seen.
 
+        if "LOAD_BUILD_CLASS" in self.seen_ops:
+            if (
+                next_token == "CALL_FUNCTION"
+                and next_token.attr == 1
+                and args_pos > 1
+            ):
+                rule = "classdefdeco2 ::= LOAD_BUILD_CLASS mkfunc %s%s_%d" % (
+                    ("expr " * (args_pos - 1)),
+                    opname,
+                    args_pos,
+                )
+                self.add_unique_rule(rule, token.kind, uniq_param, customize)
+
+
         is_pypy = False
         if "PyPy" in customize:
             is_pypy = True
@@ -178,16 +192,6 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
 
         n = len(tokens)
 
-        # Determine if we have an iteration CALL_FUNCTION_1.
-        has_get_iter_call_function1 = False
-        for i, token in enumerate(tokens):
-            if (
-                token == "GET_ITER"
-                and i < n - 2
-                and self.call_fn_name(tokens[i + 1]) == "CALL_FUNCTION_1"
-            ):
-                has_get_iter_call_function1 = True
-
         for i, token in enumerate(tokens):
             opname = token.kind
 
@@ -198,8 +202,6 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                 or opname in custom_ops_processed
             ):
                 continue
-
-            opname_base = opname[: opname.rfind("_")]
 
             # The order of opname listed is roughly sorted below
 
@@ -325,6 +327,36 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                                                POP_BLOCK async_with_post
                     """
                 self.addRule(rules_str, nop_func)
+
+            elif opname in frozenset(
+                (
+                    "CALL_FUNCTION",
+                    "CALL_FUNCTION_EX_KW",
+                    "CALL_FUNCTION_VAR_KW",
+                    "CALL_FUNCTION_VAR",
+                    "CALL_FUNCTION_VAR_KW",
+                )
+            ) or opname.startswith("CALL_FUNCTION_KW"):
+
+                if opname == "CALL_FUNCTION" and token.attr == 1:
+                    rule = """
+                    classdefdeco1 ::= expr classdefdeco2 CALL_FUNCTION_1
+                    classdefdeco1 ::= expr classdefdeco1 CALL_FUNCTION_1
+                    """
+                    self.addRule(rule, nop_func)
+
+                if "LOAD_BUILD_CLASS" in self.seen_ops:
+                    if (
+                        next_token == "CALL_FUNCTION"
+                        and tokens[i + 1].attr == 1
+                        and args_pos > 1
+                    ):
+                        rule = "classdefdeco2 ::= LOAD_BUILD_CLASS mkfunc %s%s_%d" % (
+                            ("expr " * (args_pos - 1)),
+                            opname,
+                            args_pos,
+                        )
+                        self.add_unique_rule(rule, token.kind, uniq_param, customize)
 
             elif opname == "CONTINUE":
                 self.addRule("continue ::= CONTINUE", nop_func)

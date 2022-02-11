@@ -34,8 +34,6 @@ class Python38LambdaCustom(Python38BaseParser):
         call ::= expr {expr}^n CALL_FUNCTION_VAR_n
         call ::= expr {expr}^n CALL_FUNCTION_VAR_KW_n
         call ::= expr {expr}^n CALL_FUNCTION_KW_n
-
-        classdefdeco2 ::= LOAD_BUILD_CLASS mkfunc {expr}^n-1 CALL_FUNCTION_n
         """
         args_pos, args_kw = self.get_pos_kw(token)
 
@@ -159,19 +157,6 @@ class Python38LambdaCustom(Python38BaseParser):
                 )
 
                 self.add_unique_rule(rule, token.kind, uniq_param, customize)
-
-            if "LOAD_BUILD_CLASS" in self.seen_ops:
-                if (
-                    next_token == "CALL_FUNCTION"
-                    and next_token.attr == 1
-                    and args_pos > 1
-                ):
-                    rule = "classdefdeco2 ::= LOAD_BUILD_CLASS mkfunc %s%s_%d" % (
-                        ("expr " * (args_pos - 1)),
-                        opname,
-                        args_pos,
-                    )
-                    self.add_unique_rule(rule, token.kind, uniq_param, customize)
 
     def customize_grammar_rules_lambda38(self, tokens, customize):
 
@@ -531,8 +516,6 @@ class Python38LambdaCustom(Python38BaseParser):
                      expr         ::= dict_comp
                      dict_comp    ::= LOAD_DICTCOMP LOAD_STR MAKE_FUNCTION_0 expr
                                       GET_ITER CALL_FUNCTION_1
-                    classdefdeco1 ::= expr classdefdeco2 CALL_FUNCTION_1
-                    classdefdeco1 ::= expr classdefdeco1 CALL_FUNCTION_1
                     """
                     self.addRule(rule, nop_func)
 
