@@ -44,13 +44,6 @@ n = 10
  for filename in ary2]
 
 
-# Adapted from 3.8.12  asyncio/base_events.py
-[
-    addr_pair for addr_pair in __file__
-    if((__name__ and addr_pair) or
-            (__file__ and ary))
-]
-
 [
      addr_pair for addr_pair in __file__
      if (addr_pair and __name__) or (addr_pair and __file__)]
@@ -222,17 +215,6 @@ n = 10
 # #  _eapply(func, ei) if (cond is None or cond(ei)) else ei
 # #  for ei in e.args]
 
-# Adapted from 3.8 matplotlib/dviread.py
-# The bug was in handling chained compare (32 < ch < 127)
-# inside a "if .. else".
-
-[ch
- if 32 <= ch < 127
- else '<%02x>'
- for ch
- in __file__
- ]
-
 # # Adapted from Python 3.8 site-packages/matplotlib/tests/test_determinism.py
 # [
 #  subprocess.check_output(
@@ -249,13 +231,6 @@ n = 10
  for x in [1, 2, 3]
  if (y := x)
  > 0]
-
-# Adapted from Line 159 From 3.8.12 sympy/concrete/delta.py
- # Bug was probably *() form in function call
-[range(*(key, value))
- for key, value
- in [(1, 2), (3, 4)]]
-
 
 # Adapted from line 100 of Python 3.8.12 site-packages/matplotlib/tests/test_determinism.py
 [

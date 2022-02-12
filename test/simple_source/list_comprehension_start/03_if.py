@@ -70,3 +70,10 @@
  if (isinstance(w, str)
      and __file__ or w)
  not in __name__]
+
+# Adapted from 3.8.12  asyncio/base_events.py
+[
+    addr_pair for addr_pair in __file__
+    if((__name__ and addr_pair) or
+            (__file__ and ary))
+]

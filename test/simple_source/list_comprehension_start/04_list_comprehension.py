@@ -68,3 +68,9 @@ tuple(
       ord(*arg)
       for arg
       in ary])
+
+# Adapted from Line 159 From 3.8.12 sympy/concrete/delta.py
+ # Bug was probably *() form in function call
+[range(*(key, value))
+ for key, value
+ in [(1, 2), (3, 4)]]
