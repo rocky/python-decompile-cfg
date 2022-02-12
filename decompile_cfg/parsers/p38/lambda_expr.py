@@ -540,8 +540,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         expr ::= branch_op_compound
         expr ::= call
         expr ::= compare
-        expr ::= compare_in
-        expr ::= compare_is
+
+        # Note: in 3.9+ only
+        # expr ::= compare_in
+        # expr ::= compare_is
 
         # experimental. Matches AST better though
         expr ::= constant
@@ -552,7 +554,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         expr ::= named_expr
         expr ::= subscript
-        expr ::= subscript2
+
+        # Not found in 3.8? Maybe 3.9 or 3.10 thing?
+        # expr ::= subscript2
+
         expr ::= unary_not
         expr ::= unary_op
         expr ::= yield
@@ -627,8 +632,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         compare_single    ::= expr expr COMPARE_OP
 
         # Note: in 3.9+ only
-        compare_is        ::= expr expr IS_OP
-        compare_in        ::= expr expr CONTAINS_OP
+        # compare_is        ::= expr expr IS_OP
+        # compare_in        ::= expr expr CONTAINS_OP
 
         constant ::= LOAD_CONST
         constant ::= LOAD_STR
@@ -648,7 +653,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         named_expr        ::= expr DUP_TOP store
 
         subscript         ::= expr expr BINARY_SUBSCR
-        subscript2        ::= expr expr DUP_TOP_TWO BINARY_SUBSCR
+
+        # Not found in 3.8? Maybe 3.9 or 3.10 thing?
+        # subscript2        ::= expr expr DUP_TOP_TWO BINARY_SUBSCR
 
         # unary_op (formerly "unary_expr") is the Python AST UnaryOp
         unary_op          ::= arg unary_operator
