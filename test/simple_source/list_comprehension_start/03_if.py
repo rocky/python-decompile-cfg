@@ -77,3 +77,15 @@
     if((__name__ and addr_pair) or
             (__file__ and ary))
 ]
+
+
+# Adapted from line 471 3.8.12 of site-packages/matplotlib/dviread.py
+# Bug was handling chained compare in an if/else.
+[ch
+ if 32 <=
+ ch < 127
+ else
+ '<%02x>'
+ for ch
+ in __file__
+ ]

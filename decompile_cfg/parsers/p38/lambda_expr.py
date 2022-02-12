@@ -99,6 +99,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                               dom_end_start
                               expr
 
+        if_exp_compare ::= compare
+                           expr
+                           JUMP_FORWARD
+                           bb_doms_end_start
+                           expr
+
         if_exp_and     ::= expr
                            POP_JUMP_IF_FALSE
                            and_parts
@@ -595,6 +601,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         branch_op ::= if_exp block_break
         branch_op ::= if_exp_and block_break
+        branch_op ::= if_exp_compare bb_doms_end_opt
         branch_op ::= if_exp_loop
         branch_op ::= if_exp_not block_break
         branch_op ::= if_exp_true block_break

@@ -554,13 +554,6 @@ TABLE_DIRECT = {
         (-1, "return_call_lambda"),
     ),
 
-    "if_exp_compare": (
-        "%p if %c else %c",
-        (1, "expr", 27),
-        0,
-        -1,  # Must be from end since beginnings might not match
-        ),
-
     # The arg 1 is dead-code
     "if_exp_dead_code": ( "%c if True else %c",
                           (0, "return_expr_lambda"),
