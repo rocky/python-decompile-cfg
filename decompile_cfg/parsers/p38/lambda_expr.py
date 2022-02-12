@@ -99,12 +99,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                               dom_end_start
                               expr
 
-        if_exp_compare ::= compare
-                           expr
-                           JUMP_FORWARD
-                           bb_doms_end_start
-                           expr
-
         if_exp_and     ::= expr
                            POP_JUMP_IF_FALSE
                            and_parts
@@ -537,7 +531,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         expr ::= attribute
         expr ::= bin_op
         expr ::= branch_op
-        expr ::= branch_op_compound
         expr ::= call
         expr ::= compare
 
@@ -602,20 +595,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         branch_op ::= if_exp block_break
         branch_op ::= if_exp_and block_break
-        branch_op ::= if_exp_compare bb_doms_end_opt
         branch_op ::= if_exp_loop
         branch_op ::= if_exp_not block_break
         branch_op ::= if_exp_true block_break
 
-
-        # A "branch_op_compound" is a branch_op with a non-branching unary or binary operator at the end.
-        # For example, in: "not a and b", the "not" is at the end after "a and b" and is non-branching.
-        # But it appears at the beginning in source code.
-        # In contrast, in  "(a and b) + 1": the plus is at the end and it is non-branching. And
-        # it appears at the the end in source code
-
-        branch_op_compound ::= branch_op_compound_prefix
-        branch_op_compound ::= branch_op_compound_suffix
 
         branch_op_compound_prefix ::= branch_op DOM_START BB_START unary_operator
         branch_op_compound_suffix ::= branch_op DOM_START BB_START expr binary_operator
