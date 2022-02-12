@@ -105,7 +105,6 @@ PRECEDENCE = {
     "slice3":                 2,
     "store_subscript":        2,
     "subscript":              2,
-    "subscript2":             2,
 
     "dict":                   0,  # {expressions...}
     "dict_comp":              0,
@@ -770,9 +769,6 @@ TABLE_DIRECT = {
         ),
 
     "subscript":                ( "%p[%c]",
-                                      (0, "expr", PRECEDENCE["subscript"]),
-                                      (1, "expr") ),
-    "subscript2":               ( "%p[%c]",
                                       (0, "expr", PRECEDENCE["subscript"]),
                                       (1, "expr") ),
 

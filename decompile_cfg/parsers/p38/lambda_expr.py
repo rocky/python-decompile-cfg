@@ -555,9 +555,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         expr ::= named_expr
         expr ::= subscript
 
-        # Not found in 3.8? Maybe 3.9 or 3.10 thing?
-        # expr ::= subscript2
-
         expr ::= unary_not
         expr ::= unary_op
         expr ::= yield
@@ -653,9 +650,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         named_expr        ::= expr DUP_TOP store
 
         subscript         ::= expr expr BINARY_SUBSCR
-
-        # Not found in 3.8? Maybe 3.9 or 3.10 thing?
-        # subscript2        ::= expr expr DUP_TOP_TWO BINARY_SUBSCR
 
         # unary_op (formerly "unary_expr") is the Python AST UnaryOp
         unary_op          ::= arg unary_operator
