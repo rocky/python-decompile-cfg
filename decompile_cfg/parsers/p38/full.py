@@ -272,7 +272,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
 
         store           ::= expr STORE_ATTR
         store           ::= store_subscript
-        store_subscript ::= expr expr STORE_SUBSCR
 
         stmt ::= assign
         stmt ::= assign2

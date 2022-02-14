@@ -1191,9 +1191,15 @@ class SourceWalker(GenericASTTraversal, object):
         if (
             isinstance(node[0], Token)
             and node[0].kind.startswith("LOAD")
-            and node != "genexpr_func_async"
+            and iscode(node[0].attr)
         ):
             tree = self.get_comprehension_function(node, code_index)
+        elif (
+            len(node) > 2 and isinstance(node[2], Token)
+            and node[2].kind.startswith("LOAD")
+            and iscode(node[2].attr)
+        ):
+            tree = self.get_comprehension_function(node, 2)
         else:
             tree = node
 
@@ -1252,7 +1258,7 @@ class SourceWalker(GenericASTTraversal, object):
             "set_comp_func_header",
         ):
             for k in tree:
-                if k == "comp_iter":
+                if k.kind in ("comp_iter", "list_iter"):
                     n = k
                 elif k == "store":
                     store = k
@@ -1367,7 +1373,7 @@ class SourceWalker(GenericASTTraversal, object):
             "set_comp_async",
         ):
             self.write(" async")
-            in_node_index = 3
+            in_node_index = 5 if len(node) > 6 and node[5] == "expr" else 3
         else:
             in_node_index = -3
 

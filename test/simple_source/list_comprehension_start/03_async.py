@@ -51,9 +51,20 @@ async def run_list2():
         if i > 30]
 
 
+async def run_list3():
     return [i
             async for i
             in range(5)
             if 0 <
             i <
             4]
+
+# Adapted from line 2071 of 3.8.12 lib/python3.8/test/test_coroutines.py
+# The bug was in the iterator tgt[0] which needs a
+# store_subscript rule.
+async def run_list4(tgt):
+    return [0
+            async for
+            tgt[0] in
+            __file__
+            ]

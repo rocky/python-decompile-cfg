@@ -569,15 +569,48 @@ class Python38LambdaCustom(Python38BaseParser):
                 self.add_unique_doc_rules(rules_str, customize)
 
             elif opname == "GET_AITER":
+                if not {"MAKE_FUNCTION_0", "MAKE_FUNCTION_8"} in self.seen_ops:
+                    self.addRule(
+                        """
+                        dict_comp_async      ::= LOAD_DICTCOMP
+                                                 LOAD_STR
+                                                 MAKE_FUNCTION_0
+                                                 expr
+                                                 GET_AITER
+                                                 CALL_FUNCTION_1
+
+                        generator_exp_async  ::= load_genexpr LOAD_STR MAKE_FUNCTION_0 expr
+                                                 GET_AITER CALL_FUNCTION_1
+
+                        list_comp_async      ::= LOAD_LISTCOMP LOAD_STR MAKE_FUNCTION_0
+                                                 expr GET_AITER CALL_FUNCTION_1
+                                                 GET_AWAITABLE LOAD_CONST
+                                                 YIELD_FROM
+
+                        list_comp_async      ::= LOAD_CLOSURE BUILD_TUPLE_1
+                                                 LOAD_LISTCOMP
+                                                 LOAD_STR MAKE_FUNCTION_8
+                                                 expr GET_AITER CALL_FUNCTION_1
+                                                 GET_AWAITABLE LOAD_CONST
+                                                 YIELD_FROM
+
+                        list_comp_async      ::= LOAD_LISTCOMP LOAD_STR MAKE_FUNCTION_0
+                                                 expr GET_AITER CALL_FUNCTION_1
+                                                 GET_AWAITABLE LOAD_CONST
+                                                 YIELD_FROM
+                        set_comp_async       ::= LOAD_SETCOMP
+                                                 LOAD_STR
+                                                 MAKE_FUNCTION_0
+                                                 expr
+                                                 GET_AITER
+                                                 CALL_FUNCTION_1
+                       """,
+                        nop_func,
+                    )
+                    custom_ops_processed.add(opname)
+
                 self.addRule(
                     """
-                    dict_comp_async      ::= LOAD_DICTCOMP
-                                             LOAD_STR
-                                             MAKE_FUNCTION_0
-                                             expr
-                                             GET_AITER
-                                             CALL_FUNCTION_1
-
                     dict_comp_async      ::= BUILD_MAP_0 LOAD_ARG
                                              dict_comp_async
 
@@ -591,9 +624,6 @@ class Python38LambdaCustom(Python38BaseParser):
                                             END_FINALLY bb_end_start
 
                     func_async_prefix   ::= _come_froms SETUP_EXCEPT GET_ANEXT LOAD_CONST YIELD_FROM
-
-                    generator_exp_async  ::= load_genexpr LOAD_STR MAKE_FUNCTION_0 expr
-                                             GET_AITER CALL_FUNCTION_1
 
                     generator_exp_async  ::= LOAD_ARG func_async_prefix
                                              store
@@ -610,26 +640,8 @@ class Python38LambdaCustom(Python38BaseParser):
 
                     list_afor            ::= get_aiter list_afor2
 
-                    list_comp_async      ::= LOAD_LISTCOMP LOAD_STR MAKE_FUNCTION_0
-                                             expr GET_AITER CALL_FUNCTION_1
-                                             GET_AWAITABLE LOAD_CONST
-                                             YIELD_FROM
-
                     list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
-                    list_comp_async      ::= LOAD_LISTCOMP LOAD_STR MAKE_FUNCTION_0
-                                             expr GET_AITER CALL_FUNCTION_1
-                                             GET_AWAITABLE LOAD_CONST
-                                             YIELD_FROM
                     list_iter            ::= list_afor
-
-                    set_comp_async       ::= LOAD_SETCOMP
-                                             LOAD_STR
-                                             MAKE_FUNCTION_0
-                                             expr
-                                             GET_AITER
-                                             CALL_FUNCTION_1
-
-
                    """,
                     nop_func,
                 )
@@ -884,69 +896,79 @@ class Python38LambdaCustom(Python38BaseParser):
 
                 if closure:
 
-                    if opname == "MAKE_FUNCTION_8":
-                        if "LOAD_DICTCOMP" in self.seen_ops:
-                            # Is there something general going on here?
-                            rule = """
-                               dict_comp ::= load_closure LOAD_DICTCOMP LOAD_STR
-                                             MAKE_FUNCTION_8 expr
-                                             GET_ITER CALL_FUNCTION_1
-                               """
-                            self.addRule(rule, nop_func)
-                        elif "LOAD_SETCOMP" in self.seen_ops:
-                            rule = """
-                               set_comp ::= load_closure LOAD_SETCOMP LOAD_STR
-                                            MAKE_FUNCTION_8 expr
-                                            GET_ITER CALL_FUNCTION_1
-                               """
-                            self.addRule(rule, nop_func)
+                    if opname == "MAKE_FUNCTION_8" and "CALL_FUNCTION" in self.seen_ops:
+                        for get_iter in ("GET_ITER", "GET_AITER"):
+                            if get_iter not in self.seen_ops:
+                                continue
 
-                    if args_pos:
-                        if opname == "MAKE_FUNCTION_9":
-                            # This was seen ion line 447 of Python 3.8
-                            # This is needed for Python 3.8 line 447 of site-packages/nltk/tgrep.py
-                            # line 447:
-                            #    lambda i: lambda n, m=None, l=None: ...
-                            # which has
-                            #  L. 447         0  LOAD_CONST               (None, None)
-                            #                 2  LOAD_CLOSURE             'i'
-                            #                 4  LOAD_CLOSURE             'predicate'
-                            #                 6  BUILD_TUPLE_2         2
-                            #                 8  LOAD_LAMBDA              '<code_object <lambda>>'
-                            #                10  LOAD_STR                 '_tgrep_relation_action.<locals>.<lambda>.<locals>.<lambda>'
-                            #                12  MAKE_FUNCTION_9          'default, closure'
-                            # FIXME: Possibly we need to generalize for more nested lambda's of lambda's?
+                            if "LOAD_DICTCOMP" in self.seen_ops:
+                                # Is there something general going on here?
+                                rule = f"""
+                                   dict_comp ::= load_closure LOAD_DICTCOMP LOAD_STR
+                                                 MAKE_FUNCTION_8 expr
+                                                 {get_iter} CALL_FUNCTION_1
+                                   """
+                                self.addRule(rule, nop_func)
+                            elif "LOAD_SETCOMP" in self.seen_ops:
+                                rule = f"""
+                                   set_comp ::= load_closure LOAD_SETCOMP LOAD_STR
+                                                MAKE_FUNCTION_8 expr
+                                                {get_iter} CALL_FUNCTION_1
+                                   """
+                                self.addRule(rule, nop_func)
+
+                    if "LOAD_LAMBDA" in self.seen_ops:
+
+                        if args_pos:
+                            if opname == "MAKE_FUNCTION_9" and "BUILD_TUPLE_2" in self.seen_ops:
+                                # FIXME: replace LOAD_CLOSURE LOAD_CLOSURE BUILD_TUPLE_2 with a rule?
+
+                                # This was seen in line 447 of Python 3.8
+                                # This is needed for Python 3.8 line 447 of site-packages/nltk/tgrep.py
+                                # line 447:
+                                #    lambda i: lambda n, m=None, l=None: ...
+                                # which has
+                                #  L. 447         0  LOAD_CONST               (None, None)
+                                #                 2  LOAD_CLOSURE             'i'
+                                #                 4  LOAD_CLOSURE             'predicate'
+                                #                 6  BUILD_TUPLE_2         2
+                                #                 8  LOAD_LAMBDA              '<code_object <lambda>>'
+                                #                10  LOAD_STR                 '_tgrep_relation_action.<locals>.<lambda>.<locals>.<lambda>'
+                                #                12  MAKE_FUNCTION_9          'default, closure'
+                                # FIXME: Possibly we need to generalize for more nested lambda's of lambda's?
+                                rule = """
+                                     expr        ::= lambda_body
+                                     lambda_body ::= %s%s%s%s
+                                     """ % (
+                                    "expr " * stack_count,
+                                    "load_closure " * closure,
+                                    "BUILD_TUPLE_2 LOAD_LAMBDA LOAD_STR ",
+                                    opname,
+                                )
+                                self.add_unique_rule(rule, opname, token.attr, customize)
+
+                            # FIXME: replace LOAD_CLOSURE BUILD_TUPLE_1 with a rule?
                             rule = """
                                  expr        ::= lambda_body
                                  lambda_body ::= %s%s%s%s
                                  """ % (
                                 "expr " * stack_count,
                                 "load_closure " * closure,
-                                "BUILD_TUPLE_2 LOAD_LAMBDA LOAD_STR ",
+                                "BUILD_TUPLE_1 LOAD_LAMBDA LOAD_STR ",
                                 opname,
                             )
-                            self.add_unique_rule(rule, opname, token.attr, customize)
-                        rule = """
-                             expr        ::= lambda_body
-                             lambda_body ::= %s%s%s%s
-                             """ % (
-                            "expr " * stack_count,
-                            "load_closure " * closure,
-                            "BUILD_TUPLE_1 LOAD_LAMBDA LOAD_STR ",
-                            opname,
-                        )
 
-                    else:
-                        rule = """
-                             expr        ::= lambda_body
-                             lambda_body ::= %s%s%s""" % (
-                            "load_closure " * closure,
-                            "LOAD_LAMBDA LOAD_STR ",
-                            opname,
-                        )
+                        else:
+                            rule = """
+                                 expr        ::= lambda_body
+                                 lambda_body ::= %s%s%s""" % (
+                                "load_closure " * closure,
+                                "LOAD_LAMBDA LOAD_STR ",
+                                opname,
+                            )
                     self.add_unique_rule(rule, opname, token.attr, customize)
 
-                else:
+                elif "LOAD_LAMBDA" in self.seen_ops:
                     rule = """
                          expr        ::= lambda_body
                          lambda_body ::= %sLOAD_LAMBDA LOAD_STR %s""" % (

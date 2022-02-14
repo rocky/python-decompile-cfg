@@ -812,6 +812,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         store           ::= STORE_FAST
         store           ::= STORE_GLOBAL
         store           ::= STORE_NAME
+        store           ::= store_subscript
+
+        # Used in comprehensions with subscripts, e.g.
+        # [0 for x[0] in __file__]
+        #       ^^^^
+        store_subscript ::= expr expr STORE_SUBSCR
         """
 
     def __init__(
