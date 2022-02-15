@@ -633,14 +633,14 @@ class Python38LambdaCustom(Python38BaseParser):
                                             DUP_TOP LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
                                             END_FINALLY bb_end_start
 
-                    func_async_prefix   ::= _come_froms SETUP_EXCEPT GET_ANEXT LOAD_CONST YIELD_FROM
+                    # async_iter         ::= block_break SETUP_EXCEPT GET_ANEXT LOAD_CONST YIELD_FROM
 
-                    generator_exp_async  ::= LOAD_ARG func_async_prefix
+                    generator_exp_async  ::= LOAD_ARG async_iter
                                              store
                                              JUMP_LOOP bb_end_start
                                              POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
 
-                    genexpr_func_async  ::= LOAD_ARG func_async_prefix
+                    genexpr_func_async  ::= LOAD_ARG async_iter
                                             store
                                             func_async_middle comp_iter
                                             JUMP_LOOP bb_end_start
@@ -652,11 +652,14 @@ class Python38LambdaCustom(Python38BaseParser):
 
                     list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
                     list_iter            ::= list_afor
+
+
+                    set_afor             ::= get_aiter set_afor2
                     set_iter             ::= set_afor
 
                     set_comp_async       ::= BUILD_SET_0 LOAD_ARG
                                              set_comp_async
-                    set_afor             ::= get_aiter set_afor2
+
                    """,
                     nop_func,
                 )
@@ -672,24 +675,24 @@ class Python38LambdaCustom(Python38BaseParser):
 
                     dict_comp_async      ::= BUILD_MAP_0 genexpr_func_async
 
-                    func_async_prefix    ::= block_break
+                    async_iter           ::= block_break
                                              SETUP_FINALLY GET_ANEXT LOAD_CONST YIELD_FROM POP_BLOCK
 
-                    genexpr_func_async   ::= LOAD_ARG func_async_prefix
+                    genexpr_func_async   ::= LOAD_ARG async_iter
                                              store
                                              comp_iter
                                              JUMP_LOOP
                                              block_break
                                              END_ASYNC_FOR
 
-                    list_afor2           ::= func_async_prefix
+                    list_afor2           ::= async_iter
                                              store
                                              list_iter
                                              JUMP_LOOP
                                              block_break
                                              END_ASYNC_FOR
 
-                    list_afor2           ::= func_async_prefix
+                    list_afor2           ::= async_iter
                                              store
                                              func_async_middle
                                              list_iter
@@ -699,14 +702,14 @@ class Python38LambdaCustom(Python38BaseParser):
 
                     list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
 
-                    set_afor2            ::= func_async_prefix
+                    set_afor2            ::= async_iter
                                              store
                                              set_iter
                                              JUMP_LOOP
                                              block_break
                                              END_ASYNC_FOR
 
-                    set_afor2            ::= func_async_prefix
+                    set_afor2            ::= async_iter
                                              store
                                              func_async_middle
                                              set_iter
@@ -714,7 +717,17 @@ class Python38LambdaCustom(Python38BaseParser):
                                              bb_end_start
                                              POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
 
-                    set_comp_async       ::= BUILD_SET_0 list_afor2
+                    set_afor2            ::= expr_or_arg
+                                             set_iter_async
+
+                    set_comp_async       ::= BUILD_SET_0 set_afor2
+
+                    set_iter_async       ::= async_iter
+                                             store
+                                             set_iter
+                                             JUMP_LOOP
+                                             bb_end_start
+                                             END_ASYNC_FOR
 
                     return_expr_lambda   ::= genexpr_func_async
                                              LOAD_CONST RETURN_VALUE
