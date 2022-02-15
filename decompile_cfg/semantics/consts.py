@@ -728,6 +728,8 @@ TABLE_DIRECT = {
     #     (5, "comp_iter"), (4, "store"), (1, "expr_or_arg")
     #     ),
 
+    "set_iter":        ( "%c", 0 ),
+
     "slice0": (
         "%c[:]",
         (0, "expr"),

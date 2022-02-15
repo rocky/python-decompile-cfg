@@ -587,7 +587,8 @@ class Python38LambdaCustom(Python38BaseParser):
                                                  GET_AWAITABLE LOAD_CONST
                                                  YIELD_FROM
 
-                        list_comp_async      ::= LOAD_CLOSURE BUILD_TUPLE_1
+                        list_comp_async      ::= LOAD_CLOSURE
+                                                 BUILD_TUPLE_1
                                                  LOAD_LISTCOMP
                                                  LOAD_STR MAKE_FUNCTION_8
                                                  expr GET_AITER CALL_FUNCTION_1
@@ -604,6 +605,15 @@ class Python38LambdaCustom(Python38BaseParser):
                                                  expr
                                                  GET_AITER
                                                  CALL_FUNCTION_1
+
+                        set_comp_async       ::= LOAD_CLOSURE
+                                                 BUILD_TUPLE_1
+                                                 LOAD_SETCOMP
+                                                 LOAD_STR MAKE_FUNCTION_8
+                                                 expr GET_AITER CALL_FUNCTION_1
+                                                 GET_AWAITABLE LOAD_CONST
+                                                 YIELD_FROM
+
                        """,
                         nop_func,
                     )
@@ -642,6 +652,11 @@ class Python38LambdaCustom(Python38BaseParser):
 
                     list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
                     list_iter            ::= list_afor
+                    set_iter             ::= set_afor
+
+                    set_comp_async       ::= BUILD_SET_0 LOAD_ARG
+                                             set_comp_async
+                    set_afor             ::= get_aiter set_afor2
                    """,
                     nop_func,
                 )
@@ -683,7 +698,23 @@ class Python38LambdaCustom(Python38BaseParser):
                                              POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
 
                     list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
-                    set_comp_async       ::= BUILD_SET_0 genexpr_func_async
+
+                    set_afor2            ::= func_async_prefix
+                                             store
+                                             set_iter
+                                             JUMP_LOOP
+                                             block_break
+                                             END_ASYNC_FOR
+
+                    set_afor2            ::= func_async_prefix
+                                             store
+                                             func_async_middle
+                                             set_iter
+                                             JUMP_LOOP
+                                             bb_end_start
+                                             POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
+
+                    set_comp_async       ::= BUILD_SET_0 list_afor2
 
                     return_expr_lambda   ::= genexpr_func_async
                                              LOAD_CONST RETURN_VALUE

@@ -425,6 +425,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # as a CONTINUE. The two are kind of the same in a comprehension.
 
         set_comp_body  ::= expr SET_ADD
+        set_comp_body  ::= expr block_break SET_ADD
+
+
         list_comp_body ::= LOAD_FAST LIST_APPEND
 
         set_comp_func ::= BUILD_SET_0
@@ -467,6 +470,13 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         list_iter       ::= list_if_not
         list_iter       ::= lc_body
 
+        set_iter        ::= set_for
+        set_iter        ::= list_if
+        set_iter        ::= list_if_and_or
+        set_iter        ::= list_if_chained
+        set_iter        ::= list_if_not
+        set_iter        ::= set_comp_body
+
         lc_body         ::= expr doms_end_start_opt LIST_APPEND
         lc_body         ::= expr dom_end_start_opt LIST_APPEND
         lc_body         ::= branch_op bb_end_start LIST_APPEND
@@ -474,6 +484,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         jump_loop       ::= JUMP_LOOP bb_doms_end_start
 
         list_comp       ::= BUILD_LIST_0 list_iter
+        set_comp        ::= BUILD_SET_0 set_iter
 
         # A leading "expr" is used when we have nested list comprehensions. E.g.
         #   ... for dir in dirs for filename in files
@@ -482,6 +493,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             store list_iter
                             jump_loop
                             bb_doms_end_start_opt
+
+        set_for        ::= expr_or_arg
+                           for_iter
+                           store set_iter
+                           jump_loop
+                           bb_doms_end_start_opt
 
         list_if         ::= expr list_if_end list_iter
         list_if         ::= branch_op list_if_end list_iter
@@ -552,6 +569,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         expr ::= list_comp
 
         expr ::= named_expr
+        expr ::= set_comp
         expr ::= subscript
 
         expr ::= unary_not

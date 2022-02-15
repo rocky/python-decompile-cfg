@@ -1082,12 +1082,10 @@ class SourceWalker(GenericASTTraversal, object):
 
     def n_set_comp(self, node):
         self.write("{")
-        if node[0] in ["LOAD_SETCOMP", "LOAD_DICTCOMP"]:
-            self.comprehension_walk_newer(node, 1, 0)
-        elif node[0].kind == "load_closure":
-            self.closure_walk(node, collection_index=4)
+        if node[0].kind == "load_closure":
+            self.closure_walk(node, collection_index=-1)
         else:
-            self.comprehension_walk(node, iter_index=4)
+            self.comprehension_walk_newer(node, 1, 0)
         self.write("}")
         self.prune()
 
@@ -1254,11 +1252,12 @@ class SourceWalker(GenericASTTraversal, object):
             "genexpr_func_async",
             "generator_exp",
             "list_comp",
+            "set_comp",
             "set_comp_func",
             "set_comp_func_header",
         ):
             for k in tree:
-                if k.kind in ("comp_iter", "list_iter"):
+                if k.kind in ("comp_iter", "list_iter", "set_iter"):
                     n = k
                 elif k == "store":
                     store = k
@@ -1294,25 +1293,25 @@ class SourceWalker(GenericASTTraversal, object):
         # Iterate to find the inner-most "store".
         # We'll come back to the list iteration below.
 
-        while n in ("list_iter", "list_afor", "list_afor2", "comp_iter"):
+        while n in ("list_iter", "list_afor", "list_afor2", "comp_iter", "set_afor", "set_afor2", "set_iter"):
             # iterate one nesting deeper
-            if n == "list_afor":
+            if n in ("list_afor", "set_afor"):
                 n = n[1]
-            elif n == "list_afor2":
+            elif n in ("list_afor2", "set_afor2"):
                 if n[1] == "store":
                     store = n[1]
                 n = n[2]
             else:
                 n = n[0]
 
-            if n in ("list_for", "comp_for"):
+            if n in ("comp_for", "list_for", "set_for"):
                 collection_node = n
                 if n[2] == "store" and not store:
                     store = n[2]
                     if not comp_store:
                         comp_store = store
                 n = n[3]
-                assert n.kind in ("list_iter", "comp_iter")
+                assert n.kind in ("comp_iter", "list_iter", "set_iter")
             elif n in ("list_if_chained",):
                 #  list_if_chained ::= list_if_compare ... list_iter
                 if_nodes.append(n[0])
@@ -1362,7 +1361,7 @@ class SourceWalker(GenericASTTraversal, object):
         # Another approach might be to be able to pass in the source name
         # for the dummy argument.
 
-        if node != "list_afor":
+        if node not in ("list_afor", "set_afor"):
             self.preorder(n[0])
 
         if node.kind in (
@@ -1405,19 +1404,23 @@ class SourceWalker(GenericASTTraversal, object):
             self.preorder(node[in_node_index])
 
         # Here is where we handle nested list iterations.
-        if tree == "list_comp":
+        if tree in ("list_comp", "set_comp"):
             list_iter = tree[1]
-            assert list_iter == "list_iter"
+            assert list_iter in ("list_iter", "set_iter")
             list_for = list_iter[0]
-            if list_for == "list_for":
+            if list_for in ("list_for", "set_for"):
                 # In the grammar we have:
                 #    list_for ::= _  for_iter store list_iter ...
+                # or
+                #    set_for ::= _   set_iter store set_iter ...
                 list_iter_inner = list_for[3]
-                assert list_iter_inner == "list_iter"
-                self.preorder(list_iter_inner)
-                if if_node_parent == list_iter_inner[0]:
-                    self.prec = p
-                    return
+                assert list_iter_inner in ("list_iter", "set_iter")
+                # If we have set_comp_body, we've done this above.
+                if not(list_iter_inner == "set_iter" and list_iter_inner[0] == "set_comp_body"):
+                    self.preorder(list_iter_inner)
+                    if if_node_parent == list_iter_inner[0]:
+                        self.prec = p
+                        return
                 comp_store = None
             pass
 

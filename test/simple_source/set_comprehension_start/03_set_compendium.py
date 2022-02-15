@@ -45,14 +45,3 @@
         hasattr(v, '__module__')
     )
 }
-
-# Line 1860 of Python 3.8.12 test/test_coroutines.py
-
-async def run_dict():
- return {i + 1 async for i in [10, 20]}
-
-
-# Note that for dict comprehension Line 1866 of 3.8.12 test/test_coroutines.py
-# this is fixed recently
-async def run_dict1():
-    return {i + 1: i + 2 async for i in [10, 20]}
