@@ -6,10 +6,10 @@
 
 # fmt: off
 
-# # Line 1860 of Python 3.8.12 test/test_coroutines.py
+# Line 1860 of Python 3.8.12 test/test_coroutines.py
 
-# async def run_dict():
-#  return {i + 1 async for i in [10, 20]}
+async def run_dict():
+ return {i + 1 async for i in [10, 20]}
 
 
 # async def gather(cls, *fs, loop=None, timeout=None, total=None, **tqdm_kwargs):

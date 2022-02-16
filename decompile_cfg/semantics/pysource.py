@@ -1099,7 +1099,7 @@ class SourceWalker(GenericASTTraversal, object):
     # a comprehension.
     def n_set_comp_async(self, node):
         self.write("{")
-        if node in node[0] in ["BUILD_SET_0", "BUILD_MAP_0"]:
+        if node[0] in ["BUILD_SET_0", "BUILD_MAP_0"]:
             self.comprehension_walk_newer(node[1], 3, 0, collection_node=node[1])
         if node[0] in ["LOAD_SETCOMP", "LOAD_DICTCOMP"]:
             self.comprehension_walk_newer(node, 1, 0)
@@ -1229,10 +1229,16 @@ class SourceWalker(GenericASTTraversal, object):
             #  set_comp_async   ::= BUILD_SET_0 genexpr_func_async
             if tree[0].kind in ("BUILD_MAP_0", "BUILD_SET_0"):
                 genexpr_func_async = tree[1]
-                assert genexpr_func_async == "genexpr_func_async"
-                store = genexpr_func_async[2]
-                assert store == "store"
-                n = genexpr_func_async[3]
+                if genexpr_func_async ==  "genexpr_func_async":
+                    store = genexpr_func_async[2]
+                    assert store == "store"
+                    n = genexpr_func_async[3]
+                else:
+                    set_afor2 = genexpr_func_async
+                    assert set_afor2 == "set_afor2"
+                    n = set_afor2[1]
+                    store = n[1]
+                    collection_node = node[3]
             else:
                 # ???
                 pass
@@ -1244,6 +1250,14 @@ class SourceWalker(GenericASTTraversal, object):
             store = list_afor2[1]
             assert store == "store"
             n = list_afor2[2]
+        elif node == "set_afor2":
+            collection_node = node[0]
+            set_iter_async = node[1]
+            assert set_iter_async == "set_iter_async"
+
+            store = set_iter_async[1]
+            assert store == "store"
+            n = set_iter_async[2]
         else:
             n = tree[iter_index]
 
@@ -1264,7 +1278,7 @@ class SourceWalker(GenericASTTraversal, object):
                     pass
                 pass
             pass
-        elif tree.kind in ("list_comp_async", "dict_comp_async"):
+        elif tree.kind in ("list_comp_async", "dict_comp_async", "set_afor2"):
             # Handled this condition above
             pass
         else:
@@ -1275,7 +1289,7 @@ class SourceWalker(GenericASTTraversal, object):
             # Not sure what the best thi
             if n.kind == "return_expr_lambda":
                 self.prune()
-            assert n.kind in ("list_iter", "comp_iter"), n
+            assert n.kind in ("list_iter", "comp_iter", "set_iter_async"), n
 
         # FIXME: I'm not totally sure this is right.
 
@@ -1293,11 +1307,11 @@ class SourceWalker(GenericASTTraversal, object):
         # Iterate to find the inner-most "store".
         # We'll come back to the list iteration below.
 
-        while n in ("list_iter", "list_afor", "list_afor2", "comp_iter", "set_afor", "set_afor2", "set_iter"):
+        while n in ("list_iter", "list_afor", "list_afor2", "comp_iter", "set_afor", "set_afor2", "set_iter", "set_iter_async"):
             # iterate one nesting deeper
             if n in ("list_afor", "set_afor"):
                 n = n[1]
-            elif n in ("list_afor2", "set_afor2"):
+            elif n in ("list_afor2", "set_afor2", "set_iter_async"):
                 if n[1] == "store":
                     store = n[1]
                 n = n[2]
@@ -1369,6 +1383,7 @@ class SourceWalker(GenericASTTraversal, object):
             "genexpr_func_async",
             "list_afor",
             "list_comp_async",
+            "set_afor2",
             "set_comp_async",
         ):
             self.write(" async")
@@ -1390,6 +1405,9 @@ class SourceWalker(GenericASTTraversal, object):
             assert list_afor2 == "list_afor2"
             list_iter = list_afor2[2]
             assert list_iter == "list_iter"
+            self.preorder(collection_node)
+            if_nodes = []
+        elif node == "set_comp_async":
             self.preorder(collection_node)
             if_nodes = []
         elif is_lambda_mode(self.compile_mode):
