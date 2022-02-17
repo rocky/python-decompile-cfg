@@ -111,9 +111,30 @@ def customize_for_version38(self, version):
                 -2,
             ),
             "ifpoplaststmtc": ("%|if %c:\n%+%c%-", (0, "testexpr"), (2, "c_stmts")),
-            "pop_return": ("%|return %c\n", (1, "return_expr")),
-            "popb_return": ("%|return %c\n", (0, "return_expr")),
-            "pop_ex_return": ("%|return %c\n", (0, "return_expr")),
+
+            "pop_return": (
+                "%|return %c\n", (1, "return_expr")
+             ),
+            "popb_return": (
+                "%|return %c\n", (0, "return_expr")
+             ),
+            "pop_ex_return": (
+                "%|return %c\n", (0, "return_expr")
+             ),
+
+            "set_afor": (
+                " async for %[1]{%c} in %c%c",
+                (1, "store"),
+                (0, "get_aiter"),
+                (2, "set_iter"),
+            ),
+
+            "set_for": (
+                " for %c in %c",
+                (2, "store"),
+                (0, "expr_or_arg"),
+            ),
+
             "whilestmt38": (
                 "%|while %c:\n%+%c%-\n\n",
                 (1, "testexpr"),
@@ -211,6 +232,14 @@ def customize_for_version38(self, version):
             )
 
     self.n_list_afor = n_list_afor
+
+    # def n_set_comp(node):
+    #     self.write("{")
+    #     self.comprehension_walk_newer(node, iter_index=1, collection_node=0)
+    #     self.prune()
+    #     self.write("}")
+
+    # self.n_set_comp = n_set_comp
 
     def n_suite_stmts_return(node):
         if len(node) > 1:

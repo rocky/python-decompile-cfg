@@ -1193,7 +1193,8 @@ class SourceWalker(GenericASTTraversal, object):
         ):
             tree = self.get_comprehension_function(node, code_index)
         elif (
-            len(node) > 2 and isinstance(node[2], Token)
+            len(node) > 2
+            and isinstance(node[2], Token)
             and node[2].kind.startswith("LOAD")
             and iscode(node[2].attr)
         ):
@@ -1229,7 +1230,7 @@ class SourceWalker(GenericASTTraversal, object):
             #  set_comp_async   ::= BUILD_SET_0 genexpr_func_async
             if tree[0].kind in ("BUILD_MAP_0", "BUILD_SET_0"):
                 genexpr_func_async = tree[1]
-                if genexpr_func_async ==  "genexpr_func_async":
+                if genexpr_func_async == "genexpr_func_async":
                     store = genexpr_func_async[2]
                     assert store == "store"
                     n = genexpr_func_async[3]
@@ -1307,7 +1308,16 @@ class SourceWalker(GenericASTTraversal, object):
         # Iterate to find the inner-most "store".
         # We'll come back to the list iteration below.
 
-        while n in ("list_iter", "list_afor", "list_afor2", "comp_iter", "set_afor", "set_afor2", "set_iter", "set_iter_async"):
+        while n in (
+            "list_iter",
+            "list_afor",
+            "list_afor2",
+            "comp_iter",
+            "set_afor",
+            "set_afor2",
+            "set_iter",
+            "set_iter_async",
+        ):
             # iterate one nesting deeper
             if n in ("list_afor", "set_afor"):
                 n = n[1]
@@ -1332,7 +1342,13 @@ class SourceWalker(GenericASTTraversal, object):
                 assert n[0] == "list_if_compare"
                 n = n[-1]
                 assert n == "list_iter"
-            elif n in ("comp_if_not_and", "comp_if_or", "comp_if_or2", "comp_if_or_not", "comp_if_not_or"):
+            elif n in (
+                "comp_if_not_and",
+                "comp_if_or",
+                "comp_if_or2",
+                "comp_if_or_not",
+                "comp_if_not_or",
+            ):
                 if_nodes.append(n)
                 n = n[-1]
                 assert n == "comp_iter"
@@ -1434,7 +1450,10 @@ class SourceWalker(GenericASTTraversal, object):
                 list_iter_inner = list_for[3]
                 assert list_iter_inner in ("list_iter", "set_iter")
                 # If we have set_comp_body, we've done this above.
-                if not(list_iter_inner == "set_iter" and list_iter_inner[0] == "set_comp_body"):
+                if not (
+                    list_iter_inner == "set_iter"
+                    and list_iter_inner[0] == "set_comp_body"
+                ):
                     self.preorder(list_iter_inner)
                     if if_node_parent == list_iter_inner[0]:
                         self.prec = p
@@ -2666,7 +2685,14 @@ def code_deparse(
         deparsed.ast, set(), set(), co, version
     )
 
-    if compile_mode not in ("dictcomp", "gencomp", "genexpr", "lambda", "listcomp", "setcomp"):
+    if compile_mode not in (
+        "dictcomp",
+        "gencomp",
+        "genexpr",
+        "lambda",
+        "listcomp",
+        "setcomp",
+    ):
         assert not nonlocals
 
     deparsed.FUTURE_UNICODE_LITERALS = (
