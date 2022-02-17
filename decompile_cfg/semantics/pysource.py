@@ -1430,7 +1430,7 @@ class SourceWalker(GenericASTTraversal, object):
             if node in ("list_comp_async",):
                 self.preorder(node[1])
             elif collection_node is None:
-                assert node[3] == "expr"
+                assert node[3] in ("get_aiter", "get_iter"), node[3].kind
                 self.preorder(node[3])
             else:
                 self.preorder(collection_node[0])
