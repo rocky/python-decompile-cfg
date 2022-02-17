@@ -395,6 +395,16 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                     nop_func,
                 )
                 custom_ops_processed.add(opname)
+            elif opname == "GET_ANEXT":
+                self.addRule(
+                    """
+                    stmt ::= BUILD_SET_0 genexpr_func_async
+                             RETURN_VALUE
+                             bb_doms_end_opt
+                   """,
+                    nop_func,
+                )
+                custom_ops_processed.add(opname)
             elif opname == "JUMP_IF_NOT_DEBUG":
                 self.addRule(
                     """

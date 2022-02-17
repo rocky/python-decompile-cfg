@@ -1102,7 +1102,9 @@ class SourceWalker(GenericASTTraversal, object):
         if node[0] in ["BUILD_SET_0", "BUILD_MAP_0"]:
             self.comprehension_walk_newer(node[1], 3, 0, collection_node=node[1])
         if node[0] in ["LOAD_SETCOMP", "LOAD_DICTCOMP"]:
-            self.comprehension_walk_newer(node, 1, 0)
+            get_aiter = node[3]
+            assert get_aiter == "get_aiter", node.kind
+            self.comprehension_walk_newer(node, 1, 0, collection_node=get_aiter[0])
         self.write("}")
         self.prune()
 
@@ -1165,7 +1167,8 @@ class SourceWalker(GenericASTTraversal, object):
         while len(tree) == 1 or (
             tree in ("stmt", "sstmt", "return", "return_expr", "return_expr_lambda")
         ):
-            self.prec = 100
+            if tree[0] == "BUILD_SET_0":
+                break
             tree = tree[1] if tree[0] in ("dom_start", "dom_start_opt") else tree[0]
         return tree
 
@@ -1191,7 +1194,16 @@ class SourceWalker(GenericASTTraversal, object):
             and node[0].kind.startswith("LOAD")
             and iscode(node[0].attr)
         ):
-            tree = self.get_comprehension_function(node, code_index)
+            if node[3] == "get_aiter":
+                compile_mode = self.compile_mode
+                self.compile_mode = "genexpr"
+                is_lambda = self.is_lambda
+                self.is_lambda = True
+                tree = self.get_comprehension_function(node, code_index)
+                self.compile_mode = compile_mode
+                self.is_lambda = is_lambda
+            else:
+                tree = self.get_comprehension_function(node, code_index)
         elif (
             len(node) > 2
             and isinstance(node[2], Token)
@@ -2183,6 +2195,10 @@ class SourceWalker(GenericASTTraversal, object):
                     if isinstance(index[1], str):
                         # if node[index[0]] != index[1]:
                         #     from trepan.api import debug; debug()
+                        try:
+                            node[index[0]]
+                        except:
+                            from trepan.api import debug; debug()
                         assert (
                             node[index[0]] == index[1]
                         ), "at %s[%d], expected '%s' node; got '%s'" % (
