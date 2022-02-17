@@ -1530,6 +1530,12 @@ class SourceWalker(GenericASTTraversal, object):
             store = tree[2]
             iter_index = 3
             collection_index = 3
+        elif tree == "set_comp":
+            tree = tree[1][0]
+            assert tree == "set_for", tree.kind
+            store = tree[2]
+            iter_index = 3
+            collection_index = 4
         else:
             store = tree[4]
             iter_index = 5
@@ -1539,7 +1545,7 @@ class SourceWalker(GenericASTTraversal, object):
         list_if = None
         write_if = False
 
-        assert n == "comp_iter"
+        assert n in ("comp_iter", "set_iter")
 
         # Find inner-most node.
         while n == "comp_iter":
@@ -1578,7 +1584,7 @@ class SourceWalker(GenericASTTraversal, object):
                 n = n[-1]
                 assert n == "comp_iter"
 
-        assert n == "comp_body", tree
+        assert n in ("comp_body", "set_iter"), n.kind
 
         self.preorder(n[0])
         self.write(" for ")

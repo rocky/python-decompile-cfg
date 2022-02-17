@@ -101,7 +101,8 @@ def customize_for_version3(self, version):
         # * the results we accumulate: "n"
 
         # collections is the name of the expression(s) we are iterating over
-        collections = [node[-3]]
+        assert node[-2] == "get_iter"
+        collections = [node[-2][0]]
         list_ifs = []
 
         if n.kind == "return_expr_lambda":
@@ -122,7 +123,7 @@ def customize_for_version3(self, version):
                     # Dog-paddle down largely singleton reductions
                     # to find the collection (expr)
                     c = n[0][0]
-                    if c == "expr":
+                    if c == "get_iter":
                         c = c[0]
                     # FIXME: grammar is wonky here? Is this really an attribute?
                     if c == "attribute":
