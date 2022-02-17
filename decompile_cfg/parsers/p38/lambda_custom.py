@@ -644,7 +644,6 @@ class Python38LambdaCustom(Python38BaseParser):
                                             func_async_middle comp_iter
                                             JUMP_LOOP bb_end_start
                                             POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
-
                     get_aiter            ::= expr GET_AITER
 
                     list_afor            ::= get_aiter list_afor2
@@ -730,6 +729,10 @@ class Python38LambdaCustom(Python38BaseParser):
 
                     return_expr_lambda   ::= genexpr_func_async
                                              LOAD_CONST RETURN_VALUE
+                                             bb_doms_end_opt
+
+                    return_expr_lambda   ::= BUILD_SET_0 genexpr_func_async
+                                             RETURN_VALUE
                                              bb_doms_end_opt
                    """,
                     nop_func,
