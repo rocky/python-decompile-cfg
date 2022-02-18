@@ -12,6 +12,19 @@ async def run_dict():
  return {i + 1 async for i in [10, 20]}
 
 
+# Adapted from line 1890 of Python 3.8.12/ test/test_coroutines.py
+# Problem was hooking in top-level return_expr_lambda hooking into genexpr_func_async
+
+async def run_set():
+    return {
+        i
+        async
+        for i
+        in [10, 20]
+        if i >
+        10
+        }
+
 # async def gather(cls, *fs, loop=None, timeout=None, total=None, **tqdm_kwargs):
 #     {await f
 #      for f in

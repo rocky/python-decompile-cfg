@@ -122,13 +122,6 @@ def customize_for_version38(self, version):
                 "%|return %c\n", (0, "return_expr")
              ),
 
-            "set_afor": (
-                " async for %[1]{%c} in %c%c",
-                (1, "store"),
-                (0, "get_aiter"),
-                (2, "set_iter"),
-            ),
-
             "set_for": (
                 " for %c in %c",
                 (2, "store"),
@@ -232,6 +225,24 @@ def customize_for_version38(self, version):
             )
 
     self.n_list_afor = n_list_afor
+
+    def n_set_afor(node):
+        if len(node) == 2:
+            self.template_engine(
+                (" async for %[1]{%c} in %c",
+                 (1, "store"),
+                 (0, "get_aiter")),
+                node
+            )
+        else:
+            self.template_engine(
+               " async for %[1]{%c} in %c%c",
+               (1, "store"),
+               (0, "get_aiter"),
+               (2, "set_iter"),
+            )
+
+    self.n_set_afor = n_set_afor
 
     # def n_set_comp(node):
     #     self.write("{")

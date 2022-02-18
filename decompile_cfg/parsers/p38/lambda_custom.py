@@ -514,8 +514,7 @@ class Python38LambdaCustom(Python38BaseParser):
                 if opname == "CALL_FUNCTION" and token.attr == 1:
                     rule = """
                      expr         ::= dict_comp
-                     dict_comp    ::= LOAD_DICTCOMP LOAD_STR MAKE_FUNCTION_0 expr
-                                      GET_ITER CALL_FUNCTION_1
+                     dict_comp    ::= LOAD_DICTCOMP LOAD_STR MAKE_FUNCTION_0 get_iter CALL_FUNCTION_1
                     """
                     self.addRule(rule, nop_func)
 
@@ -569,21 +568,22 @@ class Python38LambdaCustom(Python38BaseParser):
                 self.add_unique_doc_rules(rules_str, customize)
 
             elif opname == "GET_AITER":
+                self.add_unique_doc_rules("get_aiter ::= expr GET_AITER", customize)
+
                 if not {"MAKE_FUNCTION_0", "MAKE_FUNCTION_8"} in self.seen_ops:
                     self.addRule(
                         """
                         dict_comp_async      ::= LOAD_DICTCOMP
                                                  LOAD_STR
                                                  MAKE_FUNCTION_0
-                                                 expr
-                                                 GET_AITER
+                                                 get_aiter
                                                  CALL_FUNCTION_1
 
-                        generator_exp_async  ::= load_genexpr LOAD_STR MAKE_FUNCTION_0 expr
-                                                 GET_AITER CALL_FUNCTION_1
+                        generator_exp_async  ::= load_genexpr LOAD_STR MAKE_FUNCTION_0
+                                                 get_aiter CALL_FUNCTION_1
 
                         list_comp_async      ::= LOAD_LISTCOMP LOAD_STR MAKE_FUNCTION_0
-                                                 expr GET_AITER CALL_FUNCTION_1
+                                                 get_aiter CALL_FUNCTION_1
                                                  GET_AWAITABLE LOAD_CONST
                                                  YIELD_FROM
 
@@ -591,26 +591,25 @@ class Python38LambdaCustom(Python38BaseParser):
                                                  BUILD_TUPLE_1
                                                  LOAD_LISTCOMP
                                                  LOAD_STR MAKE_FUNCTION_8
-                                                 expr GET_AITER CALL_FUNCTION_1
+                                                 get_aiter CALL_FUNCTION_1
                                                  GET_AWAITABLE LOAD_CONST
                                                  YIELD_FROM
 
                         list_comp_async      ::= LOAD_LISTCOMP LOAD_STR MAKE_FUNCTION_0
-                                                 expr GET_AITER CALL_FUNCTION_1
+                                                 get_aiter CALL_FUNCTION_1
                                                  GET_AWAITABLE LOAD_CONST
                                                  YIELD_FROM
                         set_comp_async       ::= LOAD_SETCOMP
                                                  LOAD_STR
                                                  MAKE_FUNCTION_0
-                                                 expr
-                                                 GET_AITER
+                                                 get_aiter
                                                  CALL_FUNCTION_1
 
                         set_comp_async       ::= LOAD_CLOSURE
                                                  BUILD_TUPLE_1
                                                  LOAD_SETCOMP
                                                  LOAD_STR MAKE_FUNCTION_8
-                                                 expr GET_AITER CALL_FUNCTION_1
+                                                 get_aiter CALL_FUNCTION_1
                                                  GET_AWAITABLE LOAD_CONST
                                                  YIELD_FROM
 
@@ -645,7 +644,6 @@ class Python38LambdaCustom(Python38BaseParser):
                                             func_async_middle comp_iter
                                             JUMP_LOOP bb_end_start
                                             POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
-
                     get_aiter            ::= expr GET_AITER
 
                     list_afor            ::= get_aiter list_afor2
@@ -732,6 +730,10 @@ class Python38LambdaCustom(Python38BaseParser):
                     return_expr_lambda   ::= genexpr_func_async
                                              LOAD_CONST RETURN_VALUE
                                              bb_doms_end_opt
+
+                    return_expr_lambda   ::= BUILD_SET_0 genexpr_func_async
+                                             RETURN_VALUE
+                                             bb_doms_end_opt
                    """,
                     nop_func,
                 )
@@ -786,8 +788,7 @@ class Python38LambdaCustom(Python38BaseParser):
             elif opname == "LOAD_DICTCOMP":
                 if has_get_iter_call_function1:
                     rule_pat = (
-                        "dict_comp ::= LOAD_DICTCOMP %sMAKE_FUNCTION_0 expr "
-                        "GET_ITER CALL_FUNCTION_1"
+                        "dict_comp ::= LOAD_DICTCOMP %sMAKE_FUNCTION_0 get_iter CALL_FUNCTION_1"
                     )
                     self.add_make_function_rule(rule_pat, opname, token.attr, customize)
                     pass
@@ -825,8 +826,7 @@ class Python38LambdaCustom(Python38BaseParser):
                 if has_get_iter_call_function1:
                     self.addRule("expr ::= set_comp", nop_func)
                     rule_pat = (
-                        "set_comp ::= LOAD_SETCOMP %sMAKE_FUNCTION_0 expr "
-                        "GET_ITER CALL_FUNCTION_1"
+                        "set_comp ::= LOAD_SETCOMP %sMAKE_FUNCTION_0 get_iter CALL_FUNCTION_1"
                     )
                     self.add_make_function_rule(rule_pat, opname, token.attr, customize)
                     pass
@@ -851,8 +851,7 @@ class Python38LambdaCustom(Python38BaseParser):
                     # this rule in parse36.py
                     rule = """
                         dict_comp ::= load_closure LOAD_DICTCOMP LOAD_STR
-                                      MAKE_CLOSURE_0 expr
-                                      GET_ITER CALL_FUNCTION_1
+                                      MAKE_CLOSURE_0 get_iter CALL_FUNCTION_1
                     """
                     self.addRule(rule, nop_func)
 
@@ -872,8 +871,8 @@ class Python38LambdaCustom(Python38BaseParser):
 
                 if has_get_iter_call_function1:
                     rule_pat = (
-                        "generator_exp ::= %sload_closure load_genexpr %%s%s expr "
-                        "GET_ITER CALL_FUNCTION_1" % ("expr " * args_pos, opname)
+                        "generator_exp ::= %sload_closure load_genexpr %%s%s get_iter "
+                        "CALL_FUNCTION_1" % ("expr " * args_pos, opname)
                     )
                     self.add_make_function_rule(rule_pat, opname, token.attr, customize)
 
@@ -885,8 +884,7 @@ class Python38LambdaCustom(Python38BaseParser):
                             #   and have GET_ITER CALL_FUNCTION_1
                             # Todo: For Pypy we need to modify this slightly
                             rule_pat = (
-                                "list_comp ::= %sload_closure LOAD_LISTCOMP %%s%s expr "
-                                "GET_ITER CALL_FUNCTION_1"
+                                "list_comp ::= %sload_closure LOAD_LISTCOMP %%s%s get_iter CALL_FUNCTION_1"
                                 % ("expr " * args_pos, opname)
                             )
                             self.add_make_function_rule(
@@ -894,8 +892,7 @@ class Python38LambdaCustom(Python38BaseParser):
                             )
                         if is_pypy or (i >= j and tokens[i - j] == "LOAD_SETCOMP"):
                             rule_pat = (
-                                "set_comp ::= %sload_closure LOAD_SETCOMP %%s%s expr "
-                                "GET_ITER CALL_FUNCTION_1"
+                                "set_comp ::= %sload_closure LOAD_SETCOMP %%s%s get_iter CALL_FUNCTION_1"
                                 % ("expr " * args_pos, opname)
                             )
                             self.add_make_function_rule(
@@ -903,8 +900,7 @@ class Python38LambdaCustom(Python38BaseParser):
                             )
                         if is_pypy or (i >= j and tokens[i - j] == "LOAD_DICTCOMP"):
                             self.add_unique_rule(
-                                "dict_comp ::= %sload_closure LOAD_DICTCOMP %s "
-                                "expr GET_ITER CALL_FUNCTION_1"
+                                "dict_comp ::= %sload_closure LOAD_DICTCOMP %s get_iter CALL_FUNCTION_1"
                                 % ("expr " * args_pos, opname),
                                 opname,
                                 token.attr,
@@ -949,8 +945,7 @@ class Python38LambdaCustom(Python38BaseParser):
                                 # Is there something general going on here?
                                 rule = f"""
                                    dict_comp ::= load_closure LOAD_DICTCOMP LOAD_STR
-                                                 MAKE_FUNCTION_8 expr
-                                                 {get_iter} CALL_FUNCTION_1
+                                                 MAKE_FUNCTION_8 {get_iter.lower()} CALL_FUNCTION_1
                                    """
                                 self.addRule(rule, nop_func)
                             elif "LOAD_SETCOMP" in self.seen_ops:
@@ -1033,16 +1028,15 @@ class Python38LambdaCustom(Python38BaseParser):
                 # This might be obsolete
                 if has_get_iter_call_function1:
                     rule_pat = (
-                        "generator_exp ::= %sload_genexpr %%s%s expr "
-                        "GET_ITER CALL_FUNCTION_1" % ("expr " * args_pos, opname)
+                        "generator_exp ::= %sload_genexpr %%s%s get_iter CALL_FUNCTION_1" %
+                        ("expr " * args_pos, opname)
                     )
                     self.add_make_function_rule(rule_pat, opname, token.attr, customize)
                     rule_pat = """
                            expr          ::= generator_exp
                            load_genexpr  ::= LOAD_GENEXPR
                            load_genexpr  ::= BUILD_TUPLE_1 LOAD_GENEXPR LOAD_STR
-                           generator_exp ::= %sload_closure load_genexpr %%s%s expr
-                           GET_ITER CALL_FUNCTION_1""" % (
+                           generator_exp ::= %sload_closure load_genexpr %%s%s get_iter CALL_FUNCTION_1""" % (
                         "expr " * args_pos,
                         opname,
                     )
@@ -1053,14 +1047,14 @@ class Python38LambdaCustom(Python38BaseParser):
                         # tuple.
                         rule_pat = (
                             "list_comp ::= load_closure LOAD_LISTCOMP %%s%s "
-                            "expr GET_ITER CALL_FUNCTION_1" % (opname,)
+                            "get_iter CALL_FUNCTION_1" % (opname,)
                         )
                         self.add_make_function_rule(
                             rule_pat, opname, token.attr, customize
                         )
                         rule_pat = (
-                            "list_comp ::= %sLOAD_LISTCOMP %%s%s expr "
-                            "GET_ITER CALL_FUNCTION_1" % ("expr " * args_pos, opname)
+                            "list_comp ::= %sLOAD_LISTCOMP %%s%s get_iter CALL_FUNCTION_1" %
+                            ("expr " * args_pos, opname)
                         )
                         self.add_make_function_rule(
                             rule_pat, opname, token.attr, customize
@@ -1084,8 +1078,8 @@ class Python38LambdaCustom(Python38BaseParser):
 
                 if has_get_iter_call_function1:
                     rule_pat = (
-                        "generator_exp ::= %sload_genexpr %%s%s expr "
-                        "GET_ITER CALL_FUNCTION_1" % ("expr " * args_pos, opname)
+                        "generator_exp ::= %sload_genexpr %%s%s get_iter CALL_FUNCTION_1" %
+                        ("expr " * args_pos, opname)
                     )
                     self.add_make_function_rule(rule_pat, opname, token.attr, customize)
 
@@ -1096,8 +1090,8 @@ class Python38LambdaCustom(Python38BaseParser):
                         #   and have GET_ITER CALL_FUNCTION_1
                         # Todo: For Pypy we need to modify this slightly
                         rule_pat = (
-                            "list_comp ::= %sLOAD_LISTCOMP %%s%s expr "
-                            "GET_ITER CALL_FUNCTION_1" % ("expr " * args_pos, opname)
+                            "list_comp ::= %sLOAD_LISTCOMP %%s%s get_iter CALL_FUNCTION_1" %
+                            ("expr " * args_pos, opname)
                         )
                         self.add_make_function_rule(
                             rule_pat, opname, token.attr, customize
