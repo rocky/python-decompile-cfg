@@ -100,13 +100,13 @@ def do_tests(src_dir, obj_patterns, target_dir, opts):
     files = []
 
     if opts["compile_type"] == "lambda":
-        src_dir += "/lambda"
+        src_dir += "/code-fragment/lambda"
     elif opts["compile_type"] == "dict-comprehension":
-        src_dir += "/dict-comprehension"
+        src_dir += "/code-fragment/dict-comprehension"
     elif opts["compile_type"] == "list-comprehension":
-        src_dir += "/list-comprehension"
+        src_dir += "/code-fragment/list-comprehension"
     elif opts["compile_type"] == "set-comprehension":
-        src_dir += "/set-comprehension"
+        src_dir += "/code-fragment/set-comprehension"
     else:
         src_dir += "/exec"
 

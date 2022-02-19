@@ -41,8 +41,12 @@ def main(code_format, show_asm, grammar, tree, tree_plus, optimize, files):
             bytecode = f"bytecode_pypy{version}/{suffix}/{short}py{version}.pyc"
         else:
             version = version_tuple_to_str(end=2)
-            bytecode = f"bytecode_{version}/{suffix}/{short}.pyc"
-        print(f"byte-compiling {path} to {bytecode}")
+            if suffix in ("exec", "run"):
+                bytecode = f"bytecode_{version}/{suffix}/{short}.pyc"
+            else:
+                bytecode = f"bytecode_{version}/code-fragment/{suffix}/{short}.pyc"
+
+            print(f"byte-compiling {path} to {bytecode}")
         py_compile.compile(path, bytecode, optimize=optimize)
         if code_format in ("exec", "run"):
             os.system(f"../bin/decompile-cfg {decompile_opts} {bytecode}")
