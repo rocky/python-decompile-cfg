@@ -1599,6 +1599,8 @@ class SourceWalker(GenericASTTraversal, object):
         assert n in ("comp_body", "set_iter"), n.kind
 
         self.preorder(n[0])
+        if node == "generator_exp_async":
+            self.write(" async")
         self.write(" for ")
         self.preorder(store)
         self.write(" in ")
@@ -2195,10 +2197,6 @@ class SourceWalker(GenericASTTraversal, object):
                     if isinstance(index[1], str):
                         # if node[index[0]] != index[1]:
                         #     from trepan.api import debug; debug()
-                        try:
-                            node[index[0]]
-                        except:
-                            from trepan.api import debug; debug()
                         assert (
                             node[index[0]] == index[1]
                         ), "at %s[%d], expected '%s' node; got '%s'" % (

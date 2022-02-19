@@ -44,42 +44,43 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
            stmt               ::= try_except36
            stmt               ::= async_forelse_stmt
 
-           async_for_stmt     ::= setup_loop expr
-                                  GET_AITER
-                                  SETUP_EXCEPT GET_ANEXT LOAD_CONST
-                                  YIELD_FROM
-                                  store
-                                  POP_BLOCK JUMP_FORWARD bb_end_start DUP_TOP
-                                  LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
-                                  END_FINALLY bb_end_start
-                                  for_block
-                                  COME_FROM
-                                  POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP POP_BLOCK
-                                  COME_FROM_LOOP
-           async_for_stmt37   ::= setup_loop expr
-                                  GET_AITER
-                                  SETUP_EXCEPT GET_ANEXT
-                                  LOAD_CONST YIELD_FROM
-                                  store
-                                  POP_BLOCK JUMP_LOOP COME_FROM_EXCEPT DUP_TOP
-                                  LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
-                                  END_FINALLY for_block COME_FROM
-                                  POP_TOP POP_TOP POP_TOP POP_EXCEPT
-                                  POP_TOP POP_BLOCK
-                                  COME_FROM_LOOP
+           # async_for_stmt     ::= setup_loop expr
+           #                        GET_AITER
+           #                        SETUP_EXCEPT GET_ANEXT LOAD_CONST
+           #                        YIELD_FROM
+           #                        store
+           #                        POP_BLOCK JUMP_FORWARD bb_end_start DUP_TOP
+           #                        LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
+           #                        END_FINALLY bb_end_start
+           #                        for_block
+           #                        COME_FROM
+           #                        POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP POP_BLOCK
+           #                        COME_FROM_LOOP
 
-          async_forelse_stmt ::= setup_loop expr
-                                 GET_AITER
-                                 SETUP_EXCEPT GET_ANEXT LOAD_CONST
-                                 YIELD_FROM
-                                 store
-                                 POP_BLOCK JUMP_FORWARD COME_FROM_EXCEPT DUP_TOP
-                                 LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
-                                 END_FINALLY COME_FROM
-                                 for_block
-                                 COME_FROM
-                                 POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP POP_BLOCK
-                                 else_suite COME_FROM_LOOP
+           # async_for_stmt37   ::= setup_loop expr
+           #                        GET_AITER
+           #                        SETUP_EXCEPT GET_ANEXT
+           #                        LOAD_CONST YIELD_FROM
+           #                        store
+           #                        POP_BLOCK JUMP_LOOP COME_FROM_EXCEPT DUP_TOP
+           #                        LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
+           #                        END_FINALLY for_block COME_FROM
+           #                        POP_TOP POP_TOP POP_TOP POP_EXCEPT
+           #                        POP_TOP POP_BLOCK
+           #                        COME_FROM_LOOP
+
+           # async_forelse_stmt ::= setup_loop expr
+           #                        GET_AITER
+           #                        SETUP_EXCEPT GET_ANEXT LOAD_CONST
+           #                        YIELD_FROM
+           #                        store
+           #                        POP_BLOCK JUMP_FORWARD COME_FROM_EXCEPT DUP_TOP
+           #                        LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
+           #                        END_FINALLY COME_FROM
+           #                        for_block
+           #                        COME_FROM
+           #                        POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP POP_BLOCK
+           #                        else_suite COME_FROM_LOOP
 
            for                ::= setup_loop expr get_for_iter store for_block POP_BLOCK
            for                ::= setup_loop expr get_for_iter store for_block POP_BLOCK NOP

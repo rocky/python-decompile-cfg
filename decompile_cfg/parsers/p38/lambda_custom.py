@@ -634,16 +634,6 @@ class Python38LambdaCustom(Python38BaseParser):
 
                     # async_iter         ::= block_break SETUP_EXCEPT GET_ANEXT LOAD_CONST YIELD_FROM
 
-                    generator_exp_async  ::= LOAD_ARG async_iter
-                                             store
-                                             JUMP_LOOP bb_end_start
-                                             POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
-
-                    genexpr_func_async  ::= LOAD_ARG async_iter
-                                            store
-                                            func_async_middle comp_iter
-                                            JUMP_LOOP bb_end_start
-                                            POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
                     get_aiter            ::= expr GET_AITER
 
                     list_afor            ::= get_aiter list_afor2
@@ -690,14 +680,6 @@ class Python38LambdaCustom(Python38BaseParser):
                                              block_break
                                              END_ASYNC_FOR
 
-                    list_afor2           ::= async_iter
-                                             store
-                                             func_async_middle
-                                             list_iter
-                                             JUMP_LOOP
-                                             bb_end_start
-                                             POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
-
                     list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
 
                     set_afor2            ::= async_iter
@@ -706,14 +688,6 @@ class Python38LambdaCustom(Python38BaseParser):
                                              JUMP_LOOP
                                              block_break
                                              END_ASYNC_FOR
-
-                    set_afor2            ::= async_iter
-                                             store
-                                             func_async_middle
-                                             set_iter
-                                             JUMP_LOOP
-                                             bb_end_start
-                                             POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP
 
                     set_afor2            ::= expr_or_arg
                                              set_iter_async
