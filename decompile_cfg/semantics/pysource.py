@@ -159,16 +159,17 @@ from decompile_cfg.semantics.transform import TreeTransform
 from decompile_cfg.scanners.tok import Token
 
 from decompile_cfg.semantics.consts import (
-    LINE_LENGTH,
-    NONE,
-    PASS,
-    NAME_MODULE,
-    TAB,
     INDENT_PER_LEVEL,
-    TABLE_R,
-    MAP_DIRECT,
+    LINE_LENGTH,
     MAP,
+    MAP_DIRECT,
+    NAME_MODULE,
+    NONE,
+    NO_PARENTHESIS_EVER,
+    PASS,
     PRECEDENCE,
+    TAB,
+    TABLE_R,
     escape,
     minint,
 )
@@ -1416,7 +1417,7 @@ class SourceWalker(GenericASTTraversal, object):
         ):
             self.write(" async")
             in_node_index = 5 if len(node) > 6 and node[5] == "expr" else 3
-        elif node[3] == "get_iter":
+        elif len(node) >= 3 and node[3] == "get_iter":
             in_node_index = 3
             collection_node = node[3][0]
             assert collection_node == "expr"
@@ -1478,9 +1479,18 @@ class SourceWalker(GenericASTTraversal, object):
                         return
                 comp_store = None
             pass
+        if tree == "set_comp_func":
+            comp_iter = tree[5]
+            assert comp_iter == "comp_iter"
+            comp_for = comp_iter[0]
+            if comp_for == "comp_for":
+                self.template_engine(
+                    ("for %c in %p", (2, "store"), (0, "expr", NO_PARENTHESIS_EVER)),
+                    comp_for,
+                )
 
         if comp_store:
-            self.preorder(comp_for)
+            self.preorder(comp_store)
         for if_node in if_nodes:
             if if_node != "comp_if_or":
                 self.write(" if ")
@@ -1558,7 +1568,12 @@ class SourceWalker(GenericASTTraversal, object):
             store = tree[4]
             iter_index = 5
 
-        collection = node[collection_index]
+        if node[collection_index] == "get_iter":
+            expr = node[collection_index][0]
+            assert expr == "expr", expr.kind
+            collection = expr
+        else:
+            collection = node[collection_index]
         n = tree[iter_index]
         list_if = None
         write_if = False

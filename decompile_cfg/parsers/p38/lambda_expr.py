@@ -496,6 +496,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         set_for        ::= expr_or_arg
                            for_iter
+                           GET_ITER
                            store set_iter
                            jump_loop
                            bb_doms_end_start_opt
