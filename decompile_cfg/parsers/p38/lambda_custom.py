@@ -584,21 +584,19 @@ class Python38LambdaCustom(Python38BaseParser):
 
                         list_comp_async      ::= LOAD_LISTCOMP LOAD_STR MAKE_FUNCTION_0
                                                  get_aiter CALL_FUNCTION_1
-                                                 GET_AWAITABLE LOAD_CONST
-                                                 YIELD_FROM
+                                                 await
 
                         list_comp_async      ::= LOAD_CLOSURE
                                                  BUILD_TUPLE_1
                                                  LOAD_LISTCOMP
                                                  LOAD_STR MAKE_FUNCTION_8
                                                  get_aiter CALL_FUNCTION_1
-                                                 GET_AWAITABLE LOAD_CONST
-                                                 YIELD_FROM
+                                                 await
 
                         list_comp_async      ::= LOAD_LISTCOMP LOAD_STR MAKE_FUNCTION_0
                                                  get_aiter CALL_FUNCTION_1
-                                                 GET_AWAITABLE LOAD_CONST
-                                                 YIELD_FROM
+                                                 await
+
                         set_comp_async       ::= LOAD_SETCOMP
                                                  LOAD_STR
                                                  MAKE_FUNCTION_0
@@ -610,8 +608,7 @@ class Python38LambdaCustom(Python38BaseParser):
                                                  LOAD_SETCOMP
                                                  LOAD_STR MAKE_FUNCTION_8
                                                  get_aiter CALL_FUNCTION_1
-                                                 GET_AWAITABLE LOAD_CONST
-                                                 YIELD_FROM
+                                                 await
 
                        """,
                         nop_func,
@@ -715,7 +712,8 @@ class Python38LambdaCustom(Python38BaseParser):
 
             elif opname == "GET_AWAITABLE":
                 rule_str = """
-                    await_expr ::= expr GET_AWAITABLE LOAD_CONST YIELD_FROM
+                    await      ::= GET_AWAITABLE LOAD_CONST YIELD_FROM
+                    await_expr ::= expr await
                     expr       ::= await_expr
                 """
                 self.add_unique_doc_rules(rule_str, customize)

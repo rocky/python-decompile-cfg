@@ -70,7 +70,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           expr
 
         # Corresponds to AST IfExp; note this
-        # must include and "else" part.
+        # must include an "else" part.
         # Don't confuse with comprehension if's
         if_exp        ::= if_exp_jump_false
         if_exp        ::= if_exp_jump_true
@@ -643,7 +643,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         constant ::= LOAD_CONST
         constant ::= LOAD_STR
-        constant ::= LOAD_CODE
 
         genexpr_func      ::= LOAD_ARG
                               block_break
@@ -825,11 +824,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
     def p_store(self, args):
         """
-        # Note: we are not seeing STORE_FAST or STORE_DEREF.
-        # Should this be moved to full.py?
         store           ::= STORE_DEREF
         store           ::= STORE_FAST
-        store           ::= STORE_GLOBAL
+
+        # store NAME appears in nested lambdas
         store           ::= STORE_NAME
         store           ::= store_subscript
 

@@ -281,9 +281,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
     def p_await(self, args):
         # Python 3.5+ Await things
         """
-        expr       ::= await_expr
-        await_expr ::= expr GET_AWAITABLE LOAD_CONST YIELD_FROM
-
         stmt       ::= await_stmt
         await_stmt ::= await_expr POP_TOP
         """
@@ -992,6 +989,14 @@ class Python38FullParser(Python38Parser, Python38LambdaParser):
         """
         stmt               ::= async_for_stmt38
         stmt               ::= async_forelse_stmt38
+
+        # break could be isolated to loops but many
+        # rules would be for with and without loops.
+        # There is a possibility we wil need a reduction rule
+        # if this generalization causes problems, but I don't
+        # think it will.
+        stmt               ::= break
+
         stmt               ::= for38
         stmt               ::= forelsestmt38
         stmt               ::= forelselaststmt38
@@ -1012,10 +1017,11 @@ class Python38FullParser(Python38Parser, Python38LambdaParser):
         stmt               ::= whileTruestmt38
         stmt               ::= call_stmt
 
-        call_stmt          ::= call
+        # Oddly, these don't appear in code fragments
+        # STORE_GLOBAL makes sense; not sure about STORE_NAME though.
+        store              ::= STORE_GLOBAL
 
-        # FIXME: "break"" should be isolated to loops
-        stmt  ::= break
+        call_stmt          ::= call
 
         break ::= POP_BLOCK BREAK_LOOP
         break ::= POP_BLOCK POP_TOP BREAK_LOOP
