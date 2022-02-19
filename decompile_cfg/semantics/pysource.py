@@ -1416,6 +1416,10 @@ class SourceWalker(GenericASTTraversal, object):
         ):
             self.write(" async")
             in_node_index = 5 if len(node) > 6 and node[5] == "expr" else 3
+        elif node[3] == "get_iter":
+            in_node_index = 3
+            collection_node = node[3][0]
+            assert collection_node == "expr"
         else:
             in_node_index = -3
 
@@ -1447,7 +1451,9 @@ class SourceWalker(GenericASTTraversal, object):
             else:
                 self.preorder(collection_node[0])
         else:
-            self.preorder(node[in_node_index])
+            if not collection_node:
+                collection_node = node[in_node_index]
+            self.preorder(collection_node)
 
         # Here is where we handle nested list iterations.
         if tree in ("list_comp", "set_comp"):
