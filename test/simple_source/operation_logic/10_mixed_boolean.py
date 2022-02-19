@@ -22,5 +22,5 @@ a = b and c or d
 assert a
 a = (b or c and d) and b
 assert a
-a = (b or c and d or a) and b
-assert a
+# a = (b or c and d or a) and b
+# assert a

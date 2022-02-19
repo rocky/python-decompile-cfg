@@ -574,11 +574,9 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         pop_jump    ::= POP_JUMP_IF_TRUE
         pop_jump    ::= POP_JUMP_IF_FALSE
 
-        # These rules need reduce checks on the "_come_froms".
-        # When the come_from is empty the end of the "then"
-        # can't fall through. And when the "_come_froms" aren't
-        # empty they have to be reasonable, e.g. testexpr has to
-        # jump to one of the COME_FROMS
+        # These rules need reduce checks on dominator information.
+        # In particular, testexpr has to jump to to the end
+        # of "ifstmt".
         ifstmt      ::= testexpr stmts
         ifstmt      ::= testexpr ifstmts_jump
 
