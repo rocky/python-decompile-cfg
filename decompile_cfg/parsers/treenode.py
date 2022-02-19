@@ -13,7 +13,11 @@ class SyntaxTree(spark_AST):
     def isNone(self):
         """An SyntaxTree None token. We can't use regular list comparisons
         because SyntaxTree token offsets might be different"""
-        return len(self.data) == 1 and NoneToken == self.data[0]
+        return len(self.data) == 1 and (
+            NoneToken == self.data[0]
+            or self.data[0].kind == "constant"
+            and NoneToken == self.data[0][0]
+        )
 
     def __repr__(self):
         return self.__repr1__("", None)

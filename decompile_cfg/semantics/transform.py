@@ -24,10 +24,11 @@ from decompile_cfg.semantics.consts import RETURN_NONE, ASSIGN_DOC_STRING
 
 
 def is_docstring(node, version: str, co_consts) -> bool:
-    # try:
-    #     return node.kind == "assign" and node[1][0].pattr == "__doc__"
-    # except:
-    #     return False
+    """
+    Build what would look like a docstring for this code and check to see
+    if `node` matches that. Note that in the '==' comparision,
+    line number checking is disabled.
+    """
     return node == ASSIGN_DOC_STRING(co_consts[0], "LOAD_STR")
 
 

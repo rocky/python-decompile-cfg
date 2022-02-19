@@ -576,6 +576,35 @@ class SourceWalker(GenericASTTraversal, object):
             self.println()
             self.prune()  # stop recursing
 
+    # This could be a rule but we have handling to remove None
+    # e.g. a[:5] rather than a[None:5]
+    def n_slice2(self, node):
+        p = self.prec
+        self.prec = 100
+        if not node[0].isNone():
+            self.preorder(node[0])
+        self.write(":")
+        if not node[1].isNone():
+            self.preorder(node[1])
+        self.prec = p
+        self.prune()  # stop recursing
+
+    # This could be a rule but we have handling to remove None's
+    # e.g. a[:] rather than a[None:None]
+    def n_slice3(self, node):
+        p = self.prec
+        self.prec = 100
+        if not node[0].isNone():
+            self.preorder(node[0])
+        self.write(":")
+        if not node[1].isNone():
+            self.preorder(node[1])
+        self.write(":")
+        if not node[2].isNone():
+            self.preorder(node[2])
+        self.prec = p
+        self.prune()  # stop recursing
+
     def n_yield(self, node):
         if node != SyntaxTree("yield", [NONE, Token("YIELD_VALUE")]):
             self.template_engine(("yield %c", 0), node)
@@ -1941,7 +1970,7 @@ class SourceWalker(GenericASTTraversal, object):
             for n in node:
                 if n == "arg":
                     n = n[0]
-                if n == "expr" and n[0].kind.startswith("build_slice"):
+                if n == "expr" and n[0].kind.startswith("slice"):
                     no_parens = True
                     break
                 pass
@@ -2043,7 +2072,7 @@ class SourceWalker(GenericASTTraversal, object):
             # if a tuple item is some sort of slice.
             no_parens = False
             for n in node:
-                if n == "expr" and n[0].kind.startswith("build_slice"):
+                if n == "expr" and n[0].kind.startswith("slice"):
                     no_parens = True
                     break
                 pass

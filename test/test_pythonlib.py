@@ -61,7 +61,7 @@ for vers in ("3.8",):
     key = "bytecode-%s" % vers
     test_options[key] = (bytecode, PYC, bytecode, vers)
     bytecode = "bytecode_%s_run" % vers
-    key = "bytecode-%s-run" % vers
+    key = "bytecode-%s/run" % vers
     test_options[key] = (bytecode, PYC, bytecode, vers)
     key = "%s" % vers
     pythonlib = "python%s" % vers
@@ -107,6 +107,8 @@ def do_tests(src_dir, obj_patterns, target_dir, opts):
         src_dir += "/code-fragment/list-comprehension"
     elif opts["compile_type"] == "set-comprehension":
         src_dir += "/code-fragment/set-comprehension"
+    elif opts["compile_type"] == "run":
+        src_dir += "/run"
     else:
         src_dir += "/exec"
 
@@ -202,6 +204,7 @@ if __name__ == "__main__":
             "compile",
             "coverage",
             "no-rm",
+            "run",
         ]
         + test_options_keys,
     )
@@ -232,6 +235,8 @@ if __name__ == "__main__":
             test_opts["compile_type"] = "generator"
         elif opt == "--list-comprehension":
             test_opts["compile_type"] = "list-comprehension"
+        elif opt == "--run":
+            test_opts["compile_type"] = "run"
         elif opt == "--set-comprehension":
             test_opts["compile_type"] = "set-comprehension"
         elif opt == "--start-with":

@@ -571,8 +571,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         stmt          ::= assert_invert
         assert_invert ::= testtrue LOAD_GLOBAL RAISE_VARARGS_1
 
-        expr    ::= LOAD_ASSERT
-
         pop_jump    ::= POP_JUMP_IF_TRUE
         pop_jump    ::= POP_JUMP_IF_FALSE
 
@@ -581,8 +579,8 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         # can't fall through. And when the "_come_froms" aren't
         # empty they have to be reasonable, e.g. testexpr has to
         # jump to one of the COME_FROMS
-        ifstmt      ::= testexpr stmts _come_froms
-        ifstmt      ::= testexpr ifstmts_jump _come_froms
+        ifstmt      ::= testexpr stmts
+        ifstmt      ::= testexpr ifstmts_jump
 
         stmt        ::= ifstmt_bool
         ifstmt_bool ::= or_and_not stmts come_froms
@@ -629,7 +627,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         testfalse  ::= and_or_cond
 
         ifstmts_jump ::= return_if_stmts
-        ifstmts_jump ::= stmts_opt come_froms
+        ifstmts_jump ::= stmts_opt block_break
         ifstmts_jump ::= COME_FROM stmts COME_FROM
 
         # Python 3.4+ optimizes the trailing two JUMPS away
@@ -933,6 +931,18 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
 
         """
 
+    def p_expr_full(self, args):
+        """
+        expr       ::= LOAD_ASSERT
+        # named_expr is also known as the "walrus op" :=
+        expr       ::= named_expr
+        expr       ::= subscript2
+
+        named_expr        ::= expr DUP_TOP store
+        subscript2 ::= expr expr DUP_TOP_TWO BINARY_SUBSCR
+
+        """
+
     def p_38misc(self, args):
         """
         sstmt ::= sstmt RETURN_LAST
@@ -952,13 +962,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
 
 
 class Python38FullParser(Python38Parser, Python38LambdaParser):
-    def p_38walrus(self, args):
-        """
-        # named_expr is also known as the "walrus op" :=
-        expr              ::= named_expr
-        named_expr        ::= expr DUP_TOP store
-        """
-
     def p_38if_ifelse(self, args):
         """
         # cf_pt introduced to keep indices the same in ifelsestmtc

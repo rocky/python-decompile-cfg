@@ -392,8 +392,8 @@ class Python38LambdaCustom(Python38BaseParser):
                 if token.attr == 2:
                     self.add_unique_rules(
                         [
-                            "expr ::= build_slice2",
-                            "build_slice2 ::= expr expr BUILD_SLICE_2",
+                            "expr ::= slice2",
+                            "slice2 ::= expr expr BUILD_SLICE_2",
                         ],
                         customize,
                     )
@@ -403,8 +403,8 @@ class Python38LambdaCustom(Python38BaseParser):
                     )
                     self.add_unique_rules(
                         [
-                            "expr ::= build_slice3",
-                            "build_slice3 ::= expr expr expr BUILD_SLICE_3",
+                            "expr ::= slice3",
+                            "slice3 ::= expr expr expr BUILD_SLICE_3",
                         ],
                         customize,
                     )

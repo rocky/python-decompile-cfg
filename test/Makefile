@@ -32,8 +32,8 @@ check:
 #: Run working tests from Python 3.8
 check-3.9 check-3.8: check-bytecode
 
-#	$(PYTHON) test_pythonlib.py --bytecode-3.8-run --verify-run
-#	$(PYTHON) test_pythonlib.py --bytecode-3.8 --syntax-verify $(COMPILE)
+	$(PYTHON) test_pythonlib.py --bytecode-3.8 --run --verify-run
+	$(PYTHON) test_pythonlib.py --bytecode-3.8 --syntax-verify $(COMPILE)
 
 #: Check deparsing bytecode 3.x only
 check-bytecode-3:
