@@ -59,14 +59,27 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         or1           ::= or_parts expr
 
+        # Note: I don't know why, but  we can't replace "expr jitop_start expr"
+        # with "or"
         and_or        ::= and_parts
                           expr
-                          jitop
+                          jitop_start
                           expr
+
+        ## In cases where we have some sort of logic optimization the
+        ## "or" using "expr_jitop" can get converted to "or" using "expr_pjit"
+        ## In such cases we have an exra JUMP_IF_FALSE_OR_POP at the end.
+        #
+        # or_pjit       ::= expr_pjit
+        #                   dom_start_opt
+        #                   expr
+        # and_or_jifop  ::= and_pjit
+        #                   expr_pjif
+        #                   expr_pjit
 
         or_and        ::= or_parts
                           expr
-                          jifop
+                          jifop_start
                           expr
 
         # Corresponds to AST IfExp; note this
@@ -235,9 +248,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
     # Conditional jumps with dominator information included
     def p_conditional_jump(self, args):
         """
-        jifop       ::= JUMP_IF_FALSE_OR_POP bb_end_start
+        jifop_start ::= JUMP_IF_FALSE_OR_POP bb_end_start
         jifop_opt   ::= JUMP_IF_FALSE_OR_POP bb_end_start_opt
-        jitop       ::= JUMP_IF_TRUE_OR_POP BB_END dom_start
+        jitop_start ::= JUMP_IF_TRUE_OR_POP BB_END dom_start
         """
 
     # Dominator and basic block pseudo operations needed
