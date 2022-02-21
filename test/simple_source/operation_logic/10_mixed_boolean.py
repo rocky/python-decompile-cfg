@@ -22,5 +22,8 @@ a = b and c or d
 assert a
 a = (b or c and d) and b
 assert a
+
+## This is different because we have b ... and b
+# and code gets generated vary differently here
 # a = (b or c and d or a) and b
 # assert a

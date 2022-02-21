@@ -2412,7 +2412,7 @@ class SourceWalker(GenericASTTraversal, object):
                 TABLE_R[k] = (
                     "%c(%P)",
                     (0, ("expr", "arg")),
-                    (1, -2, ", ", PRECEDENCE["yield"] - 1),
+                    (1, -1, ", ", PRECEDENCE["yield"] - 1),
                 )
             elif op in (
                 "CALL_FUNCTION_VAR",
