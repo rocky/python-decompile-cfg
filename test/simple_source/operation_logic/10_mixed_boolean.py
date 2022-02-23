@@ -1,6 +1,8 @@
 # Self-checking test.
 # Mixed boolean expresions
 
+"""This program is self-checking!"""
+
 b = True
 assert b, 'b = True'
 c = False
