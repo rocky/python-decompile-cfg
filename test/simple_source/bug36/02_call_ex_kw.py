@@ -4,6 +4,8 @@
 #   showparams(c, test="A", **extra_args)
 # below
 
+"""This program is self-checking!"""
+
 # RUNNABLE!
 def showparams(c, test, **extra_args):
     return {'c': c, **extra_args, 'test': test}

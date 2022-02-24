@@ -46,7 +46,7 @@ def args_kwargs_test(*args, **kwargs):
     assert no_apply(*args, **kwargs) == ((1, 2, 4, 8), {'a': 2, 'b': 3, 'c': 5})
     assert no_apply(34, *args, **kwargs) == ((34, 1, 2, 4, 8), {'a': 2, 'b': 3, 'c': 5})
     assert no_apply(x = 11, *args, **kwargs) == ((1, 2, 4, 8), {'x': 11, 'a': 2, 'b': 3, 'c': 5})
-    # assert no_apply(34, x = 11, *args, **kwargs) == ((34, 1, 2, 4, 8), {'x': 11, 'a': 2, 'b': 3, 'c': 5})
-    # assert no_apply(42, 34, x = 11, *args, **kwargs) == ((42, 34, 1, 2, 4, 8), {'x': 11, 'a': 2, 'b': 3, 'c': 5})
+    assert no_apply(34, x = 11, *args, **kwargs) == ((34, 1, 2, 4, 8), {'x': 11, 'a': 2, 'b': 3, 'c': 5})
+    assert no_apply(42, 34, x = 11, *args, **kwargs) == ((42, 34, 1, 2, 4, 8), {'x': 11, 'a': 2, 'b': 3, 'c': 5})
 
 args_kwargs_test(1, 2, 4, 8, a = 2, b = 3, c = 5)
