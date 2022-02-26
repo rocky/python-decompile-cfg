@@ -570,7 +570,7 @@ class Python38LambdaCustom(Python38BaseParser):
             elif opname == "GET_AITER":
                 self.add_unique_doc_rules("get_aiter ::= expr GET_AITER", customize)
 
-                if not {"MAKE_FUNCTION_0", "MAKE_FUNCTION_8"} in self.seen_ops:
+                if not {"MAKE_FUNCTION_0", "MAKE_FUNCTION_CLOSURE"} in self.seen_ops:
                     self.addRule(
                         """
                         dict_comp_async      ::= LOAD_DICTCOMP
@@ -589,7 +589,7 @@ class Python38LambdaCustom(Python38BaseParser):
                         list_comp_async      ::= LOAD_CLOSURE
                                                  BUILD_TUPLE_1
                                                  LOAD_LISTCOMP
-                                                 LOAD_STR MAKE_FUNCTION_8
+                                                 LOAD_STR MAKE_FUNCTION_CLOSURE
                                                  get_aiter CALL_FUNCTION_1
                                                  await
 
@@ -606,7 +606,7 @@ class Python38LambdaCustom(Python38BaseParser):
                         set_comp_async       ::= LOAD_CLOSURE
                                                  BUILD_TUPLE_1
                                                  LOAD_SETCOMP
-                                                 LOAD_STR MAKE_FUNCTION_8
+                                                 LOAD_STR MAKE_FUNCTION_CLOSURE
                                                  get_aiter CALL_FUNCTION_1
                                                  await
 
@@ -908,7 +908,7 @@ class Python38LambdaCustom(Python38BaseParser):
 
                 if closure:
 
-                    if opname == "MAKE_FUNCTION_8" and "CALL_FUNCTION" in self.seen_ops:
+                    if opname == "MAKE_FUNCTION_CLOSURE" and "CALL_FUNCTION" in self.seen_ops:
                         for get_iter in ("GET_ITER", "GET_AITER"):
                             if get_iter not in self.seen_ops:
                                 continue
@@ -917,13 +917,13 @@ class Python38LambdaCustom(Python38BaseParser):
                                 # Is there something general going on here?
                                 rule = f"""
                                    dict_comp ::= load_closure LOAD_DICTCOMP LOAD_STR
-                                                 MAKE_FUNCTION_8 {get_iter.lower()} CALL_FUNCTION_1
+                                                 MAKE_FUNCTION_CLOSURE {get_iter.lower()} CALL_FUNCTION_1
                                    """
                                 self.addRule(rule, nop_func)
                             elif "LOAD_SETCOMP" in self.seen_ops:
                                 rule = f"""
                                    set_comp ::= load_closure LOAD_SETCOMP LOAD_STR
-                                                MAKE_FUNCTION_8 expr
+                                                MAKE_FUNCTION_CLOSURE expr
                                                 {get_iter} CALL_FUNCTION_1
                                    """
                                 self.addRule(rule, nop_func)
@@ -931,7 +931,7 @@ class Python38LambdaCustom(Python38BaseParser):
                     if "LOAD_LAMBDA" in self.seen_ops:
 
                         if args_pos:
-                            if opname == "MAKE_FUNCTION_9" and "BUILD_TUPLE_2" in self.seen_ops:
+                            if opname == "MAKE_FUNCTION_CLOSURE_POS" and "BUILD_TUPLE_2" in self.seen_ops:
                                 # FIXME: replace LOAD_CLOSURE LOAD_CLOSURE BUILD_TUPLE_2 with a rule?
 
                                 # This was seen in line 447 of Python 3.8
@@ -945,7 +945,7 @@ class Python38LambdaCustom(Python38BaseParser):
                                 #                 6  BUILD_TUPLE_2         2
                                 #                 8  LOAD_LAMBDA              '<code_object <lambda>>'
                                 #                10  LOAD_STR                 '_tgrep_relation_action.<locals>.<lambda>.<locals>.<lambda>'
-                                #                12  MAKE_FUNCTION_9          'default, closure'
+                                #                12  MAKE_FUNCTION_CLOSURE_POS  'default, closure'
                                 # FIXME: Possibly we need to generalize for more nested lambda's of lambda's?
                                 rule = """
                                      expr        ::= lambda_body
