@@ -1073,7 +1073,7 @@ class SourceWalker(GenericASTTraversal, object):
             ):
                 n = n[-1]
 
-        assert n == "comp_body", n
+        assert n == "comp_body", n.kind
 
         self.preorder(n[0])
         if node == "generator_exp_async":
@@ -1158,6 +1158,7 @@ class SourceWalker(GenericASTTraversal, object):
         find the comprehension node buried in the tree which may
         be surrounded with start-like symbols or dominiators,.
         """
+        self.prec = 27
         code_node = node[code_index]
         if code_node == "load_genexpr":
             code_node = code_node[0]
@@ -1329,7 +1330,7 @@ class SourceWalker(GenericASTTraversal, object):
             # And here we've already printed/handled the list comprehension
             # this iteration is duplicate in seeing the list-comprehension code
             # item again. Is this a larger duplicate parsing problem?
-            # Not sure what the best thi
+            # Not sure what the best this thing to do is.
             if n.kind == "return_expr_lambda":
                 self.prune()
             assert n.kind in ("list_iter", "comp_iter", "set_iter_async"), n
@@ -1508,6 +1509,7 @@ class SourceWalker(GenericASTTraversal, object):
                         return
                 comp_store = None
             pass
+
         if tree == "set_comp_func":
             comp_iter = tree[5]
             assert comp_iter == "comp_iter"
@@ -1580,7 +1582,7 @@ class SourceWalker(GenericASTTraversal, object):
         code_index = 0 if node[0] == "load_genexpr" else 1
         tree = self.get_comprehension_function(node, code_index=code_index)
 
-        if tree == "stmts":
+        if tree.kind in ("stmts", "lambda_start"):
             tree = tree[0]
 
         if tree == "genexpr_func_async":
@@ -2662,7 +2664,7 @@ class SourceWalker(GenericASTTraversal, object):
         self.customize(customize)
         transform_ast = self.treeTransform.transform(ast, code)
 
-        self.maybe_show_tree(ast, phase="before")
+        self.maybe_show_tree(ast, phase="after")
 
         del ast  # Save memory
         return transform_ast
