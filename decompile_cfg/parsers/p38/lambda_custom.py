@@ -270,8 +270,10 @@ class Python38LambdaCustom(Python38BaseParser):
                 self.add_unique_rule(rule, opname, token.attr, customize)
 
             elif opname.startswith("BUILD_LIST"):
-                v = token.attr
-                if v == 0:
+                # We do this complicated test to speed up parsing of
+                # pathelogically long literals, especially those over 1024.
+                collection_size = token.attr
+                if collection_size == 0:
                     rule_str = """
                        list        ::= BUILD_LIST_0
                        list_unpack ::= BUILD_LIST_0 expr LIST_EXTEND
@@ -279,9 +281,29 @@ class Python38LambdaCustom(Python38BaseParser):
                     """
                     self.add_unique_doc_rules(rule_str, customize)
                 else:
-                    rule_str = f"""
-                     list  ::= {'expr ' * v}{opname}
-                    """
+                    thousands = collection_size // 1024
+                    thirty32s = (collection_size // 32) % 32
+                    if thirty32s > 0:
+                        rule = "expr32 ::=%s" % (" expr" * 32)
+                        self.add_unique_rule(rule, opname_base, collection_size, customize)
+                        pass
+                    if thousands > 0:
+                        self.add_unique_rule(
+                            "expr1024 ::=%s" % (" expr32" * 32),
+                            opname_base,
+                            collection_size,
+                            customize,
+                        )
+                        pass
+
+                    collection = opname_base[opname_base.find("_") + 1 :].lower()
+                    rule_str = (
+                        ("%s ::= " % collection)
+                        + "expr1024 " * thousands
+                        + "expr32 " * thirty32s
+                        + "expr " * (collection_size % 32)
+                        + opname
+                    )
                     self.add_unique_doc_rules(rule_str, customize)
 
             elif opname_base.startswith("BUILD_MAP"):
@@ -332,7 +354,7 @@ class Python38LambdaCustom(Python38BaseParser):
                 "BUILD_SET",
                 "BUILD_TUPLE",
             ):
-                v = token.attr
+                collection_size = token.attr
 
                 if opname == "BUILD_TUPLE_UNPACK_WITH_CALL":
                     # FIXME: should this be parameterized by EX value?
@@ -351,28 +373,27 @@ class Python38LambdaCustom(Python38BaseParser):
                     # If is part of a "load_closure", then it is not part of a
                     # "list".
                     is_LOAD_CLOSURE = True
-                    for j in range(v):
+                    for j in range(collection_size):
                         if tokens[i - j - 1].kind != "LOAD_CLOSURE":
                             is_LOAD_CLOSURE = False
                             break
                     if is_LOAD_CLOSURE:
-                        rule = "load_closure ::= %s%s" % (("LOAD_CLOSURE " * v), opname)
+                        rule = "load_closure ::= %s%s" % (("LOAD_CLOSURE " * collection_size), opname)
                         self.add_unique_rule(rule, opname, token.attr, customize)
-                if not is_LOAD_CLOSURE or v == 0:
+                if not is_LOAD_CLOSURE or collection_size == 0:
                     # We do this complicated test to speed up parsing of
                     # pathelogically long literals, especially those over 1024.
-                    build_count = token.attr
-                    thousands = build_count // 1024
-                    thirty32s = (build_count // 32) % 32
+                    thousands = collection_size // 1024
+                    thirty32s = (collection_size // 32) % 32
                     if thirty32s > 0:
                         rule = "arg32 ::=%s" % (" arg" * 32)
-                        self.add_unique_rule(rule, opname_base, build_count, customize)
+                        self.add_unique_rule(rule, opname_base, collection_size, customize)
                         pass
                     if thousands > 0:
                         self.add_unique_rule(
                             "arg1024 ::=%s" % (" arg32" * 32),
                             opname_base,
-                            build_count,
+                            collection_size,
                             customize,
                         )
                         pass
@@ -381,7 +402,7 @@ class Python38LambdaCustom(Python38BaseParser):
                         f"{collection} ::= "
                         + "arg1024 " * thousands
                         + "argr32 " * thirty32s
-                        + "arg " * (build_count % 32)
+                        + "arg " * (collection_size % 32)
                         + opname
                     )
                     self.add_unique_rules([f"expr ::= {collection}", rule], customize)
