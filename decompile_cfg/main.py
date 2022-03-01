@@ -13,8 +13,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import datetime, py_compile, os, sys
-from typing import Any, Tuple
+import ast, datetime, py_compile, os, sys
+import os.path as osp
+import subprocess
+import tempfile
+from typing import Any, Optional, Tuple
 from xdis import iscode, load_module
 from xdis.version_info import version_tuple_to_str
 
@@ -30,17 +33,27 @@ from decompile_cfg.semantics.pysource import code_deparse, PARSER_DEFAULT_DEBUG
 from decompile_cfg.semantics.fragments import code_deparse as code_deparse_fragments
 from decompile_cfg.semantics.linemap import deparse_code_with_map
 
-
 def _get_outstream(outfile: str) -> Any:
-    dir = os.path.dirname(outfile)
+    dir = osp.dirname(outfile)
     failed_file = outfile + "_failed"
-    if os.path.exists(failed_file):
+    if osp.exists(failed_file):
         os.remove(failed_file)
     try:
         os.makedirs(dir)
     except OSError:
         pass
     return open(outfile, mode="w", encoding="utf-8")
+
+
+def syntax_check(filename: str) -> bool:
+    with open(filename) as f:
+        source = f.read()
+    valid = True
+    try:
+        ast.parse(source)
+    except SyntaxError:
+        valid = False
+    return valid
 
 
 def decompile(
@@ -242,7 +255,7 @@ def main(
     outfile=None,
     showasm=None,
     showast={},
-    do_verify=False,
+    do_verify=Optional[str],
     showgrammar=False,
     source_encoding=None,
     raise_on_error=False,
@@ -260,7 +273,8 @@ def main(
     - files below out_base	out_base=...
     - stdout			out_base=None, outfile=None
     """
-    tot_files = okay_files = failed_files = verify_failed_files = 0
+    tot_files = okay_files = failed_files = 0
+    verify_failed_files = 0 if do_verify is not None else None
     current_outfile = outfile
     linemap_stream = None
 
@@ -268,9 +282,9 @@ def main(
         compiled_files.append(compile_file(source_path))
 
     for filename in compiled_files:
-        infile = os.path.join(in_base, filename)
+        infile = osp.join(in_base, filename)
         # print("XXX", infile)
-        if not os.path.exists(infile):
+        if not osp.exists(infile):
             sys.stderr.write("File '%s' doesn't exist. Skipped\n" % infile)
             continue
 
@@ -283,14 +297,19 @@ def main(
         if outfile:  # outfile was given as parameter
             outstream = _get_outstream(outfile)
         elif out_base is None:
-            outstream = sys.stdout
+            out_base = tempfile.mkdtemp(prefix="py-dis-")
+            if do_verify and filename.endswith(".pyc"):
+                current_outfile = osp.join(out_base, filename[0:-1])
+                outstream = open(current_outfile, "w")
+            else:
+                outstream = sys.stdout
             if do_linemaps:
                 linemap_stream = sys.stdout
         else:
             if filename.endswith(".pyc"):
-                current_outfile = os.path.join(out_base, filename[0:-1])
+                current_outfile = osp.join(out_base, filename[0:-1])
             else:
-                current_outfile = os.path.join(out_base, filename) + "_dis"
+                current_outfile = osp.join(out_base, filename) + "_dis"
                 pass
             pass
 
@@ -300,7 +319,7 @@ def main(
 
         # Try to uncompile the input file
         try:
-            deparsed = decompile_file(
+            deparsed_objects = decompile_file(
                 infile,
                 outstream,
                 showasm,
@@ -311,9 +330,9 @@ def main(
                 do_fragments,
             )
             if do_fragments:
-                for d in deparsed:
+                for deparsed_object in deparsed_objects:
                     last_mod = None
-                    offsets = d.offsets
+                    offsets = deparsed_object.offsets
                     for e in sorted(
                         [k for k in offsets.keys() if isinstance(k[1], int)]
                     ):
@@ -322,12 +341,35 @@ def main(
                             outstream.write("%s\n%s\n%s\n" % (line, e[0], line))
                         last_mod = e[0]
                         info = offsets[e]
-                        extractInfo = d.extract_node_info(info)
+                        extractInfo = deparsed_object.extract_node_info(info)
                         outstream.write("%s" % info.node.format().strip() + "\n")
                         outstream.write(extractInfo.selectedLine + "\n")
                         outstream.write(extractInfo.markerLine + "\n\n")
                     pass
                 pass
+            if do_verify:
+                for deparsed_object in deparsed_objects:
+                    if (
+                        do_verify == "run"
+                        and PYTHON_VERSION_TRIPLE[:2] == deparsed_object.version
+                    ):
+                        result = subprocess.run(
+                            [sys.executable, deparsed_object.f.name],
+                            capture_output=True,
+                        )
+                        valid = result.returncode == 0
+                        output = result.stdout.decode()
+                        if output:
+                            print(output)
+                        pass
+                    else:
+                        valid = syntax_check(deparsed_object.f.name)
+
+                    if not valid:
+                        verify_failed_files += 1
+                        print(result.stderr.decode())
+
+                    # sys.stderr.write(f"Ran {deparsed_object.f.name}\n")
             tot_files += 1
         except (ValueError, SyntaxError, ParserError, pysource.SourceWalkerError) as e:
             sys.stdout.write("\n")
@@ -422,15 +464,25 @@ else:
         return ""
 
 
-def status_msg(do_verify, tot_files, okay_files, failed_files, verify_failed_files):
+def status_msg(
+    do_verify: bool,
+    tot_files: int,
+    okay_files: int,
+    failed_files: int,
+    verify_failed_files: Optional[int],
+):
     if tot_files == 1:
         if failed_files:
             return "\n# decompile failed"
         elif verify_failed_files:
             return "\n# decompile run verification failed"
+        elif do_verify:
+            return "\n# Successfully decompiled and ran or syntax-checked file"
         else:
             return "\n# Successfully decompiled file"
             pass
         pass
     mess = f"decompiled {tot_files} files: {okay_files} okay, {failed_files} failed"
+    if do_verify:
+        mess += f", {verify_failed_files} failed verification"
     return mess
