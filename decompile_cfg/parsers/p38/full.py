@@ -590,9 +590,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         if_and_stmt ::= expr_pjif expr COME_FROM
                         stmts _come_froms
 
-        if_and_elsestmtc    ::= expr_pjif
-                                expr_pjif
-                                c_stmts jb_cfs else_suitec opt_come_from_except
         if_or_not_elsestmt  ::= expr POP_JUMP_IF_TRUE
                                 come_from_opt expr POP_JUMP_IF_TRUE come_froms
                                 stmts jf_cfs else_suite opt_come_from_except
@@ -948,14 +945,9 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         # 3.6 redoes how return_closure works. FIXME: Isolate to LOAD_CLOSURE
         return_closure   ::= LOAD_CLOSURE DUP_TOP STORE_NAME RETURN_VALUE RETURN_LAST
 
-        jf_cf        ::= JUMP_FORWARD COME_FROM
-
         except_suite ::= c_stmts_opt COME_FROM POP_EXCEPT jump_except COME_FROM
 
-        jb_cfs      ::= come_from_opt JUMP_LOOP come_froms
-        ifelsestmtc ::= testexpr c_stmts_opt jb_cfs else_suitec
-
-        compare_chained2 ::= expr COMPARE_OP come_froms JUMP_FORWARD
+        compare_chained2 ::= expr COMPARE_OP block_break JUMP_FORWARD
         """
 
 
@@ -964,12 +956,17 @@ class Python38FullParser(Python38Parser, Python38LambdaParser):
         """
         # cf_pt introduced to keep indices the same in ifelsestmtc
         cf_pt              ::= COME_FROM POP_TOP
-        ifelsestmtc        ::= testexpr c_stmts cf_pt else_suite
 
         # 3.8 can push a looping JUMP_LOOP into into a JUMP_ from a statement that jumps to it
-        lastc_stmt         ::= ifpoplaststmtc
         ifpoplaststmtc     ::= testexpr POP_TOP c_stmts_opt
         ifelsestmtc        ::= testexpr c_stmts_opt jb_cfs else_suitec JUMP_LOOP come_froms
+        ifelsestmtc        ::= testexpr c_stmts_opt jb_cfs else_suitec
+        ifelsestmtc        ::= testexpr c_stmts cf_pt else_suite
+        if_and_elsestmtc   ::= expr_pjif
+                               expr_pjif
+                               c_stmts jb_cfs else_suitec opt_come_from_except
+        jb_cfs      ::= come_from_opt JUMP_LOOP come_froms
+        lastc_stmt         ::= ifpoplaststmtc
 
         # The below ifelsetmtc is a really weird one for the inner if/else in:
         #  if a:
