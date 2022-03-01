@@ -56,6 +56,10 @@ check-bytecode-3-list-comprehension:
 	$(PYTHON) test_pythonlib.py \
 	--bytecode-3.8 --list-comprehension
 
+check-bytecode-3-run:
+	$(PYTHON) test_pythonlib.py \
+	--bytecode-3.8 --run --verify-run
+
 check-bytecode-3-set-comprehension:
 	$(PYTHON) test_pythonlib.py \
 	--bytecode-3.8 --set-comprehension

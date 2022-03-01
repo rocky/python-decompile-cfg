@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import ast, datetime, py_compile, os, sys, traceback
+import ast, datetime, py_compile, os, sys
 import os.path as osp
 import subprocess
 import tempfile
@@ -273,7 +273,8 @@ def main(
     - files below out_base	out_base=...
     - stdout			out_base=None, outfile=None
     """
-    tot_files = okay_files = failed_files = verify_failed_files = 0
+    tot_files = okay_files = failed_files = 0
+    verify_failed_files = 0 if do_verify is not None else None
     current_outfile = outfile
     linemap_stream = None
 
@@ -346,21 +347,29 @@ def main(
                         outstream.write(extractInfo.markerLine + "\n\n")
                     pass
                 pass
-            if do_verify == "run":
+            if do_verify:
                 for deparsed_object in deparsed_objects:
-                    from trepan.api import debug; debug()
-                    if PYTHON_VERSION_TRIPLE[:2] == deparsed_object.version:
-                        result = subprocess.run([sys.executable, deparsed_object.f.name], capture_output=True)
+                    if (
+                        do_verify == "run"
+                        and PYTHON_VERSION_TRIPLE[:2] == deparsed_object.version
+                    ):
+                        result = subprocess.run(
+                            [sys.executable, deparsed_object.f.name],
+                            capture_output=True,
+                        )
                         valid = result.returncode == 0
+                        output = result.stdout.decode()
+                        if output:
+                            print(output)
+                        pass
                     else:
                         valid = syntax_check(deparsed_object.f.name)
-                    # sys.stderr.write(f"Ran {deparsed_object.f.name}\n")
-                    if valid:
+
+                    if not valid:
                         verify_failed_files += 1
                         print(result.stderr.decode())
-                    output = result.stdout.decode()
-                    if output:
-                        print(output)
+
+                    # sys.stderr.write(f"Ran {deparsed_object.f.name}\n")
             tot_files += 1
         except (ValueError, SyntaxError, ParserError, pysource.SourceWalkerError) as e:
             sys.stdout.write("\n")
@@ -455,17 +464,25 @@ else:
         return ""
 
 
-def status_msg(do_verify, tot_files, okay_files, failed_files, verify_failed_files):
+def status_msg(
+    do_verify: bool,
+    tot_files: int,
+    okay_files: int,
+    failed_files: int,
+    verify_failed_files: Optional[int],
+):
     if tot_files == 1:
         if failed_files:
             return "\n# decompile failed"
         elif verify_failed_files:
             return "\n# decompile run verification failed"
         elif do_verify:
-            return "\n# Successfully decompiled and ran file"
+            return "\n# Successfully decompiled and ran or syntax-checked file"
         else:
             return "\n# Successfully decompiled file"
             pass
         pass
     mess = f"decompiled {tot_files} files: {okay_files} okay, {failed_files} failed"
+    if do_verify:
+        mess += f", {verify_failed_files} failed verification"
     return mess

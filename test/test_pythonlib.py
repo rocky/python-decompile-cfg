@@ -169,7 +169,7 @@ def do_tests(src_dir, obj_patterns, target_dir, opts):
         )
         if failed_files != 0:
             sys.exit(2)
-        elif failed_verify != 0:
+        elif failed_verify:
             sys.exit(3)
 
     except (KeyboardInterrupt, OSError):
@@ -213,7 +213,7 @@ if __name__ == "__main__":
 
     test_opts = {
         "do_compile": False,
-        "do_verify": False,
+        "do_verify": None,
         "start_with": None,
         "rmtree": True,
         "coverage": False,
