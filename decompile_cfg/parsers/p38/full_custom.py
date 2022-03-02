@@ -18,6 +18,7 @@ from decompile_cfg.parsers.p38.lambda_custom import Python38LambdaCustom
 from decompile_cfg.parsers.reduce_check.and_check import and_ok
 from decompile_cfg.parsers.reduce_check.if_exp_check import if_exp_ok
 from decompile_cfg.parsers.reduce_check.comp_if_check import comp_if_ok
+from decompile_cfg.parsers.reduce_check.import_from38 import import_from38_ok
 
 class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
     def add_make_function_rule(self, rule, opname, attr, customize):
@@ -641,7 +642,7 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
         # self.check_reduce["ifstmtc"] = "AST"
         # self.check_reduce["ifstmts_jump"] = "AST"
         # self.check_reduce["ifstmts_jumpc"] = "AST"
-        # self.check_reduce["import_from37"] = "AST"
+        self.check_reduce["import_from38"] = "AST"
         # self.check_reduce["lastc_stmt"] = "tokens"
         # self.check_reduce["list_if_not"] = "AST"
         # self.check_reduce["while1elsestmt"] = "tokens"
@@ -665,6 +666,8 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
         # self.reduce_check_table["break"] = break_check
         # self.reduce_check_table["for38"] = for38_check
         # self.reduce_check_table["pop_return"] = pop_return_check
+
+        self.reduce_check_table["import_from38"] = import_from38_ok
 
         return
 

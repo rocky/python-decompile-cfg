@@ -478,26 +478,26 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
 
     def p_import38(self, args):
         """
-        stmt          ::= import_as38
+        # The 3.8base scanner adds IMPORT_NAME_ATTR
+        alias         ::= IMPORT_NAME_ATTR attributes store
+        alias         ::= IMPORT_NAME_ATTR store
+
+        alias38       ::= IMPORT_NAME store
+        alias38       ::= IMPORT_FROM store
+
         import_as38   ::= LOAD_CONST LOAD_CONST importlist38 store POP_TOP
+        import_from   ::= LOAD_CONST LOAD_CONST importlist POP_TOP
+        import_from38 ::= LOAD_CONST LOAD_CONST IMPORT_NAME_ATTR importlist38 POP_TOP
+
+        importattr38  ::= IMPORT_NAME_ATTR IMPORT_FROM
 
         importlist38  ::= importlist38 ROT_TWO IMPORT_FROM
         importlist38  ::= importlist38 ROT_TWO POP_TOP IMPORT_FROM
         importlist38  ::= importattr38
-        importattr38  ::= IMPORT_NAME_ATTR IMPORT_FROM
+        importlist38  ::= alias38+
 
-        # The 3.7base scanner adds IMPORT_NAME_ATTR
-        alias         ::= IMPORT_NAME_ATTR attributes store
-        alias         ::= IMPORT_NAME_ATTR store
-        import_from   ::= LOAD_CONST LOAD_CONST importlist POP_TOP
-
+        stmt          ::= import_as38
         stmt          ::= import_from38
-        importlist38  ::= importlist38 alias38
-        importlist38  ::= alias38
-        alias38       ::= IMPORT_NAME store
-        alias38       ::= IMPORT_FROM store
-        import_from38 ::= LOAD_CONST LOAD_CONST IMPORT_NAME_ATTR importlist38 POP_TOP
-
         """
 
     def p_32on(self, args):

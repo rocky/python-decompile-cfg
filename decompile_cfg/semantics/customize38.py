@@ -19,7 +19,8 @@
 # Python 3.8 changes
 #######################
 
-from decompile_cfg.semantics.consts import PRECEDENCE, TABLE_DIRECT
+from decompile_cfg.semantics.consts import PRECEDENCE, TABLE_DIRECT, maxint
+
 
 
 def customize_for_version38(self, version):
@@ -111,6 +112,16 @@ def customize_for_version38(self, version):
                 -2,
             ),
             "ifpoplaststmtc": ("%|if %c:\n%+%c%-", (0, "testexpr"), (2, "c_stmts")),
+
+            "import_as38": (
+                "%|import %c as %c\n",
+                2, -2
+            ),
+
+            "importlist38": (
+                "%C",
+                (0, maxint, ", ")
+             ),
 
             "pop_return": (
                 "%|return %c\n", (1, "return_expr")
