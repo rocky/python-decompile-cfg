@@ -2,6 +2,8 @@
 # uncompyle2 bug was not escaping """ properly
 
 # RUNNABLE!
+"""This program is self-checking!"""
+
 r'''func placeholder - with ("""\nstring\n""")'''
 
 def uni(word):
@@ -10,6 +12,8 @@ def uni(word):
   5
   """
 
+def dq5():
+    r'''func placeholder - ' and with ("""\nstring\n""")'''
 
 def foo():
     r'''func placeholder - ' and with ("""\nstring\n""")'''
@@ -62,13 +66,8 @@ def baz():
   5
   """
 
-dq0()
-dq1()
-dq2()
-dq3()
-dq4()
 dq5()
 dq6()
 # FIXME: Reinstate
-# dq7()
+dq7()
 baz()

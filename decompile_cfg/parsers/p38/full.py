@@ -73,10 +73,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         c_stmt  ::= break
         c_stmt  ::= continue
 
-        # If statement inside a loop. The RHS may have looping jumps in them.
-        c_stmt  ::= ifstmtc
-        c_stmt  ::= if_and_elsestmtc
-        c_stmt  ::= ifelsestmtc
         c_stmt  ::= c_tryfinallystmt
 
         c_stmt  ::= c_try_except
@@ -143,12 +139,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         expr_stmt ::= expr POP_TOP
         expr_stmt ::= branch_op dom_start POP_TOP
         call_stmt ::= call
-
-        stmt ::= ifstmt
-        stmt ::= if_or_stmt
-        stmt ::= if_and_stmt
-        stmt ::= ifelsestmt
-        stmt ::= if_or_not_elsestmt
 
         stmt ::= whilestmt
         stmt ::= while1stmt
@@ -283,6 +273,92 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         """
         stmt       ::= await_stmt
         await_stmt ::= await_expr POP_TOP
+        """
+
+    def p_ifstmt(self, args):
+        """
+        # If statement inside a loop. The RHS may have looping jumps in them.
+        c_stmt  ::= ifstmtc
+        c_stmt  ::= if_and_elsestmtc
+        c_stmt  ::= ifelsestmtc
+
+        if_or_stmt  ::= expr POP_JUMP_IF_TRUE expr pop_jump come_froms
+                        stmts COME_FROM
+        if_and_stmt ::= expr_pjif expr COME_FROM
+                        stmts _come_froms
+
+        if_or_not_elsestmt  ::= expr POP_JUMP_IF_TRUE
+                                come_from_opt expr POP_JUMP_IF_TRUE come_froms
+                                stmts jf_cfs else_suite opt_come_from_except
+
+
+        # For "iflaststmt" there is a rule check for the below that the end of
+        # "stmts" doesn't fall through.
+        iflaststmt  ::= testexpr stmts
+        iflaststmt  ::= testexpr returns
+        iflaststmt  ::= testexpr stmts JUMP_FORWARD
+
+        iflaststmtc ::= testexpr c_stmts
+        iflaststmtc ::= testexpr c_stmts JUMP_LOOP
+        iflaststmtc ::= testexpr c_stmts JUMP_LOOP COME_FROM_LOOP
+        iflaststmtc ::= testexpr c_stmts JUMP_LOOP POP_BLOCK
+
+        # c_stmts might terminate, or have "continue" so no JUMP_LOOP.
+        # But if that's true, the "testexpr" needs still to jump to the "COME_FROM'
+        iflaststmtc ::= testexpr c_stmts come_froms
+
+        # Note: in if/else kinds of statements, we err on the side
+        # of missing "else" clauses. Therefore we include grammar
+        # rules with and without ELSE.
+
+        ifelsestmt    ::= testexpr
+                          stmts_opt jf_cfs else_suite_opt opt_come_from_except
+        ifelsestmt    ::= branch_op
+                          stmts_opt jf_cfs else_suite_opt opt_come_from_except
+
+
+        ifelsestmtc ::= testexpr
+                        c_stmts_opt jump_forward_else
+                        else_suitec opt_come_from_except
+        ifelsestmtc ::= testexpr
+                        c_stmts_opt cf_jump_back
+                        else_suitec
+
+        # This handles the case where a "JUMP_ABSOLUTE" is part
+        # of an inner if in c_stmts_opt
+        ifelsestmtc ::= testexpr c_stmts come_froms
+                        else_suite
+
+
+        ifelsestmtr ::= testexpr return_if_stmts returns
+
+
+
+
+        # These rules need reduce checks on dominator information.
+        # In particular, testexpr has to jump to to the end
+        # of "ifstmt".
+        ifstmt        ::= testexpr stmts
+        ifstmt        ::= testexpr ifstmts_jump
+
+        ifstmt_branch ::= or_and_not stmts block_break
+        ifstmt_branch ::= or_and1 stmts block_break
+        ifstmt_branch ::= not_and_not stmts block_break
+
+        ifstmts_jump ::= return_if_stmts
+        ifstmts_jump ::= stmts_opt block_break
+        ifstmts_jump ::= block_break stmts block_break
+
+        # Python 3.4+ optimizes the trailing two JUMPS away
+        ifstmts_jump ::= stmts_opt JUMP_FORWARD JUMP_FORWARD _come_froms
+
+
+        stmt ::= if_and_stmt
+        stmt ::= if_or_not_elsestmt
+        stmt ::= if_or_stmt
+        stmt ::= ifelsestmt
+        stmt ::= ifstmt
+        stmt ::= ifstmt_branch
         """
 
     def p_for_loop(self, args):
@@ -574,26 +650,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         pop_jump    ::= POP_JUMP_IF_TRUE
         pop_jump    ::= POP_JUMP_IF_FALSE
 
-        # These rules need reduce checks on dominator information.
-        # In particular, testexpr has to jump to to the end
-        # of "ifstmt".
-        ifstmt      ::= testexpr stmts
-        ifstmt      ::= testexpr ifstmts_jump
-
-        stmt        ::= ifstmt_bool
-        ifstmt_bool ::= or_and_not stmts come_froms
-        ifstmt_bool ::= or_and1 stmts come_froms
-        ifstmt_bool ::= not_and_not stmts come_froms
-
-        if_or_stmt  ::= expr POP_JUMP_IF_TRUE expr pop_jump come_froms
-                        stmts COME_FROM
-        if_and_stmt ::= expr_pjif expr COME_FROM
-                        stmts _come_froms
-
-        if_or_not_elsestmt  ::= expr POP_JUMP_IF_TRUE
-                                come_from_opt expr POP_JUMP_IF_TRUE come_froms
-                                stmts jf_cfs else_suite opt_come_from_except
-
         testexpr   ::= testfalse
         testexpr   ::= testtrue
         testexpr   ::= or_and_not
@@ -620,54 +676,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         testfalse  ::= or_cond
         testfalse  ::= or_cond1
         testfalse  ::= and_or_cond
-
-        ifstmts_jump ::= return_if_stmts
-        ifstmts_jump ::= stmts_opt block_break
-        ifstmts_jump ::= COME_FROM stmts COME_FROM
-
-        # Python 3.4+ optimizes the trailing two JUMPS away
-        ifstmts_jump ::= stmts_opt JUMP_FORWARD JUMP_FORWARD _come_froms
-
-        # For "iflaststmt" there is a rule check for the below that the end of
-        # "stmts" doesn't fall through.
-        iflaststmt  ::= testexpr stmts
-        iflaststmt  ::= testexpr returns
-        iflaststmt  ::= testexpr stmts JUMP_FORWARD
-
-        iflaststmtc ::= testexpr c_stmts
-        iflaststmtc ::= testexpr c_stmts JUMP_LOOP
-        iflaststmtc ::= testexpr c_stmts JUMP_LOOP COME_FROM_LOOP
-        iflaststmtc ::= testexpr c_stmts JUMP_LOOP POP_BLOCK
-
-        # c_stmts might terminate, or have "continue" so no JUMP_LOOP.
-        # But if that's true, the "testexpr" needs still to jump to the "COME_FROM'
-        iflaststmtc ::= testexpr c_stmts come_froms
-
-        # Note: in if/else kinds of statements, we err on the side
-        # of missing "else" clauses. Therefore we include grammar
-        # rules with and without ELSE.
-
-        ifelsestmt    ::= testexpr
-                          stmts_opt jf_cfs else_suite_opt opt_come_from_except
-        ifelsestmt    ::= branch_op
-                          stmts_opt jf_cfs else_suite_opt opt_come_from_except
-
-
-        ifelsestmtc ::= testexpr
-                        c_stmts_opt jump_forward_else
-                        else_suitec opt_come_from_except
-        ifelsestmtc ::= testexpr
-                        c_stmts_opt cf_jump_back
-                        else_suitec
-
-        # This handles the case where a "JUMP_ABSOLUTE" is part
-        # of an inner if in c_stmts_opt
-        ifelsestmtc ::= testexpr c_stmts come_froms
-                        else_suite
-
-
-        ifelsestmtr ::= testexpr return_if_stmts returns
-
 
         cf_jump_back ::= COME_FROM JUMP_LOOP
 
