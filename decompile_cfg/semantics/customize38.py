@@ -113,16 +113,6 @@ def customize_for_version38(self, version):
             ),
             "ifpoplaststmtc": ("%|if %c:\n%+%c%-", (0, "testexpr"), (2, "c_stmts")),
 
-            "import_as38": (
-                "%|import %c as %c\n",
-                2, -2
-            ),
-
-            "importlist38": (
-                "%C",
-                (0, maxint, ", ")
-             ),
-
             "pop_return": (
                 "%|return %c\n", (1, "return_expr")
              ),

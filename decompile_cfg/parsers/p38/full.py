@@ -482,22 +482,27 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         alias         ::= IMPORT_NAME_ATTR attributes store
         alias         ::= IMPORT_NAME_ATTR store
 
-        alias38       ::= IMPORT_NAME store
-        alias38       ::= IMPORT_FROM store
+        alias37       ::= IMPORT_NAME store
+        alias37       ::= IMPORT_FROM store
 
-        import_as38   ::= LOAD_CONST LOAD_CONST importlist38 store POP_TOP
+        import_as37   ::= LOAD_CONST LOAD_CONST importlists store POP_TOP
         import_from   ::= LOAD_CONST LOAD_CONST importlist POP_TOP
-        import_from38 ::= LOAD_CONST LOAD_CONST IMPORT_NAME_ATTR importlist38 POP_TOP
+        import_from37 ::= LOAD_CONST LOAD_CONST IMPORT_NAME_ATTR importlists POP_TOP
 
-        importattr38  ::= IMPORT_NAME_ATTR IMPORT_FROM
+        # A single entry in a dotted import a.b.c.d
+        import_one    ::= importlists ROT_TWO IMPORT_FROM
+        import_one    ::= importlists ROT_TWO POP_TOP IMPORT_FROM
 
-        importlist38  ::= importlist38 ROT_TWO IMPORT_FROM
-        importlist38  ::= importlist38 ROT_TWO POP_TOP IMPORT_FROM
-        importlist38  ::= importattr38
-        importlist38  ::= alias38+
+        importattr37  ::= IMPORT_NAME_ATTR IMPORT_FROM
 
-        stmt          ::= import_as38
-        stmt          ::= import_from38
+        importlist37  ::= import_one
+        importlist37  ::= importattr37
+        importlist37  ::= alias37+
+
+        importlists   ::= importlist37+
+
+        stmt          ::= import_as37
+        stmt          ::= import_from37
         """
 
     def p_32on(self, args):

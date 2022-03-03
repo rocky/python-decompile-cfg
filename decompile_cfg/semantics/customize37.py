@@ -246,10 +246,24 @@ def customize_for_version37(self, version):
                 (6, "stmts"),
                 (-2, "else_suite"),
             ),
-            "import_as37": ("%|import %c as %c\n", 2, -2),
-            "import_from37": ("%|from %[2]{pattr} import %c\n", (3, "importlist37")),
-            "importattr37": ("%c", (0, "IMPORT_NAME_ATTR")),
-            "importlist37": ("%C", (0, maxint, ", ")),
+
+            "importattr37": (
+                "%c",
+                (0, "IMPORT_NAME_ATTR")
+             ),
+
+            "import_as37": (
+                "%|import %c as %c\n",
+                2, -2
+            ),
+
+            "import_from37": ("%|from %[2]{pattr} import %c\n", (3, "importlists")),
+
+            "import_one": (
+                "%c",
+                (0, "importlists"),
+             ),
+
             "or_and_not": ("%c or %c", (0, "expr_pjit"), (1, "and_not"),),
             "or_cond": (
                 "%c or %c",

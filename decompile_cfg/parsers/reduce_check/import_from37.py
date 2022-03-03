@@ -13,16 +13,16 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-def import_from38_ok(
+def import_from37_ok(
     self, lhs: str, n: int, rule, tree, tokens: list, first: int, last: int
 ) -> bool:
     """
-    Returns True if we can't find any reason to disallow an "import_from38" reduction.
+    Returns True if we can't find any reason to disallow an "import_from37" reduction.
     """
-    importlist38 = tree[3]
-    alias38 = importlist38[0]
-    if importlist38 == "importlist38" and alias38 == "alias38":
-        store = alias38[1]
+    importlists = tree[3]
+    alias37 = importlists[0]
+    if importlists == "importlists" and alias37 == "alias37":
+        store = alias37[1]
         assert store == "store"
-        return alias38[0].attr == store[0].attr
+        return alias37[0].attr == store[0].attr
     return True
