@@ -247,11 +247,6 @@ def customize_for_version37(self, version):
                 (-2, "else_suite"),
             ),
 
-            "importattr37": (
-                "%c",
-                (0, "IMPORT_NAME_ATTR")
-             ),
-
             "import_as37": (
                 "%|import %c as %c\n",
                 2, -2
@@ -262,6 +257,11 @@ def customize_for_version37(self, version):
             "import_one": (
                 "%c",
                 (0, "importlists"),
+             ),
+
+            "importattr37": (
+                "%c",
+                (0, "IMPORT_NAME_ATTR")
              ),
 
             "or_and_not": ("%c or %c", (0, "expr_pjit"), (1, "and_not"),),
