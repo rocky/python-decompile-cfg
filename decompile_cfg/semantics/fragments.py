@@ -76,6 +76,7 @@ from decompile_cfg.show import maybe_show_asm, maybe_show_tree
 
 from decompile_cfg.parsers.treenode import SyntaxTree
 
+from decompile_cfg.semantics.helper import is_lambda_mode
 from decompile_cfg.semantics.pysource import ParserError, StringIO
 
 from decompile_cfg.semantics.consts import (
@@ -1175,7 +1176,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
         code,
         is_lambda=False,
         noneInNames=False,
-        isTopLevel=False,
+        is_top_level_module=False,
     ):
 
         # FIXME: DRY with pysource.py
@@ -1226,7 +1227,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
                 # Python 3.4's classes can add a "return None" which is
                 # invalid syntax.
                 if tokens[-2].kind == "LOAD_CONST":
-                    if isTopLevel or tokens[-2].pattr is None:
+                    if is_top_level_module or tokens[-2].pattr is None:
                         del tokens[-2:]
                     else:
                         tokens.append(Token("RETURN_LAST"))
@@ -1671,7 +1672,6 @@ class FragmentsWalker(pysource.SourceWalker, object):
             if elem in ("ROT_THREE", "EXTENDED_ARG"):
                 continue
             assert elem in ("expr", "list", "lists")
-            line_number = self.line_number
             value = self.traverse(elem)
             self.node_append(sep, value, elem)
             sep = line_separator
@@ -1860,7 +1860,6 @@ class FragmentsWalker(pysource.SourceWalker, object):
             elif typ == "P":
                 p = self.prec
                 low, high, sep, self.prec = entry[arg]
-                lastC = remaining = len(node[low:high])
                 start = self.last_finish
                 for subnode in node[low:high]:
                     self.preorder(subnode)
@@ -2014,8 +2013,8 @@ def code_deparse(
         is_pypy=is_pypy,
     )
 
-    isTopLevel = co.co_name == "<module>"
-    deparsed.ast = deparsed.build_ast(tokens, customize, co, isTopLevel=isTopLevel)
+    is_top_level_module = co.co_name == "<module>"
+    deparsed.ast = deparsed.build_ast(tokens, customize, co, is_top_level_module=is_top_level_module)
 
     # FIXME use a lookup table here.
     if is_lambda_mode(compile_mode):

@@ -2597,7 +2597,7 @@ class SourceWalker(GenericASTTraversal, object):
         code,
         is_lambda=False,
         noneInNames=False,
-        isTopLevel=False,
+        is_top_level_module=False,
     ):
 
         # FIXME: DRY with fragments.py
@@ -2652,7 +2652,7 @@ class SourceWalker(GenericASTTraversal, object):
                     # invalid syntax.
                     load_const = tokens[-2]
                     if load_const.kind == "LOAD_CONST":
-                        if isTopLevel or load_const.pattr is None:
+                        if is_top_level_module or load_const.pattr is None:
                             del tokens[-2:]
             if len(tokens) == 0:
                 return PASS
@@ -2681,7 +2681,7 @@ class SourceWalker(GenericASTTraversal, object):
 
         del parse_tree  # Save memory
 
-        if isTopLevel and transform_tree[-1] == "return":
+        if is_top_level_module and transform_tree[-1] == "return":
             # We can't issue a return from a top-level module and
             # "return" or "return None" is automatically added.
             # FIXME? check transform_tree[-1] specifically for "return None"?
@@ -2737,7 +2737,7 @@ def code_deparse(
         linestarts=linestarts,
     )
 
-    isTopLevel = co.co_name == "<module>"
+    is_top_level_module = co.co_name == "<module>"
     if compile_mode == "eval":
         deparsed.hide_internal = False
     deparsed.compile_mode = compile_mode
@@ -2746,7 +2746,7 @@ def code_deparse(
         customize,
         co,
         is_lambda=is_lambda_mode(compile_mode),
-        isTopLevel=isTopLevel,
+        is_top_level_module=is_top_level_module,
     )
 
     #### XXX workaround for profiling
