@@ -489,13 +489,25 @@ class SourceWalker(GenericASTTraversal, object):
             self.write(*data)
         self.pending_newlines = max(self.pending_newlines, 1)
 
-    def is_return_none(self, node):
-        # Is there a better way?
+    def is_return_none(self, node) -> bool:
+        """
+        Return whether tree node is represents "return None".
+        This is made more difficult by the use of dominator
+        and grammar elements.
+
+        Often we test this because we need to remove "return None"
+        from the ends of modules and remove "None" from "return None"
+        in generators.
+        """
+        # We don't use something like
+        # node == RETURN_EXPR_NONE
+        # because there can be dominator information attached.
         ret = (
             node[0] == "return_expr"
             and node[0][0] == "expr"
-            and node[0][0][0] == "LOAD_CONST"
-            and node[0][0][0].pattr is None
+            and node[0][0][0] == "constant"
+            and node[0][0][0][0] == "LOAD_CONST"
+            and node[0][0][0][0].pattr is None
         )
 
         # FIXME: should the SyntaxTree expression be folded into
@@ -2605,21 +2617,23 @@ class SourceWalker(GenericASTTraversal, object):
                 p = self.p_lambda
                 p.insts = self.scanner.insts
                 p.offset2inst_index = self.scanner.offset2inst_index
-                ast = python_parser.parse(p, tokens, customize, is_lambda)
+                parse_tree = python_parser.parse(p, tokens, customize, is_lambda)
                 self.customize(customize)
 
             except (heads.ParserError, AssertionError) as e:
                 raise ParserError(e, tokens, self.p.debug["reduce"])
-            transform_ast = self.treeTransform.transform(ast, code)
-            self.maybe_show_tree(ast, phase="after")
-            del ast  # Save memory
-            return transform_ast
+            transform_tree = self.treeTransform.transform(parse_tree, code)
+            self.maybe_show_tree(parse_tree, phase="after")
+            del parse_tree  # Save memory
+            return transform_tree
 
         # The bytecode for the end of the main routine has a
         # "return None". However you can't issue a "return" statement in
         # main. So as the old cigarette slogan goes: I'd rather switch (the token stream)
         # than fight (with the grammar to not emit "return None").
 
+        # FIXME: do we need to remove this here or can we consolidate
+        # this with the below where we remove "return"
         # Also return DOM_START BB_START and BB_END DOM_END
         if self.hide_internal:
             assert tokens[0] == "DOM_START"
@@ -2651,22 +2665,30 @@ class SourceWalker(GenericASTTraversal, object):
             self.p.insts = self.scanner.insts
             self.p.offset2inst_index = self.scanner.offset2inst_index
             self.p.opc = self.scanner.opc
-            ast = python_parser.parse(self.p, tokens, customize, is_lambda=is_lambda)
+            parse_tree = python_parser.parse(self.p, tokens, customize, is_lambda=is_lambda)
 
             self.p.insts = p_insts
         except (heads.ParserError, AssertionError) as e:
             # from trepan.api import debug; debug()
             raise ParserError(e, tokens, self.p.debug["reduce"])
 
-        checker(ast, False, self.ast_errors)
+        checker(parse_tree, False, self.ast_errors)
 
         self.customize(customize)
-        transform_ast = self.treeTransform.transform(ast, code)
+        transform_tree = self.treeTransform.transform(parse_tree, code)
 
-        self.maybe_show_tree(ast, phase="after")
+        self.maybe_show_tree(parse_tree, phase="after")
 
-        del ast  # Save memory
-        return transform_ast
+        del parse_tree  # Save memory
+
+        if isTopLevel and transform_tree[-1] == "return":
+            # We can't issue a return from a top-level module and
+            # "return" or "return None" is automatically added.
+            # FIXME? check transform_tree[-1] specifically for "return None"?
+            # return with a value is syntactically disallowed.
+            del transform_tree[-1]
+
+        return transform_tree
 
     @classmethod
     def _get_mapping(cls, node):
@@ -2756,14 +2778,16 @@ def code_deparse(
         deparsed.ast, set(), set(), co, version
     )
 
-    if compile_mode not in (
+    deparsed.is_module = compile_mode not in (
         "dictcomp",
         "gencomp",
         "genexpr",
         "lambda",
         "listcomp",
         "setcomp",
-    ):
+    )
+
+    if deparsed.is_module:
         assert not nonlocals
 
     deparsed.FUTURE_UNICODE_LITERALS = (

@@ -744,7 +744,7 @@ TABLE_DIRECT = {
         (1, NO_PARENTHESIS_EVER)
         ),
 
-    "slice2": ( "%c[:%p]",
+    "slice2": ( "[%c:%p]",
         (0, "expr"),
         (1, NO_PARENTHESIS_EVER)
         ),
@@ -767,9 +767,18 @@ TABLE_DIRECT = {
         (0, "expr")
         ),
 
-    "subscript":                ( "%p[%c]",
-                                      (0, "expr", PRECEDENCE["subscript"]),
-                                      (1, "expr") ),
+    "subscript": (
+        "%p[%p]",
+        (0, "expr", PRECEDENCE["subscript"]),
+        (1, "expr", NO_PARENTHESIS_EVER)
+    ),
+
+    "subscript2": (
+        "%p[%p]",
+        (0, "expr", PRECEDENCE["subscript"]),
+        (1, "expr", NO_PARENTHESIS_EVER)
+    ),
+
 
     "testtrue":         ( "not %p",
                           (0, PRECEDENCE["unary_not"]) ),
