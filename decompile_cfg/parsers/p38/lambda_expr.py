@@ -724,6 +724,14 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         # FIXME: generalize this
         return_expr_lambda      ::= dom_start_opt
+                                    dict_comp_func
+                                    RETURN_VALUE
+                                    bb_doms_end
+
+        return_expr_lambda      ::= dom_start_opt
+                                    dict_comp_func
+
+        return_expr_lambda      ::= dom_start_opt
                                     generator_exp
                                     LOAD_CONST
                                     RETURN_VALUE
@@ -738,14 +746,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                     set_comp_func
                                     RETURN_VALUE
                                     bb_doms_end
-
-        return_expr_lambda      ::= dom_start_opt
-                                    dict_comp_func
-                                    RETURN_VALUE
-                                    bb_doms_end
-
-        return_expr_lambda      ::= dom_start_opt
-                                    dict_comp_func
 
         return_expr_lambda      ::= if_exp_lambda
         return_expr_lambda      ::= if_exp_binop_lambda
