@@ -947,8 +947,11 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         expr       ::= subscript2
 
         named_expr        ::= expr DUP_TOP store
-        subscript2 ::= expr expr DUP_TOP_TWO BINARY_SUBSCR
 
+        # Note: we don't have global storing in lambda's.
+        store             ::= STORE_GLOBAL
+
+        subscript2 ::= expr expr DUP_TOP_TWO BINARY_SUBSCR
         """
 
     def p_38misc(self, args):
