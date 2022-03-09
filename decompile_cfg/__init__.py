@@ -1,5 +1,5 @@
 """
-  Copyright (c) 2015, 2018, 2020-2021 by Rocky Bernstein
+  Copyright (c) 2015, 2018, 2020-2022 by Rocky Bernstein
   Copyright (c) 2000 by hartmut Goebel <h.goebel@crazy-compilers.com>
   Copyright (c) 1999 John Aycock
 
@@ -30,25 +30,23 @@ import sys
 
 __docformat__ = "restructuredtext"
 
-from decompile_cfg.version import __version__  # noqa
-from xdis import PYTHON_VERSION_TRIPLE
+# Export some convenience functions so you can say:
+# from decompile_cfg import (code_deparse, deparse_code2str)
 
-PYTHON_VERSION_STR: str = "%s.%s" % (sys.version_info[0], sys.version_info[1])
-
-IS_PYPY: bool = "__pypy__" in sys.builtin_module_names
+from decompile_cfg.main import decompile_file
+from decompile_cfg.semantics import fragments, pysource
+from decompile_cfg.semantics.pysource import code_deparse, deparse_code2str
+from decompile_cfg.version import __version__
 
 if hasattr(sys, "setrecursionlimit"):
     # pyston doesn't have setrecursionlimit
     sys.setrecursionlimit(5000)
 
-import decompile_cfg.semantics.pysource
-import decompile_cfg.semantics.fragments
-
-# Export some functions
-from decompile_cfg.main import decompile_file
-
-# Convenience functions so you can say:
-# from decompile_cfg import (code_deparse, deparse_code2str)
-
-deparse_code2str = decompile_cfg.semantics.pysource.deparse_code2str
-code_deparse = decompile_cfg.semantics.pysource.code_deparse
+__all__ = [
+    "__version__",
+    "code_deparse",
+    "decompile_file",
+    "deparse_code2str",
+    "fragments",
+    "pysource",
+]
