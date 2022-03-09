@@ -104,6 +104,85 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
         """
         )
 
+    # def custom_classfunc_rule(self, opname, token, customize, next_token):
+    #     """
+    #     call ::= expr {expr}^n CALL_FUNCTION_n
+    #     call ::= expr {expr}^n CALL_FUNCTION_VAR_n
+    #     call ::= expr {expr}^n CALL_FUNCTION_VAR_KW_n
+    #     call ::= expr {expr}^n CALL_FUNCTION_KW_n
+
+    #     classdefdeco2 ::= LOAD_BUILD_CLASS mkfunc {expr}^n-1 CALL_FUNCTION_n
+    #     """
+    #     args_pos, args_kw = self.get_pos_kw(token)
+
+    #     # Additional exprs for * and ** args:
+    #     #  0 if neither
+    #     #  1 for CALL_FUNCTION_VAR or CALL_FUNCTION_KW
+    #     #  2 for * and ** args (CALL_FUNCTION_VAR_KW).
+    #     # Yes, this computation based on instruction name is a little bit hoaky.
+    #     nak = (len(opname) - len("CALL_FUNCTION")) // 3
+    #     uniq_param = args_kw + args_pos
+    #     if frozenset(("GET_AWAITABLE", "YIELD_FROM")).issubset(self.seen_ops):
+    #         rule = (
+    #             "async_call ::= expr "
+    #             + ("expr " * args_pos)
+    #             + ("kwarg " * args_kw)
+    #             + "expr " * nak
+    #             + token.kind
+    #             + " GET_AWAITABLE LOAD_CONST YIELD_FROM"
+    #         )
+    #         self.add_unique_rule(rule, token.kind, uniq_param, customize)
+    #         self.add_unique_rule(
+    #             "expr ::= async_call", token.kind, uniq_param, customize
+    #         )
+
+    #     if opname.startswith("CALL_FUNCTION_VAR"):
+    #         token.kind = self.call_fn_name(token)
+    #         if opname.endswith("KW"):
+    #             kw = "expr "
+    #         else:
+    #             kw = ""
+    #         rule = (
+    #             "call ::= expr expr "
+    #             + ("expr " * args_pos)
+    #             + ("kwarg " * args_kw)
+    #             + kw
+    #             + token.kind
+    #         )
+
+    #         # Note: semantic actions make use of the fact of whether "args_pos"
+    #         # zero or not in creating a template rule.
+    #         self.add_unique_rule(rule, token.kind, args_pos, customize)
+    #     else:
+    #         token.kind = self.call_fn_name(token)
+    #         uniq_param = args_kw + args_pos
+
+    #         # Note: 3.5+ have subclassed this method; so we don't handle
+    #         # 'CALL_FUNCTION_VAR' or 'CALL_FUNCTION_EX' here.
+    #         rule = (
+    #             "call ::= expr "
+    #             + ("expr " * args_pos)
+    #             + ("kwarg " * args_kw)
+    #             + "expr " * nak
+    #             + token.kind
+    #         )
+
+    #         self.add_unique_rule(rule, token.kind, uniq_param, customize)
+
+    #         if "LOAD_BUILD_CLASS" in self.seen_ops:
+    #             if (
+    #                 next_token == "CALL_FUNCTION"
+    #                 and next_token.attr == 1
+    #                 and args_pos > 1
+    #             ):
+    #                 rule = "classdefdeco2 ::= LOAD_BUILD_CLASS mkfunc %s%s_%d" % (
+    #                     ("expr " * (args_pos - 1)),
+    #                     opname,
+    #                     args_pos,
+    #                 )
+    #                 self.add_unique_rule(rule, token.kind, uniq_param, customize)
+
+
     def customize_grammar_rules_full38(self, tokens, customize):
 
         self.customize_grammar_rules_lambda38(tokens, customize)
@@ -165,23 +244,7 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
         # Loop over instructions adding custom grammar rules based on
         # a specific instruction seen.
 
-        if "LOAD_BUILD_CLASS" in self.seen_ops:
-            if (
-                next_token == "CALL_FUNCTION"
-                and next_token.attr == 1
-                and args_pos > 1
-            ):
-                rule = "classdefdeco2 ::= LOAD_BUILD_CLASS mkfunc %s%s_%d" % (
-                    ("expr " * (args_pos - 1)),
-                    opname,
-                    args_pos,
-                )
-                self.add_unique_rule(rule, token.kind, uniq_param, customize)
-
-
-        is_pypy = False
         if "PyPy" in customize:
-            is_pypy = True
             self.addRule(
                 """
               stmt ::= assign3_pypy
@@ -191,8 +254,6 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
               """,
                 nop_func,
             )
-
-        n = len(tokens)
 
         for i, token in enumerate(tokens):
             opname = token.kind
@@ -204,6 +265,8 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                 or opname in custom_ops_processed
             ):
                 continue
+
+            opname_base = opname[: opname.rfind("_")]
 
             # The order of opname listed is roughly sorted below
 
@@ -347,18 +410,38 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                     """
                     self.addRule(rule, nop_func)
 
-                if "LOAD_BUILD_CLASS" in self.seen_ops:
-                    if (
-                        next_token == "CALL_FUNCTION"
-                        and tokens[i + 1].attr == 1
-                        and args_pos > 1
-                    ):
-                        rule = "classdefdeco2 ::= LOAD_BUILD_CLASS mkfunc %s%s_%d" % (
-                            ("expr " * (args_pos - 1)),
-                            opname,
-                            args_pos,
-                        )
-                        self.add_unique_rule(rule, token.kind, uniq_param, customize)
+                # self.custom_classfunc_rule(opname, token, customize, tokens[i + 1])
+                # Note: don't add to custom_ops_processed.
+
+            elif opname_base == "CALL_METHOD":
+                # PyPy and Python 3.7+ only - DRY with parse2
+
+                if opname == "CALL_METHOD_KW":
+                    args_kw = token.attr
+                    rules_str = """
+                         expr ::= call_kw_pypy37
+                         pypy_kw_keys ::= LOAD_CONST
+                    """
+                    self.add_unique_doc_rules(rules_str, customize)
+                    rule = (
+                        "call_kw_pypy37 ::= expr "
+                        + ("expr " * args_kw)
+                        + " pypy_kw_keys "
+                        + opname
+                    )
+                else:
+                    args_pos, args_kw = self.get_pos_kw(token)
+                    # number of apply equiv arguments:
+                    nak = (len(opname_base) - len("CALL_METHOD")) // 3
+                    rule = (
+                        "call ::= expr "
+                        + ("expr " * args_pos)
+                        + ("kwarg " * args_kw)
+                        + "expr " * nak
+                        + opname
+                    )
+
+                self.add_unique_rule(rule, opname, token.attr, customize)
 
             elif opname == "CONTINUE":
                 self.addRule("continue ::= CONTINUE", nop_func)
