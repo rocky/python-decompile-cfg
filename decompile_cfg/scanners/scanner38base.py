@@ -277,25 +277,22 @@ class Scanner38Base(Scanner):
             #   raise AssertionError
             #  and
             #   assert ...
-            # If we have a JUMP_FORWARD after the
-            # RAISE_VARARGS then we have a "raise" statement
-            # else we have an "assert" statement.
-            assert_can_follow = inst.opname == "POP_JUMP_IF_TRUE" and i + 1 < n
+            # If we have:
+            #    POP_JUMP_IF_TRUE
+            #    LOAD_GLOBAL AssertionError
+            #    RAISE_VARARGS
+            # then we have an "assert" statement.
+            # then we have a "raise" statement
+            assert_can_follow = inst.opname == "POP_JUMP_IF_TRUE" and i + 2 < n
             if assert_can_follow:
-                next_inst = self.insts[i + 1]
+                load_global_inst = self.insts[i + 1]
                 if (
-                    next_inst.opname == "LOAD_GLOBAL"
-                    and next_inst.argval == "AssertionError"
+                    load_global_inst.opname == "LOAD_GLOBAL"
+                    and load_global_inst.argval == "AssertionError"
                 ):
-                    # FIXME: 3.10 needs this, but 3.8 doesn't. Why?
-                    # jump_val = get_jump_val(inst.argval, self.version)
-                    jump_val = inst.argval
-                    raise_idx = self.offset2inst_index[self.prev_op[jump_val]]
-                    while self.insts[raise_idx].optype == "pseudo":
-                        raise_idx -= 1
-                    raise_inst = self.insts[raise_idx]
+                    raise_inst = self.insts[i + 2]
                     if raise_inst.opname.startswith("RAISE_VARARGS"):
-                        self.load_asserts.add(next_inst.offset)
+                        self.load_asserts.add(load_global_inst.offset)
                     pass
                 pass
 
@@ -609,9 +606,9 @@ class Scanner38Base(Scanner):
                 ):
                     stmts.remove(stmt_offset)
                     continue
-                # Rewing ops till we encounter non-JUMP_ABSOLUTE one
+                # Scan back bytecode ops till we encounter non-JUMP_ABSOLUTE op
                 j = self.prev_op[stmt_offset]
-                while code[j] == self.opc.JUMP_ABSOLUTE:
+                while code[j] == self.opc.JUMP_ABSOLUTE and j > 0:
                     j = self.prev_op[j]
                 # If we got here, then it's list comprehension which
                 # is not a statement too
