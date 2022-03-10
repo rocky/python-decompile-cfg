@@ -15,7 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Python 3.10 bytecode scanner/deparser base.
+Python 3.8 bytecode scanner/deparser base.
 
 Also we *modify* the instruction sequence to assist deparsing code.
 For example:
@@ -29,8 +29,6 @@ For example:
 Finally we save token information.
 """
 
-from typing import Any, Dict
-
 from control_flow.augment_disasm import augment_instructions
 from control_flow.bb import basic_blocks
 from control_flow.cfg import ControlFlowGraph
@@ -40,7 +38,6 @@ from xdis import iscode, instruction_size
 from xdis.bytecode import _get_const_info
 
 from decompile_cfg.scanner import Token, Scanner
-import xdis
 
 # Get all the opcodes into globals
 import xdis.opcodes.opcode_38 as op3
@@ -505,6 +502,7 @@ class Scanner38Base(Scanner):
                         if tokens[-1].kind == "JUMP_LOOP" and tokens[-1].attr <= argval:
                             if tokens[-2].kind == "BREAK_LOOP":
                                 del tokens[-1]
+                                j -= 1
                             else:
                                 # intern is used because we are changing the *previous* token.
                                 # A POP_TOP suggests a "break" rather than a "continue"?
