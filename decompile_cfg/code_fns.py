@@ -44,7 +44,7 @@ from py_compile import PyCompileError
 
 
 def disco_deparse(
-    version: str, co, codename_map: dict, out, is_pypy, debug_opts
+    version: Optional[tuple], co, codename_map: dict, out, is_pypy, debug_opts
 ) -> None:
     """
     diassembles and deparses a given code block 'co'
@@ -62,12 +62,20 @@ def disco_deparse(
 
     queue = deque([co])
     disco_deparse_loop(
+        version,
         scanner.ingest, codename_map, queue, real_out, is_pypy, debug_opts
     )
 
 
 def disco_deparse_loop(
-        disasm, codename_map: dict, queue, real_out, is_pypy, debug_opts
+    version: Optional[tuple],
+    disasm,
+    codename_map:
+    dict,
+    queue,
+    real_out,
+    is_pypy,
+    debug_opts
 ):
 
     while len(queue) > 0:
@@ -83,6 +91,7 @@ def disco_deparse_loop(
             code_deparse(
                 co,
                 real_out,
+                version=version,
                 debug_opts=debug_opts,
                 is_pypy=is_pypy,
                 compile_mode=codename_map[co.co_name]

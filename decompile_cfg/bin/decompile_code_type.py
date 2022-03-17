@@ -10,11 +10,11 @@ import sys
 from xdis.version_info import version_tuple_to_str
 from decompile_cfg.code_fns import (
     decompile_all_fragments,
-    decompile_generators,
     decompile_dict_comprehensions,
+    decompile_generators,
+    decompile_lambda_fns,
     decompile_list_comprehensions,
     decompile_set_comprehensions,
-    decompile_lambda_fns,
 )
 from decompile_cfg.main import decompile_file
 from decompile_cfg.version import __version__
@@ -37,9 +37,9 @@ PATTERNS = ("*.pyc", "*.pyo")
     type=click.Choice(
         [
             "code-fragments",
+            "dict-comprehension",
             "exec",
             "generator",
-            "dict-comprehension",
             "lambda",
             "list-comprehension",
             "set-comprehension",
