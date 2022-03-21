@@ -1604,6 +1604,9 @@ class SourceWalker(GenericASTTraversal, object):
             store = tree[2]
             iter_index = 3
             collection_index = 3
+        elif tree in ("genexpr_func", "dict_comp_func", "set_comp_func"):
+            store = tree[4]
+            iter_index = 5
         elif tree == "set_comp":
             tree = tree[1][0]
             assert tree == "set_for", tree.kind
