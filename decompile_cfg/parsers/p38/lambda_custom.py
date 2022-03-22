@@ -787,8 +787,6 @@ class Python38LambdaCustom(Python38BaseParser):
                     pass
                 custom_ops_processed.add(opname)
 
-
-
             elif opname == "LOAD_GENEXPR":
                 self.addRule("load_genexpr ::= LOAD_GENEXPR", nop_func)
                 custom_ops_processed.add(opname)

@@ -1002,13 +1002,14 @@ class SourceWalker(GenericASTTraversal, object):
             self.println(lines[-1], quote)
         self.prune()
 
-    def n_lambda_body(self, node):
-        make_function36(self, node, is_lambda=True, code_node=node[-2])
-        self.prune()  # stop recursing
-
-    def comprehension_walk(self, node, iter_index, code_index=-5):
+    def comprehension_walk(
+        self,
+        node,
+        iter_index: Optional[int],
+        code_index: int = -5,
+    ):
         p = self.prec
-        self.prec = 27
+        self.prec = PRECEDENCE["lambda_body"] - 1
 
         # FIXME: clean this up
         if node == "dict_comp":
@@ -1104,116 +1105,6 @@ class SourceWalker(GenericASTTraversal, object):
         self.preorder(tree[iter_index])
         self.prec = p
 
-    def n_generator_exp(self, node):
-        self.write("(")
-        if node[0].kind in ("load_closure", "load_genexpr"):
-            is_lambda = self.is_lambda
-            self.closure_walk(
-                node, collection_index=4 if isinstance(node[4], SyntaxTree) else 3
-            )
-            self.is_lambda = is_lambda
-        else:
-            self.comprehension_walk_newer(node, iter_index=5, collection_node=node[0])
-            # code_index = -6
-            # self.comprehension_walk(node, iter_index=5, code_index=code_index)
-        self.write(")")
-        self.prune()
-
-    n_generator_exp_async = n_generator_exp
-
-    def n_set_comp(self, node):
-        self.write("{")
-        if node[0].kind == "load_closure":
-            self.closure_walk(node, collection_index=-1)
-        else:
-            self.comprehension_walk_newer(node, 1, 0)
-        self.write("}")
-        self.prune()
-
-    n_dict_comp = n_set_comp
-
-    # In the old days this node would never get called because
-    # it was embedded inside some sort of comprehension
-    # Nowadays, we allow starting any code object, not just
-    # a top-level module. In doing so we can
-    # now encounter this outside of the embedding of
-    # a comprehension.
-    def n_set_comp_async(self, node):
-        self.write("{")
-        if node[0] in ["BUILD_SET_0", "BUILD_MAP_0"]:
-            self.comprehension_walk_newer(node[1], 3, 0, collection_node=node[1])
-        if node[0] in ["LOAD_SETCOMP", "LOAD_DICTCOMP"]:
-            get_aiter = node[3]
-            assert get_aiter == "get_aiter", node.kind
-            self.comprehension_walk_newer(node, 1, 0, collection_node=get_aiter[0])
-        self.write("}")
-        self.prune()
-
-    n_dict_comp_async = n_set_comp_async
-
-    # In the old days this node would never get called because
-    # it was embedded inside some sort of comprehension
-    # Nowadays, we allow starting any code object, not just
-    # a top-level module. In doing so we can
-    # now encounter this outside of the embedding of
-    # a comprehension.
-    def n_genexpr_func_async(self, node):
-        self.write("(")
-        self.comprehension_walk_newer(node, iter_index=3, collection_node=node)
-        self.write(")")
-        self.prune()
-
-    def get_comprehension_function(self, node, code_index: int):
-        """
-        Build the body of a comprehension function and then
-        find the comprehension node buried in the tree which may
-        be surrounded with start-like symbols or dominiators,.
-        """
-        self.prec = 27
-        code_node = node[code_index]
-        if code_node == "load_genexpr":
-            code_node = code_node[0]
-
-        code_obj = code_node.attr
-        assert iscode(code_obj), code_node
-
-        code = Code(code_obj, self.scanner, self.currentclass, self.debug_opts["asm"])
-
-        # FIXME: is there a way we can avoid this?
-        # The problem is that in filter in top-level list comprehensions we can
-        # encounter comprehensions of other kinds, and lambdas
-        if is_lambda_mode(self.compile_mode):
-            p_save = self.p
-            self.p = get_python_parser(
-                self.version,
-                compile_mode="exec",
-                is_pypy=self.is_pypy,
-            )
-            tree = self.build_ast(
-                code._tokens, code._customize, code, is_lambda=self.is_lambda
-            )
-            self.p = p_save
-        else:
-            tree = self.build_ast(
-                code._tokens, code._customize, code, is_lambda=self.is_lambda
-            )
-
-        self.customize(code._customize)
-
-        # skip over: sstmt, stmt, return, return_expr
-        # and other singleton derivations
-        if tree == "lambda_start":
-            if tree[0] in ("dom_start", "dom_start_opt"):
-                tree = tree[1]
-
-        while len(tree) == 1 or (
-            tree in ("stmt", "sstmt", "return", "return_expr", "return_expr_lambda")
-        ):
-            if tree[0] == "BUILD_SET_0":
-                break
-            tree = tree[1] if tree[0] in ("dom_start", "dom_start_opt") else tree[0]
-        return tree
-
     def comprehension_walk_newer(
         self,
         node,
@@ -1221,13 +1112,14 @@ class SourceWalker(GenericASTTraversal, object):
         code_index: int = -5,
         collection_node=None,
     ):
-        """Non-closure-based comprehensions the way they are done in Python3
-        and some Python 2.7. Note: there are also other set comprehensions.
+        """Non-closure-based comprehensions.
+
+        Note: there are also other set comprehensions.
         """
         # FIXME: DRY with listcomp_closure3
 
-        # ? Is this needed
         p = self.prec
+        self.prec = PRECEDENCE["lambda_body"] - 1
 
         # FIXME? Nonterminals in grammar maybe should be split out better?
         # Maybe test on self.compile_mode?
@@ -1558,6 +1450,123 @@ class SourceWalker(GenericASTTraversal, object):
                 self.preorder(if_node[0])
             pass
         self.prec = p
+
+    def get_comprehension_function(self, node, code_index: int):
+        """
+        Build the body of a comprehension function and then
+        find the comprehension node buried in the tree which may
+        be surrounded with start-like symbols or dominiators,.
+        """
+        self.prec = 27
+        code_node = node[code_index]
+        if code_node == "load_genexpr":
+            code_node = code_node[0]
+
+        code_obj = code_node.attr
+        assert iscode(code_obj), code_node
+
+        code = Code(code_obj, self.scanner, self.currentclass, self.debug_opts["asm"])
+
+        # FIXME: is there a way we can avoid this?
+        # The problem is that in filter in top-level list comprehensions we can
+        # encounter comprehensions of other kinds, and lambdas
+        if is_lambda_mode(self.compile_mode):
+            p_save = self.p
+            self.p = get_python_parser(
+                self.version,
+                compile_mode="exec",
+                is_pypy=self.is_pypy,
+            )
+            tree = self.build_ast(
+                code._tokens, code._customize, code, is_lambda=self.is_lambda
+            )
+            self.p = p_save
+        else:
+            tree = self.build_ast(
+                code._tokens, code._customize, code, is_lambda=self.is_lambda
+            )
+
+        self.customize(code._customize)
+
+        # skip over: sstmt, stmt, return, return_expr
+        # and other singleton derivations
+        if tree == "lambda_start":
+            if tree[0] in ("dom_start", "dom_start_opt"):
+                tree = tree[1]
+
+        while len(tree) == 1 or (
+            tree in ("stmt", "sstmt", "return", "return_expr", "return_expr_lambda")
+        ):
+            if tree[0] == "BUILD_SET_0":
+                break
+            tree = tree[1] if tree[0] in ("dom_start", "dom_start_opt") else tree[0]
+        return tree
+
+    def n_generator_exp(self, node):
+        self.write("(")
+        if node[0].kind in ("load_closure", "load_genexpr"):
+            is_lambda = self.is_lambda
+            self.closure_walk(
+                node, collection_index=4 if isinstance(node[4], SyntaxTree) else 3
+            )
+            self.is_lambda = is_lambda
+        else:
+            self.comprehension_walk_newer(node, iter_index=5, collection_node=node[0])
+            # code_index = -6
+            # self.comprehension_walk(node, iter_index=5, code_index=code_index)
+        self.write(")")
+        self.prune()
+
+    n_generator_exp_async = n_generator_exp
+
+    def n_lambda_body(self, node):
+        make_function36(self, node, is_lambda=True, code_node=node[-2])
+        self.prune()  # stop recursing
+
+    def n_set_comp(self, node):
+        self.write("{")
+        if node[0] in ["LOAD_SETCOMP", "LOAD_DICTCOMP"]:
+            self.comprehension_walk_newer(node, 1, 0)
+        elif node[0].kind == "load_closure":
+            assert node[-2].kind in ("get_iter", "get_aiter")
+            self.closure_walk(node, collection_index=-2)
+        else:
+            self.comprehension_walk_newer(node, 1, 0)
+        self.write("}")
+        self.prune()
+
+    n_dict_comp = n_set_comp
+
+    # In the old days this node would never get called because
+    # it was embedded inside some sort of comprehension
+    # Nowadays, we allow starting any code object, not just
+    # a top-level module. In doing so we can
+    # now encounter this outside of the embedding of
+    # a comprehension.
+    def n_set_comp_async(self, node):
+        self.write("{")
+        if node[0] in ["BUILD_SET_0", "BUILD_MAP_0"]:
+            self.comprehension_walk_newer(node[1], 3, 0, collection_node=node[1])
+        if node[0] in ["LOAD_SETCOMP", "LOAD_DICTCOMP"]:
+            get_aiter = node[3]
+            assert get_aiter == "get_aiter", node.kind
+            self.comprehension_walk_newer(node, 1, 0, collection_node=get_aiter[0])
+        self.write("}")
+        self.prune()
+
+    n_dict_comp_async = n_set_comp_async
+
+    # In the old days this node would never get called because
+    # it was embedded inside some sort of comprehension
+    # Nowadays, we allow starting any code object, not just
+    # a top-level module. In doing so we can
+    # now encounter this outside of the embedding of
+    # a comprehension.
+    def n_genexpr_func_async(self, node):
+        self.write("(")
+        self.comprehension_walk_newer(node, iter_index=3, collection_node=node)
+        self.write(")")
+        self.prune()
 
     def n_list_comp(self, node):
         self.write("[")
