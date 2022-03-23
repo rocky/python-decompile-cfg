@@ -835,23 +835,27 @@ TABLE_DIRECT = {
 # fmt: on
 
 
-MAP_DIRECT = (TABLE_DIRECT, )
+MAP_DIRECT = (TABLE_DIRECT,)
 MAP_R = (TABLE_R, -1)
 
 MAP = {
-    "stmt":	MAP_R,
-    "c_stmt":	MAP_R,
-    "call":	MAP_R,
-    "delete":   MAP_R,
-    "store":	MAP_R,
+    "stmt": MAP_R,
+    "c_stmt": MAP_R,
+    "call": MAP_R,
+    "delete": MAP_R,
+    "store": MAP_R,
 }
 
-ASSIGN_TUPLE_PARAM = lambda param_name: \
-             SyntaxTree("expr", [ Token("LOAD_FAST", pattr=param_name) ])
+ASSIGN_TUPLE_PARAM = lambda param_name: SyntaxTree(
+    "expr", [Token("LOAD_FAST", pattr=param_name)]
+)
 
-escape = re.compile(r"""
+escape = re.compile(
+    r"""
             (?P<prefix> [^%]* )
             % ( \[ (?P<child> -? \d+ ) \] )?
                 ((?P<type> [^{] ) |
                  ( [{] (?P<expr> [^}]* ) [}] ))
-        """, re.VERBOSE)
+        """,
+    re.VERBOSE,
+)

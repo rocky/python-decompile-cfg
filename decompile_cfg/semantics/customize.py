@@ -58,7 +58,10 @@ def customize_for_version(self, is_pypy, version):
 
     if version >= (3, 2):
         TABLE_DIRECT.update(
-            {"del_deref_stmt": ("%|del %c\n", 0), "DELETE_DEREF": ("%{pattr}", 0),}
+            {
+                "del_deref_stmt": ("%|del %c\n", 0),
+                "DELETE_DEREF": ("%{pattr}", 0),
+            }
         )
     from decompile_cfg.semantics.customize3 import customize_for_version3
 

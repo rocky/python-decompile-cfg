@@ -33,9 +33,10 @@ from decompile_cfg.semantics.helper import flatten_list, escape_string, strip_qu
 def escape_format(s):
     return s.replace("\r", "\\r").replace("\n", "\\n").replace("'''", '"""')
 
+
 EMPTY_DICT = SyntaxTree(
-    "dict", [Token("BUILD_MAP_0", attr=0, pattr='', offset=0, has_arg=True)]
-    )
+    "dict", [Token("BUILD_MAP_0", attr=0, pattr="", offset=0, has_arg=True)]
+)
 
 #######################
 def customize_for_version37(self, version):
@@ -58,15 +59,26 @@ def customize_for_version37(self, version):
 
     TABLE_DIRECT.update(
         {
-            "or_and1": ("%c or (%c)", (0, "or_parts"), (1, "and_parts"),),
+            "or_and1": (
+                "%c or (%c)",
+                (0, "or_parts"),
+                (1, "and_parts"),
+            ),
             "and_not": ("%c and not %c", (0, "expr_pjif"), (1, "expr_pjit")),
             "and_cond": (
                 "%c and %c",
                 (0, ("and_parts", "testfalse")),
                 (1, ("expr_pjif", "expr")),
             ),
-            "ann_assign": ("%|%[2]{attr}: %c\n", 0,),
-            "ann_assign_init": ("%|%[2]{attr}: %c = %c\n", 0, 1,),
+            "ann_assign": (
+                "%|%[2]{attr}: %c\n",
+                0,
+            ),
+            "ann_assign_init": (
+                "%|%[2]{attr}: %c = %c\n",
+                0,
+                1,
+            ),
             "async_for_stmt": (
                 "%|async for %c in %c:\n%+%c%-\n\n",
                 (8, "store"),
@@ -112,20 +124,14 @@ def customize_for_version37(self, version):
                 (0, "IMPORT_NAME_ATTR"),
                 (1, "IMPORT_FROM"),
             ),
-
             # nested await expressions like:
             #   return await (await bar())
             # need parenthesis.
             # Note there are async dictionary expressions are like await expr's
             # the below is just the default fersion
-            "await_expr": (
-                "await %p", (0, PRECEDENCE["await_expr"] - 1)
-            ),
-
+            "await_expr": ("await %p", (0, PRECEDENCE["await_expr"] - 1)),
             "await_stmt": ("%|%c\n", 0),
-
             "call_ex": ("%c(%p)", (0, "expr"), (1, 100)),
-
             "compare_chained1a_37": (
                 "%p %p",
                 (0, PRECEDENCE["compare"] - 1),
@@ -163,7 +169,10 @@ def customize_for_version37(self, version):
             # This is eliminated in the transform phase, but
             # we have it here to be logically complete and more robust
             # if something goes wrong.
-            "negated_testtrue": ("not %c", (0, "testtrue"),),
+            "negated_testtrue": (
+                "not %c",
+                (0, "testtrue"),
+            ),
             "compare_chained1c_37": (
                 "%p %p",
                 (0, PRECEDENCE["compare"] - 1),
@@ -186,10 +195,7 @@ def customize_for_version37(self, version):
                 (0, PRECEDENCE["compare"] - 1),
                 (1, PRECEDENCE["compare"] - 1),
             ),
-            "dict_unpack": (
-                "{**%C}",
-                (0, -1, ", **")
-            ),
+            "dict_unpack": ("{**%C}", (0, -1, ", **")),
             "except_return": ("%|except:\n%+%c%-", 3),
             "if_exp_37a": (
                 "%p if %p else %p",
@@ -246,33 +252,38 @@ def customize_for_version37(self, version):
                 (6, "stmts"),
                 (-2, "else_suite"),
             ),
-
-            "import_as37": (
-                "%|import %c as %c\n",
-                2, -2
-            ),
-
+            "import_as37": ("%|import %c as %c\n", 2, -2),
             "import_from37": ("%|from %[2]{pattr} import %c\n", (3, "importlists")),
-
             "import_one": (
                 "%c",
                 (0, "importlists"),
-             ),
-
-            "importattr37": (
-                "%c",
-                (0, "IMPORT_NAME_ATTR")
-             ),
-
-            "or_and_not": ("%c or %c", (0, "expr_pjit"), (1, "and_not"),),
+            ),
+            "importattr37": ("%c", (0, "IMPORT_NAME_ATTR")),
+            "or_and_not": (
+                "%c or %c",
+                (0, "expr_pjit"),
+                (1, "and_not"),
+            ),
             "or_cond": (
                 "%c or %c",
                 (0, ("or_parts", "and", "not_and_not")),
                 (1, "expr_pjif"),
             ),
-            "not_and_not": ("%c and not %c", (0, "not"), (1, "expr_pjif"),),
-            "nor_cond": ("%c or %c", (0, ("or_parts", "and")), (1, "expr_pjif"),),
-            "or_cond1": ("%c or %c", (0, ("or_parts", "and")), (-2, "expr_pjif"),),
+            "not_and_not": (
+                "%c and not %c",
+                (0, "not"),
+                (1, "expr_pjif"),
+            ),
+            "nor_cond": (
+                "%c or %c",
+                (0, ("or_parts", "and")),
+                (1, "expr_pjif"),
+            ),
+            "or_cond1": (
+                "%c or %c",
+                (0, ("or_parts", "and")),
+                (-2, "expr_pjif"),
+            ),
             "and_or_cond": (
                 "%c and %c or %c",
                 (0, ("and_parts", "or_parts")),
@@ -287,13 +298,20 @@ def customize_for_version37(self, version):
             ),
             "list_if37": (" if %p%c", (0, 27), 1),
             "list_if37_not": (" if not %p%c", (0, 27), 1),
-            "not": ("not %p", (0, "expr_pjit", PRECEDENCE["not"]),),
+            "not": (
+                "not %p",
+                (0, "expr_pjit", PRECEDENCE["not"]),
+            ),
             "not_or": (
                 "not %p or %c",
                 (0, "and_parts", PRECEDENCE["and"] - 1),
                 (1, "expr_pjif"),
             ),
-            "nand": ("not (%c and %c)", (0, "and_parts"), (1, ("expr", "expr_pjit")),),
+            "nand": (
+                "not (%c and %c)",
+                (0, "and_parts"),
+                (1, ("expr", "expr_pjit")),
+            ),
             "or_parts": (
                 "%P or %c",
                 (0, -1, "or ", PRECEDENCE["or"]),
@@ -350,7 +368,6 @@ def customize_for_version37(self, version):
 
     self.n_and_parts = n_and_parts
 
-
     def n_await_expr(node):
         dict_comp_async = node[0][0]
         if dict_comp_async == "dict_comp_async":
@@ -364,7 +381,6 @@ def customize_for_version37(self, version):
         return
 
     self.n_await_expr = n_await_expr
-
 
     # FIXME: we should be able to compress this into a single template
     def n_or_parts(node):
