@@ -767,6 +767,8 @@ TABLE_DIRECT = {
         (0, "expr")
         ),
 
+    "str": ("%[0]{pattr}"),
+
     "subscript": (
         "%p[%p]",
         (0, "expr", PRECEDENCE["subscript"]),
