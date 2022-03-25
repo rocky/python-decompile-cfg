@@ -3,9 +3,9 @@
 # "and" in the "if" clause
 if __name__:
     if __file__ and __name__:
-        pass
-    elif __name__:
-        pass
+        assert True
+    elif isinstance(__name__, int):
+        assert False
 
 # 2.6.9 transformer.py
 # Bug in 2.6 is multple COME_FROMs as a result
@@ -16,8 +16,8 @@ if __name__:
 
 # Also note that the "else: pass" is superfluous
 if __name__:
-    pass
+    assert True
 elif __file__:
     assert __name__ or __file__
 else:
-    pass
+    assert False

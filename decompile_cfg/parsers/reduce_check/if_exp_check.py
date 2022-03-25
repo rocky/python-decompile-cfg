@@ -30,7 +30,7 @@ def if_exp_ok(
 
     test_pji = tree[1]
     assert test_pji.kind.startswith("POP_JUMP_IF_")
-    orelse_expr = tree[6]
+    orelse_expr = tree[5]
     assert orelse_expr == "expr"
 
     # Make "if" test conditional jump goes to the "orelse" location.
@@ -45,7 +45,7 @@ def if_exp_ok(
         # Make sure all jumps in body_expr don't jump into
         # the middle of the orelse part.
         offset = body_expr.first_child().offset
-        jump_forward = tree[4]
+        jump_forward = tree[3]
         assert jump_forward == "JUMP_FORWARD"
         jf_offset = jump_forward.offset
         last_offset = tokens[last].offset

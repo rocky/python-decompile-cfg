@@ -92,30 +92,26 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                               POP_JUMP_IF_FALSE
                               bb_end_start_opt
                               expr
-                              JUMP_FORWARD
-                              bb_end_start
+                              jf_bb_end_start
                               expr
 
         if_exp_jump_true  ::= expr
                               POP_JUMP_IF_TRUE
                               bb_end_start_opt
                               expr
-                              JUMP_FORWARD
-                              bb_end_start
+                              jf_bb_end_start
                               expr
 
         if_exp_jump_false ::= expr
                               POP_JUMP_IF_FALSE
                               bb_end_start
                               expr
-                              JUMP_FORWARD
-                              dom_end_start
+                              jf_doms_end_start
                               expr
 
         if_exp_compare ::= compare
                            expr
-                           JUMP_FORWARD
-                           bb_doms_end_start
+                           jf_doms_end_start
                            expr
 
         if_exp_and     ::= expr
@@ -131,8 +127,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                            POP_JUMP_IF_FALSE
                            expr
                            POP_JUMP_IF_FALSE_LOOP
-                           JUMP_FORWARD
-                           bb_end_start
+                           jf_bb_end_start
                            expr
 
         # FIXME: How is this not the same as if_exp above?
@@ -140,8 +135,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         if_exp_not ::= expr
                        POP_JUMP_IF_TRUE
                        expr
-                       JUMP_FORWARD
-                       bb_end_start
+                       jf_bb_end_start
                        expr
 
         # if_exp_true are are IfExp which always evaluate true, e.g.:
@@ -689,11 +683,15 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
     def p_jump(self, args):
         """
+        jf_bb_end_start    ::= JUMP_FORWARD bb_end_start
+        jf_doms_end_start  ::= JUMP_FORWARD bb_doms_end_start
+
         jump               ::= JUMP_FORWARD
         jump               ::= JUMP_LOOP
 
         # Note: full.py has jump_or_break ::= BREAK_LOOP
         jump_or_break      ::= jump
+
 
         pjump_ift          ::= POP_JUMP_IF_TRUE
         pjump_ift          ::= POP_JUMP_IF_TRUE_LOOP

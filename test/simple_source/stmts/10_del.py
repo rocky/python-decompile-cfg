@@ -22,30 +22,36 @@ l = [None] * 10
 del l[-2:]
 assert l == [None, None, None, None, None, None, None, None]
 
-c = [0,1,2,3,4]
+c = [0, 1, 2, 3, 4]
 del c[:1]
 del c[2:3]
 
-d = [0,1,2,3,4,5,6]
+d = [0, 1, 2, 3, 4, 5, 6]
 del d[1:3:2]
 
-e = ('a', 'b')
+e = ("a", "b")
+
+
 def foo():
     # covers DELETE_GLOBAL
     global e
     del e
 
+
 z = {}
+
 
 def a():
     b = 1
     global z
     del z
+
     def b(y):
         global z
         # covers DELETE_FAST
         del y
         # LOAD_DEREF
         return z
+
 
 a()

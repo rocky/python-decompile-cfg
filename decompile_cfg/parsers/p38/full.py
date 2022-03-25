@@ -98,10 +98,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         # Do we really need these?
         lastc_stmt ::= forelselaststmtc
         lastc_stmt ::= iflaststmtc
-
-        # FIXME: Do we need these?
-        lastc_stmt ::= ifelsestmtc
-        lastc_stmt ::= tryelsestmtc
         """
 
     def p_stmt(self, args):
@@ -285,7 +281,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         # If statement inside a loop. The RHS may have looping jumps in them.
         c_stmt  ::= ifstmtc
         c_stmt  ::= if_and_elsestmtc
-        c_stmt  ::= ifelsestmtc
 
         if_or_stmt  ::= expr POP_JUMP_IF_TRUE expr pop_jump come_froms
                         stmts COME_FROM
@@ -317,10 +312,9 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         # rules with and without ELSE.
 
         ifelsestmt    ::= testexpr
-                          stmts_opt jf_cfs else_suite_opt opt_come_from_except
+                          stmts_opt jf_bb_end_start else_suite opt_come_from_except
         ifelsestmt    ::= branch_op
-                          stmts_opt jf_cfs else_suite_opt opt_come_from_except
-
+                          stmts_opt jf_bb_end_start else_suite opt_come_from_except
 
         ifelsestmtc ::= testexpr
                         stmts_opt jump_forward_else
@@ -393,6 +387,11 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
                 for_block POP_BLOCK else_suitec _come_froms
         """
 
+
+    def p_stmt_jump(self, args):
+        """
+        jf_bb_end_start    ::= JUMP_FORWARD bb_end_start
+        """
 
     def p_whilestmt(self, args):
         """
@@ -528,7 +527,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         # "else" statements in "ifelstmtl" similar to others of this ilk.
         testexpr_cf ::= testexpr come_froms
 
-        # ifelsestmtc ::= testexpr_cf stmts_opt jb_cf else_suitec
         # iflaststmt  ::= testexpr stmts_opt JUMP_FORWARD
         """
 
@@ -864,7 +862,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
 
         stmt               ::= whileTruestmt
         ifelsestmt         ::= testexpr stmts_opt JUMP_FORWARD else_suite _come_froms
-        ifelsestmtc        ::= testexpr stmts_opt JUMP_FORWARD else_suite _come_froms
 
         ifstmtc            ::= testexpr ifstmts_jumpc
         ifstmtc            ::= testexprc ifstmts_jumpc _come_froms
@@ -955,9 +952,6 @@ class Python38FullParser(Python38Parser, Python38LambdaParser):
 
         # 3.8 can push a looping JUMP_LOOP into into a JUMP_ from a statement that jumps to it
         ifpoplaststmtc     ::= testexpr POP_TOP stmts_opt
-        ifelsestmtc        ::= testexpr stmts_opt jb_cfs else_suitec JUMP_LOOP come_froms
-        ifelsestmtc        ::= testexpr stmts_opt jb_cfs else_suitec
-        ifelsestmtc        ::= testexpr c_stmts cf_pt else_suite
         if_and_elsestmtc   ::= expr_pjif
                                expr_pjif
                                c_stmts jb_cfs else_suitec opt_come_from_except
@@ -975,8 +969,6 @@ class Python38FullParser(Python38Parser, Python38LambdaParser):
         #                 # but also a JUMP_LOOP is inserted here!
         #  else:
         #    j = 10
-
-        ifelsestmtc        ::= testexpr stmts_opt JUMP_LOOP else_suitec JUMP_LOOP
         """
 
     def p_38misc(self, args):
