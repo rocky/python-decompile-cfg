@@ -14,6 +14,10 @@ assert osp == path
 
 if len(__file__) == 0:
     # a.b.c should force consecutive LOAD_ATTRs
-    import stuff0.stuff1.stuff2.stuff3 as stuff3
+    import stuff0.stuff1.stuff2.stuff3 as stuff3  # NOQA
+
+    # Tests relative imports
+    from . import bogus  # NOQA
+
 
 sys.exit(0)
