@@ -192,9 +192,9 @@ class TreeTransform(GenericASTTraversal, object):
                     if jump_cond in ("POP_JUMP_IF_TRUE", NoneToken):
                         kind = "assert2"
                     else:
-                        if jump_cond == "POP_JUMP_IF_FALSE":
-                            # FIXME: We don't handle this kind of thing yet.
-                            return node
+                        # if jump_cond == "POP_JUMP_IF_FALSE":
+                        #     # FIXME: We don't handle this kind of thing yet.
+                        #     return node
                         kind = "assert2not"
 
                     LOAD_ASSERT = call[0].first_child()
