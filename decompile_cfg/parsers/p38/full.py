@@ -643,6 +643,18 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
                     RAISE_VARARGS_1
                     bb_end_start
 
+        # Some LOAD_GLOBALs we don't convert to LOAD_ASSERT because
+        # of the intevening "expr CALL_FUNCTION1" which can be an arbitrary number
+        # of instructions
+        assert2_not ::= expr
+                    POP_JUMP_IF_FALSE
+                    LOAD_GLOBAL
+                    expr
+                    CALL_FUNCTION_1
+                    RAISE_VARARGS_1
+                    bb_end_start
+
+
         # "assert_invert" tests on the negative of the condition given
         stmt          ::= assert_invert
         assert_invert ::= testtrue LOAD_GLOBAL RAISE_VARARGS_1
@@ -784,6 +796,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
 
         stmt    ::= assert
         stmt    ::= assert2
+        stmt    ::= assert2_not
         """
 
     def p_misc3(self, args):
