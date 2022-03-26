@@ -333,7 +333,6 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         # These rules need reduce checks on dominator information.
         # In particular, testexpr has to jump to to the end
         # of "ifstmt".
-        ifstmt        ::= testexpr stmts
         ifstmt        ::= testexpr ifstmts_jump
 
         ifstmt_branch ::= or_and_not stmts block_break
@@ -630,7 +629,12 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         stmt ::= classdefdeco
         classdefdeco ::= classdefdeco1 store
 
-        stmt    ::= assert2
+        assert  ::= expr
+                    POP_JUMP_IF_TRUE
+                    LOAD_ASSERT
+                    RAISE_VARARGS_1
+                    bb_end_start
+
         assert2 ::= expr
                     POP_JUMP_IF_TRUE
                     LOAD_ASSERT
@@ -778,6 +782,8 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         jmp_abs ::= JUMP_LOOP
         jmp_abs ::= JUMP_FORWARD
 
+        stmt    ::= assert
+        stmt    ::= assert2
         """
 
     def p_misc3(self, args):

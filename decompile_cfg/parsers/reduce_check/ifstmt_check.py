@@ -12,7 +12,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-def ifelsestmt_ok(
+from decompile_cfg.scanners.tok import Token
+
+def ifstmt_ok(
     self, lhs: str, n: int, rule, tree, tokens: list, first: int, last: int
 ) -> bool:
 
@@ -22,15 +24,25 @@ def ifelsestmt_ok(
 
     # first_offset = tokens[first].off2int()
 
-    if rule[1][2:4] == ("jf_bb_end_start", "else_suite"):
+    if rule[1][0] == "testexpr":
 
-        jf_bb_end_start = tree[2]
-        assert jf_bb_end_start == "jf_bb_end_start"
+        testexpr = tree[0]
+        assert testexpr == "testexpr"
 
-        # Chek that the branch at the end of the "then" goes to "endif"
-        then_endif_offset = jf_bb_end_start[0].attr
+        testexpr_end = testexpr.last_child()
 
+        if not isinstance(testexpr_end, Token):
+            # No branch at end, so not an "ifstmt"
+            return False
+
+        # Check that the branch at the end of the "then" goes to "endif"
+        then_endif_offset = testexpr_end.attr
+
+        # print(f"XXX then jump: {then_endif_offset}, tokens[last] offset: {tokens[last].offset}")
         if then_endif_offset != tokens[last].offset:
+            # print("XXX", first, last, rule)
+            # for t in range(first, last): print(tokens[t])
+            # print("="*40)
             return False
 
     return True

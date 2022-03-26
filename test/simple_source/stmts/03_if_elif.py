@@ -1,23 +1,51 @@
-# 2.6.9 symbols.py
-# Bug in 2.6 is having multple COME_FROMs due to the
-# "and" in the "if" clause
+# We have a lot of trouble getting if regions correct.
+# This tests that by trying subtle variations.
+
+"""This program is self-checking!"""
+
+# ifstmt and ifelsesmt using with "pass".
+# The # "ifsmt" and "ifelsesmt" "then" jump should  exactly
+# to the corresponding "endifs".
+
+y = 2
 if __name__:
-    if __file__ and __name__:
+    if __file__:
+        pass
+    elif __name__:
+        pass
+
+y = 1
+
+# Test that the y = 1 assignemnt did not get put somewhere inside the ifstmt or ifelsestmt above.
+assert y == 1
+
+y = 2
+if __name__:
+    if __file__:
+        pass
+    elif __name__:
+        y = 1
+
+# Test that the y = 1 assignemnt got put inside the ifelsestmt above.
+assert y == 2
+
+y = 2
+if not __name__:
+    if __file__:
+        pass
+    elif __name__:
+        pass
+    y = 1
+
+# Test that the y = 1 assignemnt got put inside the ifstmt above.
+assert y == 2
+
+# Now try with "assert" which introduces "raise" via an "assert" statement
+y = 1
+if __name__:
+    if __file__:
         assert True
-    elif isinstance(__name__, int):
+    elif __name__:
         assert False
-
-# 2.6.9 transformer.py
-# Bug in 2.6 is multple COME_FROMs as a result
-# of the "or" in the "assert"
-
-# In PyPy the assert is handled via PyPy's unique JUMP_IF_NOT_DEBUG
-# instruction.
-
-# Also note that the "else: pass" is superfluous
-if __name__:
-    assert True
-elif __file__:
-    assert __name__ or __file__
-else:
-    assert False
+y = 2
+assert y == 2
