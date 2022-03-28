@@ -19,7 +19,7 @@
 # Python 3.8 changes
 #######################
 
-from decompile_cfg.semantics.consts import PRECEDENCE, TABLE_DIRECT, maxint
+from decompile_cfg.semantics.consts import PRECEDENCE, TABLE_DIRECT
 
 
 def customize_for_version38(self, version):
@@ -232,6 +232,7 @@ def customize_for_version38(self, version):
                 (0, "get_aiter"),
                 (2, "set_iter"),
             )
+        self.prune()
 
     self.n_set_afor = n_set_afor
 

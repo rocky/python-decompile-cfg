@@ -354,7 +354,7 @@ class ComprehensionMixin:
                 pass
             pass
         elif tree.kind in ("list_comp_async", "dict_comp_async", "set_afor2"):
-            # Handled this condition above
+            # Handled this condition above.
             pass
         else:
             # FIXME: we get this when we parse lambda's explicitly.
@@ -398,7 +398,7 @@ class ComprehensionMixin:
             elif n in ("list_afor2", "set_afor2", "set_iter_async"):
                 if n[1] == "store":
                     store = n[1]
-                n = n[2]
+                n = n[2] if n[2] == "list_iter" else n[1]
             else:
                 n = n[0]
 

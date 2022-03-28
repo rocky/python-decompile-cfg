@@ -463,6 +463,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
     def p_comprehension_list(self, args):
         """
+        lc_body         ::= expr doms_end_start_opt LIST_APPEND
+        lc_body         ::= expr dom_end_start_opt LIST_APPEND
+        lc_body         ::= branch_op bb_end_start LIST_APPEND
+
+        list_comp      ::= BUILD_LIST_0 list_iter
         list_comp_func ::= BUILD_LIST_0
                            expr_or_arg
                            bb_end_start_opt
@@ -484,13 +489,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         set_iter        ::= list_if_not
         set_iter        ::= set_comp_body
 
-        lc_body         ::= expr doms_end_start_opt LIST_APPEND
-        lc_body         ::= expr dom_end_start_opt LIST_APPEND
-        lc_body         ::= branch_op bb_end_start LIST_APPEND
-
         jump_loop       ::= JUMP_LOOP bb_doms_end_start
 
-        list_comp       ::= BUILD_LIST_0 list_iter
         set_comp        ::= BUILD_SET_0 set_iter
 
         # A leading "expr" is used when we have nested list comprehensions. E.g.
@@ -503,7 +503,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         set_for        ::= expr_or_arg
                            for_iter
-                           GET_ITER
                            store set_iter
                            jump_loop
                            bb_doms_end_start_opt
