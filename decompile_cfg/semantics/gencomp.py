@@ -398,7 +398,7 @@ class ComprehensionMixin:
             elif n in ("list_afor2", "set_afor2", "set_iter_async"):
                 if n[1] == "store":
                     store = n[1]
-                n = n[2] if n[2] == "list_iter" else n[1]
+                n = n[2] if n[2] in ("list_iter", "set_iter") else n[1]
             else:
                 n = n[0]
 

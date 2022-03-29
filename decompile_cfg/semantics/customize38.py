@@ -205,7 +205,6 @@ def customize_for_version38(self, version):
         if len(node) == 2:
             # list_afor ::= get_iter list_afor
             self.comprehension_walk_newer(node, 0)
-            self.prune()
         else:
             list_iter_index = 2 if node[2] == "list_iter" else 3
             self.template_engine(
@@ -217,6 +216,7 @@ def customize_for_version38(self, version):
                 ),
                 node,
             )
+        self.prune()
 
     self.n_list_afor = n_list_afor
 
