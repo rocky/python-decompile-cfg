@@ -199,7 +199,7 @@ class SourceWalkerError(Exception):
         return self.errmsg
 
 
-class SourceWalker(ComprehensionMixin, GenericASTTraversal, NonterminalActions):
+class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
     stacked_params = ("f", "indent", "is_lambda", "_globals")
 
     def __init__(
