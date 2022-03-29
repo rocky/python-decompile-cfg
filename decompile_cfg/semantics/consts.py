@@ -563,14 +563,14 @@ TABLE_DIRECT = {
                           (0, "return_expr_lambda"),
                           (1, "return_expr_lambda") ),
 
-    "if_exp_lambda":    (
+    "if_exp_lambda": (
         "%c if %c else %c",
         (3, "expr"),
         (0, ("expr", "branch_op")),
         (-1, "return_expr_lambda"),
     ),
 
-    "if_exp_loop":    (
+    "if_exp_loop": (
         "%c if %c else %c",
         (2, "expr"),
         (0, ("expr", "branch_op")),
@@ -581,7 +581,7 @@ TABLE_DIRECT = {
         "%p if not %c else %c",
         (2, "expr", PRECEDENCE["if_exp"]),
         (0, "expr"),
-        (5, "expr"),
+        (-1, "expr"),
     ),
 
     "if_exp_not_lambda": (

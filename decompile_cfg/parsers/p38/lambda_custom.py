@@ -716,7 +716,7 @@ class Python38LambdaCustom(Python38BaseParser):
                                              store
                                              set_iter
                                              JUMP_LOOP
-                                             bb_end_start
+                                             block_break
                                              END_ASYNC_FOR
 
                     return_expr_lambda   ::= genexpr_func_async

@@ -45,7 +45,6 @@ def and_ok(
         else:
             last_offset = ast[-1].last_child().offset
 
-        i = self.offset2inst_index[last_offset]
         return pop_jump_if_false.attr > last_offset
 
     # print("XXX", tokens[first].basic_block, tokens[last-1].basic_block)
