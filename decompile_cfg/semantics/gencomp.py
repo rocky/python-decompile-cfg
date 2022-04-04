@@ -85,11 +85,12 @@ class ComprehensionMixin:
                 store = n[2]
                 n = n[3]
             elif n in (
-                "list_if",
-                "list_if_not",
-                "list_if_and_or",
                 "comp_if",
                 "comp_if_not",
+                "list_if",
+                "list_if_and_or",
+                "list_if_not",
+                "list_if_or",
             ):
                 # FIXME: most of the grammar start with expr_...
                 # Some of the older ones can be: expr <jump> <iter>
@@ -573,7 +574,7 @@ class ComprehensionMixin:
             else:
                 # FIXME: go over these to add more of this in the template,
                 # not here.
-                if if_node in ("list_if_not", "comp_if_not", "list_if37_not"):
+                if if_node in ("comp_if_not", "list_if37_not", "list_if_not", "list_if_or"):
                     self.write("not ")
                     pass
                 self.prec = 27

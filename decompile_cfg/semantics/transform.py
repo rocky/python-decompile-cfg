@@ -393,6 +393,14 @@ class TreeTransform(GenericASTTraversal, object):
             pass
         return node
 
+    def n_list_if_or(self, list_if_node):
+        # If we chain to another list_if, we should drop the "if"
+        list_iter = list_if_node[2]
+        if list_iter == "list_iter" and list_iter[0].kind.startswith("list_if"):
+            list_iter[0].transformed_by = "n_import_from37"
+            list_iter[0].kind = "lc_if_not"
+        return list_if_node
+
     def n_list_for(self, list_for_node):
         expr = list_for_node[0]
         if expr == "expr" and expr[0] == "get_iter":
