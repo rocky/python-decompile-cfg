@@ -671,17 +671,7 @@ TABLE_DIRECT = {
         (0, "expr", PRECEDENCE["unary_not"]),
         2 ),
 
-    "list_if_or": (
-        " if %p or%p",
-        (0, "expr", PRECEDENCE["or"]),
-        (2, PRECEDENCE["or"])),
-
-    "list_if_or_not": (
-        " if %c or not %c %c",
-        (0, "expr_pjit"),
-        (1, "expr_pjit"),
-        (3, "list_iter"),
-        ),
+    "list_if_or_not": (" if %[0] or not %[1]"),
 
     "list_for":	        ( " for %c in %c%c", 2, 0, 3 ),
 

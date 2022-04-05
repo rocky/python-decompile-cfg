@@ -669,6 +669,20 @@ class NonterminalActions:
     n_list_comp_async = n_list_comp
 
 
+    def n_list_if_or_not(self, node):
+        or_node = node[0]
+        assert or_node.kind.startswith("or")
+        self.write(" if ")
+        not_part = or_node[1]
+        if or_node[0] == "or_parts":
+            or_node = or_node[0]
+        template = ("%p", (0, PRECEDENCE["or"]))
+        self.template_engine(template, or_node[0])
+        self.write( " or not ")
+        template = ("%p", (0, PRECEDENCE["not"]))
+        self.template_engine(template, not_part)
+        self.prune()
+
     def n_mkfunc(self, node):
 
         # MAKE_FUNCTION ..

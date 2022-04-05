@@ -21,7 +21,7 @@ from decompile_cfg.parsers.parse_heads import ParserError, nop_func
 from decompile_cfg.parsers.reduce_check.and_check import and_ok
 from decompile_cfg.parsers.reduce_check.if_exp_check import if_exp_ok
 from decompile_cfg.parsers.reduce_check.comp_if_check import comp_if_ok
-# from decompile_cfg.parsers.reduce_check.list_if_or_check import list_if_or_ok
+from decompile_cfg.parsers.reduce_check.list_if_not_check import list_if_not_seems_ok
 from spark_parser.spark import rule2str
 
 class Python38LambdaCustom(Python38BaseParser):
@@ -166,14 +166,14 @@ class Python38LambdaCustom(Python38BaseParser):
             "if_exp": if_exp_ok,
             "comp_if": comp_if_ok,
             "comp_if_not": comp_if_ok,
-            # "list_if_or": list_if_or_ok,
+            "list_if_not": list_if_not_seems_ok,
         }
 
         self.check_reduce["and1"] = "AST"
         self.check_reduce["if_exp"] = "AST"
         self.check_reduce["comp_if_not"] = "AST"
         self.check_reduce["comp_if"] = "AST"
-        self.check_reduce["list_if_or"] = "AST"
+        self.check_reduce["list_if_not"] = "AST"
 
         is_pypy = False
 

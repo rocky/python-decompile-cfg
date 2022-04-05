@@ -769,7 +769,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
                 if n[2] == "store":
                     store = n[2]
                 n = n[3]
-            elif n in ("list_if", "list_if_not", "list_if_or", "comp_if", "comp_ifnot"):
+            elif n in ("list_if", "list_if_not", "list_if_or_not", "comp_if", "comp_ifnot"):
                 have_not = n in ("list_if_not", "comp_ifnot")
                 if_node = n[0]
                 if n[1] == "store":
