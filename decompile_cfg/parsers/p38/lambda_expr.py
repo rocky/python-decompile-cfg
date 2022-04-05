@@ -480,6 +480,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         list_iter       ::= list_if_and_or
         list_iter       ::= list_if_chained
         list_iter       ::= list_if_not
+        list_iter       ::= list_if_or_not
         list_iter       ::= lc_body
 
         set_iter        ::= set_for
@@ -531,6 +532,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         list_if_not     ::= expr list_if_not_end list_iter
         list_if_not_end ::= pjump_ift bb_end_start_opt
+
+        list_if_or_not ::= or1 POP_JUMP_IF_TRUE_LOOP bb_end_start_opt list_iter
         """
 
     def p_comprehension_set(self, args):

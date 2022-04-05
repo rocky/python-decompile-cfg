@@ -157,6 +157,7 @@ from decompile_cfg.scanners.tok import Token
 
 from decompile_cfg.semantics.consts import (
     INDENT_PER_LEVEL,
+    LINE_LENGTH,
     MAP,
     MAP_DIRECT,
     NAME_MODULE,
@@ -170,6 +171,7 @@ from decompile_cfg.semantics.consts import (
 
 
 from decompile_cfg.show import maybe_show_tree
+from decompile_cfg.util import better_repr
 
 from io import StringIO
 
@@ -1084,6 +1086,32 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
     @classmethod
     def _get_mapping(cls, node):
         return MAP.get(node, MAP_DIRECT)
+
+
+    def pp_tuple(self, tup):
+        """Pretty print a tuple"""
+        last_line = self.f.getvalue().split("\n")[-1]
+        l = len(last_line) + 1
+        indent = " " * l
+        self.write("(")
+        sep = ""
+        for item in tup:
+            self.write(sep)
+            l += len(sep)
+            s = better_repr(item)
+            l += len(s)
+            self.write(s)
+            sep = ","
+            if l > LINE_LENGTH:
+                l = 0
+                sep += "\n" + indent
+            else:
+                sep += " "
+                pass
+            pass
+        if len(tup) == 1:
+            self.write(", ")
+        self.write(")")
 
 
 def code_deparse(

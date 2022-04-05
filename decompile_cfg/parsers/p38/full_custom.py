@@ -16,11 +16,12 @@
 from decompile_cfg.parsers.parse_heads import PythonBaseParser, nop_func
 from decompile_cfg.parsers.p38.lambda_custom import Python38LambdaCustom
 from decompile_cfg.parsers.reduce_check.and_check import and_ok
+from decompile_cfg.parsers.reduce_check.comp_if_check import comp_if_ok
 from decompile_cfg.parsers.reduce_check.if_exp_check import if_exp_ok
 from decompile_cfg.parsers.reduce_check.ifelsestmt_check import ifelsestmt_ok
 from decompile_cfg.parsers.reduce_check.ifstmt_check import ifstmt_ok
-from decompile_cfg.parsers.reduce_check.comp_if_check import comp_if_ok
 from decompile_cfg.parsers.reduce_check.import_from37 import import_from37_ok
+from decompile_cfg.parsers.reduce_check.list_if_not_check import list_if_not_seems_ok
 
 class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
     def add_make_function_rule(self, rule, opname, attr, customize):
@@ -196,6 +197,7 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
             "if_exp": if_exp_ok,
             "ifelsestmt": ifelsestmt_ok,
             "ifstmt": ifstmt_ok,
+            "list_if_not": list_if_not_seems_ok,
         }
 
         self.check_reduce["and1"] = "AST"
@@ -204,6 +206,7 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
         self.check_reduce["if_exp"] = "AST"
         self.check_reduce["ifelsestmt"] = "AST"
         self.check_reduce["ifstmt"] = "AST"
+        self.check_reduce["list_if_not"] = "AST"
 
 
         # For a rough break out on the first word. This may

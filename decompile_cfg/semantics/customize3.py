@@ -130,7 +130,7 @@ def customize_for_version3(self, version):
                         c = c[0]
                     collections.append(c)
                     pass
-            elif n in ("list_if", "list_if_not", "list_if_or_not"):
+            elif n in ("list_if", "list_if_not", "list_if_or", "list_if_or_not"):
                 if n[0].kind == "expr":
                     list_ifs.append(n)
                 else:

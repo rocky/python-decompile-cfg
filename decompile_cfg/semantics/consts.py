@@ -638,6 +638,13 @@ TABLE_DIRECT = {
 
     "lc_body": ( "", ),	# ignore when recursing
 
+    # A list comprehension "not" in an expression.
+    # We don't want the "if" since that is part of some higher expression
+    "lc_if_not": (
+        " not %p",
+        (0, "expr", PRECEDENCE["unary_not"]),
+    ),
+
     "list_iter":        ( "%c", 0 ),
     "list_if": (
         " if %p%c",
@@ -663,12 +670,8 @@ TABLE_DIRECT = {
         " if not %p%c",
         (0, "expr", PRECEDENCE["unary_not"]),
         2 ),
-    "list_if_or_not": (
-        " if %c or not %c %c",
-        (0, "expr_pjit"),
-        (1, "expr_pjit"),
-        (3, "list_iter"),
-        ),
+
+    "list_if_or_not": (" if %[0] or not %[1]"),
 
     "list_for":	        ( " for %c in %c%c", 2, 0, 3 ),
 

@@ -409,6 +409,37 @@ class NonterminalActions:
             self.println(lines[-1], quote)
         self.prune()
 
+    def n_elifelsestmtr(self, node):
+        if node[2] == "COME_FROM":
+            return_stmts_node = node[3]
+            node.kind = "elifelsestmtr2"
+        else:
+            return_stmts_node = node[2]
+
+        if len(return_stmts_node) != 2:
+            self.default(node)
+
+        for n in return_stmts_node[0]:
+            if not (n[0] == "ifstmt" and n[0][1][0] == "return_if_stmts"):
+                self.default(node)
+                return
+
+        self.write(self.indent, "elif ")
+        self.preorder(node[0])
+        self.println(":")
+        self.indent_more()
+        self.preorder(node[1])
+        self.indent_less()
+
+        for n in return_stmts_node[0]:
+            n[0].kind = "elifstmt"
+            self.preorder(n)
+        self.println(self.indent, "else:")
+        self.indent_more()
+        self.preorder(return_stmts_node[1])
+        self.indent_less()
+        self.prune()
+
     def n_except_cond2(self, node):
         unpack_node = -3 if node[-1] == "come_from_opt" else -2
         if node[unpack_node][0] == "unpack":
@@ -461,6 +492,18 @@ class NonterminalActions:
         self.prune()
 
     n_generator_exp_async = n_generator_exp
+
+    # In the old days this node would never get called because
+    # it was embedded inside some sort of comprehension
+    # Nowadays, we allow starting any code object, not just
+    # a top-level module. In doing so we can
+    # now encounter this outside of the embedding of
+    # a comprehension.
+    def n_genexpr_func_async(self, node):
+        self.write("(")
+        self.comprehension_walk_newer(node, iter_index=3, collection_node=node)
+        self.write(")")
+        self.prune()
 
     def n_ifelsestmtr(self, node):
         if node[2] == "COME_FROM":
@@ -518,37 +561,6 @@ class NonterminalActions:
         self.prune()
 
     n_ifelsestmtr2 = n_ifelsestmtr
-
-    def n_elifelsestmtr(self, node):
-        if node[2] == "COME_FROM":
-            return_stmts_node = node[3]
-            node.kind = "elifelsestmtr2"
-        else:
-            return_stmts_node = node[2]
-
-        if len(return_stmts_node) != 2:
-            self.default(node)
-
-        for n in return_stmts_node[0]:
-            if not (n[0] == "ifstmt" and n[0][1][0] == "return_if_stmts"):
-                self.default(node)
-                return
-
-        self.write(self.indent, "elif ")
-        self.preorder(node[0])
-        self.println(":")
-        self.indent_more()
-        self.preorder(node[1])
-        self.indent_less()
-
-        for n in return_stmts_node[0]:
-            n[0].kind = "elifstmt"
-            self.preorder(n)
-        self.println(self.indent, "else:")
-        self.indent_more()
-        self.preorder(return_stmts_node[1])
-        self.indent_less()
-        self.prune()
 
     def n_list(self, node):
         """
@@ -637,6 +649,39 @@ class NonterminalActions:
     def n_lambda_body(self, node):
         make_function36(self, node, is_lambda=True, code_node=node[-2])
         self.prune()  # stop recursing
+
+
+    def n_list_comp(self, node):
+        self.write("[")
+        if node[0].kind == "load_closure":
+            self.listcomp_closure3(node)
+        else:
+            if node == "list_comp_async":
+                # comprehension_walk_newer needs to pick out from node since
+                # there isn't an iter_index at the top level
+                list_iter_index = None
+            else:
+                list_iter_index = 1
+            self.comprehension_walk_newer(node, list_iter_index, 0)
+        self.write("]")
+        self.prune()
+
+    n_list_comp_async = n_list_comp
+
+
+    def n_list_if_or_not(self, node):
+        or_node = node[0]
+        assert or_node.kind.startswith("or")
+        self.write(" if ")
+        not_part = or_node[1]
+        if or_node[0] == "or_parts":
+            or_node = or_node[0]
+        template = ("%p", (0, PRECEDENCE["or"]))
+        self.template_engine(template, or_node[0])
+        self.write( " or not ")
+        template = ("%p", (0, PRECEDENCE["not"]))
+        self.template_engine(template, not_part)
+        self.prune()
 
     def n_mkfunc(self, node):
 
@@ -960,31 +1005,6 @@ class NonterminalActions:
 
         self.prune()  # stop recursing
 
-    def pp_tuple(self, tup):
-        """Pretty print a tuple"""
-        last_line = self.f.getvalue().split("\n")[-1]
-        l = len(last_line) + 1
-        indent = " " * l
-        self.write("(")
-        sep = ""
-        for item in tup:
-            self.write(sep)
-            l += len(sep)
-            s = better_repr(item)
-            l += len(s)
-            self.write(s)
-            sep = ","
-            if l > LINE_LENGTH:
-                l = 0
-                sep += "\n" + indent
-            else:
-                sep += " "
-                pass
-            pass
-        if len(tup) == 1:
-            self.write(", ")
-        self.write(")")
-
     def n_LOAD_CONST(self, node):
         attr = node.attr
         data = node.pattr
@@ -1024,32 +1044,3 @@ class NonterminalActions:
             self.write(repr(data))
         # LOAD_CONST is a terminal, so stop processing/recursing early
         self.prune()
-
-    # In the old days this node would never get called because
-    # it was embedded inside some sort of comprehension
-    # Nowadays, we allow starting any code object, not just
-    # a top-level module. In doing so we can
-    # now encounter this outside of the embedding of
-    # a comprehension.
-    def n_genexpr_func_async(self, node):
-        self.write("(")
-        self.comprehension_walk_newer(node, iter_index=3, collection_node=node)
-        self.write(")")
-        self.prune()
-
-    def n_list_comp(self, node):
-        self.write("[")
-        if node[0].kind == "load_closure":
-            self.listcomp_closure3(node)
-        else:
-            if node == "list_comp_async":
-                # comprehension_walk_newer needs to pick out from node since
-                # there isn't an iter_index at the top level
-                list_iter_index = None
-            else:
-                list_iter_index = 1
-            self.comprehension_walk_newer(node, list_iter_index, 0)
-        self.write("]")
-        self.prune()
-
-    n_list_comp_async = n_list_comp
