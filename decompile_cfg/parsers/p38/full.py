@@ -135,6 +135,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
 
         stmt ::= if_or_stmt
         stmt ::= if_and_stmt
+        stmt ::= if_and_elsestmt
         stmt ::= ifelsestmt
         stmt ::= if_or_not_elsestmt
         stmt ::= ifstmt
@@ -311,10 +312,12 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         # of missing "else" clauses. Therefore we include grammar
         # rules with and without ELSE.
 
-        ifelsestmt    ::= testexpr
-                          stmts_opt jf_bb_end_start else_suite opt_come_from_except
-        ifelsestmt    ::= branch_op
-                          stmts_opt jf_bb_end_start else_suite opt_come_from_except
+        if_and_elsestmt ::= testfalse testfalse
+                            stmts_opt jf_bb_end_start else_suite block_break
+        ifelsestmt      ::= testexpr
+                            stmts_opt jf_bb_end_start else_suite block_break
+        ifelsestmt      ::= branch_op
+                            stmts_opt jf_bb_end_start else_suite block_break
 
         ifelsestmtc ::= testexpr
                         stmts_opt jump_forward_else
@@ -880,7 +883,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         return_closure     ::= LOAD_CLOSURE RETURN_VALUE RETURN_LAST
 
         stmt               ::= whileTruestmt
-        ifelsestmt         ::= testexpr stmts_opt JUMP_FORWARD else_suite _come_froms
+        ifelsestmt         ::= testexpr stmts_opt JUMP_FORWARD else_suite block_break
 
         ifstmtc            ::= testexpr ifstmts_jumpc
         ifstmtc            ::= testexprc ifstmts_jumpc _come_froms

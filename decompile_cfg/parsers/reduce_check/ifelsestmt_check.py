@@ -27,7 +27,7 @@ def ifelsestmt_ok(
         jf_bb_end_start = tree[2]
         assert jf_bb_end_start == "jf_bb_end_start"
 
-        # Chek that the branch at the end of the "then" goes to "endif"
+        # Check that the branch at the end of the "then" goes to "endif"
         then_endif_offset = jf_bb_end_start[0].attr
 
         if then_endif_offset != tokens[last].offset:

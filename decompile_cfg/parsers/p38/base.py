@@ -13,11 +13,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from decompile_cfg.parsers.parse_heads import PythonBaseParser, PythonParserSingle, nop_func
+from decompile_cfg.parsers.parse_heads import PythonBaseParser, PythonParserSingle
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 
 class Python38BaseParser(PythonBaseParser):
     def __init__(self, start_symbol, debug_parser:dict=PARSER_DEFAULT_DEBUG):
+        self.reduce_check_table = {}
         super(Python38BaseParser, self).__init__(start_symbol=start_symbol, debug_parser=debug_parser)
 
     def add_make_function_rule(self, rule, opname, attr, customize):

@@ -513,28 +513,30 @@ TABLE_DIRECT = {
         (0, "expr"),
         ),
 
+    "if_and_elsestmt":	(
+        "%|if %p and %p:\n%+%c%-%|else:\n%+%c%-",
+        (0, PRECEDENCE["and"]),
+        (1, PRECEDENCE["and"]),
+        (2, "stmts_opt"),
+        (4, "else_suite"),
+     ),
+
+    "if_and_elifstmt":	(
+        "%|if %p and %p:\n%+%c%-%c%-",
+        (0, PRECEDENCE["and"]),
+        (1, PRECEDENCE["and"]),
+        (2, "stmts_opt"),
+        (4, "else_suite"),
+     ),
+
+    # IfExp equivalents ..
+
     "if_exp_and": (
-        "%p if %c and %c else %c",
+        "%p if %p and %p else %c",
         (3, "expr", PRECEDENCE["if_exp"]),
-        (0, ("expr",)),
-        (2, ("and_parts")),
+        (0, ("expr",), PRECEDENCE["and"]),
+        (2, ("branch_op_part"), PRECEDENCE["and"]),
         -1,  # Must be from end since beginnings might not match
-    ),
-
-    # IfExp equivalent
-    "if_exp_jump_false": (
-        "%p if %c else %c",
-        (3, "expr", PRECEDENCE["if_exp"]),
-        (0, "expr"),
-        (-1, "expr"),
-    ),
-
-    # Same as above. See if we can DRY
-    "if_exp_jump_true": (
-        "%p if %c else %c",
-        (3, "expr", PRECEDENCE["if_exp"]),
-        (0, "expr"),
-        (-1, "expr"),
     ),
 
     "if_exp_binop_lambda":    (
@@ -563,6 +565,21 @@ TABLE_DIRECT = {
                           (0, "return_expr_lambda"),
                           (1, "return_expr_lambda") ),
 
+    "if_exp_jump_false": (
+        "%p if %c else %c",
+        (3, "expr", PRECEDENCE["if_exp"]),
+        (0, "expr"),
+        (-1, "expr"),
+    ),
+
+    # Same as above. See if we can DRY
+    "if_exp_jump_true": (
+        "%p if %c else %c",
+        (3, "expr", PRECEDENCE["if_exp"]),
+        (0, "expr"),
+        (-1, "expr"),
+    ),
+
     "if_exp_lambda": (
         "%c if %c else %c",
         (3, "expr"),
@@ -575,6 +592,14 @@ TABLE_DIRECT = {
         (2, "expr"),
         (0, ("expr", "branch_op")),
         (-1, "expr"),
+    ),
+
+    "if_exp_or": (
+        "%p if %p or %p else %c",
+        (3, "expr", PRECEDENCE["if_exp"]),
+        (0, ("expr",), PRECEDENCE["or"]),
+        (2, ("branch_op_part"), PRECEDENCE["or"]),
+        -1,  # Must be from end since beginnings might not match
     ),
 
     "if_exp_not": (
@@ -596,6 +621,8 @@ TABLE_DIRECT = {
 
     "if_exp_true":      ( "%p if 1 else %c", (0, "expr", 27), 2 ),
     "if_exp_ret":       ( "%p if %p else %p", (2, 27), (0, 27), (-1, 27) ),
+
+    # end IfExp
 
     "ifelsestmt":	( "%|if %c:\n%+%c%-%|else:\n%+%c%-", 0, 1, 3 ),
     "ifelsestmtc":	( "%|if %c:\n%+%c%-%|else:\n%+%c%-", 0, 1, 3 ),
