@@ -14,12 +14,11 @@
 
 from decompile_cfg.scanners.tok import Token
 
-# FIXME: this probably applies to lots of rules. Figure out a good name.
 def and_ok(
-    self, lhs: str, n: int, rule, ast, tokens: list, first: int, last: int
+    self, lhs: str, n: int, rule, tree, tokens: list, first: int, last: int
 ) -> bool:
     """
-    Returns True if we can't find any reason to disallow an "if_exp_lambda" reduction.
+    Returns True if we can't find any reason to disallow an "and1" reduction.
     """
 
     # print("XXX", first, last)
@@ -29,12 +28,12 @@ def and_ok(
 
     if rule == ("and1", ("and_parts", "expr")):
         # Make sure jump at the end of and_parts jumps right after "expr"
-        and_parts = ast[0]
+        and_parts = tree[0]
         pop_jump_if_false = and_parts.last_child()
         if pop_jump_if_false != "POP_JUMP_IF_FALSE":
             return True
 
-        expr_node = ast[-1]
+        expr_node = tree[-1]
         expr_child = expr_node[0]
         if isinstance(expr_child, Token):
             last_offset = expr_child.offset
@@ -43,9 +42,9 @@ def and_ok(
                 last -= 1
             last_offset = tokens[last].offset
         else:
-            last_offset = ast[-1].last_child().offset
+            last_offset = tree[-1].last_child().offset
 
-        return pop_jump_if_false.attr > last_offset
+        return pop_jump_if_false.attr == last_offset
 
     # print("XXX", tokens[first].basic_block, tokens[last-1].basic_block)
     return True

@@ -1,4 +1,4 @@
-#  Copyright (c) 2019-2021 by Rocky Bernstein
+#  Copyright (c) 2019-2022 by Rocky Bernstein
 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -114,6 +114,105 @@ class TreeTransform(GenericASTTraversal, object):
             )
 
         return node
+
+    # preprocess is used for handling chains of
+    # if elif elif
+    def n_if_and_elsestmt(self, node, preprocess=False):
+        """
+        Transformation involving if .. and ..: ..else statments.
+        For example
+          if ... and ...
+          else
+             if ...
+
+        into:
+
+          if ... and ...
+          elif ...
+
+          [else ...]
+
+        where appropriate.
+        """
+
+        else_suite = node[4]
+        assert else_suite == "else_suite"
+        # See if we can DRY the rest with n_ifelsesmt
+
+        n = else_suite[0]
+        old_stmts = None
+        else_suite_index = 1
+        if len(n) and n[0] == "suite_stmts":
+            n = n[0]
+
+        while len(n) == 1 and n in ("_stmts", "stmt", "stmts"):
+            n = n[0]
+
+        if len(n) == 0:
+            return node
+
+        if n[0].kind in (
+            "ifstmt",
+            ):
+            n = n[0]
+        else:
+            if (
+                len(n) > 1
+                and isinstance(n[0], SyntaxTree)
+                and 1 == len(n[0])
+                and n[0] == "stmt"
+                and n[1].kind == "stmt"
+            ):
+                else_suite_stmts = n[0]
+            elif len(n) == 1:
+                else_suite_stmts = n
+            else:
+                return node
+
+            if else_suite_stmts[0].kind in (
+                "ifstmt",
+                "ifelsestmt",
+            ):
+                old_stmts = n
+                n = else_suite_stmts[0]
+            else:
+                return node
+
+        if n.kind == "last_stmt":
+            n = n[0]
+        if n.kind in ("ifstmt",):
+            node.kind = "if_and_elifstmt"
+            n.kind = "elifstmt"
+            node.transformed_by = "n_if_and_elsestmt"
+        elif n.kind in ("ifelsestmt", "ifelsestmtc", "ifelsestmtc"):
+            node.kind = "if_and_elifstmt"
+            self.n_ifelsestmt(n, preprocess=True)
+            if n == "ifelifstmt":
+                n.kind = "elifelifstmt"
+                node.transformed_by = "n_if_and_elsestmt"
+            elif n.kind in ("ifelsestmt", "ifelsestmtc"):
+                n.kind = "elifelsestmt"
+        if not preprocess:
+            if old_stmts:
+                if n.kind == "elifstmt":
+                    trailing_else = SyntaxTree("stmts", old_stmts[1:])
+                    if len(trailing_else):
+                        # We use elifelsestmtr because it has 3 nodes
+                        elifelse_stmt = SyntaxTree(
+                            "elifelsestmtr", [n[0], n[else_suite_index], trailing_else]
+                        )
+                        node[3] = elifelse_stmt
+                    else:
+                        elif_stmt = SyntaxTree("elifstmt", [n[0], n[else_suite_index]])
+                        node[3] = elif_stmt
+
+                    node.transformed_by = "n_if_and_elsestmt"
+                    pass
+                else:
+                    # Other cases for n.kind may happen here
+                    pass
+                pass
+            return node
 
     def n_ifstmt(self, node):
         """Here we check if we can turn an `ifstmt` or 'iflaststmtc` into
@@ -276,6 +375,7 @@ class TreeTransform(GenericASTTraversal, object):
         """
 
         else_suite = node[3]
+        assert else_suite == "else_suite"
 
         n = else_suite[0]
         old_stmts = None
@@ -283,60 +383,42 @@ class TreeTransform(GenericASTTraversal, object):
         if len(n) and n[0] == "suite_stmts":
             n = n[0]
 
-        len_n = len(n)
-        if len_n == 1 == len(n[0]) and n[0] in ("stmt", "stmts"):
-            n = n[0][0]
-        elif len_n == 0:
-            return node
-        elif n[0].kind in ("lastc_stmt",):
+        while len(n) == 1 and n in ("_stmts", "stmt", "stmts"):
             n = n[0]
-            if n[0].kind in (
-                "ifstmt",
-                "iflaststmt",
-                "iflaststmtc",
-                "ifelsestmtc",
-                "ifpoplaststmtc",
-            ):
-                n = n[0]
-                if n.kind == "ifpoplaststmtc":
-                    old_stmts = n[2]
-                    else_suite_index = 2
-                pass
-            pass
-        else:
-            if (
-                len_n > 1
-                and isinstance(n[0], SyntaxTree)
-                and 1 == len(n[0])
-                and n[0] == "stmt"
-                and n[1].kind == "stmt"
-            ):
-                else_suite_stmts = n[0]
-            elif len_n == 1:
-                else_suite_stmts = n
-            else:
-                return node
 
-            if else_suite_stmts[0].kind in (
-                "ifstmt",
-                "iflaststmt",
-                "ifelsestmt",
-                "ifelsestmtl",
-            ):
-                old_stmts = n
-                n = else_suite_stmts[0]
-            else:
-                return node
+        if len(n) == 0:
+            return node
+
+        if (
+            len(n) > 1
+            and isinstance(n[0], SyntaxTree)
+            and 1 == len(n[0])
+            and n[0] == "stmt"
+            and n[1].kind == "stmt"
+        ):
+            else_suite_stmts = n[0]
+        elif len(n) == 1:
+            else_suite_stmts = n
+        else:
+            return node
+
+        if else_suite_stmts[0].kind in (
+            "ifstmt",
+            "iflaststmt",
+            "ifelsestmt",
+        ):
+            old_stmts = n
+            n = else_suite_stmts[0]
+        else:
+            return node
 
         if n.kind == "last_stmt":
             n = n[0]
         if n.kind in ("ifstmt", "iflaststmt", "iflaststmtc", "ifpoplaststmtc"):
             node.kind = "ifelifstmt"
             n.kind = "elifstmt"
-        elif n.kind in ("ifelsestmtr",):
-            node.kind = "ifelifstmt"
-            n.kind = "elifelsestmtr"
-        elif n.kind in ("ifelsestmt", "ifelsestmtc", "ifelsestmtc"):
+            node.transformed_by = "n_ifelsestmt"
+        elif n.kind in ("ifelsestmt",):
             node.kind = "ifelifstmt"
             self.n_ifelsestmt(n, preprocess=True)
             if n == "ifelifstmt":
@@ -364,8 +446,6 @@ class TreeTransform(GenericASTTraversal, object):
                     pass
                 pass
             return node
-
-    n_ifelsestmtc = n_ifelsestmt
 
     def n_import_from37(self, node):
         importlists = node[3]

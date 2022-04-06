@@ -15,13 +15,9 @@
 
 from decompile_cfg.parsers.parse_heads import PythonBaseParser, nop_func
 from decompile_cfg.parsers.p38.lambda_custom import Python38LambdaCustom
-from decompile_cfg.parsers.reduce_check.and_check import and_ok
-from decompile_cfg.parsers.reduce_check.comp_if_check import comp_if_ok
-from decompile_cfg.parsers.reduce_check.if_exp_check import if_exp_ok
 from decompile_cfg.parsers.reduce_check.ifelsestmt_check import ifelsestmt_ok
 from decompile_cfg.parsers.reduce_check.ifstmt_check import ifstmt_ok
 from decompile_cfg.parsers.reduce_check.import_from37 import import_from37_ok
-from decompile_cfg.parsers.reduce_check.list_if_not_check import list_if_not_seems_ok
 
 class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
     def add_make_function_rule(self, rule, opname, attr, customize):
@@ -189,27 +185,8 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
     def customize_grammar_rules_full38(self, tokens, customize):
 
         self.customize_grammar_rules_lambda38(tokens, customize)
+        self.customize_reduce_checks_full38()
 
-        self.reduce_check_table = {
-            "and1": and_ok,
-            "comp_if": comp_if_ok,
-            "comp_if_not": comp_if_ok,
-            "if_exp": if_exp_ok,
-            "ifelsestmt": ifelsestmt_ok,
-            "ifstmt": ifstmt_ok,
-            "list_if_not": list_if_not_seems_ok,
-        }
-
-        self.check_reduce["and1"] = "AST"
-        self.check_reduce["comp_if_not"] = "AST"
-        self.check_reduce["comp_if"] = "AST"
-        self.check_reduce["if_exp"] = "AST"
-        self.check_reduce["ifelsestmt"] = "AST"
-        self.check_reduce["ifstmt"] = "AST"
-        self.check_reduce["list_if_not"] = "AST"
-
-
-        # For a rough break out on the first word. This may
         # include instructions that don't need customization,
         # but we'll do a finer check after the rough breakout.
         customize_instruction_basenames = frozenset(
@@ -685,79 +662,62 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                 self.addRule(rules_str, nop_func)
             pass
 
-        # self.reduce_check_table = {
+        return
+
+    def customize_reduce_checks_full38(self):
+        """
+        Extra tests when a reduction is made in the full grammar.
+
+        Reductions here are extended from those used in the lambda grammar
+        """
+        # self.reduce_check_table.update = {
+        #     "break": break_check,
+        #     "for38": for38_check,
         #     "ifstmts_jump": ifstmts_jump,
-        #     "and": and_check,
-        #     "and_cond": and_cond_check,
-        #     "and_not": and_not_check,
         #     "if_and_stmt": if_and_stmt,
-        #     "if_and_elsestmtc": if_and_elsestmt,
         #     "ifelsestmt": ifelsestmt,
-        #     "ifelsestmtc": ifelsestmt,
         #     "iflaststmt": iflaststmt,
-        #     "iflaststmtc": iflaststmt,
         #     "ifstmt": ifstmt,
-        #     "ifstmtc": ifstmt,
-        #     "lastc_stmt": lastc_stmt,
         #     "list_if_not": list_if_not,
         #     "not_or": not_or_check,
         #     "or": or_check,
         #     "or_cond": or_cond_check,
+        #     ""pop_return": pop_return_check
         #     "testtrue": testtrue,
-        #     "testfalsec": testtrue,
         #     "while1elsestmt": while1elsestmt,
         #     "while1stmt": while1stmt,
         #     "whilestmt": whilestmt,
-        #     "c_tryelsestmt": c_tryelsestmt,
-        #     "c_try_except": tryexcept,
         # }
 
-        # self.check_reduce["and"] = "AST"
-        # self.check_reduce["and_cond"] = "AST"
-        # self.check_reduce["and_not"] = "AST"
         # self.check_reduce["annotate_tuple"] = "tokens"
-        # self.check_reduce["aug_assign1"] = "AST"
         # self.check_reduce["aug_assign2"] = "AST"
-        # self.check_reduce["c_try_except"] = "AST"
-        # self.check_reduce["c_tryelsestmt"] = "AST"
-        # self.check_reduce["if_and_stmt"] = "AST"
-        # self.check_reduce["if_and_elsestmtc"] = "AST"
-        # self.check_reduce["ifelsestmt"] = "AST"
-        # self.check_reduce["ifelsestmtc"] = "AST"
-        # self.check_reduce["iflaststmt"] = "AST"
-        # self.check_reduce["iflaststmtc"] = "AST"
-        # self.check_reduce["ifstmt"] = "AST"
-        # self.check_reduce["ifstmtc"] = "AST"
-        # self.check_reduce["ifstmts_jump"] = "AST"
-        # self.check_reduce["ifstmts_jumpc"] = "AST"
-        self.check_reduce["import_from37"] = "AST"
-        # self.check_reduce["lastc_stmt"] = "tokens"
-        # self.check_reduce["list_if_not"] = "AST"
-        # self.check_reduce["while1elsestmt"] = "tokens"
-        # self.check_reduce["while1stmt"] = "tokens"
-        # self.check_reduce["whilestmt"] = "tokens"
-        # self.check_reduce["not_or"] = "AST"
-        # self.check_reduce["or"] = "AST"
-        # self.check_reduce["or_cond"] = "tokens"
-        # self.check_reduce["testtrue"] = "tokens"
-        # self.check_reduce["testfalsec"] = "tokens"
-
-
-        # self.remove_rules_38()
         # self.check_reduce["break"] = "tokens"
         # self.check_reduce["for38"] = "tokens"
+        # self.check_reduce["if_and_stmt"] = "AST"
+        # self.check_reduce["iflaststmt"] = "AST"
+        # self.check_reduce["ifstmt"] = "AST"
+        # self.check_reduce["ifstmts_jump"] = "AST"
+        # self.check_reduce["lastc_stmt"] = "tokens"
+        # self.check_reduce["list_if_not"] = "AST"
         # self.check_reduce["pop_return"] = "tokens"
-        # self.check_reduce["whileTruestmt38"] = "tokens"
-        # self.check_reduce["whilestmt38"] = "tokens"
         # self.check_reduce["try_elsestmtl38"] = "AST"
+        # self.check_reduce["while1elsestmt"] = "tokens"
+        # self.check_reduce["while1stmt"] = "tokens"
+        # self.check_reduce["whileTruestmt38"] = "tokens"
+        # self.check_reduce["whilestmt"] = "tokens"
+        # self.check_reduce["whilestmt38"] = "tokens"
 
-        # self.reduce_check_table["break"] = break_check
-        # self.reduce_check_table["for38"] = for38_check
-        # self.reduce_check_table["pop_return"] = pop_return_check
+        # Use update we don't destroy entries from lambda.
+        self.reduce_check_table.update({
+            "ifelsestmt": ifelsestmt_ok,
+            "ifstmt": ifstmt_ok,
+            "import_from37": import_from37_ok,
+        })
 
-        self.reduce_check_table["import_from37"] = import_from37_ok
+        self.check_reduce["ifelsestmt"] = "AST"
+        self.check_reduce["ifstmt"] = "AST"
+        self.check_reduce["import_from37"] = "AST"
 
-        return
 
     def reduce_is_invalid(self, rule, ast, tokens, first, last):
         invalid = Python38LambdaCustom.reduce_is_invalid(self, rule, ast, tokens, first, last)

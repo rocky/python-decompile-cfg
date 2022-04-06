@@ -39,6 +39,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           dom_start_opt
                           expr
 
+        # and_part(s) are the right-hand side of an "and" without the leading expr
         and_part      ::= expr_pjif
         and_parts     ::= and_part+
 
@@ -48,6 +49,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           dom_start_opt
                           expr
 
+        # and_part(s) are the right-hand side of an "or" without the leading expr
         or_part       ::= expr_pjit
         or_parts      ::= or_part+
 
@@ -116,10 +118,19 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         if_exp_and     ::= expr
                            POP_JUMP_IF_FALSE
-                           and_parts
+                           branch_op_part
                            expr
                            block_break
                            JUMP_FORWARD
+                           block_break
+                           expr
+
+        if_exp_and     ::= expr
+                           POP_JUMP_IF_FALSE
+                           branch_op_part
+                           expr
+                           block_break
+                           RETURN_VALUE
                            block_break
                            expr
 
@@ -129,6 +140,29 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                            POP_JUMP_IF_FALSE_LOOP
                            jf_bb_end_start
                            expr
+
+        if_exp_or      ::= expr
+                           POP_JUMP_IF_TRUE
+                           branch_op_part
+                           expr
+                           block_break
+                           RETURN_VALUE
+                           block_break
+                           expr
+
+        if_exp_or      ::= expr
+                           POP_JUMP_IF_TRUE
+                           branch_op_part
+                           expr
+                           block_break
+                           JUMP_FORWARD
+                           block_break
+                           expr
+
+
+        # FIXME:
+        # Should go in full.py
+        if_exp_or ::= expr POP_JUMP_IF_TRUE branch_op_part expr
 
         # FIXME: How is this not the same as if_exp above?
         # Distinguish in semantic action?
@@ -275,8 +309,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
     def p_conditionals(self, args):
         """
-        branch_op                  ::= and POP_JUMP_IF_TRUE expr
-
         expr_pjif                  ::= expr POP_JUMP_IF_FALSE
         expr_pjif_loop             ::= expr POP_JUMP_IF_FALSE_LOOP
         expr_pjit                  ::= expr POP_JUMP_IF_TRUE
@@ -480,6 +512,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         list_iter       ::= list_if_and_or
         list_iter       ::= list_if_chained
         list_iter       ::= list_if_not
+        list_iter       ::= list_if_or
         list_iter       ::= list_if_or_not
         list_iter       ::= lc_body
 
@@ -508,8 +541,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                            jump_loop
                            bb_doms_end_start_opt
 
-        list_if         ::= expr list_if_end list_iter
         list_if         ::= branch_op list_if_end list_iter
+        list_if         ::= expr list_if_end list_iter
 
         list_if         ::= expr pjump_iff_loop list_iter
         list_if_chained ::= list_if_compare
@@ -533,6 +566,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         list_if_not     ::= expr list_if_not_end list_iter
         list_if_not_end ::= pjump_ift bb_end_start_opt
 
+        # XXX
+        list_if_or      ::= expr list_if_not_end list_iter
+
+
+        list_if_or     ::= expr POP_JUMP_IF_FALSE_LOOP bb_end_start_opt list_iter
         list_if_or_not ::= or1 POP_JUMP_IF_TRUE_LOOP bb_end_start_opt list_iter
         """
 
@@ -620,23 +658,29 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # even from those that return True and False (like "is" and "in") is that
         # they have basic block and dominator pseudo instructions.
 
-        branch_op ::= or block_break
-        branch_op ::= or1 block_break
+        branch_op ::= and POP_JUMP_IF_TRUE expr
         branch_op ::= and block_break
         branch_op ::= and1 block_break
         branch_op ::= and_or block_break
+        branch_op ::= or block_break
         branch_op ::= or_and block_break
+        branch_op ::= or1 block_break
 
         branch_op ::= if_exp block_break
         branch_op ::= if_exp_and block_break
         branch_op ::= if_exp_compare bb_doms_end_opt
         branch_op ::= if_exp_loop
         branch_op ::= if_exp_not block_break
+        branch_op ::= if_exp_or block_break
         branch_op ::= if_exp_true block_break
 
 
         branch_op_compound_prefix ::= branch_op DOM_START BB_START unary_operator
         branch_op_compound_suffix ::= branch_op DOM_START BB_START expr binary_operator
+
+        # The right-hand side of a branch op
+        branch_op_part ::= and_parts block_break
+        branch_op_part ::= or_parts block_break
 
         # FIXME: the below is to work around test_grammar expecting a "call" to be
         # on the LHS because it is also somewhere on in a rule.

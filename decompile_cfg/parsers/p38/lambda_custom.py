@@ -22,6 +22,7 @@ from decompile_cfg.parsers.reduce_check.and_check import and_ok
 from decompile_cfg.parsers.reduce_check.if_exp_check import if_exp_ok
 from decompile_cfg.parsers.reduce_check.comp_if_check import comp_if_ok
 from decompile_cfg.parsers.reduce_check.list_if_not_check import list_if_not_seems_ok
+from decompile_cfg.parsers.reduce_check.or_check import or_ok
 from spark_parser.spark import rule2str
 
 class Python38LambdaCustom(Python38BaseParser):
@@ -161,19 +162,7 @@ class Python38LambdaCustom(Python38BaseParser):
 
     def customize_grammar_rules_lambda38(self, tokens, customize):
 
-        self.reduce_check_table = {
-            "and1": and_ok,
-            "if_exp": if_exp_ok,
-            "comp_if": comp_if_ok,
-            "comp_if_not": comp_if_ok,
-            "list_if_not": list_if_not_seems_ok,
-        }
-
-        self.check_reduce["and1"] = "AST"
-        self.check_reduce["if_exp"] = "AST"
-        self.check_reduce["comp_if_not"] = "AST"
-        self.check_reduce["comp_if"] = "AST"
-        self.check_reduce["list_if_not"] = "AST"
+        self.customize_reduce_checks_lambda38()
 
         is_pypy = False
 
@@ -1165,6 +1154,27 @@ class Python38LambdaCustom(Python38BaseParser):
                     + " store" * token.attr
                 )
                 self.addRule(rule, nop_func)
+
+    def customize_reduce_checks_lambda38(self):
+        """
+        Extra tests when a reduction is made in the lambda grammar
+        """
+
+        self.reduce_check_table = {
+            "and1": and_ok,
+            "if_exp": if_exp_ok,
+            "comp_if": comp_if_ok,
+            "comp_if_not": comp_if_ok,
+            "list_if_not": list_if_not_seems_ok,
+            "or1": or_ok,
+        }
+
+        self.check_reduce["and1"] = "AST"
+        self.check_reduce["if_exp"] = "AST"
+        self.check_reduce["comp_if"] = "AST"
+        self.check_reduce["comp_if_not"] = "AST"
+        self.check_reduce["list_if_not"] = "AST"
+        self.check_reduce["or1"] = "AST"
 
     def reduce_is_invalid(self, rule: list, ast, tokens, first: int, last: int):
         lhs = rule[0]
