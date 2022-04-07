@@ -37,26 +37,25 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         # Listing "and" at the end of the next rule eliminates
         #    expr -> branch_op -> and
-        and           ::= and_parts_jifop and
-        and           ::= and_parts_jifop expr
+        and             ::= and_parts_jifop and
+        and             ::= and_parts_jifop expr
 
-        # and_part(s) are the right-hand side of an "and" without the leading expr
-        and_part      ::= expr_pjif
-        and_parts     ::= and_part+
+        # and_part_pjif are the right-hand side of an "and" without the leading expr
+        and_part_pjif   ::= expr_pjif
+        and_parts_pjif  ::= and_part_pjif+
 
         and_part_jifop  ::= expr_jifop
         and_parts_jifop ::= and_part_jifop+
 
+        and1            ::= and_parts_pjif expr
 
-        and1          ::= and_parts expr
+        or              ::= expr_jitop
+                            dom_start_opt
+                            expr
 
-        or            ::= expr_jitop
-                          dom_start_opt
-                          expr
-
-        # and_part(s) are the right-hand side of an "or" without the leading expr
-        or_part       ::= expr_pjit
-        or_parts      ::= or_part+
+        # or_part(s) are the right-hand side of an "or" without the leading expr
+        or_part         ::= expr_pjit
+        or_parts        ::= or_part+
 
         or_part_true_loop  ::= expr_pjit_loop
         or_parts_true_loop ::= or_part_true_loop+
@@ -64,14 +63,14 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         or_part_false_loop  ::= expr_pjif_loop
         or_parts_false_loop ::= or_part_false_loop+
 
-        or1           ::= or_parts expr
+        or1                 ::= or_parts expr
 
         # Note: I don't know why, but  we can't replace "expr jitop_start expr"
         # with "or"
-        and_or        ::= and_parts
-                          expr
-                          jitop_start
-                          expr
+        and_or              ::= and_parts_pjif
+                                expr
+                                jitop_start
+                                expr
 
         ## In cases where we have some sort of logic optimization the
         ## "or" using "expr_jitop" can get converted to "or" using "expr_pjit"
@@ -84,10 +83,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         #                   expr_pjif
         #                   expr_pjit
 
-        or_and        ::= or_parts
-                          expr
-                          jifop_start
-                          expr
+        or_and         ::= or_parts
+                           expr
+                           jifop_start
+                           expr
 
         # Corresponds to AST IfExp; note this
         # must include an "else" part.
@@ -684,7 +683,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         branch_op_compound_suffix ::= branch_op DOM_START BB_START expr binary_operator
 
         # The right-hand side of a branch op
-        branch_op_part ::= and_parts block_break
+        branch_op_part ::= and_parts_pjif block_break
         branch_op_part ::= or_parts block_break
 
         # FIXME: the below is to work around test_grammar expecting a "call" to be

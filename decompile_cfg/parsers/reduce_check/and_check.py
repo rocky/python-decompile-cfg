@@ -26,13 +26,13 @@ def and_ok(
     #     print(tokens[i])
     # print(rule)
 
-    if rule != ("and1", ("and_parts", "expr")):
+    if rule != ("and1", ("and_parts_pjif", "expr")):
         # print("XXX", tokens[first].basic_block, tokens[last-1].basic_block)
         return True
 
-    # Make sure jump at the end of and_parts jumps right after "expr"
-    and_parts = tree[0]
-    pop_jump_if_false = and_parts.last_child()
+    # Make sure jump at the end of and_parts_pjif jumps right after "expr"
+    and_parts_pjif = tree[0]
+    pop_jump_if_false = and_parts_pjif.last_child()
     if pop_jump_if_false != "POP_JUMP_IF_FALSE":
         return True
 
