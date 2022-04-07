@@ -9,5 +9,5 @@ Some examples:
 Python 3.3 diffs off of 3.2; 3.1 and 3.0 diff off of 3.2; Python 1.0..Python 2.5 diff off of
 Python 2.6 and Python 3.8 diff off of 3.7
 """
-from decompile_cfg.parsers.main import *
-from decompile_cfg.parsers.treenode import *
+# from decompile_cfg.parsers.main import *
+# from decompile_cfg.parsers.treenode import *
