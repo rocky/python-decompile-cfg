@@ -35,13 +35,18 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # Note: reduction-rule checks are needed for many of the below;
         # the rules in of themselves are not sufficient.
 
-        and           ::= expr_jifop
-                          dom_start_opt
-                          expr
+        # Listing "and" at the end of the next rule eliminates
+        #    expr -> branch_op -> and
+        and           ::= and_parts_jifop and
+        and           ::= and_parts_jifop expr
 
         # and_part(s) are the right-hand side of an "and" without the leading expr
         and_part      ::= expr_pjif
         and_parts     ::= and_part+
+
+        and_part_jifop  ::= expr_jifop
+        and_parts_jifop ::= and_part_jifop+
+
 
         and1          ::= and_parts expr
 

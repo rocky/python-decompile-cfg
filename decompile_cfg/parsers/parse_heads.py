@@ -62,6 +62,7 @@ class PythonBaseParser(GenericASTBuilder):
         # collect as stmts -> stmt stmt ...
         nt_list = [
             "and_parts",
+            "and_parts_jifop",
             "attributes",
             "dicts_unmap",
             "doms_end",

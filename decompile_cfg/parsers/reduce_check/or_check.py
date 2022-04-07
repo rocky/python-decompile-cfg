@@ -26,26 +26,25 @@ def or_ok(
     #     print(tokens[i])
     # print(rule)
 
-    if rule == ("or1", ("or_parts", "expr")):
-        # Make sure jump at the end of or_parts jumps right after "expr"
-        or_parts = tree[0]
-        pop_jump_if_false = or_parts.last_child()
-        if pop_jump_if_false != "POP_JUMP_IF_TRUE":
-            return True
+    if rule != ("or1", ("or_parts", "expr")):
+        return True
 
-        expr_node = tree[-1]
-        expr_child = expr_node[0]
-        if isinstance(expr_child, Token):
-            last_offset = expr_child.offset
-        elif expr_child == "branch_op":
-            while tokens[last].optype == "pseudo":
-                last -= 1
-            last_offset = tokens[last].offset
-        else:
-            last_offset = tree[-1].last_child().offset
+    # Make sure jump at the end of or_parts jumps right after "expr"
+    or_parts = tree[0]
+    pop_jump_if_false = or_parts.last_child()
+    if pop_jump_if_false != "POP_JUMP_IF_TRUE":
+        # print("XXX", tokens[first].basic_block, tokens[last-1].basic_block)
+        return True
 
-        return pop_jump_if_false.attr == last_offset
+    expr_node = tree[-1]
+    expr_child = expr_node[0]
+    if isinstance(expr_child, Token):
+        last_offset = expr_child.offset
+    elif expr_child == "branch_op":
+        while tokens[last].optype == "pseudo":
+            last -= 1
+        last_offset = tokens[last].offset
+    else:
+        last_offset = tree[-1].last_child().offset
 
-    # print("XXX", tokens[first].basic_block, tokens[last-1].basic_block)
-    return True
-    # return tokens[first].basic_block == tokens[last-1].basic_block
+    return pop_jump_if_false.attr == last_offset
