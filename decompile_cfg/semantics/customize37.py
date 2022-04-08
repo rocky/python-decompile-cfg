@@ -62,12 +62,12 @@ def customize_for_version37(self, version):
             "or_and1": (
                 "%c or (%c)",
                 (0, "or_parts"),
-                (1, "and_parts"),
+                (1, "and_parts_pjif"),
             ),
             "and_not": ("%c and not %c", (0, "expr_pjif"), (1, "expr_pjit")),
             "and_cond": (
                 "%c and %c",
-                (0, ("and_parts", "testfalse")),
+                (0, ("and_parts_pjif", "testfalse")),
                 (1, ("expr_pjif", "expr")),
             ),
             "ann_assign": (
@@ -286,7 +286,7 @@ def customize_for_version37(self, version):
             ),
             "and_or_cond": (
                 "%c and %c or %c",
-                (0, ("and_parts", "or_parts")),
+                (0, ("and_parts_pjif", "or_parts")),
                 (1, "expr"),
                 (4, "expr_pjif"),
             ),
@@ -298,12 +298,12 @@ def customize_for_version37(self, version):
             ),
             "not_or": (
                 "not %p or %c",
-                (0, "and_parts", PRECEDENCE["and"] - 1),
+                (0, "and_parts_pjif", PRECEDENCE["and"] - 1),
                 (1, "expr_pjif"),
             ),
             "nand": (
                 "not (%c and %c)",
-                (0, "and_parts"),
+                (0, "and_parts_pjif"),
                 (1, ("expr", "expr_pjit")),
             ),
             "or_parts": (
@@ -350,7 +350,7 @@ def customize_for_version37(self, version):
     )
 
     # FIXME: Can we to compress this into a single template?
-    def n_and_parts(node):
+    def n_and_parts_pjif(node):
         self.template_engine(("%c", (0, "expr_pjif")), node[0])
         if len(node) != 1:
             self.write(" ")
@@ -360,7 +360,7 @@ def customize_for_version37(self, version):
         self.prune()
         return
 
-    self.n_and_parts = n_and_parts
+    self.n_and_parts_pjif = n_and_parts_pjif
 
     def n_await_expr(node):
         dict_comp_async = node[0][0]

@@ -26,26 +26,27 @@ def and_ok(
     #     print(tokens[i])
     # print(rule)
 
-    if rule == ("and1", ("and_parts", "expr")):
-        # Make sure jump at the end of and_parts jumps right after "expr"
-        and_parts = tree[0]
-        pop_jump_if_false = and_parts.last_child()
-        if pop_jump_if_false != "POP_JUMP_IF_FALSE":
-            return True
+    if rule != ("and1", ("and_parts_pjif", "expr")):
+        # print("XXX", tokens[first].basic_block, tokens[last-1].basic_block)
+        return True
 
-        expr_node = tree[-1]
-        expr_child = expr_node[0]
-        if isinstance(expr_child, Token):
-            last_offset = expr_child.offset
-        elif expr_child == "branch_op":
-            while tokens[last].optype == "pseudo":
-                last -= 1
-            last_offset = tokens[last].offset
-        else:
-            last_offset = tree[-1].last_child().offset
+    # Make sure jump at the end of and_parts_pjif jumps right after "expr"
+    and_parts_pjif = tree[0]
+    pop_jump_if_false = and_parts_pjif.last_child()
+    if pop_jump_if_false != "POP_JUMP_IF_FALSE":
+        return True
 
-        return pop_jump_if_false.attr == last_offset
+    expr_node = tree[-1]
+    expr_child = expr_node[0]
+    if isinstance(expr_child, Token):
+        last_offset = expr_child.offset
+    elif expr_child == "branch_op":
+        while tokens[last].optype == "pseudo":
+            last -= 1
+        last_offset = tokens[last].offset
+    else:
+        last_offset = tree[-1].last_child().offset
 
-    # print("XXX", tokens[first].basic_block, tokens[last-1].basic_block)
+    return pop_jump_if_false.attr == last_offset
+
     return True
-    # return tokens[first].basic_block == tokens[last-1].basic_block
