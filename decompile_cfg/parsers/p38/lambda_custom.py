@@ -19,6 +19,7 @@ Grammar Customization rules for Python 3.8's Lambda expression grammar.
 from decompile_cfg.parsers.p38.base import Python38BaseParser
 from decompile_cfg.parsers.parse_heads import ParserError, nop_func
 from decompile_cfg.parsers.reduce_check.and_check import and_ok
+from decompile_cfg.parsers.reduce_check.and_parts_check import and_parts_ok
 from decompile_cfg.parsers.reduce_check.if_exp_check import if_exp_ok
 from decompile_cfg.parsers.reduce_check.comp_if_check import comp_if_ok
 from decompile_cfg.parsers.reduce_check.list_if_not_check import list_if_not_seems_ok
@@ -1161,6 +1162,7 @@ class Python38LambdaCustom(Python38BaseParser):
         """
 
         self.reduce_check_table = {
+            "and_parts_jifop": and_parts_ok,
             "and1": and_ok,
             "if_exp": if_exp_ok,
             "comp_if": comp_if_ok,
@@ -1169,6 +1171,7 @@ class Python38LambdaCustom(Python38BaseParser):
             "or1": or_ok,
         }
 
+        self.check_reduce["and_parts_jifop"] = "AST"
         self.check_reduce["and1"] = "AST"
         self.check_reduce["if_exp"] = "AST"
         self.check_reduce["comp_if"] = "AST"
