@@ -27,9 +27,9 @@ def comp_if_ok(
     # We need this  reduction rule to disambiguate
     # these "comp_if_not" and "comp_if". The difference is burried in the
     # sense of the jump in
-    #     comp_iter -> comp_if_or -> or_parts_false_loop
+    #     comp_iter -> comp_if_or -> or_parts_pjit_false_loop
     # vs.:
-    #    comp_iter -> comp_if_or -> or_parts_true_loop
+    #    comp_iter -> comp_if_or -> or_parts_pjit_true_loop
     #
     # If "true_loop then that goes with "comp_if_not"
     # if "false_loop"  then that goes with comp_if"

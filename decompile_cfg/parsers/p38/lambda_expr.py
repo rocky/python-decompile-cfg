@@ -53,17 +53,19 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             dom_start_opt
                             expr
 
-        # or_part(s) are the right-hand side of an "or" without the leading expr
-        or_part         ::= expr_pjit
-        or_parts        ::= or_part+
+        # or_part_pjit(s)_pjit are the right-hand side of an "or" without the leading expr
+        or_part_pjit         ::= expr_pjit
+        or_parts_pjit        ::= or_part_pjit+
 
-        or_part_true_loop  ::= expr_pjit_loop
-        or_parts_true_loop ::= or_part_true_loop+
+        or_part_pjit_true_loop  ::= expr_pjit_loop
+        or_parts_pjit_true_loop ::= or_part_pjit_true_loop+
 
-        or_part_false_loop  ::= expr_pjif_loop
-        or_parts_false_loop ::= or_part_false_loop+
+        # FIXME: something may be fishy here.
+        # We probably need a reduction rule to distinguish the false and true jumps.
+        or_part_pjit_false_loop  ::= expr_pjif_loop
+        or_parts_pjit_false_loop ::= or_part_pjit_false_loop+
 
-        or1                 ::= or_parts expr
+        or1                 ::= or_parts_pjit expr
 
         # Note: I don't know why, but  we can't replace "expr jitop_start expr"
         # with "or"
@@ -83,7 +85,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         #                   expr_pjif
         #                   expr_pjit
 
-        or_and         ::= or_parts
+        or_and         ::= or_parts_pjit
                            expr
                            jifop_start
                            expr
@@ -372,16 +374,16 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # because the logic operation bleeds into the
         # "if" of the comprehension. Note thet specific position of
         # POP_JUMP_IF_xxx_LOOP stays the same.
-        comp_if_or      ::= or_parts
+        comp_if_or      ::= or_parts_pjit
                             expr POP_JUMP_IF_FALSE_LOOP
                             bb_end_start
                             comp_iter
-        comp_if_or      ::= or_parts_true_loop
+        comp_if_or      ::= or_parts_pjit_true_loop
                             expr POP_JUMP_IF_FALSE_LOOP
                             bb_end_start
                             comp_iter
 
-        comp_if_or      ::= or_parts_false_loop
+        comp_if_or      ::= or_parts_pjit_false_loop
                             expr POP_JUMP_IF_FALSE_LOOP
                             bb_end_start
                             comp_iter
@@ -389,7 +391,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # Here, the "or" is melded a little into the "comp_if" test
         comp_if_or2     ::= compare compare_chained37_false comp_iter
 
-        comp_if_or_not  ::= or_parts
+        comp_if_or_not  ::= or_parts_pjit
                             expr POP_JUMP_IF_TRUE_LOOP
                             bb_end_start
                             comp_iter
@@ -398,9 +400,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # We need to have a reduction rule to disambiguate
         # these "comp_if_not" and "comp_if". The difference is burried in the
         # sense of the jump in
-        #     comp_iter -> comp_if_or -> or_parts_false_loop
+        #     comp_iter -> comp_if_or -> or_parts_pjit_false_loop
         # vs.:
-        #    comp_iter -> comp_if_or -> or_parts_true_loop
+        #    comp_iter -> comp_if_or -> or_parts_pjit_true_loop
         #
         # If "true_loop then that goes with "comp_if_not"
         # if "false_loop"  then that goes with comp_if"
@@ -684,7 +686,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         # The right-hand side of a branch op
         branch_op_part ::= and_parts_pjif block_break
-        branch_op_part ::= or_parts block_break
+        branch_op_part ::= or_parts_pjit block_break
 
         # FIXME: the below is to work around test_grammar expecting a "call" to be
         # on the LHS because it is also somewhere on in a rule.

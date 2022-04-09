@@ -340,7 +340,7 @@ TABLE_DIRECT = {
     # comprehension
     "comp_if_or": (
         "%p or %p ",
-        (0, ("or_parts", "or_parts_true_loop", "or_parts_false_loop"), PRECEDENCE["or"] ),
+        (0, ("or_parts_pjit", "or_parts_pjit_true_loop", "or_parts_pjit_false_loop"), PRECEDENCE["or"] ),
         (1, "expr", PRECEDENCE["or"] ),
         ),
 
@@ -355,7 +355,7 @@ TABLE_DIRECT = {
     # comprehension
     "comp_if_or_not": (
         "%p or not %p ",
-        (0, ("or_parts",), PRECEDENCE["or"] ),
+        (0, ("or_parts_pjit",), PRECEDENCE["or"] ),
         (1, "expr", PRECEDENCE["or"] ),
         ),
 
@@ -725,16 +725,16 @@ TABLE_DIRECT = {
                          (0, "expr_jitop"),
                          (2, "expr") ),
     "or1":           	( "%c or %c",
-                         (0, "or_parts"),
+                         (0, "or_parts_pjit"),
                          (1, "expr") ),
     "or_and": (
         "(%c or %c) and %c",
-        (0, "or_parts"),
+        (0, "or_parts_pjit"),
         (1, "expr"),
         (3, "expr"),
         ),
 
-    "or_part": (
+    "or_part_pjit": (
         "or %p",
         (0, "expr_pjit", PRECEDENCE["or"]),
         ),

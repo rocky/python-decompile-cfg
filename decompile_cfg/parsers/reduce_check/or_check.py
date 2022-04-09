@@ -26,12 +26,12 @@ def or_ok(
     #     print(tokens[i])
     # print(rule)
 
-    if rule != ("or1", ("or_parts", "expr")):
+    if rule != ("or1", ("or_parts_pjit", "expr")):
         return True
 
-    # Make sure jump at the end of or_parts jumps right after "expr"
-    or_parts = tree[0]
-    pop_jump_if_false = or_parts.last_child()
+    # Make sure jump at the end of or_parts_pjit jumps right after "expr"
+    or_parts_pjit = tree[0]
+    pop_jump_if_false = or_parts_pjit.last_child()
     if pop_jump_if_false != "POP_JUMP_IF_TRUE":
         # print("XXX", tokens[first].basic_block, tokens[last-1].basic_block)
         return True
