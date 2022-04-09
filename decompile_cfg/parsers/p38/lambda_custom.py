@@ -412,7 +412,7 @@ class Python38LambdaCustom(Python38BaseParser):
                     )
                 else:
                     assert token.attr == 3, (
-                        "BUILD_SLICE value must be 2 or 3; is %s" % v
+                        f"BUILD_SLICE value must be 2 or 3; is {token.attr}"
                     )
                     self.add_unique_rules(
                         [
