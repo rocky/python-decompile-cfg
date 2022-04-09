@@ -70,7 +70,7 @@ class PythonBaseParser(GenericASTBuilder):
             "kvlist",
             "kwargs",
             "lists",
-            "or_parts",
+            "or_parts_pjit",
             "stmts",
         ]
         self.collect = frozenset(nt_list)
@@ -401,7 +401,7 @@ class PythonParser(PythonBaseParser):
             "importlist",
             "kvlist",
             "kwargs",
-            "or_parts",
+            "or_parts_pjit",
             # FIXME:
             # If we add c_stmts, we can miss adding a c_stmt,
             # test_float.py test_set_format() is an example.

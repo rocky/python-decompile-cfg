@@ -61,7 +61,7 @@ def customize_for_version37(self, version):
         {
             "or_and1": (
                 "%c or (%c)",
-                (0, "or_parts"),
+                (0, "or_parts_pjit"),
                 (1, "and_parts_pjif"),
             ),
             "and_not": ("%c and not %c", (0, "expr_pjif"), (1, "expr_pjit")),
@@ -266,7 +266,7 @@ def customize_for_version37(self, version):
             ),
             "or_cond": (
                 "%c or %c",
-                (0, ("or_parts", "and", "not_and_not")),
+                (0, ("or_parts_pjit", "and", "not_and_not")),
                 (1, "expr_pjif"),
             ),
             "not_and_not": (
@@ -276,17 +276,17 @@ def customize_for_version37(self, version):
             ),
             "nor_cond": (
                 "%c or %c",
-                (0, ("or_parts", "and")),
+                (0, ("or_parts_pjit", "and")),
                 (1, "expr_pjif"),
             ),
             "or_cond1": (
                 "%c or %c",
-                (0, ("or_parts", "and")),
+                (0, ("or_parts_pjit", "and")),
                 (-2, "expr_pjif"),
             ),
             "and_or_cond": (
                 "%c and %c or %c",
-                (0, ("and_parts_pjif", "or_parts")),
+                (0, ("and_parts_pjif", "or_parts_pjit")),
                 (1, "expr"),
                 (4, "expr_pjif"),
             ),
@@ -306,10 +306,10 @@ def customize_for_version37(self, version):
                 (0, "and_parts_pjif"),
                 (1, ("expr", "expr_pjit")),
             ),
-            "or_parts": (
+            "or_parts_pjit": (
                 "%P or %c",
                 (0, -1, "or ", PRECEDENCE["or"]),
-                (1, "expr_pjif"),
+                (1, "expr_pjit"),
             ),
             "testfalsec": (
                 "not %c",
@@ -377,7 +377,7 @@ def customize_for_version37(self, version):
     self.n_await_expr = n_await_expr
 
     # FIXME: we should be able to compress this into a single template
-    def n_or_parts(node):
+    def n_or_parts_pjit(node):
         self.template_engine(("%c", (0, "expr_pjit")), node[0])
         if len(node) != 1:
             self.write(" ")
@@ -387,7 +387,7 @@ def customize_for_version37(self, version):
         self.prune()
         return
 
-    self.n_or_parts = n_or_parts
+    self.n_or_parts_pjit = n_or_parts_pjit
 
     def n_assert_invert(node):
         testtrue = node[0]

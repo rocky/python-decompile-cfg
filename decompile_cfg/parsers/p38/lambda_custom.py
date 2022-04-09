@@ -24,6 +24,7 @@ from decompile_cfg.parsers.reduce_check.if_exp_check import if_exp_ok
 from decompile_cfg.parsers.reduce_check.comp_if_check import comp_if_ok
 from decompile_cfg.parsers.reduce_check.list_if_not_check import list_if_not_seems_ok
 from decompile_cfg.parsers.reduce_check.or_check import or_ok
+from decompile_cfg.parsers.reduce_check.or_parts_check import or_parts_ok
 from spark_parser.spark import rule2str
 
 class Python38LambdaCustom(Python38BaseParser):
@@ -1168,6 +1169,7 @@ class Python38LambdaCustom(Python38BaseParser):
             "comp_if": comp_if_ok,
             "comp_if_not": comp_if_ok,
             "list_if_not": list_if_not_seems_ok,
+            "or_parts_pjit": or_parts_ok,
             "or1": or_ok,
         }
 
@@ -1177,6 +1179,7 @@ class Python38LambdaCustom(Python38BaseParser):
         self.check_reduce["comp_if"] = "AST"
         self.check_reduce["comp_if_not"] = "AST"
         self.check_reduce["list_if_not"] = "AST"
+        self.check_reduce["or_parts_pjit"] = "AST"
         self.check_reduce["or1"] = "AST"
 
     def reduce_is_invalid(self, rule: list, ast, tokens, first: int, last: int):

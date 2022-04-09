@@ -674,7 +674,7 @@ class NonterminalActions:
         assert or_node.kind.startswith("or")
         self.write(" if ")
         not_part = or_node[1]
-        if or_node[0] == "or_parts":
+        if or_node[0] == "or_parts_pjit":
             or_node = or_node[0]
         template = ("%p", (0, PRECEDENCE["or"]))
         self.template_engine(template, or_node[0])
