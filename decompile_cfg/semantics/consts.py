@@ -55,49 +55,49 @@ PRECEDENCE = {
 
     "lambda_body":            30,  # lambda ... : lambda_body
 
-    "if_exp":                 28, # IfExp ( a if x else b)
-    "if_exp_lambda":          28, # IfExp involving a lambda expression
-    "if_exp_not_lambda":      28, # negated IfExp involving a lambda expression
-    "if_exp_not":             28, # IfExp ( a if not x else b)
-    "if_exp_true":            28, # (a if True else b)
+    "if_exp":                 28,  # IfExp ( a if x else b)
+    "if_exp_lambda":          28,  # IfExp involving a lambda expression
+    "if_exp_not_lambda":      28,  # negated IfExp involving a lambda expression
+    "if_exp_not":             28,  # IfExp ( a if not x else b)
+    "if_exp_true":            28,  # (a if True else b)
     "if_exp_ret":             28,
 
-    "or":                     26, # Boolean OR
+    "or":                     26,  # Boolean OR
     "ret_or":                 26,
 
-    "and":                    24, # Boolean AND
+    "and":                    24,  # Boolean AND
     "ret_and":                24,
-    "not":                    22, # Boolean NOT
-    "unary_not":              22, # Boolean NOT
-    "compare":                20, # in, not in, is, is not, <, <=, >, >=, !=, ==
+    "not":                    22,  # Boolean NOT
+    "unary_not":              22,  # Boolean NOT
+    "compare":                20,  # in, not in, is, is not, <, <=, >, >=, !=, ==
 
-    "BINARY_AND":             14, # Bitwise AND
-    "BINARY_OR":              18, # Bitwise OR
-    "BINARY_XOR":             16, # Bitwise XOR
+    "BINARY_AND":             14,  # Bitwise AND
+    "BINARY_OR":              18,  # Bitwise OR
+    "BINARY_XOR":             16,  # Bitwise XOR
 
-    "BINARY_LSHIFT":          12, # Shifts <<
-    "BINARY_RSHIFT":          12, # Shifts >>
+    "BINARY_LSHIFT":          12,  # Shifts <<
+    "BINARY_RSHIFT":          12,  # Shifts >>
 
-    "BINARY_ADD":             10, # -
-    "BINARY_SUBTRACT":        10, # +
+    "BINARY_ADD":             10,  # -
+    "BINARY_SUBTRACT":        10,  # +
 
-    "BINARY_DIVIDE":          8,  # /
-    "BINARY_FLOOR_DIVIDE":    8,  # //
-    "BINARY_MATRIX_MULTIPLY": 8,  # @
-    "BINARY_MODULO":          8,  # Remainder, %
-    "BINARY_MULTIPLY":        8,  # *
-    "BINARY_TRUE_DIVIDE":     8,  # Division /
+    "BINARY_DIVIDE":          8,   # /
+    "BINARY_FLOOR_DIVIDE":    8,   # //
+    "BINARY_MATRIX_MULTIPLY": 8,   # @
+    "BINARY_MODULO":          8,   # Remainder, %
+    "BINARY_MULTIPLY":        8,   # *
+    "BINARY_TRUE_DIVIDE":     8,   # Division /
 
-    "unary_op":               6,  # Positive, negative, bitwise NOT: +x, -x, ~x
+    "unary_op":               6,   # Positive, negative, bitwise NOT: +x, -x, ~x
 
-    "BINARY_POWER":           4,  # Exponentiation: *
+    "BINARY_POWER":           4,   # Exponentiation: **
 
-    "await_expr":             3,  # await x, *
+    "await_expr":             3,   # await x, *
 
-    "attribute":              2,  # x.attribute
-    "buildslice2":            2,  # x[index]
-    "buildslice3":            2,  # x[index:index]
-    "call":                   2,  # x(arguments...)
+    "attribute":              2,   # x.attribute
+    "buildslice2":            2,   # x[index]
+    "buildslice3":            2,   # x[index:index]
+    "call":                   2,   # x(arguments...)
     "delete_subscript":       2,
     "slice0":                 2,
     "slice1":                 2,
@@ -106,10 +106,10 @@ PRECEDENCE = {
     "store_subscript":        2,
     "subscript":              2,
 
-    "dict":                   0,  # {expressions...}
+    "dict":                   0,   # {expressions...}
     "dict_comp":              0,
-    "generator_exp":          0,  # (expressions...)
-    "list":                   0,  # [expressions...]
+    "generator_exp":          0,   # (expressions...)
+    "list":                   0,   # [expressions...]
     "list_comp":              0,
     "set_comp":               0,
     "set_comp_expr":          0,
@@ -120,17 +120,6 @@ LINE_LENGTH = 80
 
 # Some parse trees created below are used for comparing code
 # fragments (like "return None" at the end of functions).
-
-NONE = SyntaxTree("expr", [NoneToken])
-
-RETURN_NONE = SyntaxTree("stmt",
-                  [ SyntaxTree("return",
-                        [ NONE, Token("RETURN_VALUE")]) ])
-
-PASS = SyntaxTree("stmts",
-           [ SyntaxTree("sstmt",
-                 [ SyntaxTree("stmt",
-                       [ SyntaxTree("pass", [])])])])
 
 ASSIGN_DOC_STRING = lambda doc_string, doc_load: SyntaxTree(
     "assign",
@@ -158,6 +147,25 @@ NAME_MODULE = SyntaxTree(
     ],
 )
 
+NONE = SyntaxTree("expr", [NoneToken])
+
+RETURN_LOCALS = SyntaxTree(
+    "return",
+    [
+        SyntaxTree("return_expr", [SyntaxTree("expr", [Token("LOAD_LOCALS")])]),
+        Token("RETURN_VALUE"),
+    ],
+)
+
+RETURN_NONE = SyntaxTree("stmt",
+                  [ SyntaxTree("return",
+                        [ NONE, Token("RETURN_VALUE")]) ])
+
+PASS = SyntaxTree("stmts",
+           [ SyntaxTree("sstmt",
+                 [ SyntaxTree("stmt",
+                       [ SyntaxTree("pass", [])])])])
+
 # God intended \t, but Python has decided to use 4 spaces.
 # If you want real tabs, use Go.
 # TAB = "\t"
@@ -165,8 +173,8 @@ TAB = " " * 4
 INDENT_PER_LEVEL = " "  # additional intent per pretty-print level
 
 TABLE_R = {
-    "STORE_ATTR": ("%c.%[1]{pattr}", 0),
     "DELETE_ATTR": ("%|del %c.%[-1]{pattr}\n", 0),
+    "STORE_ATTR":  ("%c.%[1]{pattr}", 0),
 }
 
 TABLE_DIRECT = {
