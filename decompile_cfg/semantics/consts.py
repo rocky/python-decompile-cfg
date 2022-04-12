@@ -474,6 +474,13 @@ TABLE_DIRECT = {
         (3, maxint, "")
         ),
 
+    "expr_stmt": (
+        "%|%p\n",
+        # When a statment contains only a named_expr (:=)
+        # the named_expr should have parenthesis around it.
+        (0, "expr", PRECEDENCE["named_expr"] - 1)
+        ),
+
     # Note: Python 3.8+ changes this
     "for":              ( "%|for %c in %c:\n%+%c%-\n\n",
                           (3, "store"),
@@ -709,10 +716,6 @@ TABLE_DIRECT = {
     # a format string.
     "string_at_beginning":   ( '%|"%%s" %% %c\n', 0),
 
-    "expr_stmt": (
-        "%|%c\n",
-        (0, ("expr", "branch_op")),
-        ),
     #  These are created only via transformation
     "ifelifstmt":	( "%|if %c:\n%+%c%-%c", 0, 1, 3 ),
     "elifelsestmt":	( "%|elif %c:\n%+%c%-%|else:\n%+%c%-", 0, 1, 3 ),
