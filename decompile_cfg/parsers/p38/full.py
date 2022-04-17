@@ -20,6 +20,10 @@ start symbol name. That is elsewhere.
 By leaving out the start symbol rules and name, this module and its
 classes be can used as a superclass in other grammars, although
 Python38Parser is probably pretty much top-level.
+
+Methods that start p_ have docstrings that are rule names.
+Here we add a suffix 38full ito ensure there are no method name
+conflicts with classes are smooshed together.
 """
 
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
@@ -42,7 +46,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
     ###############################################
     #  Python 3.8 grammar rules with statements
     ###############################################
-    def p_stmt_loop(self, args):
+    def p_stmt_loop38full(self, args):
         """
         #########################################################
         # Higher-level rules for statements in some sort of loop.
@@ -100,7 +104,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         lastc_stmt ::= iflaststmtc
         """
 
-    def p_stmt(self, args):
+    def p_stmt38full(self, args):
         """
         pass ::=
 
@@ -199,7 +203,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
     #     if_cond_else_stmt ::= condition
     #     """
 
-    def p_function_def(self, args):
+    def p_function_def38full(self, args):
         """
         stmt               ::= function_def
         function_def       ::= mkfunc store
@@ -212,7 +216,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         load_closure       ::= LOAD_CLOSURE
         """
 
-    def p_augmented_assign(self, args):
+    def p_augmented_assign38full(self, args):
         """
         stmt ::= aug_assign1
         stmt ::= aug_assign2
@@ -241,7 +245,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         inplace_op ::= INPLACE_OR
         """
 
-    def p_assign(self, args):
+    def p_assign38full(self, args):
         """
         assign ::= expr DUP_TOP designList
         assign ::= expr store
@@ -270,14 +274,14 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         stmt ::= assign3
         """
 
-    def p_await(self, args):
+    def p_await38full(self, args):
         # Python 3.5+ Await things
         """
         stmt       ::= await_stmt
         await_stmt ::= await_expr POP_TOP
         """
 
-    def p_ifstmt(self, args):
+    def p_ifstmt38full(self, args):
         """
         # If statement inside a loop. The RHS may have looping jumps in them.
         c_stmt  ::= ifstmtc
@@ -350,7 +354,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         ifstmts_jump ::= stmts_opt JUMP_FORWARD JUMP_FORWARD _come_froms
         """
 
-    def p_for_loop(self, args):
+    def p_for_loop38full(self, args):
         """
         setup_loop  ::= SETUP_LOOP _come_froms
         for         ::= setup_loop expr get_for_iter store for_block
@@ -390,12 +394,12 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         """
 
 
-    def p_stmt_jump(self, args):
+    def p_stmt_jump38full(self, args):
         """
         jf_bb_end_start    ::= JUMP_FORWARD bb_end_start
         """
 
-    def p_whilestmt(self, args):
+    def p_whilestmt38full(self, args):
         """
         while1elsestmt ::= setup_loop c_stmts JUMP_BACK POP_BLOCK else_suite COME_FROM_LOOP
         while1elsestmt ::= setup_loop c_stmts JUMP_BACK _come_froms POP_BLOCK else_suitec COME_FROM_LOOP
@@ -470,7 +474,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         attributes   ::= LOAD_ATTR+
         """
 
-    def p_import38(self, args):
+    def p_import38full(self, args):
         """
         # The 3.8base scanner adds IMPORT_NAME_ATTR
         alias         ::= IMPORT_NAME_ATTR attributes store
@@ -598,7 +602,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
 
         """
 
-    def p_grammar(self, args):
+    def p_grammar38full(self, args):
         """sstmt ::= stmt
         sstmt ::= ifelsestmtr
         sstmt ::= return RETURN_LAST
@@ -802,7 +806,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         stmt    ::= assert2_not
         """
 
-    def p_misc3(self, args):
+    def p_misc38full(self, args):
         """
         except_handler ::= JUMP_FORWARD COME_FROM_EXCEPT except_stmts
                            come_froms END_FINALLY
@@ -814,7 +818,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         c_except_handler ::= jmp_abs COME_FROM_EXCEPT c_except_stmts
         """
 
-    def p_come_from3(self, args):
+    def p_come_from38full(self, args):
         """
         # In 3.7+ a SETUP_LOOP to a JUMP_FORWARD can
         # get replaced by the JUMP_FORWARD addressed. Therefore come froms may
@@ -843,7 +847,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
         come_from_except_clauses ::= COME_FROM_EXCEPT_CLAUSE*
         """
 
-    def p_jump3(self, args):
+    def p_jump38full(self, args):
         """
         # Do we need this?
         # Note: lambda_expr.py has jump_or_break ::= jump
@@ -870,7 +874,7 @@ class Python38Parser(Python38LambdaParser, Python38FullCustom):
 
         """
 
-    def p_stmt3(self, args):
+    def p_stmt_more_38full(self, args):
         """
         if_exp_lambda      ::= expr_pjif expr return_if_lambda
                                return_stmt_lambda
