@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Generators and comprehenison functions
+Generators and comprehension functions
 """
 
 
@@ -227,9 +227,11 @@ class ComprehensionMixin:
         self.write(" in ")
         if node[2] == "expr":
             iter_expr = node[2]
+        elif node[3] == "get_aiter":
+            iter_expr = node[3]
         else:
             iter_expr = node[-3]
-        assert iter_expr == "expr"
+        assert iter_expr in ("expr", "get_aiter"), iter_expr
         self.preorder(iter_expr)
         self.preorder(tree[iter_index])
         self.prec = p
@@ -307,7 +309,7 @@ class ComprehensionMixin:
                 genexpr_func_async = tree[1]
                 if genexpr_func_async == "genexpr_func_async":
                     store = genexpr_func_async[2]
-                    assert store == "store"
+                    assert store.kind.startswith("store")
                     n = genexpr_func_async[3]
                 else:
                     set_afor2 = genexpr_func_async
@@ -347,7 +349,7 @@ class ComprehensionMixin:
             "set_comp_func_header",
         ):
             for k in tree:
-                if k.kind in ("comp_iter", "list_iter", "set_iter"):
+                if k.kind in ("comp_iter", "list_iter", "set_iter", "await_expr"):
                     n = k
                 elif k == "store":
                     store = k
@@ -458,7 +460,7 @@ class ComprehensionMixin:
         assert store, "Couldn't find store in list/set comprehension"
 
         # A problem created with later Python code generation is that there
-        # is a lamda set up with a dummy argument name that is then called
+        # is a lambda set up with a dummy argument name that is then called
         # So we can't just translate that as is but need to replace the
         # dummy name. Below we are picking out the variable name as seen
         # in the code. And trying to generate code for the other parts
@@ -577,7 +579,7 @@ class ComprehensionMixin:
                 if if_node in ("comp_if_not", "list_if37_not", "list_if_not", "list_if_or_not"):
                     self.write("not ")
                     pass
-                self.prec = 27
+                self.prec = PRECEDENCE["lambda_body"] - 1
                 self.preorder(if_node[0])
             pass
         self.prec = p
@@ -588,7 +590,7 @@ class ComprehensionMixin:
         find the comprehension node buried in the tree which may
         be surrounded with start-like symbols or dominiators,.
         """
-        self.prec = 27
+        self.prec = PRECEDENCE["lambda_body"] - 1
         code_node = node[code_index]
         if code_node == "load_genexpr":
             code_node = code_node[0]
