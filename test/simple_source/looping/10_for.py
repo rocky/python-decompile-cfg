@@ -6,6 +6,8 @@
 #  for ::= expr for_iter store
 #          for_block POP_BLOCK COME_FROM
 
+"""This program is self-checking!"""
+
 c = 0
 for a in [1]:
     c += a

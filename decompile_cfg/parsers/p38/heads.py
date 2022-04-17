@@ -9,7 +9,7 @@ For example:
 * an unadorned expression (no POP_TOP needed afterwards)
 * A non-compound statement
 """
-from decompile_cfg.parsers.p38.full import Python38Parser
+from decompile_cfg.parsers.p38.full import Python38ParserFull
 from decompile_cfg.parsers.p38.lambda_expr import Python38LambdaParser
 from decompile_cfg.parsers.parse_heads import (
     PythonParserEval,
@@ -32,12 +32,12 @@ class Python38ParserEval(Python38LambdaParser, PythonParserEval):
         PythonParserEval.__init__(self, debug_parser)
 
 
-class Python38ParserExec(Python38Parser, PythonParserExec):
+class Python38ParserExec(Python38ParserFull, PythonParserExec):
     def __init__(self, debug_parser):
         PythonParserExec.__init__(self, debug_parser)
 
 
-class Python38ParserExpr(Python38Parser, PythonParserExpr):
+class Python38ParserExpr(Python38ParserFull, PythonParserExpr):
     def __init__(self, debug_parser):
         PythonParserExpr.__init__(self, debug_parser)
 
@@ -51,6 +51,6 @@ class Python38ParserLambda(Python38LambdaParser, PythonParserLambda):
 
 # These classes are here just to get parser doc-strings for the
 # various classes inherited properly and start_symbols set properly.
-class Python38ParserSingle(Python38Parser, PythonParserSingle):
+class Python38ParserSingle(Python38ParserFull, PythonParserSingle):
     def __init__(self, debug_parser):
         PythonParserSingle.__init__(self, debug_parser)
