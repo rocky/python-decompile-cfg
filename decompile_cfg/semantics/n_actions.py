@@ -13,14 +13,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Custom Nontermal action functions
+Custom Nonterminal action functions
 """
 
 from xdis import iscode
 
 from decompile_cfg.semantics.consts import (
     INDENT_PER_LEVEL,
-    LINE_LENGTH,
     NO_PARENTHESIS_EVER,
     NONE,
     PRECEDENCE,
