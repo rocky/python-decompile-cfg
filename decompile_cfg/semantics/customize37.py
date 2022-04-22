@@ -44,19 +44,21 @@ def customize_for_version37(self, version):
     # Python 3.7+ changes
     #######################
 
-    PRECEDENCE["attribute37"] = 2
-    PRECEDENCE["call_ex"] = 1
-    PRECEDENCE["call_ex_kw"] = 1
-    PRECEDENCE["call_ex_kw2"] = 1
-    PRECEDENCE["call_ex_kw3"] = 1
-    PRECEDENCE["call_ex_kw4"] = 1
-    PRECEDENCE["call_kw"] = 0
-    PRECEDENCE["call_kw36"] = 1
+    # fmt: off
+    PRECEDENCE["attribute37"]      =   2
+    PRECEDENCE["call_ex"]          =   1
+    PRECEDENCE["call_ex_kw"]       =   1
+    PRECEDENCE["call_ex_kw2"]      =   1
+    PRECEDENCE["call_ex_kw3"]      =   1
+    PRECEDENCE["call_ex_kw4"]      =   1
+    PRECEDENCE["call_kw"]          =   0
+    PRECEDENCE["call_kw36"]        =   1
     PRECEDENCE["formatted_value1"] = 100
-    PRECEDENCE["if_exp_37a"] = 28
-    PRECEDENCE["if_exp_37b"] = 28
-    PRECEDENCE["unmap_dict"] = 0
+    PRECEDENCE["if_exp_37a"]       =  28
+    PRECEDENCE["if_exp_37b"]       =  28
+    PRECEDENCE["dict_unpack"]      =   0  # **{...}
 
+    # fmt: on
     TABLE_DIRECT.update(
         {
             "or_and1": (
@@ -104,7 +106,6 @@ def customize_for_version37(self, version):
                 (17, "for_block"),
             ),
             "async_with_stmt": ("%|async with %c:\n%+%c%-", (0, "expr"), 3),
-            "c_async_with_stmt": ("%|async with %c:\n%+%c%-", (0, "expr"), 3),
             "async_with_as_stmt": (
                 "%|async with %c as %c:\n%+%c%-",
                 (0, "expr"),
@@ -253,15 +254,18 @@ def customize_for_version37(self, version):
                 (-2, "else_suite"),
             ),
             "import_as37": ("%|import %c as %c\n", 2, -2),
-            "import_one": (
-                "%c",
-                (0, "importlists"),
+            "import_from37": ("%|from %[2]{pattr} import %c\n", (3, "importlist37")),
+            "import_from_as37": (
+                "%|from %c as %c\n",
+                (2, "import_from_attr37"),
+                (3, "store"),
             ),
+            "import_one": ("%c", (0, "importlists"),),
             "importattr37": ("%c", (0, "IMPORT_NAME_ATTR")),
             "import_from_attr37": (
-                 "%c import %c",
-                 (0, "IMPORT_NAME_ATTR"),
-                 (1, "IMPORT_FROM"),
+                "%c import %c",
+                (0, "IMPORT_NAME_ATTR"),
+                (1, "IMPORT_FROM"),
             ),
             "or_and_not": (
                 "%c or %c",
