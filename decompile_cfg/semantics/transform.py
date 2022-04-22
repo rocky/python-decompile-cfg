@@ -448,10 +448,11 @@ class TreeTransform(GenericASTTraversal, object):
             return node
 
     def n_import_from37(self, node):
-        importlists = node[3]
-        assert importlists == "importlists"
-        if len(importlists) == 1 and len(importlists[0]) == 1:
-            alias37 = importlists[0][0]
+        importlist37 = node[3]
+        if importlist37 != "importlist37":
+            return node
+        if len(importlist37) == 1 and importlist37 == "importlist37":
+            alias37 = importlist37[0]
             store = alias37[1]
             assert store == "store"
             alias_name = store[0].attr
