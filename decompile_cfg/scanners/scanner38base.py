@@ -34,6 +34,8 @@ from control_flow.bb import basic_blocks
 from control_flow.cfg import ControlFlowGraph
 from control_flow.dominators import DominatorTree, dfs_forest, build_dom_set
 
+from typing import Tuple
+
 from xdis import iscode, instruction_size
 from xdis.bytecode import _get_const_info
 
@@ -46,11 +48,11 @@ import sys
 
 globals().update(op3.opmap)
 
-def get_jump_val(jump_arg: int, version: tuple) -> int:
+def get_jump_val(jump_arg: int, version: Tuple[int]) -> int:
     return jump_arg * 2 if version[:2] >= (3, 8)  else jump_arg
 
 class Scanner38Base(Scanner):
-    def __init__(self, version: float, show_asm=None, debug=False, is_pypy=False):
+    def __init__(self, version: Tuple[int], show_asm=None, debug=False, is_pypy=False):
         super(Scanner38Base, self).__init__(version, show_asm, is_pypy)
         self.debug = debug
         self.is_pypy = is_pypy
