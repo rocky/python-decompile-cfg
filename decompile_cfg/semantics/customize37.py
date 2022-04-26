@@ -24,7 +24,6 @@ from decompile_cfg.semantics.consts import (
     TABLE_DIRECT,
     TABLE_R,
     INDENT_PER_LEVEL,
-    maxint,
 )
 from decompile_cfg.parsers.treenode import SyntaxTree
 from decompile_cfg.semantics.helper import flatten_list, escape_string, strip_quotes
@@ -911,8 +910,8 @@ def customize_for_version37(self, version):
 
     def n_import_from(node):
         relative_path_index = 0
-        if node[relative_path_index].pattr > 0:
-            node[2].pattr = ("." * node[relative_path_index].pattr) + node[2].pattr
+        if node[relative_path_index].attr > 0:
+            node[2].pattr = ("." * node[relative_path_index].attr) + node[2].pattr
         if isinstance(node[1].pattr, tuple):
             imports = node[1].pattr
             for pattr in imports:
