@@ -142,7 +142,7 @@ from decompile_cfg.parsers.main import get_python_parser
 from decompile_cfg.parsers.treenode import SyntaxTree
 from spark_parser import GenericASTTraversal
 from decompile_cfg.scanner import Code, get_scanner
-from decompile_cfg.semantics.check_ast import checker
+from decompile_cfg.semantics.check_tree import checker
 from decompile_cfg.semantics.customize import customize_for_version
 from decompile_cfg.semantics.gencomp import ComprehensionMixin
 from decompile_cfg.semantics.helper import (

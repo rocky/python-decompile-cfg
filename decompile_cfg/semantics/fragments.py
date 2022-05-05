@@ -70,7 +70,7 @@ import decompile_cfg.parsers.main as python_parser
 from decompile_cfg.parsers.main import get_python_parser
 from decompile_cfg.semantics import pysource
 from decompile_cfg.scanner import Token, Code, get_scanner
-from decompile_cfg.semantics.check_ast import checker
+from decompile_cfg.semantics.check_tree import checker
 
 from decompile_cfg.show import maybe_show_asm, maybe_show_tree
 

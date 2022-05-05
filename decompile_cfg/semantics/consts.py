@@ -453,7 +453,7 @@ TABLE_DIRECT = {
         "%c = %c", 0, -1
         ),
 
-    "dict_comp_body":   ( "%c:%c", 1, 0 ),
+    "dict_comp_body":   ( "%c: %c", 1, 0 ),
 
     "dicts_unpack":     ("{**%C}", (0, maxint, ", **")),
 

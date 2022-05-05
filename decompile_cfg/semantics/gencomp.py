@@ -158,7 +158,7 @@ class ComprehensionMixin:
 
         assert iscode(cn.attr)
 
-        code = Code(cn.attr, self.scanner, self.currentclass)
+        code = Code(cn.attr, self.scanner, self.currentclass, self.debug_opts["asm"])
 
         # FIXME: is there a way we can avoid this?
         # The problem is that in filter in top-level list comprehensions we can
