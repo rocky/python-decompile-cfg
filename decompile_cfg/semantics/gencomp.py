@@ -17,8 +17,8 @@ Generators and comprehension functions
 """
 
 
+from spark_parser.ast import GenericASTTraversalPruningException
 from typing import Optional
-
 from xdis import iscode
 
 from decompile_cfg.parsers.main import get_python_parser
@@ -97,7 +97,7 @@ class ComprehensionMixin:
                 # This may disappear though.
                 if n[0].kind == "expr":
                     list_if = n
-                    n = n[2]
+                    n = n[-1]
                 elif n[0].kind in ("expr_pjif", "expr_pjiff"):
                     list_if = n
                     n = n[-1]
@@ -192,6 +192,10 @@ class ComprehensionMixin:
                 tree = tree[1]
             pass
 
+        if tree in ("genexpr_func_async",):
+            if tree[3] == "comp_iter":
+                iter_index = 3
+
         n = tree[iter_index]
         assert n == "comp_iter", n
 
@@ -245,7 +249,7 @@ class ComprehensionMixin:
     ):
         """Non-closure-based comprehensions.
 
-        Note: there are also other set comprehensions.
+        Note: there are also other comprehensions.
         """
         # FIXME: DRY with listcomp_closure3
 
@@ -264,7 +268,10 @@ class ComprehensionMixin:
                 self.compile_mode = "genexpr"
                 is_lambda = self.is_lambda
                 self.is_lambda = True
-                tree = self.get_comprehension_function(node, code_index)
+                try:
+                    tree = self.get_comprehension_function(node, code_index)
+                except GenericASTTraversalPruningException:
+                    pass
                 self.compile_mode = compile_mode
                 self.is_lambda = is_lambda
             else:
@@ -384,7 +391,6 @@ class ComprehensionMixin:
 
         # Iterate to find the inner-most "store".
         # We'll come back to the list iteration below.
-
         while n in (
             "list_iter",
             "list_afor",
@@ -507,6 +513,8 @@ class ComprehensionMixin:
         elif node == "set_comp_async":
             self.preorder(collection_node)
             if_nodes = []
+        elif node == "list_comp_async":
+            self.preorder(node[in_node_index])
         elif is_lambda_mode(self.compile_mode):
             if node in ("list_comp_async",):
                 self.preorder(node[1])
