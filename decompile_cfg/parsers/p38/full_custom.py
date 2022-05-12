@@ -43,44 +43,7 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
            stmt               ::= forelsestmt
            stmt               ::= try_except36
            stmt               ::= async_forelse_stmt
-
-           # async_for_stmt     ::= setup_loop expr
-           #                        GET_AITER
-           #                        SETUP_EXCEPT GET_ANEXT LOAD_CONST
-           #                        YIELD_FROM
-           #                        store
-           #                        POP_BLOCK JUMP_FORWARD bb_end_start DUP_TOP
-           #                        LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
-           #                        END_FINALLY bb_end_start
-           #                        for_block
-           #                        COME_FROM
-           #                        POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP POP_BLOCK
-           #                        COME_FROM_LOOP
-
-           # async_for_stmt37   ::= setup_loop expr
-           #                        GET_AITER
-           #                        SETUP_EXCEPT GET_ANEXT
-           #                        LOAD_CONST YIELD_FROM
-           #                        store
-           #                        POP_BLOCK JUMP_LOOP COME_FROM_EXCEPT DUP_TOP
-           #                        LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
-           #                        END_FINALLY for_block COME_FROM
-           #                        POP_TOP POP_TOP POP_TOP POP_EXCEPT
-           #                        POP_TOP POP_BLOCK
-           #                        COME_FROM_LOOP
-
-           # async_forelse_stmt ::= setup_loop expr
-           #                        GET_AITER
-           #                        SETUP_EXCEPT GET_ANEXT LOAD_CONST
-           #                        YIELD_FROM
-           #                        store
-           #                        POP_BLOCK JUMP_FORWARD COME_FROM_EXCEPT DUP_TOP
-           #                        LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
-           #                        END_FINALLY COME_FROM
-           #                        for_block
-           #                        COME_FROM
-           #                        POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP POP_BLOCK
-           #                        else_suite COME_FROM_LOOP
+           stmt               ::= async_forelse_stmt38
 
            for                ::= setup_loop expr get_for_iter store for_block POP_BLOCK
            for                ::= setup_loop expr get_for_iter store for_block POP_BLOCK NOP
@@ -457,8 +420,30 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                 self.addRule(
                     """
                     stmt ::= generator_exp_async
+                    async_for          ::= GET_AITER _come_froms
+                                           SETUP_FINALLY GET_ANEXT LOAD_CONST YIELD_FROM POP_BLOCK
+                    async_for_stmt38   ::= expr async_for
+                                           store for_block
+                                           COME_FROM_FINALLY
+                                           END_ASYNC_FOR
+
+                    # FIXME: come froms after the else_suite or END_ASYNC_FOR distinguish which of
+                    # for / forelse is used. Add come froms and check of add up control-flow detection phase.
+                    async_forelse_stmt38 ::= expr async_for
+                                             store for_block
+                                             COME_FROM_FINALLY
+                                             END_ASYNC_FOR
+                                             else_suite
+
+                    async_forelse_stmt38 ::= expr async_for
+                                             store for_block
+                                             COME_FROM_FINALLY
+                                             END_ASYNC_FOR
+                                             else_suite
+                                             POP_TOP COME_FROM
+
                     stmt ::= genexpr_func_async
-                   """,
+                    """,
                     nop_func,
                 )
                 custom_ops_processed.add(opname)
