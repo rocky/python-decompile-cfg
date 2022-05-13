@@ -419,13 +419,41 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
             elif opname == "GET_AITER":
                 self.addRule(
                     """
-                    stmt ::= generator_exp_async
-                    async_for          ::= GET_AITER _come_froms
-                                           SETUP_FINALLY GET_ANEXT LOAD_CONST YIELD_FROM POP_BLOCK
-                    async_for_stmt38   ::= expr async_for
-                                           store for_block
-                                           COME_FROM_FINALLY
-                                           END_ASYNC_FOR
+                    async_for            ::= GET_AITER _come_froms
+                                             SETUP_FINALLY GET_ANEXT LOAD_CONST YIELD_FROM POP_BLOCK
+                    async_for_stmt38     ::= expr async_for
+                                             store for_block
+                                             COME_FROM_FINALLY
+                                             END_ASYNC_FOR
+
+                    # Order of LOAD_CONST YIELD_FROM is switched from 3.6 to save a LOAD_CONST
+                    async_for_stmt38     ::= setup_loop expr
+                                             GET_AITER
+                                             block_break
+                                             SETUP_EXCEPT GET_ANEXT
+                                             LOAD_CONST YIELD_FROM
+                                             store
+                                             POP_BLOCK JUMP_BACK COME_FROM_EXCEPT DUP_TOP
+                                             LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
+                                             END_FINALLY
+                                             for_block COME_FROM
+                                             POP_TOP POP_TOP POP_TOP POP_EXCEPT
+                                             POP_TOP POP_BLOCK
+                                             COME_FROM_LOOP
+
+                    async_forelse_stmt    ::= setup_loop expr
+                                              GET_AITER
+                                              block_break
+                                              SETUP_EXCEPT GET_ANEXT LOAD_CONST
+                                              YIELD_FROM
+                                              store
+                                              POP_BLOCK JUMP_FORWARD COME_FROM_EXCEPT DUP_TOP
+                                              LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
+                                              END_FINALLY COME_FROM
+                                              for_block
+                                              COME_FROM
+                                              POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP POP_BLOCK
+                                              else_suite COME_FROM_LOOP
 
                     # FIXME: come froms after the else_suite or END_ASYNC_FOR distinguish which of
                     # for / forelse is used. Add come froms and check of add up control-flow detection phase.
@@ -442,6 +470,16 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                                              else_suite
                                              POP_TOP COME_FROM
 
+                    # FIXME: come froms after the else_suite or END_ASYNC_FOR distinguish which of
+                    # for / forelse is used.
+                    # Add come froms and check of add up control-flow detection phase.
+                    async_forelse_stmt38  ::= expr async_for
+                                              store for_block
+                                              block_break
+                                              END_ASYNC_FOR
+                                              else_suite
+
+                    stmt ::= generator_exp_async
                     stmt ::= genexpr_func_async
                     """,
                     nop_func,

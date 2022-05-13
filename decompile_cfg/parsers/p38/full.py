@@ -591,42 +591,7 @@ class Python38ParserFull(Python38LambdaParser, Python38FullCustom):
                                for_block POP_BLOCK
                                opt_come_from_loop
 
-        # Order of LOAD_CONST YIELD_FROM is switched from 3.6 to save a LOAD_CONST
-        async_for_stmt38   ::= setup_loop expr
-                               GET_AITER
-                               block_break
-                               SETUP_EXCEPT GET_ANEXT
-                               LOAD_CONST YIELD_FROM
-                               store
-                               POP_BLOCK JUMP_BACK COME_FROM_EXCEPT DUP_TOP
-                               LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
-                               END_FINALLY
-                               for_block COME_FROM
-                               POP_TOP POP_TOP POP_TOP POP_EXCEPT
-                               POP_TOP POP_BLOCK
-                               COME_FROM_LOOP
 
-        async_forelse_stmt ::= setup_loop expr
-                               GET_AITER
-                               block_break
-                               SETUP_EXCEPT GET_ANEXT LOAD_CONST
-                               YIELD_FROM
-                               store
-                               POP_BLOCK JUMP_FORWARD COME_FROM_EXCEPT DUP_TOP
-                               LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
-                               END_FINALLY COME_FROM
-                               for_block
-                               COME_FROM
-                               POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP POP_BLOCK
-                               else_suite COME_FROM_LOOP
-
-        # FIXME: come froms after the else_suite or END_ASYNC_FOR distinguish which of
-        # for / forelse is used. Add come froms and check of add up control-flow detection phase.
-        async_forelse_stmt38 ::= expr async_for
-                                store for_block
-                                block_break
-                                END_ASYNC_FOR
-                                else_suite
 
 
 
@@ -704,7 +669,7 @@ class Python38ParserFull(Python38LambdaParser, Python38FullCustom):
         testexpr   ::= or_and_not
 
         testfalse  ::= expr_pjif
-        testfalsec ::= expr POP_JUMP_IF_TRUE_BACK
+        testfalsec ::= expr POP_JUMP_IF_TRUE_LOOP
         testfalsec ::= c_compare_chained1b_false_38
 
         testtrue   ::= expr_pjit
@@ -1046,7 +1011,6 @@ class Python38ParserFull(Python38LambdaParser, Python38FullCustom):
         except_suite ::= stmts_opt COME_FROM POP_EXCEPT jump_except COME_FROM
 
         compare_chained2 ::= expr COMPARE_OP block_break JUMP_FORWARD
-
 
         stmt               ::= async_for_stmt38
         stmt               ::= async_forelse_stmt38

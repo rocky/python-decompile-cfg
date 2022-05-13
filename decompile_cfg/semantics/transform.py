@@ -79,6 +79,16 @@ class TreeTransform(GenericASTTraversal, object):
             node[i] = self.preorder(kid)
         return node
 
+    def n_await_expr(self, node):
+        """Here we check for await(await)"""
+
+        expr = node[0]
+        assert expr == "expr"
+        if expr[0] == "await_expr":
+            expr[0].transformed_by="n_await_expr"
+            return expr[0]
+        return node
+
     def n_mkfunc(self, node):
         """If the function has a docstring (this is found in the code
         constants), pull that out and make it part of the syntax
@@ -332,7 +342,7 @@ class TreeTransform(GenericASTTraversal, object):
                     assert_expr.transformed_by = "n_ifstmt"
                     if jump_cond in (
                         "POP_JUMP_IF_TRUE",
-                        "POP_JUMP_IF_TRUE_BACK",
+                        "POP_JUMP_IF_TRUE_LOOP",
                         NoneToken,
                     ):
                         kind = "assert"
