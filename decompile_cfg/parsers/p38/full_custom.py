@@ -479,8 +479,10 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                                               END_ASYNC_FOR
                                               else_suite
 
-                    stmt ::= generator_exp_async
-                    stmt ::= genexpr_func_async
+                    stmt                  ::= async_for_stmt38
+                    stmt                  ::= async_forelse_stmt38
+                    stmt                  ::= generator_exp_async
+                    stmt                  ::= genexpr_func_async
                     """,
                     nop_func,
                 )

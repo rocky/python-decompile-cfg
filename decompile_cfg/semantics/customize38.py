@@ -42,7 +42,7 @@ def customize_for_version38(self, version):
                 (2, "store"),
                 (0, "expr"),
                 (3, "for_block"),
-                (-1, "else_suite"),
+                (6, "else_suite"),
             ),
             "async_with_stmt38": ("%|async with %c:\n%+%|%c%-", (0, "expr"), 7),
             "async_with_as_stmt38": (
@@ -57,6 +57,11 @@ def customize_for_version38(self, version):
                 (0, "expr"),
                 (3, "for_block"),
                 -1,
+            ),
+            "c_tryfinallystmt38": (
+                "%|try:\n%+%c%-%|finally:\n%+%c%-\n\n",
+                (1, "c_suite_stmts_opt"),
+                (-2, "c_suite_stmts_opt"),
             ),
             "except_cond1a": (
                 "%|except %c:\n",
