@@ -44,7 +44,10 @@ def customize_for_version38(self, version):
                 (3, "for_block"),
                 (6, "else_suite"),
             ),
-            "async_with_stmt38": ("%|async with %c:\n%+%|%c%-", (0, "expr"), 7),
+            "async_with_stmt38": (
+                "%|async with %c:\n%+%c%-\n",
+                (0, "expr"),
+                7),
             "async_with_as_stmt38": (
                 "%|async with %c as %c:\n%+%|%c%-",
                 (0, "expr"),
@@ -149,6 +152,18 @@ def customize_for_version38(self, version):
                 (1, "return_except"),
                 (2, "except_handler38b"),
             ),
+            "try_except38r2": (
+                "%|try:\n%+%c\n%-%|except:\n%+%c%c%-\n\n",
+                (1, "suite_stmts_opt"),
+                (8, "cond_except_stmts_opt"),
+                (10, "return"),
+            ),
+            "try_except38r4": (
+                "%|try:\n%+%c\n%-%|except:\n%+%c%c%-\n\n",
+                (1, "returns_in_except"),
+                (3, "except_cond1"),
+                (4, "return"),
+            ),
             "try_except_as": (
                 "%|try:\n%+%c%-\n%|%-%c\n\n",
                 (
@@ -170,7 +185,7 @@ def customize_for_version38(self, version):
             "tryfinally38rstmt": (
                 "%|try:\n%+%c%-%|finally:\n%+%c%-\n\n",
                 (0, "sf_pb_call_returns"),
-                (-1, ("ss_end_finally", "suite_stmts")),
+                (-1, ("ss_end_finally", "suite_stmts", "_stmts")),
             ),
             "tryfinally38rstmt2": (
                 "%|try:\n%+%c%-%|finally:\n%+%c%-\n\n",
@@ -205,6 +220,36 @@ def customize_for_version38(self, version):
             ),
         }
     )
+
+    def except_return_value(node):
+        if node[0] == "POP_BLOCK":
+            self.default(node[1])
+        else:
+            self.template_engine(("%|return %c\n", (0, "expr")), node)
+        self.prune()
+
+    self.n_except_return_value = except_return_value
+
+    # FIXME: now that we've split out cond_except_stmt,
+    # we should be able to get this working as a pure transformation rule,
+    # so no procedure is needed here.
+    def try_except38r3(node):
+        self.template_engine(("%|try:\n%+%c\n%-", (1, "suite_stmts_opt")), node)
+        cond_except_stmts_opt = node[5]
+        assert cond_except_stmts_opt == "cond_except_stmts_opt"
+        for child in cond_except_stmts_opt:
+            if child == "cond_except_stmt":
+                if child[0] == "except_cond1":
+                    self.template_engine(
+                        ("%c\n", (0, "except_cond1"), (1, "expr")), child
+                    )
+                    self.template_engine(("%+%c%-\n", (1, "except_stmts")), child)
+                pass
+            pass
+        self.template_engine(("%+%c%-\n", (7, "return")), node)
+        self.prune()
+
+    self.n_try_except38r3 = try_except38r3
 
     def n_list_afor(node):
         if len(node) == 2:
@@ -253,7 +298,7 @@ def customize_for_version38(self, version):
         if len(node) > 1:
             assert len(node) == 2
             self.template_engine(
-                ("%c\n%|return %c", (0, "suite_stmts"), (1, "expr")), node
+                ("%c\n%|return %c", (0, ("_stmts", "suite_stmts")), (1, "expr")), node
             )
         else:
             self.template_engine(("%|return %c", (0, "expr")), node)

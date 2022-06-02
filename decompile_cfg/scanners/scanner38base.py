@@ -29,6 +29,8 @@ For example:
 Finally we save token information.
 """
 
+import os.path as osp
+
 from control_flow.augment_disasm import augment_instructions
 from control_flow.bb import basic_blocks
 from control_flow.cfg import ControlFlowGraph
@@ -200,10 +202,12 @@ class Scanner38Base(Scanner):
                 print("\t", bb)
         cfg = ControlFlowGraph(bb_mgr)
         name = co.co_name
-        if co.co_name.startswith("<"):
+        if name == "<module>":
+            name = osp.basename(co.co_filename)
+        elif name.startswith("<"):
             name = name[1:]
-        if co.co_name.endswith(">"):
-            name = name[:-1]
+            if name.endswith(">"):
+                name = name[:-1]
         try:
             if show_asm in ("both", "before", "after"):
                 dot_path = '/tmp/flow-%s.dot' % name
@@ -302,38 +306,6 @@ class Scanner38Base(Scanner):
         # # To simplify things we want to untangle this. We also
         # # do this loop before we compute jump targets.
         # for i, inst in enumerate(self.insts):
-
-        #     # One artifact of the "too-small" operand problem, is that
-        #     # some backward jumps, are turned into forward jumps to another
-        #     # "extended arg" backward jump to the same location.
-        #     if inst.opname == "JUMP_FORWARD":
-        #         from trepan.api import debug; debug()
-        #         jump_val = get_jump_val(inst.argval, self.version)
-        #         jump_inst = self.insts[self.offset2inst_index[jump_val]]
-        #         if jump_inst.has_extended_arg and jump_inst.opname.startswith("JUMP"):
-        #             # Create comination of the jump-to instruction and
-        #             # this one. Keep the position information of this instruction,
-        #             # but the operator and operand properties come from the other
-        #             # instruction
-        #             self.insts[i] = Instruction(
-        #                 jump_inst.opname,
-        #                 jump_inst.opcode,
-        #                 jump_inst.optype,
-        #                 jump_inst.inst_size,
-        #                 jump_inst.arg,
-        #                 jump_inst.argval,
-        #                 jump_inst.argrepr,
-        #                 jump_inst.has_arg,
-        #                 inst.offset,
-        #                 inst.starts_line,
-        #                 inst.is_jump_target,
-        #                 inst.has_extended_arg,
-        #             )
-
-        # Get jump targets
-        # Format: {target offset: [jump offsets]}
-        # jump_targets = self.find_jump_targets(show_asm)
-        # print("XXX2", jump_targets)
 
         last_op_was_break = False
 
@@ -514,6 +486,7 @@ class Scanner38Base(Scanner):
                         continue
                     pass
                 else:
+                    # Do we have a break loop
                     opname = "JUMP_FORWARD"
 
             elif opname.startswith("POP_JUMP_IF_") and not inst.jumps_forward():
