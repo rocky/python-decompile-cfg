@@ -360,6 +360,7 @@ class ComprehensionMixin:
                     n = k
                 elif k == "store":
                     store = k
+
                     pass
                 pass
             pass

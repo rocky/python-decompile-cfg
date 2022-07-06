@@ -17,7 +17,7 @@ from decompile_cfg.parsers.parse_heads import PythonBaseParser, nop_func
 from decompile_cfg.parsers.p38.lambda_custom import Python38LambdaCustom
 from decompile_cfg.parsers.reduce_check.ifelsestmt_check import ifelsestmt_ok
 from decompile_cfg.parsers.reduce_check.ifstmt_check import ifstmt_ok
-from decompile_cfg.parsers.reduce_check.import_from37 import import_from37_ok
+from decompile_cfg.parsers.reduce_check import joined_str_ok
 
 class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
     def add_make_function_rule(self, rule, opname, attr, customize):
@@ -338,6 +338,28 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                     """
                 self.addRule(rules_str, nop_func)
 
+            elif opname == "BUILD_STRING_2":
+                self.addRule(
+                    """
+                      expr                  ::= formatted_value_debug
+                      formatted_value_debug ::= LOAD_STR formatted_value2 BUILD_STRING_2
+                      formatted_value_debug ::= LOAD_STR formatted_value1 BUILD_STRING_2
+                    """,
+                    nop_func,
+                )
+                custom_ops_processed.add(opname)
+
+            elif opname == "BUILD_STRING_3":
+                self.addRule(
+                    """
+                      expr                  ::= formatted_value_debug
+                      formatted_value_debug ::= LOAD_STR formatted_value2 LOAD_STR BUILD_STRING_3
+                      formatted_value_debug ::= LOAD_STR formatted_value1 LOAD_STR BUILD_STRING_3
+                    """,
+                    nop_func,
+                )
+                custom_ops_processed.add(opname)
+
             elif opname in frozenset(
                 (
                     "CALL_FUNCTION",
@@ -412,6 +434,19 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
                     delete ::= delete_subscript
                     delete_subscript ::= expr expr DELETE_SUBSCR
                    """,
+                    nop_func,
+                )
+                custom_ops_processed.add(opname)
+
+            elif opname == "FORMAT_VALUE_ATTR":
+                self.addRule(
+                    """
+                      expr                  ::= formatted_value_debug
+                      formatted_value_debug ::= LOAD_STR formatted_value2 BUILD_STRING_2
+                                                expr FORMAT_VALUE_ATTR
+                      formatted_value_debug ::= LOAD_STR formatted_value2 BUILD_STRING_2
+                      formatted_value_debug ::= LOAD_STR formatted_value1 BUILD_STRING_2
+                    """,
                     nop_func,
                 )
                 custom_ops_processed.add(opname)
@@ -695,9 +730,10 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
 
         Reductions here are extended from those used in the lambda grammar
         """
-        # self.reduce_check_table.update = {
+        self.reduce_check_table.update({
         #     "break": break_check,
         #     "for38": for38_check,
+             "joined_str": joined_str_ok,
         #     "ifstmts_jump": ifstmts_jump,
         #     "if_and_stmt": if_and_stmt,
         #     "ifelsestmt": ifelsestmt,
@@ -712,7 +748,7 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
         #     "while1elsestmt": while1elsestmt,
         #     "while1stmt": while1stmt,
         #     "whilestmt": whilestmt,
-        # }
+        })
 
         # self.check_reduce["annotate_tuple"] = "tokens"
         # self.check_reduce["aug_assign2"] = "AST"
@@ -722,6 +758,7 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
         # self.check_reduce["iflaststmt"] = "AST"
         # self.check_reduce["ifstmt"] = "AST"
         # self.check_reduce["ifstmts_jump"] = "AST"
+        self.check_reduce["joined_str"] = "AST"
         # self.check_reduce["lastc_stmt"] = "tokens"
         # self.check_reduce["list_if_not"] = "AST"
         # self.check_reduce["pop_return"] = "tokens"
@@ -736,12 +773,12 @@ class Python38FullCustom(Python38LambdaCustom, PythonBaseParser):
         self.reduce_check_table.update({
             "ifelsestmt": ifelsestmt_ok,
             "ifstmt": ifstmt_ok,
-            "import_from37": import_from37_ok,
+            # "import_from37": import_from37_ok,
         })
 
         self.check_reduce["ifelsestmt"] = "AST"
         self.check_reduce["ifstmt"] = "AST"
-        self.check_reduce["import_from37"] = "AST"
+        # self.check_reduce["import_from37"] = "AST"
 
 
     def reduce_is_invalid(self, rule, ast, tokens, first, last):

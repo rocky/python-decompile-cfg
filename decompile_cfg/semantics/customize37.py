@@ -37,6 +37,8 @@ EMPTY_DICT = SyntaxTree(
     "dict", [Token("BUILD_MAP_0", attr=0, pattr="", offset=0, has_arg=True)]
 )
 
+FSTRING_CONVERSION_MAP = {1: "!s", 2: "!r", 3: "!a", "X": ":X"}
+
 #######################
 def customize_for_version37(self, version):
     ########################
@@ -52,7 +54,9 @@ def customize_for_version37(self, version):
     PRECEDENCE["call_ex_kw4"]      =   1
     PRECEDENCE["call_kw"]          =   0
     PRECEDENCE["call_kw36"]        =   1
-    PRECEDENCE["formatted_value1"] = 100
+    PRECEDENCE["formatted_value1"] =  38 # f"...". This has to be below "named_expr" to make
+                                         # f'{(x := 10)}' preserve parenthesis
+    PRECEDENCE["formatted_value2"] =  38 # See above
     PRECEDENCE["if_exp_37a"]       =  28
     PRECEDENCE["if_exp_37b"]       =  28
     PRECEDENCE["dict_unpack"]      =   0  # **{...}
@@ -1219,8 +1223,6 @@ def customize_for_version37(self, version):
 
     self.format_pos_args = format_pos_args
 
-    FSTRING_CONVERSION_MAP = {1: "!s", 2: "!r", 3: "!a", "X": ":X"}
-
     def n_except_suite_finalize(node):
         if node[1] == "returns" and self.hide_internal:
             # Process node[1] only.
@@ -1355,8 +1357,8 @@ def customize_for_version37(self, version):
                 assert expr[0] == "constant" and expr[0][0] == "LOAD_STR"
                 value = value.replace("{", "{{").replace("}", "}}")
 
-            # Remove leading quotes
-            result += strip_quotes(value)
+                # Remove leading quotes
+                result += strip_quotes(value)
             pass
         self.in_format_string = old_in_format_string
         if self.in_format_string:
