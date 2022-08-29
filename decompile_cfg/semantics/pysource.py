@@ -563,9 +563,9 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
             self.write("(")
             if kwargs:
                 # Last arg is tuple of keyword values: omit
-                l = n - 1
+                ll = n - 1
             else:
-                l = n
+                ll = n
 
             if kwargs:
                 # 3.6+ does this
@@ -577,7 +577,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                     j += 1
 
                 j = 0
-                while i < l:
+                while i < ll:
                     self.write(sep)
                     value = self.traverse(node[i])
                     self.write("%s=%s" % (kwargs[j], value))
@@ -585,7 +585,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                     j += 1
                     i += 1
             else:
-                while i < l:
+                while i < ll:
                     value = self.traverse(node[i])
                     i += 1
                     self.write(sep, value)
@@ -779,7 +779,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                     d = node.__dict__
                     try:
                         self.write(eval(expr, d, d))
-                    except:
+                    except Exception:
                         raise
             m = escape.search(fmt, i)
         self.write(fmt[i:])
@@ -910,7 +910,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                     del tree[0]
                     first_stmt = tree[0]
             pass
-        except:
+        except Exception:
             pass
 
         have_qualname = False
@@ -926,7 +926,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                 and first_stmt[1][0] == Token("STORE_NAME", pattr="__qualname__")
             ):
                 have_qualname = True
-        except:
+        except Exception:
             pass
 
         if have_qualname:
@@ -1100,19 +1100,19 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
     def pp_tuple(self, tup):
         """Pretty print a tuple"""
         last_line = self.f.getvalue().split("\n")[-1]
-        l = len(last_line) + 1
-        indent = " " * l
+        ll = len(last_line) + 1
+        indent = " " * ll
         self.write("(")
         sep = ""
         for item in tup:
             self.write(sep)
-            l += len(sep)
+            ll += len(sep)
             s = better_repr(item)
-            l += len(s)
+            ll += len(s)
             self.write(s)
             sep = ","
-            if l > LINE_LENGTH:
-                l = 0
+            if ll > LINE_LENGTH:
+                ll = 0
                 sep += "\n" + indent
             else:
                 sep += " "
