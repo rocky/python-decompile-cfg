@@ -196,7 +196,8 @@ class Scanner38Base(Scanner):
             return j
 
 
-        bb_mgr = basic_blocks(co)
+        offset2inst_index = {}
+        bb_mgr = basic_blocks(co, offset2inst_index)
         if show_asm in ("both", "before"):
             for bb in bb_mgr.bb_list:
                 print("\t", bb)
@@ -238,7 +239,7 @@ class Scanner38Base(Scanner):
                 print("%s written" % dot_path)
                 os.system("dot -Tpng %s > %s" % (dot_path, png_path))
 
-            self.insts = augment_instructions(co, cfg, self.opc.version_tuple)
+            self.insts = augment_instructions(co, cfg, self.opc, offset2inst_index, bb_mgr)
             if show_asm in ("both", "before"):
                 print('=' * 30)
                 for inst in self.insts:
