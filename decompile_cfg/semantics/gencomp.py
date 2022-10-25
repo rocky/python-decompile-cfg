@@ -390,6 +390,7 @@ class ComprehensionMixin:
             if not store:
                 store = tree[3]
 
+        if_not_end_hack = False
         # Iterate to find the inner-most "store".
         # We'll come back to the list iteration below.
         while n in (
@@ -458,9 +459,16 @@ class ComprehensionMixin:
                         store = n[1]
                     n = n[-1]
                     pass
-            elif n.kind in ("list_if_and_or", "list_if_or_not"):
-                if_nodes.append(n[-1][0])
-                n = n[-1]
+            elif n.kind in ("list_if_and_or", "list_if_or", "list_if_or_not"):
+                # FIXME: something is very weird here.
+                if n[-2].kind == "list_if_not_end":
+                    if n[-1][0] != "lc_body":
+                        if_not_hack = True
+                        if_nodes.append(n[-3])
+                    n = n[-1]
+                else:
+                    n = n[-1]
+                    if_nodes.append(n[0])
                 assert n == "list_iter"
             pass
 
@@ -543,16 +551,18 @@ class ComprehensionMixin:
                 list_iter_inner = list_for[3]
                 assert list_iter_inner in ("list_iter", "set_iter")
                 # If we have set_comp_body, we've done this above.
-                if not (
+                if list_iter_inner[0] == "list_if_or":
+                    comp_store = None
+                elif not (
                     list_iter_inner == "set_iter"
                     and list_iter_inner[0] == "set_comp_body"
-                ):
+                    ):
                     self.preorder(list_iter_inner)
                     if if_node_parent == list_iter_inner[0]:
                         self.prec = p
                         return
-                comp_store = None
-                if_nodes = []
+                    comp_store = None
+                    if_nodes = []
             pass
 
         if tree == "set_comp_func":
@@ -580,7 +590,9 @@ class ComprehensionMixin:
                 "comp_if_or",
                 "comp_if_or2",
                 "comp_if_or_not",
-            ):
+            ) or if_not_hack:
+                if if_not_hack:
+                    self.write("not ")
                 self.preorder(if_node)
             else:
                 # FIXME: go over these to add more of this in the template,
