@@ -144,7 +144,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         if_exp_loop    ::= expr
                            POP_JUMP_IF_FALSE
                            expr
-                           POP_JUMP_IF_FALSE_LOOP
+                           JUMP_FOR POP_JUMP_IF_FALSE_LOOP
                            jf_bb_end_start
                            expr
 
@@ -275,6 +275,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         compare_chained2b_false_loop   ::= expr COMPARE_OP
                                            bb_end_start_opt
                                            loop_jump_pop_iff
+                                           jump_or_break
+                                           block_end
+
+        compare_chained2b_false_loop   ::= expr COMPARE_OP
+                                           bb_end_start_opt
+                                           for_jump_pop_iff
                                            jump_or_break
                                            block_end
 
@@ -739,11 +745,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         jifop_start        ::= JUMP_IF_FALSE_OR_POP bb_end_start
         jitop_start        ::= JUMP_IF_TRUE_OR_POP BB_END dom_start
 
-        loop_jump_pop_iff   ::= JUMP_LOOP POP_JUMP_IF_FALSE_LOOP
-        loop_jump_pop_ift   ::= JUMP_LOOP POP_JUMP_IF_TRUE_LOOP
+        loop_jump_pop_iff  ::= JUMP_LOOP POP_JUMP_IF_FALSE_LOOP
+        loop_jump_pop_ift  ::= JUMP_LOOP POP_JUMP_IF_TRUE_LOOP
 
-        pjump_iff          ::= pjump_iff_forward
         pjump_iff          ::= for_jump_pop_iff
+        pjump_iff          ::= pjump_iff_forward
+        pjump_iff          ::= pjump_iff_loop
         pjump_iff_forward  ::= POP_JUMP_IF_FALSE dom_end_start_opt
         pjump_iff_loop     ::= JUMP_FOR POP_JUMP_IF_FALSE_LOOP dom_end_start_opt
 
