@@ -461,27 +461,6 @@ class Scanner38Base(Scanner):
                         )
                     ):
                         opname = "CONTINUE"
-                    else:
-                        opname = "JUMP_LOOP"
-                        # FIXME: this is a hack to catch stuff like:
-                        #   if x: continue
-                        # the "continue" is not on a new line.
-                        # There are other situations where we don't catch
-                        # CONTINUE as well.
-                        if tokens[-1].kind == "JUMP_LOOP" and tokens[-1].attr <= argval:
-                            if tokens[-2].kind == "BREAK_LOOP":
-                                del tokens[-1]
-                                j -= 1
-                            else:
-                                # intern is used because we are changing the *previous* token.
-                                # A POP_TOP suggests a "break" rather than a "continue"?
-                                if tokens[-2] == "POP_TOP":
-                                    tokens[-1].kind = sys.intern("BREAK_LOOP")
-                                else:
-                                    tokens[-1].kind = sys.intern("CONTINUE")
-                                    pass
-                                pass
-                            pass
                     if last_op_was_break and opname == "CONTINUE":
                         last_op_was_break = False
                         continue

@@ -76,7 +76,10 @@ class ComprehensionMixin:
         list_if = None
         write_if = False
 
-        assert n in ("comp_iter", "set_iter")
+        try:
+            assert n in ("comp_iter", "set_iter")
+        except:
+            from trepan.api import debug; debug()
 
         # Find inner-most node.
         while n == "comp_iter":
@@ -390,7 +393,7 @@ class ComprehensionMixin:
             if not store:
                 store = tree[3]
 
-        if_not_end_hack = False
+        if_not_hack = False
         # Iterate to find the inner-most "store".
         # We'll come back to the list iteration below.
         while n in (

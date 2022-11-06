@@ -644,7 +644,7 @@ class Python38LambdaCustom(Python38BaseParser):
                                             DUP_TOP LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
                                             END_FINALLY bb_end_start
 
-                    # async_iter         ::= block_break SETUP_EXCEPT GET_ANEXT LOAD_CONST YIELD_FROM
+                    # async_iter         ::= block_end SETUP_EXCEPT GET_ANEXT LOAD_CONST YIELD_FROM
 
                     get_aiter            ::= expr GET_AITER
 
@@ -675,30 +675,39 @@ class Python38LambdaCustom(Python38BaseParser):
 
                     dict_comp_async      ::= BUILD_MAP_0 genexpr_func_async
 
-                    async_iter           ::= block_break
-                                             SETUP_FINALLY GET_ANEXT LOAD_CONST YIELD_FROM POP_BLOCK
+                    async_iter           ::= block_end
+                                             BREAK_LOOP SETUP_FINALLY
+                                             GET_ANEXT LOAD_CONST
+                                             YIELD_FROM POP_BLOCK
 
                     genexpr_func_async   ::= LOAD_ARG async_iter
                                              store
                                              comp_iter
-                                             JUMP_LOOP
-                                             block_break
+                                             jump_loop_absolute
+                                             block_end
                                              END_ASYNC_FOR
 
                     list_afor2           ::= async_iter
                                              store
                                              list_iter
-                                             JUMP_LOOP
-                                             block_break
+                                             jump_loop_absolute
+                                             block_end
                                              END_ASYNC_FOR
 
                     list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
 
+                    return_expr_lambda   ::= genexpr_func_async
+                                             LOAD_CONST RETURN_VALUE
+                                             bb_doms_end_opt
+
+                    return_expr_lambda   ::= BUILD_SET_0 genexpr_func_async
+                                             RETURN_VALUE
+                                             bb_doms_end_opt
                     set_afor2            ::= async_iter
                                              store
                                              set_iter
-                                             JUMP_LOOP
-                                             block_break
+                                             jump_loop_absolute
+                                             block_end
                                              END_ASYNC_FOR
 
                     set_afor2            ::= expr_or_arg
@@ -709,17 +718,10 @@ class Python38LambdaCustom(Python38BaseParser):
                     set_iter_async       ::= async_iter
                                              store
                                              set_iter
-                                             JUMP_LOOP
-                                             block_break
+                                             jump_loop_absolute
+                                             block_end
                                              END_ASYNC_FOR
 
-                    return_expr_lambda   ::= genexpr_func_async
-                                             LOAD_CONST RETURN_VALUE
-                                             bb_doms_end_opt
-
-                    return_expr_lambda   ::= BUILD_SET_0 genexpr_func_async
-                                             RETURN_VALUE
-                                             bb_doms_end_opt
                    """,
                     nop_func,
                 )
@@ -737,7 +739,7 @@ class Python38LambdaCustom(Python38BaseParser):
                 self.add_unique_doc_rules(
                     """
                     expr      ::= get_iter
-                    get_iter  ::= expr block_break GET_ITER
+                    get_iter  ::= expr block_end GET_ITER
                     """,
                     customize,
                 )

@@ -1118,8 +1118,7 @@ class Python38ParserFull(Python38LambdaParser, Python38FullCustom):
 
         except_stmt        ::= except_cond1a except_suite come_from_opt
 
-        get_for_iter       ::= GET_ITER block_break BREAK_FOR FOR_ITER
-        get_for_iter       ::= GET_ITER BREAK_FOR FOR_ITER
+        get_for_iter       ::= GET_ITER BREAK_FOR for_iter
 
         c_stmt             ::= c_forelsestmt38
         c_stmt             ::= pop_tops return
