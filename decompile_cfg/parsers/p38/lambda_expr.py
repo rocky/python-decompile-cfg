@@ -381,7 +381,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             bb_end_start
                             comp_iter
         comp_if_or      ::= or_parts_pjit_true_loop
-                            expr POP_JUMP_IF_FALSE_LOOP
+                            expr JUMP_FOR POP_JUMP_IF_FALSE_LOOP
                             bb_end_start
                             comp_iter
 
@@ -553,6 +553,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         list_if         ::= expr list_if_end list_iter
 
         list_if         ::= expr for_jump_iff list_iter
+        list_if_chained ::= list_if_compare
+                            bb_end_start
+                            POP_TOP for_jump_unconditional
+                            bb_doms_end_start
+                            list_iter
+
         list_if_chained ::= list_if_compare
                             bb_end_start
                             POP_TOP for_jump_unconditional
@@ -753,6 +759,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         pjump_iff          ::= pjump_iff_loop
         pjump_iff_forward  ::= POP_JUMP_IF_FALSE dom_end_start_opt
         pjump_iff_loop     ::= JUMP_FOR POP_JUMP_IF_FALSE_LOOP dom_end_start_opt
+        pjump_iff_loop     ::= JUMP_LOOP POP_JUMP_IF_FALSE_LOOP dom_end_start_opt
 
         pjump_ift          ::= POP_JUMP_IF_TRUE
         pjump_ift          ::= for_jump_pop_ift
@@ -762,7 +769,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
     # Unconditional jumps
     def p_jump_unconditional(self, args):
         """
-        for_jump_unconditional ::= JUMP_FOR JUMP_LOOP
+        for_jump_unconditional ::= JUMP_LOOP JUMP_ABSOLUTE
         for_jump_unconditional ::= JUMP_FOR JUMP_ABSOLUTE
 
         jf_bb_end_start        ::= JUMP_FORWARD bb_end_start
