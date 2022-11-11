@@ -346,11 +346,11 @@ class Python38ParserFull(Python38LambdaParser, Python38FullCustom):
         # rules with and without ELSE.
 
         if_and_elsestmt ::= testfalse testfalse
-                            stmts_opt jf_bb_end_start else_suite block_break
+                            stmts_opt jf_bb_end_start else_suite block_end
         ifelsestmt      ::= testexpr
-                            stmts_opt jf_bb_end_start else_suite block_break
+                            stmts_opt jf_bb_end_start else_suite block_end
         ifelsestmt      ::= branch_op
-                            stmts_opt jf_bb_end_start else_suite block_break
+                            stmts_opt jf_bb_end_start else_suite block_end
 
         ifelsestmtc ::= testexpr
                         stmts_opt jump_forward_else
@@ -371,13 +371,13 @@ class Python38ParserFull(Python38LambdaParser, Python38FullCustom):
         # of "ifstmt".
         ifstmt        ::= testexpr ifstmts_jump
 
-        ifstmt_branch ::= or_and_not stmts block_break
-        ifstmt_branch ::= or_and1 stmts block_break
-        ifstmt_branch ::= not_and_not stmts block_break
+        ifstmt_branch ::= or_and_not stmts block_end
+        ifstmt_branch ::= or_and1 stmts block_end
+        ifstmt_branch ::= not_and_not stmts block_end
 
         ifstmts_jump ::= return_if_stmts
-        ifstmts_jump ::= stmts_opt block_break
-        ifstmts_jump ::= block_break stmts block_break
+        ifstmts_jump ::= stmts_opt block_end
+        ifstmts_jump ::= block_end stmts block_end
 
         # Python 3.4+ optimizes the trailing two JUMPS away
         ifstmts_jump ::= stmts_opt JUMP_FORWARD JUMP_FORWARD _come_froms
@@ -398,7 +398,7 @@ class Python38ParserFull(Python38LambdaParser, Python38FullCustom):
 
         come_from_loops ::= COME_FROM_LOOP*
 
-        for_block   ::= block_break stmts_opt come_from_loops JUMP_LOOP
+        for_block   ::= block_end stmts_opt come_from_loops JUMP_LOOP
         for_block   ::= stmts
 
         for_block   ::= stmts_opt COME_FROM_LOOP JUMP_BACK
@@ -987,7 +987,7 @@ class Python38ParserFull(Python38LambdaParser, Python38FullCustom):
         return_closure     ::= LOAD_CLOSURE RETURN_VALUE RETURN_LAST
 
         stmt               ::= whileTruestmt
-        ifelsestmt         ::= testexpr stmts_opt JUMP_FORWARD else_suite block_break
+        ifelsestmt         ::= testexpr stmts_opt JUMP_FORWARD else_suite block_end
 
         ifstmtc            ::= testexpr ifstmts_jumpc
         ifstmtc            ::= testexprc ifstmts_jumpc _come_froms
@@ -1058,9 +1058,9 @@ class Python38ParserFull(Python38LambdaParser, Python38FullCustom):
 
     def p_for38full(self, args):
         """
-        for38              ::= expr get_for_iter store for_block JUMP_LOOP block_break
-        for38              ::= expr get_for_iter store for_block JUMP_LOOP block_break POP_BLOCK
-        for38              ::= expr get_for_iter store for_block block_break
+        for38              ::= expr get_for_iter store for_block JUMP_LOOP block_end
+        for38              ::= expr get_for_iter store for_block JUMP_LOOP block_end POP_BLOCK
+        for38              ::= expr get_for_iter store for_block block_end
 
         forelsestmt38      ::= expr get_for_iter store for_block POP_BLOCK else_suite
         forelsestmt38      ::= expr get_for_iter store for_block JUMP_LOOP _come_froms else_suite
@@ -1075,7 +1075,7 @@ class Python38ParserFull(Python38LambdaParser, Python38FullCustom):
 
         except_suite ::= stmts_opt COME_FROM POP_EXCEPT jump_except COME_FROM
 
-        compare_chained2 ::= expr COMPARE_OP block_break JUMP_FORWARD
+        compare_chained2 ::= expr COMPARE_OP block_end JUMP_FORWARD
 
         stmt               ::= async_for_stmt38
         stmt               ::= async_forelse_stmt38
