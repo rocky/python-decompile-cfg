@@ -510,6 +510,9 @@ class ComprehensionMixin:
 
         if comp_store:
             self.preorder(comp_store)
+            # We have already added the comp_store contribution,
+            # don't attempt to decompile it again
+            comp_store = None
         else:
             self.preorder(store)
 

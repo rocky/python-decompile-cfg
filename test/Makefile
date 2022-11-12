@@ -1,4 +1,5 @@
 check=PHONY \
+      2.3 \
       clean \
       dist distclean \
       check-bytecode-3 \
@@ -19,12 +20,15 @@ NATIVE_CHECK = check-$(PYTHON_VERSION)
 COMPILE ?=
 COVER_DIR=../tmp/grammar-cover
 
-# Run short tests
+#: Phony target to handle pyston-2.3.x
+2.3:
+
+#: Run short tests
 check-short:
 	@$(PYTHON) -V && PYTHON_VERSION=`$(PYTHON) -V 2>&1 | cut -d ' ' -f 2 | cut -d'.' -f1,2 | head -1`; \
 	$(MAKE) check-bytecode-$${PYTHON_VERSION}
 
-# Run all tests
+#: Run all tests
 check:
 	$(PYTHON) -V && PYTHON_VERSION=`$(PYTHON) -V 2>&1 | cut -d ' ' -f 2 | cut -d'.' -f1,2 | head -1`; \
 	$(MAKE) check-$(PYTHON_VERSION)
