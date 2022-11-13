@@ -37,7 +37,7 @@ class Scanner38(Scanner38Base):
 
     pass
 
-    def ingest(self, co, classname=None, code_objects={}, show_asm=None) -> tuple:
+    def ingest(self, bytecode, classname=None, code_objects={}, show_asm=None) -> tuple:
         """
         Create "tokens" the bytecode of an Python code object. Largely these
         are the opcode name, but in some cases that has been modified to make parsing
@@ -57,16 +57,17 @@ class Scanner38(Scanner38Base):
         cause specific rules for the specific number of arguments they take.
         """
         tokens, customize = Scanner38Base.ingest(
-            self, co, classname, code_objects, show_asm
+            self, bytecode, classname, code_objects, show_asm
         )
         try:
             tokens, customize = Scanner38Base.ingest(
-                self, co, classname, code_objects, show_asm
+                self, bytecode, classname, code_objects, show_asm
             )
         except:
             # raise uncomment if you don't want to debug
             from trepan.api import debug; debug()
-            pass
+            raise
+
         for t in tokens:
             # The lowest bit of flags indicates whether the
             # var-keyword argument is placed at the top of the stack

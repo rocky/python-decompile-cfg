@@ -58,6 +58,7 @@ class Scanner38Base(Scanner):
         super(Scanner38Base, self).__init__(version, show_asm, is_pypy)
         self.debug = debug
         self.is_pypy = is_pypy
+        self.offset2inst_index = {}
         self.version = version
 
         # Create opcode classification sets
@@ -196,8 +197,7 @@ class Scanner38Base(Scanner):
             return j
 
 
-        offset2inst_index = {}
-        bb_mgr = basic_blocks(co, offset2inst_index)
+        bb_mgr = basic_blocks(co, self.offset2inst_index)
         if show_asm in ("both", "before"):
             for bb in bb_mgr.bb_list:
                 print("\t", bb)
@@ -239,7 +239,7 @@ class Scanner38Base(Scanner):
                 print("%s written" % dot_path)
                 os.system("dot -Tpng %s > %s" % (dot_path, png_path))
 
-            self.insts = augment_instructions(co, cfg, self.opc, offset2inst_index, bb_mgr)
+            self.insts = augment_instructions(co, cfg, self.opc, self.offset2inst_index, bb_mgr)
             if show_asm in ("both", "before"):
                 print('=' * 30)
                 for inst in self.insts:
@@ -605,13 +605,13 @@ if __name__ == "__main__":
 
         co = inspect.currentframe().f_code  # type: ignore
 
-    if PYTHON_VERSION_TRIPLE[:2] != (3, 8):
-        unsupported_version = True
-    else:
+    if (3, 8) <= PYTHON_VERSION_TRIPLE[:2] < (3, 10):
         tokens, customize = Scanner38Base(PYTHON_VERSION_TRIPLE).ingest(co, show_asm="both")
+    else:
+        unsupported_version = True
 
     if unsupported_version:
         print(
-            f"Need to be Python 3.8 to demo; I am version {version_tuple_to_str()}."
+            f"Need to be Python 3.8..3.9 to demo; I am version {version_tuple_to_str()}."
         )
     pass
