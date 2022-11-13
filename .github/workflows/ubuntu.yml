@@ -22,7 +22,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         # Until the next xdis release
-        # pip install git+git://github.com/rocky/python-xdis.git#egg=xdis
+        pip install git+https://github.com/rocky/python-xdis.git#egg=xdis
         # Until the next control-flow release
         pip install git+https://github.com/rocky/python-control-flow.git#egg=control_flow
         pip install -e .

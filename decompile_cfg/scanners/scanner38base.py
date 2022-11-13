@@ -196,7 +196,8 @@ class Scanner38Base(Scanner):
             return j
 
 
-        bb_mgr = basic_blocks(co)
+        offset2inst_index = {}
+        bb_mgr = basic_blocks(co, offset2inst_index)
         if show_asm in ("both", "before"):
             for bb in bb_mgr.bb_list:
                 print("\t", bb)
@@ -238,7 +239,7 @@ class Scanner38Base(Scanner):
                 print("%s written" % dot_path)
                 os.system("dot -Tpng %s > %s" % (dot_path, png_path))
 
-            self.insts = augment_instructions(co, cfg, self.opc.version_tuple)
+            self.insts = augment_instructions(co, cfg, self.opc, offset2inst_index, bb_mgr)
             if show_asm in ("both", "before"):
                 print('=' * 30)
                 for inst in self.insts:
@@ -460,27 +461,6 @@ class Scanner38Base(Scanner):
                         )
                     ):
                         opname = "CONTINUE"
-                    else:
-                        opname = "JUMP_LOOP"
-                        # FIXME: this is a hack to catch stuff like:
-                        #   if x: continue
-                        # the "continue" is not on a new line.
-                        # There are other situations where we don't catch
-                        # CONTINUE as well.
-                        if tokens[-1].kind == "JUMP_LOOP" and tokens[-1].attr <= argval:
-                            if tokens[-2].kind == "BREAK_LOOP":
-                                del tokens[-1]
-                                j -= 1
-                            else:
-                                # intern is used because we are changing the *previous* token.
-                                # A POP_TOP suggests a "break" rather than a "continue"?
-                                if tokens[-2] == "POP_TOP":
-                                    tokens[-1].kind = sys.intern("BREAK_LOOP")
-                                else:
-                                    tokens[-1].kind = sys.intern("CONTINUE")
-                                    pass
-                                pass
-                            pass
                     if last_op_was_break and opname == "CONTINUE":
                         last_op_was_break = False
                         continue
