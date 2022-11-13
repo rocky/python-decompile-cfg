@@ -41,7 +41,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         self.customized = {}
 
     def customize_grammar_rules(self, tokens, customize):
-        self.customize_grammar_rules_full38(tokens, customize)
+        self.customize_grammar_rules_full39(tokens, customize)
 
     ###############################################
     #  Python 3.8 grammar rules with statements

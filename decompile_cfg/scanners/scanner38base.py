@@ -197,7 +197,7 @@ class Scanner38Base(Scanner):
             return j
 
 
-        bb_mgr = basic_blocks(co, self.offset2inst_index)
+        bb_mgr = basic_blocks(co, self.offset2inst_index, version=self.version)
         if show_asm in ("both", "before"):
             for bb in bb_mgr.bb_list:
                 print("\t", bb)

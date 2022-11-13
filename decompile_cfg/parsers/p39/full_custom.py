@@ -68,8 +68,8 @@ class Python39FullCustom(Python38LambdaCustom, PythonBaseParser):
 
     def customize_grammar_rules_full39(self, tokens, customize):
 
-        self.customize_grammar_rules_lambda38(tokens, customize)
-        self.customize_reduce_checks_full38()
+        self.customize_grammar_rules_lambda39(tokens, customize)
+        self.customize_reduce_checks_full39()
 
         # include instructions that don't need customization,
         # but we'll do a finer check after the rough breakout.

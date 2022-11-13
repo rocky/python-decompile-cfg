@@ -23,15 +23,15 @@ This sets up opcodes Python's 3.9.
 # bytecode verification, verify(), uses JUMP_OPs from here
 from xdis.opcodes import opcode_38 as opc
 
-from decompile_cfg.scanners.scanner38 import Scanner38
+from decompile_cfg.scanners.scanner38 import Scanner38Base
 
 # bytecode verification, verify(), uses JUMP_OPS from here
 JUMP_OPs = opc.JUMP_OPS
 
 
-class Scanner39(Scanner38):
+class Scanner39(Scanner38Base):
     def __init__(self, show_asm=None, debug=False, is_pypy=False):
-        Scanner38.__init__(self, (3, 9), show_asm, is_pypy)
+        Scanner38Base.__init__(self, (3, 9), show_asm, is_pypy)
         self.debug = debug
         return
 

@@ -82,13 +82,15 @@ class Python39LambdaCustom(Python39BaseParser):
             self.add_unique_rule(rule, token.kind, args_pos, customize)
 
         # Has to come before generic CALL_FUNCTION else below
-        elif opname == "CALL_FUNCTION_EX_KW":
+        elif opname == "CALL_FUNCTION_EX":
             self.addRule(
-                """expr        ::= call_ex_kw4
-                   call_ex_kw4 ::= expr
+                """expr        ::= call_ex_39
+                   call_ex_39 ::= expr
+                                   BUILD_TUPLE_0
+                                   BUILD_MAP_0
                                    expr
-                                   BUILD_MAP_0 expr DICT_MERGE
-                                   CALL_FUNCTION_EX_KW
+                                   DICT_MERGE
+                                   CALL_FUNCTION_EX
                 """,
                 nop_func,
             )
@@ -477,18 +479,18 @@ class Python39LambdaCustom(Python39BaseParser):
                 self.addRule(rule, nop_func)
 
             elif opname in frozenset(
-                (
-                    "CALL_FUNCTION",
-                    "CALL_FUNCTION_EX",
-                    "CALL_FUNCTION_EX_KW",
-                    "CALL_FUNCTION_VAR",
-                    "CALL_FUNCTION_VAR_KW",
-                )
-            ) or opname.startswith("CALL_FUNCTION_KW"):
+                    (
+                        "CALL_FUNCTION",
+                        "CALL_FUNCTION_EX",
+                        "CALL_FUNCTION_EX_KW",
+                        "CALL_FUNCTION_VAR",
+                        "CALL_FUNCTION_VAR_KW",
+                    )
+            ):
 
                 self.addRule(
-                    """expr        ::= call_ex_kw4
-                       call_ex_kw4 ::= arg arg arg
+                    """expr        ::= call_ex_39
+                       call_ex_39  ::= arg arg arg
                                        CALL_FUNCTION_EX_KW
                      """,
                     nop_func,
