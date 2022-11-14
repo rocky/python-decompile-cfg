@@ -87,6 +87,7 @@ class Python39LambdaCustom(Python39BaseParser):
                 """
                 expr        ::= call_ex_39
                 expr        ::= call_ex0_39
+                expr        ::= call_ex1_39
                 call_ex_39  ::= expr
                                 BUILD_TUPLE_0
                                 dict
@@ -108,6 +109,13 @@ class Python39LambdaCustom(Python39BaseParser):
                                 expr
                                 DICT_MERGE
                                 CALL_FUNCTION_EX
+                call_ex1_39 ::= expr
+                                list
+                                expr
+                                LIST_EXTEND
+                                LIST_TO_TUPLE
+                                CALL_FUNCTION_EX
+
                 """,
                 nop_func,
             )

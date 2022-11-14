@@ -84,14 +84,14 @@ def customize_for_version39(self, version):
 
     def call_ex0_39(node):
         """Handle CALL_FUNCTION_EX when there are no positional arguments"""
-
         # Format call function name
         call_fn_name = node[0]
         self.preorder(call_fn_name)
         self.write("(")
 
         seen_arg = False
-        star_args = node[1]
+        first_child = node[1].first_child()
+        star_args = None if first_child == "BUILD_TUPLE_0" else node[1]
 
         star_star_kwargs = None
 
@@ -130,3 +130,53 @@ def customize_for_version39(self, version):
         self.prune()
 
     self.n_call_ex0_39 = call_ex0_39
+
+    def call_ex1_39(node):
+        """
+        Handle CALL_FUNCTION_EX when there positional arguments and no keyword arguments
+        """
+
+        # Format call function name
+        call_fn_name = node[0]
+        self.preorder(call_fn_name)
+        self.write("(")
+
+        seen_arg = False
+        star_args = node[2]
+
+        star_star_kwargs = None
+
+        # Format positional args
+        seen_arg = True
+        positional_args = node[1]
+        self.template_engine(("%P", (0, -1, ", ", 100)), positional_args)
+
+        # Format *args if it exists
+        if star_args is not None:
+            if seen_arg:
+                self.write(", ")
+            self.write("*")
+            self.preorder(star_args)
+            seen_arg = True
+
+        # Format **kwargs if it exists
+
+        CALL_FUNCTION_EX = node[-1]
+        assert CALL_FUNCTION_EX == "CALL_FUNCTION_EX"
+
+        # If the lowest bit of the flags of CALL_FUNCTION_EX (node[-1])
+        # are set the there is a mapping object containing additional
+        # keyword object.
+        if CALL_FUNCTION_EX.attr & 1:
+            star_star_kwargs = node[-3]
+
+        if star_star_kwargs:
+            if seen_arg:
+                self.write(", ")
+            self.write("**")
+            self.preorder(star_star_kwargs)
+
+        self.write(")")
+        self.prune()
+
+    self.n_call_ex1_39 = call_ex1_39
