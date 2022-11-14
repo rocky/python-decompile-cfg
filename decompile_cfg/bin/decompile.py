@@ -55,9 +55,9 @@ def main_bin(show_asm, show_grammar, tree, tree_plus, verify, recurse_dirs, outf
     Python byecode decompiler for 3.10 bytecode
     """
     version_tuple = sys.version_info[0:2]
-    if not version_tuple in ((3, 8),):
+    if not version_tuple in ((3, 8), (3, 9)):
         print(
-            f"Note: {program} can decompile only bytecode from Python 3.8"
+            f"Note: {program} can decompile only bytecode from Python 3.8 or 3.9"
             f"""\n\tYou have version: {version_tuple_to_str()}."""
         )
 

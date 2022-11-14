@@ -84,13 +84,30 @@ class Python39LambdaCustom(Python39BaseParser):
         # Has to come before generic CALL_FUNCTION else below
         elif opname == "CALL_FUNCTION_EX":
             self.addRule(
-                """expr        ::= call_ex_39
-                   call_ex_39 ::= expr
-                                   BUILD_TUPLE_0
-                                   BUILD_MAP_0
-                                   expr
-                                   DICT_MERGE
-                                   CALL_FUNCTION_EX
+                """
+                expr        ::= call_ex_39
+                expr        ::= call_ex0_39
+                call_ex_39  ::= expr
+                                BUILD_TUPLE_0
+                                dict
+                                expr
+                                DICT_MERGE
+                                CALL_FUNCTION_EX
+                call_ex_39  ::= expr
+                                list
+                                expr
+                                LIST_EXTEND
+                                LIST_TO_TUPLE
+                                dict
+                                expr
+                                DICT_MERGE
+                                CALL_FUNCTION_EX
+                call_ex0_39 ::= expr
+                                expr
+                                dict
+                                expr
+                                DICT_MERGE
+                                CALL_FUNCTION_EX
                 """,
                 nop_func,
             )

@@ -768,7 +768,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         # in a conditional to just before the RETURN_VALUE
         return_expr_lambda      ::= dom_start_opt
                                     expr
-                                    block_break
+                                    block_end
                                     RETURN_VALUE
                                     bb_doms_end
 

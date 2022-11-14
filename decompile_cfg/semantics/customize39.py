@@ -27,19 +27,106 @@ def customize_for_version39(self, version):
 
     PRECEDENCE["call_ex_39"] = 1
 
-    # Customized hack for now.
     def call_ex_39(node):
-        """Handle CALL_FUNCTION_EX {1 or 2}"""
-        self.preorder(node[0])
+        """Handle CALL_FUNCTION_EX when there are positional arguments"""
+
+        # Format call function name
+        call_fn_name = node[0]
+        self.preorder(call_fn_name)
         self.write("(")
-        # Handle positional arguments
-        # FIXME this probably is not right
-        # Do need to add ", " between entries?
-        self.preorder(node[1])
-        # HACK single dictionary for now.
-        self.write("**")
-        self.preorder(node[3])
+
+        seen_arg = False
+        star_args = node[2]
+
+        star_star_kwargs = None
+
+        # Format positional args
+        seen_arg = True
+        positional_args = node[1]
+        self.template_engine(("%P", (0, -1, ", ", 100)), positional_args)
+
+        # Format keyword args if it exists
+        keyword_args = node[-4]
+        if keyword_args[0] != "BUILD_MAP_0":
+            self.write(", ")
+            self.call36_dict(keyword_args)
+            self.write(", ")
+
+        # Format *args if it exists
+        if star_args is not None:
+            if seen_arg:
+                self.write(", ")
+            self.write("*")
+            self.preorder(star_args)
+            seen_arg = True
+
+        # Format **kwargs if it exists
+
+        CALL_FUNCTION_EX = node[-1]
+        assert CALL_FUNCTION_EX == "CALL_FUNCTION_EX"
+
+        # If the lowest bit of the flags of CALL_FUNCTION_EX (node[-1])
+        # are set the there is a mapping object containing additional
+        # keyword object.
+        if CALL_FUNCTION_EX.attr & 1:
+            star_star_kwargs = node[-3]
+
+        if star_star_kwargs:
+            if seen_arg:
+                self.write(", ")
+            self.write("**")
+            self.preorder(star_star_kwargs)
+
         self.write(")")
         self.prune()
 
     self.n_call_ex_39 = call_ex_39
+
+    def call_ex0_39(node):
+        """Handle CALL_FUNCTION_EX when there are no positional arguments"""
+
+        # Format call function name
+        call_fn_name = node[0]
+        self.preorder(call_fn_name)
+        self.write("(")
+
+        seen_arg = False
+        star_args = node[1]
+
+        star_star_kwargs = None
+
+        # Format keyword args if it exists
+        keyword_args = node[-4]
+        if keyword_args[0] != "BUILD_MAP_0":
+            self.call36_dict(keyword_args)
+            self.write(", ")
+
+        # Format *args if it exists
+        if star_args is not None:
+            if seen_arg:
+                self.write(", ")
+            self.write("*")
+            self.preorder(star_args)
+            seen_arg = True
+
+        # Format **kwargs if it exists
+
+        CALL_FUNCTION_EX = node[-1]
+        assert CALL_FUNCTION_EX == "CALL_FUNCTION_EX"
+
+        # If the lowest bit of the flags of CALL_FUNCTION_EX (node[-1])
+        # are set the there is a mapping object containing additional
+        # keyword object.
+        if CALL_FUNCTION_EX.attr & 1:
+            star_star_kwargs = node[-3]
+
+        if star_star_kwargs:
+            if seen_arg:
+                self.write(", ")
+            self.write("**")
+            self.preorder(star_star_kwargs)
+
+        self.write(")")
+        self.prune()
+
+    self.n_call_ex0_39 = call_ex0_39
