@@ -9,10 +9,27 @@
 # we can turn this into a self-checking program when we do.
 # """This program is self-checking!"""
 
+def func(*args, **kwargs):
+    pass
+
 # fmt: off
 lambda: globals()
 lambda: locals()
 lambda d=b'': 5
+
+lambda func, *args, **kw: 5
+
+lambda func, *args, **kw: func(**kw)
+
+lambda no_apply, *args, **kwargs: no_apply(*args, **kwargs)
+lambda no_apply, *args, **kwargs: no_apply(1, *args, **kwargs)
+lambda no_apply, *args, **kwargs: no_apply(1, 2, *args, **kwargs)
+lambda no_apply, *args, **kwargs: no_apply(x = 11, *args, **kwargs)
+lambda no_apply, *args, **kwargs: no_apply(34, x = 11, *args, **kwargs)
+lambda no_apply, *args, **kwargs: no_apply(42, 34, x = 11, *args, **kwargs)
+lambda func, *args, **kw: func(*args, **kw)
+lambda self, *args, **kw: func(self, *args, **kw)
+
 
 lambda func, *args, **kw: func(*args,
                                **kw)

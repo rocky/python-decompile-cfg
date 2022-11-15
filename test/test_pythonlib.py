@@ -56,7 +56,7 @@ test_options = {
     "test": ("test", PYC, "test"),
 }
 
-for vers in ("3.8",):
+for vers in ("3.8", "3.9"):
     bytecode = "bytecode_%s" % vers
     key = "bytecode-%s" % vers
     test_options[key] = (bytecode, PYC, bytecode, vers)
