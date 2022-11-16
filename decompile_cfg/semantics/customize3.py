@@ -20,8 +20,9 @@ from xdis import iscode, co_flags_is_async
 
 from decompile_cfg.scanner import Code
 from decompile_cfg.semantics.consts import TABLE_DIRECT
-from decompile_cfg.semantics.customize38 import customize_for_version38
 from decompile_cfg.semantics.customize37 import customize_for_version37
+from decompile_cfg.semantics.customize38 import customize_for_version38
+from decompile_cfg.semantics.customize39 import customize_for_version39
 from decompile_cfg.semantics.helper import is_lambda_mode
 
 
@@ -195,6 +196,9 @@ def customize_for_version3(self, version):
         customize_for_version37(self, version)
         if version >= (3, 8):
             customize_for_version38(self, version)
+            if version >= (3, 9):
+                customize_for_version39(self, version)
+                pass  # version >= 3.9
             pass  # version >= 3.8
         pass  # 3.7
     return

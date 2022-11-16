@@ -35,6 +35,14 @@ from decompile_cfg.parsers.p38.heads import (
     Python38ParserSingle,
 )
 
+from decompile_cfg.parsers.p39.heads import (
+    Python39ParserLambda,
+    Python39ParserEval,
+    Python39ParserExec,
+    Python39ParserExpr,
+    Python39ParserSingle,
+)
+
 from decompile_cfg.show import maybe_show_asm
 
 
@@ -70,21 +78,38 @@ def get_python_parser(
     # a lazy way of doing the import?
 
     version = version[:2]
-    if version != (3, 8):
-        raise RuntimeError(f"Unsupported Python version {version}")
+    if version == (3, 8):
 
-    if compile_mode in ("exec"):
-        p = Python38ParserExec(debug_parser=debug_parser)
-    elif compile_mode == "single":
-        p = Python38ParserSingle(debug_parser=debug_parser)
-    elif compile_mode == "lambda":
-        p = Python38ParserLambda(debug_parser=debug_parser)
-    elif compile_mode == "eval":
-        p = Python38ParserEval(debug_parser=debug_parser)
-    elif compile_mode == "expr":
-        p = Python38ParserExpr(debug_parser=debug_parser)
+        if compile_mode in ("exec"):
+            p = Python38ParserExec(debug_parser=debug_parser)
+        elif compile_mode == "single":
+            p = Python38ParserSingle(debug_parser=debug_parser)
+        elif compile_mode == "lambda":
+            p = Python38ParserLambda(debug_parser=debug_parser)
+        elif compile_mode == "eval":
+            p = Python38ParserEval(debug_parser=debug_parser)
+        elif compile_mode == "expr":
+            p = Python38ParserExpr(debug_parser=debug_parser)
+        else:
+            p = Python38ParserSingle(debug_parser=debug_parser)
+
+    elif version == (3, 9):
+
+        if compile_mode in ("exec"):
+            p = Python39ParserExec(debug_parser=debug_parser)
+        elif compile_mode == "single":
+            p = Python39ParserSingle(debug_parser=debug_parser)
+        elif compile_mode == "lambda":
+            p = Python39ParserLambda(debug_parser=debug_parser)
+        elif compile_mode == "eval":
+            p = Python39ParserEval(debug_parser=debug_parser)
+        elif compile_mode == "expr":
+            p = Python39ParserExpr(debug_parser=debug_parser)
+        else:
+            p = Python39ParserSingle(debug_parser=debug_parser)
+
     else:
-        p = Python38ParserSingle(debug_parser=debug_parser)
+        raise RuntimeError(f"Unsupported Python version {version}")
 
     p.version = version
     # p.dump_grammar() # debug

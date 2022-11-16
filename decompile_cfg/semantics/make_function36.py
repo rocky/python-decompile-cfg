@@ -40,13 +40,6 @@ def make_function36(self, node, is_lambda, nested=1, code_node=None):
     """
     # MAKE_CLOSURE adds an additional closure slot
 
-    # In Python 3.6 and above stack change again. I understand
-    # 3.7 changes some of those changes, although I don't
-    # see it in this code yet. Yes, it is hard to follow
-    # and I am sure I haven't been able to keep up.
-
-    # Thank you, Python.
-
     def build_param(ast, name, default, annotation=None):
         """build parameters:
         - handle defaults

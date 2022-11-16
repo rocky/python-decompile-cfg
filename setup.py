@@ -4,13 +4,13 @@ import sys
 """Setup script for the 'decompile-cfg' distribution."""
 
 SYS_VERSION = sys.version_info[0:2]
-if SYS_VERSION < (3, 6):
+if SYS_VERSION < (3, 8):
     mess = f"\nThis package is not supported for Python version {sys.version[0:3]}."
     mess += "\nFor earlier versions, use decompile3 or uncompyle6."
     print(mess)
     raise Exception(mess)
-elif SYS_VERSION[:2] != (3, 8):
-    mess = f"\nThis package does not decompile for Python version {sys.version[0:3]}, just 3.10."
+elif (3, 8) <= SYS_VERSION[:2] != (3, 10):
+    mess = f"\nThis package does not decompile for Python version {sys.version[0:3]}, just 3.8 .. 3.9."
     print(mess)
 
 from __pkginfo__ import (
