@@ -20,12 +20,25 @@ Isolate Python 3.9 version-specific semantic actions here.
 # Python 3.9 changes
 #######################
 
-from decompile_cfg.semantics.consts import PRECEDENCE
+from decompile_cfg.semantics.consts import PRECEDENCE, TABLE_DIRECT
 
 
 def customize_for_version39(self, version):
 
+    # fmt: off
     PRECEDENCE["call_ex_39"] = 1
+    PRECEDENCE["and2"]       = PRECEDENCE["and"]
+    # fmt: on
+
+    TABLE_DIRECT.update(
+        {
+            "and2": (
+                "%p and %p",
+                (0, ("and_parts_jifop", "and_parts_jifops"), PRECEDENCE["and"]),
+                (2, ("and", "expr"), PRECEDENCE["and"]),
+            ),
+        }
+    )
 
     def call_ex_39(node):
         """Handle CALL_FUNCTION_EX when there are positional arguments"""

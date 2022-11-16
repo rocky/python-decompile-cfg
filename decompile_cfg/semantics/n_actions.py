@@ -533,6 +533,9 @@ class NonterminalActions:
         #     hasattr(self, 'current_line_number')):
         #     self.source_linemap[self.current_line_number] = n.linestart
 
+        if first_child == "branch_op":
+            n = n[0]
+
         self.prec = PRECEDENCE.get(n.kind, -2)
         if n == "LOAD_CONST" and repr(n.pattr)[0] == "-":
             self.prec = 6

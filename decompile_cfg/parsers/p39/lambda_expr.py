@@ -38,10 +38,15 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         # Listing "and" at the end of the next rule eliminates
         #    expr -> branch_op -> and
         and             ::= and_parts_jifop and
-        and             ::= and_parts_jifop expr
+        and             ::= and_parts_jifop
+                            bb_end_start
+                            expr
+        and2            ::= and_parts_jifop
+                            bb_end_start
+                            expr
 
         # and_part_pjif are the right-hand side of an "and" without the leading expr
-        and_part_pjif   ::= expr_pjif
+        and_part_pjif   ::= expr_pjif block_end
         and_parts_pjif  ::= and_part_pjif+
 
         and_part_jifop  ::= expr_jifop
@@ -57,6 +62,10 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         #
         or              ::= expr_jitop
                             bb_end_start
+                            expr
+
+        or              ::= expr_jitop
+                            block_end
                             expr
 
         # or_part_pjit(s)_pjit are the right-hand side of an "or" without the leading expr
@@ -291,6 +300,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         jifop_start ::= JUMP_IF_FALSE_OR_POP bb_end_start
         jifop_opt   ::= JUMP_IF_FALSE_OR_POP bb_end_start_opt
         jitop_start ::= JUMP_IF_TRUE_OR_POP BB_END dom_start
+        jitop_start ::= JUMP_IF_TRUE_OR_POP block_end
         """
 
     # Dominator and basic block pseudo operations needed
@@ -315,8 +325,9 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         bb_doms_end_start     ::= bb_doms_end dom_start
         bb_doms_end_start_opt ::= bb_doms_end_start?
 
-        block_break        ::= bb_end_start_opt
-        block_break        ::= bb_doms_end_start
+        # In contrast to bb_ends, a block_end can include dominator regions.
+        block_end        ::= bb_end_start_opt
+        block_end        ::= bb_doms_end_start
         """
 
     def p_conditionals(self, args):
@@ -671,28 +682,29 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         # they have basic block and dominator pseudo instructions.
 
         branch_op ::= and POP_JUMP_IF_TRUE expr
-        branch_op ::= and block_break
-        branch_op ::= and1 block_break
-        branch_op ::= and_or block_break
-        branch_op ::= or block_break
-        branch_op ::= or_and block_break
-        branch_op ::= or1 block_break
+        branch_op ::= and block_end
+        branch_op ::= and1 block_end
+        branch_op ::= and2 block_end
+        branch_op ::= and_or block_end
+        branch_op ::= or block_end
+        branch_op ::= or_and block_end
+        branch_op ::= or1 block_end
 
-        branch_op ::= if_exp block_break
-        branch_op ::= if_exp_and block_break
+        branch_op ::= if_exp block_end
+        branch_op ::= if_exp_and block_end
         branch_op ::= if_exp_compare bb_doms_end_opt
         branch_op ::= if_exp_loop
-        branch_op ::= if_exp_not block_break
-        branch_op ::= if_exp_or block_break
-        branch_op ::= if_exp_true block_break
+        branch_op ::= if_exp_not block_end
+        branch_op ::= if_exp_or block_end
+        branch_op ::= if_exp_true block_end
 
 
         branch_op_compound_prefix ::= branch_op DOM_START BB_START unary_operator
         branch_op_compound_suffix ::= branch_op DOM_START BB_START expr binary_operator
 
         # The right-hand side of a branch op
-        branch_op_part ::= and_parts_pjif block_break
-        branch_op_part ::= or_parts_pjit block_break
+        branch_op_part ::= and_parts_pjif block_end
+        branch_op_part ::= or_parts_pjit block_end
 
         # FIXME: the below is to work around test_grammar expecting a "call" to be
         # on the LHS because it is also somewhere on in a rule.
@@ -710,13 +722,13 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         constant ::= LOAD_STR
 
         genexpr_func      ::= LOAD_ARG
-                              block_break
+                              block_end
                               FOR_ITER
                               bb_end_start
                               store
                               comp_iter
                               JUMP_LOOP
-                              block_break
+                              block_end
 
 
         # named_expr is also known as the "walrus op" :=
@@ -770,7 +782,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                                     RETURN_VALUE
                                     bb_doms_end_opt
 
-        # We need a block_break because thre can be a jump
+        # We need a block_end because thre can be a jump
         # in a conditional to just before the RETURN_VALUE
         return_expr_lambda      ::= dom_start_opt
                                     expr
@@ -849,7 +861,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         # Something is weird about the bb_end_start
         # in our parser in that if we replace it with say
-        # "block_break", we get parse errors
+        # "block_end", we get parse errors
         # Same deal in trying to combine the following to "if_exp_lambda"
         # rules into one.
         if_exp_lambda      ::= expr
