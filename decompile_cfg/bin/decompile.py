@@ -52,7 +52,7 @@ def usage():
 @click.argument("files", nargs=-1, type=click.Path(readable=True), required=True)
 def main_bin(show_asm, show_grammar, tree, tree_plus, verify, recurse_dirs, outfile, files):
     """
-    Python byecode decompiler for 3.10 bytecode
+    Python byecode decompiler for CPython 3.8..3.9 bytecode
     """
     version_tuple = sys.version_info[0:2]
     if not version_tuple in ((3, 8), (3, 9)):

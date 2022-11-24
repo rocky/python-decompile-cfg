@@ -97,8 +97,11 @@ def disco_deparse_loop(
                 compile_mode=codename_map[co.co_name]
             )
             skip_token_scan = True
+            show_asm=debug_opts.get("asm", None)
+        else:
+            show_asm = None
 
-        tokens, customize = disasm(co, show_asm=debug_opts.get("asm", None))
+        tokens, customize = disasm(co, show_asm=show_asm)
         if skip_token_scan:
             continue
         for t in tokens:
