@@ -29,6 +29,7 @@ For example:
 Finally we save token information.
 """
 
+import os
 import os.path as osp
 
 from control_flow.augment_disasm import augment_instructions
@@ -38,8 +39,9 @@ from control_flow.dominators import DominatorTree, dfs_forest, build_dom_set
 
 from typing import Tuple
 
-from xdis import iscode, instruction_size
+from xdis import iscode
 from xdis.bytecode import _get_const_info
+from xdis.version_info import version_tuple_to_str
 
 from decompile_cfg.scanner import Token, Scanner
 
@@ -210,20 +212,19 @@ class Scanner38Base(Scanner):
             if name.endswith(">"):
                 name = name[:-1]
         try:
+
+            version = version_tuple_to_str(self.opc.version_tuple, end=2)
+            dot_path = f"/tmp/flow-{name}-{version}.dot"
+            png_path = f"/tmp/flow-{name}-{version}.png"
             if show_asm in ("both", "before", "after"):
-                dot_path = '/tmp/flow-%s.dot' % name
-                png_path = '/tmp/flow-%s.png' % name
                 open(dot_path, 'w').write(cfg.graph.to_dot(False))
                 print("%s written" % dot_path)
-                import os
                 os.system("dot -Tpng %s > %s" % (dot_path, png_path))
             dt = DominatorTree(cfg)
             cfg.dom_tree = dt.tree(False)
             dfs_forest(cfg.dom_tree, False)
             build_dom_set(cfg.dom_tree, False)
             if show_asm in ("both", "before", "after"):
-                dot_path = '/tmp/flow-dom-%s.dot' % name
-                png_path = '/tmp/flow-dom-%s.png' % name
                 open(dot_path, 'w').write(cfg.dom_tree.to_dot())
                 print("%s written" % dot_path)
                 os.system("dot -Tpng %s > %s" % (dot_path, png_path))
@@ -499,96 +500,6 @@ class Scanner38Base(Scanner):
                 print(t.format(line_prefix=""))
             print()
         return tokens, customize
-
-    def build_statement_indices(self):
-        code = self.code
-        start = 0
-        end = codelen = len(code)
-
-        # Compose preliminary list of indices with statements,
-        # using plain statement opcodes
-        prelim = self.inst_matches(start, end, self.statement_opcodes)
-
-        # Initialize final container with statements with
-        # preliminary data
-        stmts = self.stmts = set(prelim)
-
-        # Same for opcode sequences
-        pass_stmts = set()
-        for sequence in self.statement_opcode_sequences:
-            for i in self.op_range(start, end - (len(sequence) + 1)):
-                match = True
-                for elem in sequence:
-                    if elem != code[i]:
-                        match = False
-                        break
-                    i += instruction_size(code[i], self.opc)
-
-                if match is True:
-                    i = self.prev_op[i]
-                    stmts.add(i)
-                    pass_stmts.add(i)
-
-        # Initialize statement list with the full data we've gathered so far
-        if pass_stmts:
-            stmt_offset_list = list(stmts)
-            stmt_offset_list.sort()
-        else:
-            stmt_offset_list = prelim
-        # 'List-map' which contains offset of start of
-        # next statement, when op offset is passed as index
-        self.next_stmt = slist = []
-        last_stmt_offset = -1
-        i = 0
-        # Go through all statement offsets
-        for stmt_offset in stmt_offset_list:
-            # Process absolute jumps, but do not remove 'pass' statements
-            # from the set
-            if (
-                code[stmt_offset] == self.opc.JUMP_ABSOLUTE
-                and stmt_offset not in pass_stmts
-            ):
-                # If absolute jump occurs in forward direction or it takes off from the
-                # same line as previous statement, this is not a statement
-                # FIXME: 0 isn't always correct
-                target = self.get_target(stmt_offset)
-                if (
-                    target > stmt_offset
-                    or self.lines[last_stmt_offset].l_no == self.lines[stmt_offset].l_no
-                ):
-                    stmts.remove(stmt_offset)
-                    continue
-                # Scan back bytecode ops till we encounter non-JUMP_ABSOLUTE op
-                j = self.prev_op[stmt_offset]
-                while code[j] == self.opc.JUMP_ABSOLUTE and j > 0:
-                    j = self.prev_op[j]
-                # If we got here, then it's list comprehension which
-                # is not a statement too
-                if code[j] == self.opc.LIST_APPEND:
-                    stmts.remove(stmt_offset)
-                    continue
-            # Exclude ROT_TWO + POP_TOP
-            elif (
-                code[stmt_offset] == self.opc.POP_TOP
-                and code[self.prev_op[stmt_offset]] == self.opc.ROT_TWO
-            ):
-                stmts.remove(stmt_offset)
-                continue
-            # Exclude FOR_ITER + designators
-            elif code[stmt_offset] in self.designator_ops:
-                j = self.prev_op[stmt_offset]
-                while code[j] in self.designator_ops:
-                    j = self.prev_op[j]
-                if code[j] == self.opc.FOR_ITER:
-                    stmts.remove(stmt_offset)
-                    continue
-            # Add to list another list with offset of current statement,
-            # equal to length of previous statement
-            slist += [stmt_offset] * (stmt_offset - i)
-            last_stmt_offset = stmt_offset
-            i = stmt_offset
-        # Finish filling the list for last statement
-        slist += [codelen] * (codelen - len(slist))
 
 if __name__ == "__main__":
     from xdis.version_info import PYTHON_VERSION_TRIPLE, version_tuple_to_str

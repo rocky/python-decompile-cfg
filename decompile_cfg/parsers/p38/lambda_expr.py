@@ -39,10 +39,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # Listing "and" at the end of the next rule eliminates
         #    expr -> branch_op -> and
         and             ::= and_parts_jifop and
-        and             ::= and_parts_jifop expr
+        and             ::= and_parts_jifop
+                            bb_end_start
+                            expr
 
         # and_part_pjif are the right-hand side of an "and" without the leading expr
-        and_part_pjif   ::= expr_pjif
+        and_part_pjif   ::= expr_pjif block_end
         and_parts_pjif  ::= and_part_pjif+
 
         and_part_jifop  ::= expr_jifop
@@ -52,6 +54,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         or              ::= expr_jitop
                             dom_start_opt
+                            expr
+
+        or              ::= expr_jitop
+                            block_end
                             expr
 
         # or_part_pjit(s)_pjit are the right-hand side of an "or" without the leading expr

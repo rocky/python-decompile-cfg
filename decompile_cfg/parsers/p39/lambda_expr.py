@@ -54,19 +54,19 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         and1            ::= and_parts_pjif expr
 
-        # Something is weird between 3.8 and 3.9. 3.8 looks wrong?
         or              ::= expr_jitop
                             dom_start_opt
-                            expr
-
-        #
-        or              ::= expr_jitop
-                            bb_end_start
                             expr
 
         or              ::= expr_jitop
                             block_end
                             expr
+
+        # Is this superfluous?
+        or              ::= expr_jitop
+                            bb_end_start
+                            expr
+
 
         # or_part_pjit(s)_pjit are the right-hand side of an "or" without the leading expr
         or_part_pjit         ::= expr_pjit
