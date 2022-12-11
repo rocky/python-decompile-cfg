@@ -452,10 +452,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         expr_or_arg     ::= LOAD_ARG
         expr_or_arg     ::= expr
 
-        break_for       ::= BREAK_FOR FOR_ITER
+        for_loop        ::= BREAK_FOR LOOP FOR_ITER
 
         for_iter        ::= bb_end_start_opt
-                            break_for
+                            for_loop
                             bb_end_start
 
         gen_comp_body   ::= expr
@@ -466,7 +466,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         generator_exp   ::= expr_or_arg
                             bb_end_start
-                            break_for
+                            for_loop
                             bb_end_start
                             store
                             comp_iter
@@ -719,7 +719,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         genexpr_func      ::= LOAD_ARG
                               block_end
-                              break_for
+                              for_loop
                               bb_end_start
                               store
                               comp_iter

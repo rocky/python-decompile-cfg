@@ -461,8 +461,9 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         expr_or_arg     ::= LOAD_ARG
         expr_or_arg     ::= expr
 
+        for_loop        ::= BREAK_FOR LOOP FOR_ITER
         for_iter        ::= bb_end_start_opt
-                            FOR_ITER
+                            for_loop
                             bb_end_start
 
         gen_comp_body   ::= expr
@@ -473,7 +474,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         generator_exp   ::= expr_or_arg
                             bb_end_start
-                            FOR_ITER
+                            for_loop
                             bb_end_start
                             store
                             comp_iter
@@ -527,7 +528,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                            expr_or_arg
                            bb_end_start_opt
                            for_iter store comp_iter
-                           JUMP_LOOP
+                           for_jump_unconditional
                            dom_end_start_opt
 
         list_iter       ::= list_for
@@ -546,8 +547,6 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         set_iter        ::= list_if_not
         set_iter        ::= set_comp_body
 
-        jump_loop       ::= JUMP_LOOP bb_doms_end_start
-
         set_comp        ::= BUILD_SET_0 set_iter
 
         # A leading "expr" is used when we have nested list comprehensions. E.g.
@@ -555,22 +554,22 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         list_for        ::= expr_or_arg
                             for_iter
                             store list_iter
-                            jump_loop
+                            for_jump_unconditional
                             bb_doms_end_start_opt
 
         set_for        ::= expr_or_arg
                            for_iter
                            store set_iter
-                           jump_loop
+                           for_jump_unconditional
                            bb_doms_end_start_opt
 
         list_if         ::= branch_op list_if_end list_iter
         list_if         ::= expr list_if_end list_iter
 
-        list_if         ::= expr pjump_iff_loop list_iter
+        list_if         ::= expr for_jump_iff list_iter
         list_if_chained ::= list_if_compare
                             bb_end_start
-                            POP_TOP JUMP_LOOP
+                            POP_TOP for_jump_unconditional
                             bb_doms_end_start
                             list_iter
 
@@ -723,11 +722,11 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         genexpr_func      ::= LOAD_ARG
                               block_end
-                              FOR_ITER
+                              for_loop
                               bb_end_start
                               store
                               comp_iter
-                              JUMP_LOOP
+                              for_jump_unconditional
                               block_end
 
 
@@ -751,25 +750,49 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                               GET_YIELD_FROM_ITER LOAD_CONST YIELD_FROM
         """
 
-    def p_jump(self, args):
+    def p_jump_conditional (self, args):
         """
-        jf_bb_end_start    ::= JUMP_FORWARD bb_end_start
-        jf_doms_end_start  ::= JUMP_FORWARD bb_doms_end_start
+        for_jump_pop_iff   ::= JUMP_FOR POP_JUMP_IF_FALSE_LOOP
+        for_jump_pop_ift   ::= JUMP_FOR POP_JUMP_IF_TRUE_LOOP
 
-        jump               ::= JUMP_FORWARD
-        jump               ::= JUMP_LOOP
+        jifop_opt          ::= JUMP_IF_FALSE_OR_POP bb_end_start_opt
+        jifop_start        ::= JUMP_IF_FALSE_OR_POP bb_end_start
+        jitop_start        ::= JUMP_IF_TRUE_OR_POP BB_END dom_start
 
-        # Note: full.py has jump_or_break ::= BREAK_LOOP
-        jump_or_break      ::= jump
+        loop_jump_pop_iff  ::= JUMP_LOOP POP_JUMP_IF_FALSE_LOOP
+        loop_jump_pop_ift  ::= JUMP_LOOP POP_JUMP_IF_TRUE_LOOP
 
-
-        pjump_ift          ::= POP_JUMP_IF_TRUE
-        pjump_ift          ::= POP_JUMP_IF_TRUE_LOOP
-
+        pjump_iff          ::= for_jump_pop_iff
         pjump_iff          ::= pjump_iff_forward
         pjump_iff          ::= pjump_iff_loop
         pjump_iff_forward  ::= POP_JUMP_IF_FALSE dom_end_start_opt
-        pjump_iff_loop     ::= POP_JUMP_IF_FALSE_LOOP dom_end_start_opt
+        pjump_iff_loop     ::= JUMP_FOR POP_JUMP_IF_FALSE_LOOP dom_end_start_opt
+        pjump_iff_loop     ::= JUMP_LOOP POP_JUMP_IF_FALSE_LOOP dom_end_start_opt
+
+        pjump_ift          ::= POP_JUMP_IF_TRUE
+        pjump_ift          ::= for_jump_pop_ift
+
+        """
+
+    # Unconditional jumps
+    def p_jump_unconditional(self, args):
+        """
+        for_jump_unconditional ::= JUMP_LOOP JUMP_ABSOLUTE
+        for_jump_unconditional ::= JUMP_FOR JUMP_ABSOLUTE
+
+        jf_bb_end_start        ::= JUMP_FORWARD bb_end_start
+        jf_doms_end_start      ::= JUMP_FORWARD bb_doms_end_start
+
+        jump                   ::= JUMP_FORWARD
+        jump                   ::= JUMP_LOOP JUMP_ABSOLUTE
+        jump                   ::= for_jump_unconditional
+
+        # Note: full.py has jump_or_break ::= BREAK_LOOP
+        jump_or_break          ::= jump
+
+        # async_iter uses this. Maybe we should use afor_jump_unconditional?
+        jump_loop_absolute     ::= JUMP_LOOP JUMP_ABSOLUTE
+
         """
 
     def p_lambda(self, args):
