@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Spark parser grammar for Python 3.8's Lambda's.
+Spark parser grammar for Python 3.9's Lambda's.
 
 Lambda's encompass expressions but don't have statements.  This contains
 grammar rules but not rules for the start symbol or a start symbol name. That is
@@ -878,7 +878,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                                bb_end_start_opt
                                expr
                                RETURN_VALUE
-                               dom_end dom_start
+                               bb_doms_end_start
                                return_expr_lambda
 
 
