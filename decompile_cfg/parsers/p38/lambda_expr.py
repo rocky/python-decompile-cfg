@@ -203,13 +203,14 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                  POP_JUMP_IF_FALSE
         chained_parts        ::= chained_part+
 
-        # A compare_chained is two comparisions like x <= y <= z
+        # A "compare_chained" is two comparisions like x <= y <= z
         # In the Python docs it says "Comparisons can be chained ..."
         # In the Python AST, this appears as: Compare(.. ops=)
 
         compare_chained      ::= expr
                                  compare_chained1
                                  block_end
+                                 not_fallen_into_block_opt
                                  ROT_TWO POP_TOP
                                  bb_doms_end_start_opt
 
@@ -935,8 +936,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # n), may also end in a RETURN_VALUE, instead of jumping to the
         # end of the compound expression
 
-        return_value    ::= NOT_FALLEN_INTO_BLOCK RETURN_VALUE
-        return_value    ::= RETURN_VALUE
+        return_value              ::= not_fallen_into_block_opt RETURN_VALUE
+        not_fallen_into_block_opt ::= NOT_FALLEN_INTO_BLOCK?
 
         """
 
