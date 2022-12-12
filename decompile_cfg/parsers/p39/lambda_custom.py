@@ -671,7 +671,7 @@ class Python39LambdaCustom(Python39BaseParser):
                                             DUP_TOP LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
                                             END_FINALLY bb_end_start
 
-                    # async_iter         ::= block_break SETUP_EXCEPT GET_ANEXT LOAD_CONST YIELD_FROM
+                    # async_iter         ::= block_end SETUP_EXCEPT GET_ANEXT LOAD_CONST YIELD_FROM
 
                     get_aiter            ::= expr GET_AITER
 
@@ -700,23 +700,29 @@ class Python39LambdaCustom(Python39BaseParser):
                     expr                 ::= list_comp_async
                     expr                 ::= set_comp_async
 
+                    async_for_loop       ::= BREAK_LOOP LOOP SETUP_FINALLY
+
                     dict_comp_async      ::= BUILD_MAP_0 genexpr_func_async
 
-                    async_iter           ::= block_break
-                                             SETUP_FINALLY GET_ANEXT LOAD_CONST YIELD_FROM POP_BLOCK
+                    async_iter           ::= block_end
+                                             async_for_loop
+                                             bb_end_start
+                                             GET_ANEXT LOAD_CONST
+                                             YIELD_FROM POP_BLOCK
 
                     genexpr_func_async   ::= LOAD_ARG async_iter
                                              store
                                              comp_iter
                                              JUMP_LOOP
-                                             block_break
+                                             block_end
                                              END_ASYNC_FOR
 
                     list_afor2           ::= async_iter
                                              store
                                              list_iter
                                              JUMP_LOOP
-                                             block_break
+                                             JUMP_ABSOLUTE
+                                             block_end
                                              END_ASYNC_FOR
 
                     list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
@@ -725,7 +731,7 @@ class Python39LambdaCustom(Python39BaseParser):
                                              store
                                              set_iter
                                              JUMP_LOOP
-                                             block_break
+                                             block_end
                                              END_ASYNC_FOR
 
                     set_afor2            ::= expr_or_arg
@@ -737,7 +743,7 @@ class Python39LambdaCustom(Python39BaseParser):
                                              store
                                              set_iter
                                              JUMP_LOOP
-                                             block_break
+                                             block_end
                                              END_ASYNC_FOR
 
                     return_expr_lambda   ::= genexpr_func_async
@@ -764,7 +770,7 @@ class Python39LambdaCustom(Python39BaseParser):
                 self.add_unique_doc_rules(
                     """
                     expr      ::= get_iter
-                    get_iter  ::= expr block_break GET_ITER
+                    get_iter  ::= expr block_end GET_ITER
                     """,
                     customize,
                 )

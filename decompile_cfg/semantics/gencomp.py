@@ -305,6 +305,7 @@ class ComprehensionMixin:
                 store = list_afor2[1]
                 assert store == "store"
                 n = list_afor2[2]
+                collection_node_index = 1
             else:
                 # ???
                 pass
@@ -498,9 +499,20 @@ class ComprehensionMixin:
             "set_comp_async",
         ):
             self.write(" async")
-            in_node_index = 5 if len(node) > 6 and node[5] == "expr" else 3
+
+            # For listcomp, setcomp, etc., the collection is .0 and that's the best we can do.
+            # So don't try to find the collection node.
+            if not self.compile_mode.endswith("comp"):
+                collection_node_index = None
+            if collection_node_index is None:
+                for i, child in enumerate(node):
+                    if child.kind in ("expr", "expr_get_aiter", "get_aiter", "get_iter"):
+                        collection_node_index = i
+                        break
+                assert collection_node_index is not None
+
         elif len(node) >= 3 and node[3] == "get_iter":
-            in_node_index = 3
+            collection_node_index = 3
             collection_node = node[3][0]
             assert collection_node == "expr"
         else:
@@ -529,7 +541,7 @@ class ComprehensionMixin:
             self.preorder(collection_node)
             if_nodes = []
         elif node == "list_comp_async":
-            self.preorder(node[in_node_index])
+            self.preorder(node[collection_node_index])
         elif is_lambda_mode(self.compile_mode):
             if node in ("list_comp_async",):
                 self.preorder(node[1])
