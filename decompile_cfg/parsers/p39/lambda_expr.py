@@ -151,7 +151,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                            branch_op_part
                            expr
                            block_end
-                           RETURN_VALUE
+                           return_value
                            block_end
                            expr
 
@@ -167,7 +167,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                            branch_op_part
                            expr
                            block_end
-                           RETURN_VALUE
+                           return_value
                            block_end
                            expr
 
@@ -240,7 +240,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                                  POP_TOP block_end
 
         compare_chained2     ::= expr COMPARE_OP JUMP_FORWARD
-        compare_chained2     ::= expr COMPARE_OP RETURN_VALUE
+        compare_chained2     ::= expr COMPARE_OP return_value
 
         compare_chained2a_37 ::= expr COMPARE_OP block_end POP_JUMP_IF_TRUE JUMP_FORWARD
 
@@ -802,15 +802,15 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         return_expr_lambda      ::= dom_start_opt
                                     expr
                                     dom_start_opt
-                                    RETURN_VALUE
+                                    return_value
                                     bb_doms_end_opt
 
-        # We need a block_end because thre can be a jump
+        # We need a block_end because there can be a jump
         # in a conditional to just before the RETURN_VALUE
         return_expr_lambda      ::= dom_start_opt
                                     expr
                                     block_end
-                                    RETURN_VALUE
+                                    return_value
                                     bb_doms_end
 
         # FIXME: generalize this
@@ -838,8 +838,8 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                                     RETURN_VALUE
                                     bb_doms_end
 
-        return_expr_lambda      ::= if_exp_lambda
         return_expr_lambda      ::= if_exp_binop_lambda
+        return_expr_lambda      ::= if_exp_lambda
         return_expr_lambda      ::= if_exp_not_lambda
 
         # return_expr_lambda with a binary operator before the return
@@ -878,8 +878,9 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                                POP_JUMP_IF_FALSE
                                bb_end_start_opt
                                expr
-                               RETURN_VALUE
-                               BB_END
+                               return_value
+                               bb_doms_end_start
+                               NOT_FALLEN_INTO_BLOCK
                                return_expr_lambda
 
         # Something is weird about the bb_end_start
@@ -887,12 +888,13 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         # "block_end", we get parse errors
         # Same deal in trying to combine the following to "if_exp_lambda"
         # rules into one.
-        if_exp_lambda      ::= expr
+        if_exp_lambda      ::= branch_op
                                POP_JUMP_IF_FALSE
                                bb_end_start_opt
                                expr
-                               RETURN_VALUE
-                               bb_end_start
+                               return_value
+                               bb_doms_end_start
+                               NOT_FALLEN_INTO_BLOCK
                                return_expr_lambda
 
 
@@ -900,8 +902,9 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                                POP_JUMP_IF_FALSE
                                bb_end_start_opt
                                expr
-                               RETURN_VALUE
+                               return_value
                                bb_doms_end_start
+                               NOT_FALLEN_INTO_BLOCK
                                return_expr_lambda
 
 
@@ -921,9 +924,22 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         if_exp_not_lambda ::= expr
                               POP_JUMP_IF_TRUE
                               expr
-                              RETURN_VALUE
+                              return_value
                               bb_end_start
                               return_expr_lambda
+        """
+
+    def p_no_fallthrough(self, args):
+        """
+        # short-circuit expressions that have RETURN_VALUEs at the end
+        # (e.g. return 1 < i < n) may need NOT_FALLEN_INTO_BLOCK
+        # because the expression *before* (1 < i) the final one, (i <
+        # n), may also end in a RETURN_VALUE, instead of jumping to the
+        # end of the compound expression
+
+        return_value    ::= NOT_FALLEN_INTO_BLOCK RETURN_VALUE
+        return_value    ::= RETURN_VALUE
+
         """
 
     def p_store(self, args):
