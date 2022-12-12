@@ -133,8 +133,10 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                               expr
 
         if_exp_compare ::= compare
+                           SIBLING_BLOCK
                            expr
                            jf_doms_end_start
+                           SIBLING_BLOCK
                            expr
 
         if_exp_and     ::= expr
@@ -268,11 +270,13 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                                            compare_chained
 
         compare_chained1b_false        ::= chained_parts
+                                           bb_end_start
                                            compare_chained2b_false
                                            POP_TOP jump
                                            bb_doms_end_start_opt
 
         compare_chained1b_false_loop   ::= chained_parts
+                                           bb_end_start
                                            compare_chained2b_false_loop
                                            POP_TOP jump bb_doms_end_start_opt
 
@@ -281,10 +285,11 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                                            POP_TOP JUMP_LOOP bb_doms_end_start_opt
 
         compare_chained2b_false        ::= expr COMPARE_OP
-                                           bb_end_start_opt
                                            POP_JUMP_IF_FALSE
+                                           bb_end_start_opt
                                            jump_or_break
                                            block_end
+                                           SIBLING_BLOCK
 
 
         compare_chained2b_false_loop   ::= expr COMPARE_OP
@@ -292,6 +297,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                                            POP_JUMP_IF_FALSE_LOOP
                                            jump_or_break
                                            block_end
+
 
         """
 

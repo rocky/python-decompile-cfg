@@ -125,8 +125,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                               expr
 
         if_exp_compare ::= compare
+                           SIBLING_BLOCK
                            expr
                            jf_doms_end_start
+                           SIBLING_BLOCK
                            expr
 
         if_exp_and     ::= expr
@@ -260,11 +262,13 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                            compare_chained
 
         compare_chained1b_false        ::= chained_parts
+                                           bb_end_start
                                            compare_chained2b_false
                                            POP_TOP jump
                                            bb_doms_end_start_opt
 
         compare_chained1b_false_loop   ::= chained_parts
+                                           bb_end_start
                                            compare_chained2b_false_loop
                                            POP_TOP jump bb_doms_end_start_opt
 
@@ -273,10 +277,11 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                            POP_TOP JUMP_LOOP bb_doms_end_start_opt
 
         compare_chained2b_false        ::= expr COMPARE_OP
-                                           bb_end_start_opt
                                            POP_JUMP_IF_FALSE
+                                           bb_end_start_opt
                                            jump_or_break
                                            block_end
+                                           SIBLING_BLOCK
 
 
         compare_chained2b_false_loop   ::= expr COMPARE_OP
@@ -290,6 +295,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                            for_jump_pop_iff
                                            jump_or_break
                                            block_end
+
 
         """
 

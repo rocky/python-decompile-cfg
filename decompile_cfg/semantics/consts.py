@@ -489,6 +489,12 @@ TABLE_DIRECT = {
         (0, "expr", PRECEDENCE["named_expr"] - 1)
         ),
 
+    "if_exp_compare": (
+        "%p if %c else %c",
+        (2, "expr", 27),
+        (0, ("expr", "bool_op", "compare")),
+        -1,  # Must be from end since beginnings might not match
+            ),
     # Note: Python 3.8+ changes this
     "for":              ( "%|for %c in %c:\n%+%c%-\n\n",
                           (3, "store"),
