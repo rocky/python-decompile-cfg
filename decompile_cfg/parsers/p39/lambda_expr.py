@@ -589,11 +589,11 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                             expr_pjiff
                             list_iter
 
-        list_if_end     ::= pjump_iff bb_end_start_opt
+        list_if_end      ::= pjump_iff_loop bb_end_start_opt
 
-
-        list_if_not     ::= expr list_if_not_end list_iter
-        list_if_not_end ::= pjump_ift bb_end_start_opt
+        list_if_not      ::= expr list_if_not_end dom_end_start list_iter
+        list_if_not_end  ::= for_jump_pop_ift  bb_end_start_opt
+        list_if_not_end  ::= pjump_iff_forward bb_end_start_opt
 
         # XXX
         list_if_or      ::= expr list_if_not_end list_iter
