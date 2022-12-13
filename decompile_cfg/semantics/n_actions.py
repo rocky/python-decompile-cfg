@@ -836,20 +836,15 @@ class NonterminalActions:
         opt_start = 1 if node[0].kind in ("dom_start_opt", "dom_start") else 0
         opt_end = 1 if node[-1].kind == "bb_doms_end" else 0
 
-        if node[0] in ("if_exp_call_lambda", "genexpr_func_async"):
+        if node[0] in ("if_exp_call_lambda", "if_exp_dead_code", "genexpr_func_async"):
             self.preorder(node[0])
             self.prune()
         elif 2 <= len(node) - opt_start - opt_end <= 3:
             self.preorder(node[1])
             self.prune()
         else:
-            # We can't comment out like above because there may be a trailing ')'
-            # that needs to be written
             if len(node) - opt_start - opt_end >= 4:
-                assert len(node) == 4 + opt_start and node[2 + opt_start].kind in (
-                    "RETURN_VALUE_LAMBDA",
-                    "LAMBDA_MARKER",
-                )
+                assert len(node) == 4 + opt_start and node[2 + opt_start].kind == "return_value"
             self.preorder(node[opt_start])
             self.prune()
 

@@ -97,6 +97,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                            jifop_start
                            expr
 
+        if_exp_dead_code   ::= return_expr_lambda
+                               bb_end_start
+                               return_expr_lambda
+
         # Corresponds to AST IfExp; note this
         # must include an "else" part.
         # Don't confuse with comprehension if's
@@ -172,6 +176,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                            block_end
                            JUMP_FORWARD
                            block_end
+                           SIBLING_BLOCK
                            expr
 
 
@@ -193,6 +198,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # and we use that to match on to reconstruct the source more accurately
         if_exp_true ::= expr
                         JUMP_FORWARD
+                        block_end
+                        SIBLING_BLOCK
                         expr
 
         """
@@ -844,6 +851,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                     bb_doms_end
 
         return_expr_lambda      ::= if_exp_binop_lambda
+        return_expr_lambda      ::= if_exp_dead_code
         return_expr_lambda      ::= if_exp_lambda
         return_expr_lambda      ::= if_exp_not_lambda
 

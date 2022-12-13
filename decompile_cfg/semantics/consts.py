@@ -584,7 +584,7 @@ TABLE_DIRECT = {
     # The arg 1 is dead-code
     "if_exp_dead_code": ( "%c if True else %c",
                           (0, "return_expr_lambda"),
-                          (1, "return_expr_lambda") ),
+                          (2, "return_expr_lambda") ),
 
     "if_exp_jump_false": (
         "%p if %c else %c",
@@ -638,9 +638,7 @@ TABLE_DIRECT = {
     ),
 
     # The arg2 is dead-code
-    "if_expr_true":     ( "%p if 1 else %c", (0, "expr", 27), 2 ),
-
-    "if_exp_true":      ( "%p if 1 else %c", (0, "expr", 27), 2 ),
+    "if_exp_true":      ( "%p if 1 else %c", (0, "expr", 27), 4 ),
     "if_exp_ret":       ( "%p if %p else %p", (2, 27), (0, 27), (-1, 27) ),
 
     # end IfExp
