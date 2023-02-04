@@ -1038,7 +1038,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         if self.hide_internal:
             assert tokens[0] == "BB_START"
             del tokens[0]
-            if tokens[-1] == "BLOCK_END_JOIN2":
+            if tokens[-1] == "BLOCK_END_JOIN_NO_ARG":
                 del tokens[-1]
             if tokens[-1] == "BB_END":
                 del tokens[-1]
