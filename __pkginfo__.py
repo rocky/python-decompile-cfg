@@ -42,7 +42,7 @@ author_email = "rb@dustyfeet.com"
 entry_points = {
     "console_scripts": [
         "decompile-cfg=decompile_cfg.bin.decompile:main_bin",
-        "decompile-cfg-code=decompile_cfg.bin.decompile_code_type:main_bin",
+        "decompile-cfg-code=decompile_cfg.bin.decompile_code_type:main",
         "disassemble-cfg=decompile_cfg.bin.disassemble:main",
     ]
 }
