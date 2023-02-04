@@ -1,4 +1,4 @@
-#  Copyright (c) 2017-2022 by Rocky Bernstein
+#  Copyright (c) 2017-2023 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -43,9 +43,15 @@ maxint = sys.maxsize
 # call((.. op ..)).
 
 NO_PARENTHESIS_EVER = 100
+PARENTHESIS_ALWAYS = -2
 
 # fmt: off
 PRECEDENCE = {
+    "dict":                   NO_PARENTHESIS_EVER,   # {expressions...}
+    "generator_exp":          NO_PARENTHESIS_EVER,   # (expressions...)
+    "list":                   NO_PARENTHESIS_EVER,   # [expressions...]
+    "return_expr":            NO_PARENTHESIS_EVER,
+
     "named_expr":             40,  # :=
     "yield":                  38,  # Needs to be below named_expr
     "yield_from":             38,
@@ -106,10 +112,8 @@ PRECEDENCE = {
     "store_subscript":        2,
     "subscript":              2,
 
-    "dict":                   0,   # {expressions...}
+    # Probably move some of this up
     "dict_comp":              0,
-    "generator_exp":          0,   # (expressions...)
-    "list":                   0,   # [expressions...]
     "list_comp":              0,
     "set_comp":               0,
     "set_comp_expr":          0,

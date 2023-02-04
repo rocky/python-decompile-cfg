@@ -1,4 +1,4 @@
-#  Copyright (c) 2020-2022 Rocky Bernstein
+#  Copyright (c) 2020-2023 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -315,9 +315,15 @@ xo        and_part_pjif   ::= expr_pjif block_end
         dom_end            ::= BB_END DOM_END
         bb_end_start       ::= BB_END dom_start
         bb_end_start_opt   ::= bb_end_start?
-        dom_end_opt        ::= dom_end?
         bb_doms_end        ::= BB_END doms_end
         bb_doms_end_opt    ::= bb_doms_end?
+
+        block_end          ::= BB_END
+        block_end          ::= BB_END BLOCK_END_JOIN2
+
+        block_start        ::= BB_START
+
+        dom_end_opt        ::= dom_end?
         doms_end           ::= DOM_END+
         dom_end_opt        ::= dom_end?
         dom_end_start      ::= dom_end dom_start
@@ -811,11 +817,14 @@ xo        and_part_pjif   ::= expr_pjif block_end
         """
         # return_expr_lambda is a return value used inside a lambda
 
-        return_expr_lambda      ::= dom_start_opt
-                                    expr
-                                    dom_start_opt
-                                    return_value
-                                    bb_doms_end_opt
+        return_expr               ::= expr RETURN_VALUE
+        return_expr               ::= expr return_value
+
+        # return_expr_lambda      ::= dom_start
+        #                             expr
+        #                             dom_start_opt
+        #                             return_value
+        #                             bb_doms_end
 
         # We need a block_end because there can be a jump
         # in a conditional to just before the RETURN_VALUE
@@ -950,7 +959,7 @@ xo        and_part_pjif   ::= expr_pjif block_end
         # n), may also end in a RETURN_VALUE, instead of jumping to the
         # end of the compound expression
 
-        return_value              ::= not_fallen_into_block_opt RETURN_VALUE
+        return_value              ::= NOT_FALLEN_INTO_BLOCK RETURN_VALUE
         not_fallen_into_block_opt ::= NOT_FALLEN_INTO_BLOCK?
 
         """

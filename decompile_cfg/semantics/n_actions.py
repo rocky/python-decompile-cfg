@@ -1,4 +1,4 @@
-#  Copyright (c) 2022 by Rocky Bernstein
+#  Copyright (c) 2022-2023 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,10 +19,12 @@ Custom Nonterminal action functions. See NonterminalActions docstring.
 from xdis import iscode
 
 from decompile_cfg.semantics.consts import (
+    PARENTHESIS_ALWAYS,
     INDENT_PER_LEVEL,
     NO_PARENTHESIS_EVER,
     NONE,
     PRECEDENCE,
+    PARENTHESIS_ALWAYS,
     minint,
 )
 
@@ -281,7 +283,7 @@ class NonterminalActions:
             return
 
         p = self.prec
-        self.prec = NO_PARENTHESIS_EVER
+        self.prec = PRECEDENCE["dict"]
 
         self.indent_more(INDENT_PER_LEVEL)
         sep = INDENT_PER_LEVEL[:-1]
@@ -536,7 +538,9 @@ class NonterminalActions:
         if first_child == "branch_op":
             n = n[0]
 
-        self.prec = PRECEDENCE.get(n.kind, -2)
+        if n.kind != "expr":
+            self.prec = PRECEDENCE.get(n.kind, PARENTHESIS_ALWAYS)
+
         if n == "LOAD_CONST" and repr(n.pattr)[0] == "-":
             self.prec = 6
 
@@ -824,6 +828,7 @@ class NonterminalActions:
             self.prec = PRECEDENCE["yield"] - 1
             self.n_expr(node[0])
         else:
+            self.prec = PRECEDENCE["return_expr"]
             self.n_expr(node)
 
     n_return_expr_or_cond = n_expr

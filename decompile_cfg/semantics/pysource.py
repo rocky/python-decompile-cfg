@@ -1020,7 +1020,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                 parse_tree = python_parser.parse(p, tokens, customize, is_lambda)
                 self.customize(customize)
 
-            except (heads.ParserError, AssertionError) as e:
+            except AssertionError as e:
                 raise ParserError(e, tokens, self.p.debug["reduce"])
             transform_tree = self.treeTransform.transform(parse_tree, code)
             self.maybe_show_tree(parse_tree, phase="after")
@@ -1036,13 +1036,10 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         # this with the below where we remove "return"
         # Also return DOM_START BB_START and BB_END DOM_END
         if self.hide_internal:
-            assert tokens[0] == "DOM_START"
-            assert len(tokens) >= 4
-            del tokens[0]
             assert tokens[0] == "BB_START"
             del tokens[0]
-            assert tokens[-1] == "DOM_END"
-            del tokens[-1]
+            if tokens[-1] == "BLOCK_END_JOIN2":
+                del tokens[-1]
             if tokens[-1] == "BB_END":
                 del tokens[-1]
 

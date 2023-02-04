@@ -1,4 +1,4 @@
-#  Copyright (c) 2022 Rocky Bernstein
+#  Copyright (c) 2022-2023 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -201,7 +201,7 @@ class PythonBaseParser(GenericASTBuilder):
             if instructions[finish].linestart:
                 break
             pass
-        if start > 0:
+        if start >= 0:
             err_token = instructions[index]
             print("Instruction context:")
             for i in range(start, finish):
@@ -328,9 +328,7 @@ class PythonParserLambda(PythonBaseParser):
         # When called from inside another expression like a call
         # there might not be a dom_start. So we need dom_start_opt
         # to start this off.
-        lambda_start       ::= dom_start_opt
-                               return_expr_lambda
-                               dom_end_opt
+        lambda_start       ::= block_start return_expr block_end
         """
 
     # lambda_start is the highest level nonterminal. However
