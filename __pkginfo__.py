@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2021 Rocky Bernstein <rocky@gnu.org>
+# Copyright (C) 2018-2021, 2023 Rocky Bernstein <rocky@gnu.org>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 
 # Things that change more often go here.
 copyright = """
-Copyright (C) 2021-2022 Rocky Bernstein <rb@dustyfeet.com>.
+Copyright (C) 2021-2023 Rocky Bernstein <rb@dustyfeet.com>.
 """
 
 classifiers = [
@@ -31,7 +31,8 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
     "Topic :: Software Development :: Debuggers",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
@@ -42,7 +43,7 @@ author_email = "rb@dustyfeet.com"
 entry_points = {
     "console_scripts": [
         "decompile-cfg=decompile_cfg.bin.decompile:main_bin",
-        "decompile-cfg-code=decompile_cfg.bin.decompile_code_type:main_bin",
+        "decompile-cfg-code=decompile_cfg.bin.decompile_code_type:main",
         "disassemble-cfg=decompile_cfg.bin.disassemble:main",
     ]
 }
