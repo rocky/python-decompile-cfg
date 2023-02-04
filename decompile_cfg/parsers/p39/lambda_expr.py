@@ -1,4 +1,4 @@
-#  Copyright (c) 2020-2022 Rocky Bernstein
+#  Copyright (c) 2020-2023 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -47,8 +47,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                             expr
 
         # and_part_pjif are the right-hand side of an "and" without the leading expr
-        # "and" needs to have a dominator end in it.
-        and_part_pjif   ::= expr_pjif bb_doms_end_start
+        and_part_pjif   ::= expr_pjif block_end
         and_parts_pjif  ::= and_part_pjif+
 
         and_part_jifop  ::= expr_jifop
@@ -56,13 +55,22 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         and1            ::= and_parts_pjif expr
 
+        # Outer "or"s that contain other "or" will not have a BB_END before BLOCK_END_JOIN
         or              ::= expr_jitop
-                            block_end
+                            BB_START
                             expr
-                            bb_doms_end_start
+                            BLOCK_END_JOIN
+
+        # The inner-most "or" can have a BB_END before the JOIN
+        or              ::= expr_jitop
+                            BB_START
+                            expr
+                            BB_END BLOCK_END_JOIN
+
+
 
         # or_part_pjit(s)_pjit are the right-hand side of an "or" without the leading expr
-        or_part_pjit         ::= expr_pjit block_end
+        or_part_pjit         ::= expr_pjit
         or_parts_pjit        ::= or_part_pjit+
 
         or_part_pjit_true_loop  ::= expr_pjit_loop
@@ -254,7 +262,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         compare_chained2_comprehension ::= expr
                                            COMPARE_OP
-                                           POP_JUMP_IF_FALSE_LOOP
+                                           loop_jump_pop_iff
                                            JUMP_FORWARD
                                            bb_end_start_opt
 
@@ -294,11 +302,15 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         compare_chained2b_false_loop   ::= expr COMPARE_OP
                                            bb_end_start_opt
-                                           POP_JUMP_IF_FALSE_LOOP
+                                           loop_jump_pop_iff
                                            jump_or_break
                                            block_end
 
-
+        compare_chained2b_false_loop   ::= expr COMPARE_OP
+                                           bb_end_start_opt
+                                           for_jump_pop_iff
+                                           jump_or_break
+                                           block_end
         """
 
     # Conditional jumps with dominator information included
@@ -317,11 +329,18 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         dom_start          ::= DOM_START BB_START
         dom_start_opt      ::= dom_start?
         dom_end            ::= BB_END DOM_END
-        bb_end_start       ::= BB_END dom_start
+        bb_end_start       ::= BB_END block_start
         bb_end_start_opt   ::= bb_end_start?
-        dom_end_opt        ::= dom_end?
         bb_doms_end        ::= BB_END doms_end
         bb_doms_end_opt    ::= bb_doms_end?
+
+        block_end          ::= BB_END
+        block_end          ::= BB_END BLOCK_END_JOIN_NO_ARG
+        block_end_start    ::= BB_END BLOCK_END_JOIN block_start
+
+        block_start        ::= BB_START
+
+        dom_end_opt        ::= dom_end?
         doms_end           ::= DOM_END+
         dom_end_opt        ::= dom_end?
         dom_end_start      ::= dom_end dom_start
@@ -340,11 +359,13 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
     def p_conditionals(self, args):
         """
         expr_pjif                  ::= expr POP_JUMP_IF_FALSE
-        expr_pjif_loop             ::= expr POP_JUMP_IF_FALSE_LOOP
+        expr_pjif_loop             ::= expr for_jump_pop_iff
+        expr_pjif_loop             ::= expr loop_jump_pop_iff
         expr_pjit                  ::= expr POP_JUMP_IF_TRUE
-        expr_pjit_loop             ::= expr POP_JUMP_IF_TRUE_LOOP
+        expr_pjit_loop             ::= expr for_jump_pop_ift
+        expr_pjit_loop             ::= expr loop_jump_pop_ift
         expr_jifop                 ::= expr JUMP_IF_FALSE_OR_POP
-        expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP
+        expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP BB_END
 
         # FIXME: the below two names are horrible and can be confused with the above
         # "expr_pji{f,t} rules. The differences that here we don't care if we
@@ -362,13 +383,13 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         comp_body      ::= set_comp_body
 
         # I think this can be removed:
-        # comp_for       ::= expr get_for_iter store comp_iter
-        #                    CONTINUE
-        #                    bb_end_start_opt
+        # comp_for     ::= expr get_for_iter store comp_iter
+        #                  CONTINUE
+        #                  bb_end_start_opt
 
         comp_for       ::= expr get_for_iter store comp_iter
-                          JUMP_LOOP
-                          block_end
+                           for_jump_unconditional
+                           block_end
 
 
         # Note: `comp_if_xxx`, we always start with an
@@ -389,7 +410,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         comp_if_chained ::= list_if_compare
                             bb_end_start
-                            POP_TOP JUMP_LOOP
+                            POP_TOP jump_loop_absolute
                             bb_doms_end_start
                             comp_iter
 
@@ -690,9 +711,16 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         branch_op ::= and POP_JUMP_IF_TRUE expr
         branch_op ::= and block_end
         branch_op ::= and1 block_end
-        branch_op ::= and2 block_end
         branch_op ::= and_or block_end
-        branch_op ::= or block_end
+
+        # No BB_START is used if we have strung-out or nested
+        # branch_ops, e.g. a or b or c
+        # BB_START is needed for the outermost branch_op which
+        # may get folded into an expr
+
+        branch_op ::= or
+        branch_op ::= or BB_START
+
         branch_op ::= or_and block_end
         branch_op ::= or1 block_end
 
@@ -757,6 +785,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                               GET_YIELD_FROM_ITER LOAD_CONST YIELD_FROM
         """
 
+    # Conditional jumps with dominator information included
     def p_jump_conditional (self, args):
         """
         for_jump_pop_iff   ::= JUMP_FOR POP_JUMP_IF_FALSE_LOOP
@@ -806,18 +835,14 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         """
         # return_expr_lambda is a return value used inside a lambda
 
-        return_expr_lambda      ::= dom_start_opt
-                                    expr
-                                    dom_start_opt
-                                    return_value
-                                    bb_doms_end_opt
+        return_expr               ::= expr RETURN_VALUE
+        return_expr               ::= expr return_value
 
-        # FIXME
-        return_expr_lambda      ::= dom_start_opt
-                                    expr
-                                    dom_start_opt
-                                    return_value
-                                    bb_doms_end_opt
+        # return_expr_lambda      ::= dom_start
+        #                             expr
+        #                             dom_start_opt
+        #                             return_value
+        #                             bb_doms_end
 
         # We need a block_end because there can be a jump
         # in a conditional to just before the RETURN_VALUE
@@ -952,7 +977,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         # n), may also end in a RETURN_VALUE, instead of jumping to the
         # end of the compound expression
 
-        return_value              ::= not_fallen_into_block_opt RETURN_VALUE
+        return_value              ::= NOT_FALLEN_INTO_BLOCK RETURN_VALUE
         not_fallen_into_block_opt ::= NOT_FALLEN_INTO_BLOCK?
         """
 
