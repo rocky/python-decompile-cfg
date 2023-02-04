@@ -19,12 +19,11 @@ Custom Nonterminal action functions. See NonterminalActions docstring.
 from xdis import iscode
 
 from decompile_cfg.semantics.consts import (
-    PARENTHESIS_ALWAYS,
     INDENT_PER_LEVEL,
     NO_PARENTHESIS_EVER,
     NONE,
-    PRECEDENCE,
     PARENTHESIS_ALWAYS,
+    PRECEDENCE,
     minint,
 )
 
