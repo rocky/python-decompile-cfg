@@ -43,8 +43,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             bb_end_start
                             expr
 
+        and2            ::= and_parts_jifop
+                            bb_end_start
+                            expr
+
         # and_part_pjif are the right-hand side of an "and" without the leading expr
-        and_part_pjif   ::= expr_pjif block_end
+xo        and_part_pjif   ::= expr_pjif block_end
         and_parts_pjif  ::= and_part_pjif+
 
         and_part_jifop  ::= expr_jifop
@@ -53,11 +57,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         and1            ::= and_parts_pjif expr
 
         or              ::= expr_jitop
-                            dom_start_opt
-                            expr
-
-        or              ::= expr_jitop
-                            block_end
+                            bb_end_start
                             expr
 
         # or_part_pjit(s)_pjit are the right-hand side of an "or" without the leading expr

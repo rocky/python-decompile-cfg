@@ -41,12 +41,14 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         and             ::= and_parts_jifop
                             bb_end_start
                             expr
+
         and2            ::= and_parts_jifop
                             bb_end_start
                             expr
 
         # and_part_pjif are the right-hand side of an "and" without the leading expr
-        and_part_pjif   ::= expr_pjif block_end
+        # "and" needs to have a dominator end in it.
+        and_part_pjif   ::= expr_pjif bb_doms_end_start
         and_parts_pjif  ::= and_part_pjif+
 
         and_part_jifop  ::= expr_jifop
@@ -55,21 +57,12 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         and1            ::= and_parts_pjif expr
 
         or              ::= expr_jitop
-                            dom_start_opt
-                            expr
-
-        or              ::= expr_jitop
                             block_end
                             expr
-
-        # Is this superfluous?
-        or              ::= expr_jitop
-                            bb_end_start
-                            expr
-
+                            bb_doms_end_start
 
         # or_part_pjit(s)_pjit are the right-hand side of an "or" without the leading expr
-        or_part_pjit         ::= expr_pjit
+        or_part_pjit         ::= expr_pjit block_end
         or_parts_pjit        ::= or_part_pjit+
 
         or_part_pjit_true_loop  ::= expr_pjit_loop
@@ -819,6 +812,13 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                                     return_value
                                     bb_doms_end_opt
 
+        # FIXME
+        return_expr_lambda      ::= dom_start_opt
+                                    expr
+                                    dom_start_opt
+                                    return_value
+                                    bb_doms_end_opt
+
         # We need a block_end because there can be a jump
         # in a conditional to just before the RETURN_VALUE
         return_expr_lambda      ::= dom_start_opt
@@ -954,7 +954,6 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         return_value              ::= not_fallen_into_block_opt RETURN_VALUE
         not_fallen_into_block_opt ::= NOT_FALLEN_INTO_BLOCK?
-
         """
 
     def p_store(self, args):
