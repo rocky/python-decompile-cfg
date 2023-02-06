@@ -33,15 +33,17 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
     def p_branch_ops(self, args):
         """
-        # Note: reduction-rule checks are needed for many of the below;
-        # the rules in of themselves are not sufficient.
 
-        # Listing "and" at the end of the next rule eliminates
-        #    expr -> branch_op -> and
-        and             ::= and_parts_jifop and
-        and             ::= and_parts_jifop
-                            bb_end_start
-                            expr
+        # An "and" is one or more "and_parts" followed by a BLOCK_END_JOIN
+
+        # The "and" rule form with the "BB_END" is the inner-most "and".
+        # All the other nested "ands" omit the "BB_END".
+
+        and_part        ::= expr_jifop BB_START
+        and_part        ::= expr_jifop BB_START and_part
+        and             ::= and_part expr BB_END BLOCK_END_JOIN
+        and             ::= and_part expr BLOCK_END_JOIN
+
 
         and2            ::= and_parts_jifop
                             bb_end_start
@@ -51,7 +53,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         and_part_pjif   ::= expr_pjif block_end
         and_parts_pjif  ::= and_part_pjif+
 
-        and_part_jifop  ::= expr_jifop
         and_parts_jifop ::= and_part_jifop+
 
         and1            ::= and_parts_pjif expr
@@ -358,7 +359,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         expr_pjit                  ::= expr POP_JUMP_IF_TRUE
         expr_pjit_loop             ::= expr for_jump_pop_ift
         expr_pjit_loop             ::= expr loop_jump_pop_ift
-        expr_jifop                 ::= expr JUMP_IF_FALSE_OR_POP
+        expr_jifop                 ::= expr JUMP_IF_FALSE_OR_POP BB_END
         expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP BB_END
 
         # FIXME: the below two names are horrible and can be confused with the above
@@ -709,15 +710,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # even from those that return True and False (like "is" and "in") is that
         # they have basic block and dominator pseudo instructions.
 
-        branch_op ::= and POP_JUMP_IF_TRUE expr
-        branch_op ::= and block_end
-        branch_op ::= and1 block_end
-        branch_op ::= and_or block_end
-
-        # No BB_START is used if we have strung-out or nested
-        # branch_ops, e.g. a or b or c
-        # BB_START is needed for the outermost branch_op which
-        # may get folded into an expr
+        branch_op ::= and
+        branch_op ::= and BB_START
 
         branch_op ::= or
         branch_op ::= or BB_START
