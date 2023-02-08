@@ -91,6 +91,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                 expr
                                 jitop_start
                                 expr
+        and_or_expr         ::= expr_pjif
+                                BB_START
+                                expr_jitop
+                                BLOCK_END_JOIN BB_START
+                                expr
+                                BB_END BLOCK_END_JOIN
 
         ## In cases where we have some sort of logic optimization the
         ## "or" using "expr_jitop" can get converted to "or" using "expr_pjit"
@@ -353,10 +359,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
     def p_conditionals(self, args):
         """
-        expr_pjif                  ::= expr POP_JUMP_IF_FALSE
+        expr_pjif                  ::= expr POP_JUMP_IF_FALSE BB_END
         expr_pjif_loop             ::= expr for_jump_pop_iff
         expr_pjif_loop             ::= expr loop_jump_pop_iff
-        expr_pjit                  ::= expr POP_JUMP_IF_TRUE
+        expr_pjit                  ::= expr POP_JUMP_IF_TRUE BB_END
         expr_pjit_loop             ::= expr for_jump_pop_ift
         expr_pjit_loop             ::= expr loop_jump_pop_ift
         expr_jifop                 ::= expr JUMP_IF_FALSE_OR_POP BB_END
@@ -713,6 +719,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         branch_op ::= and
         branch_op ::= and BB_START
 
+        branch_op ::= and_or_expr
+        branch_op ::= and_or_expr BB_START
+
         branch_op ::= or
         branch_op ::= or BB_START
 
@@ -788,6 +797,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         jifop_opt          ::= JUMP_IF_FALSE_OR_POP bb_end_start_opt
         jifop_start        ::= JUMP_IF_FALSE_OR_POP bb_end_start
+
+        jitop              ::= JUMP_IF_TRUE_OR_POP BB_END
+
         jitop_start        ::= JUMP_IF_TRUE_OR_POP BB_END dom_start
 
         loop_jump_pop_iff  ::= JUMP_LOOP POP_JUMP_IF_FALSE_LOOP
