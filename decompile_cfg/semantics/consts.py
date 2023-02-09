@@ -242,7 +242,7 @@ TABLE_DIRECT = {
     "and1":          	(
         "%c and %c",
         (0,  "and_parts_pjif"),
-        (1,  ("expr",)),
+        (2,  ("expr",)),
     ),
 
     "and2":          	( "%c", 3 ),
@@ -250,8 +250,8 @@ TABLE_DIRECT = {
     "and_or": (
         "%c and %c or %c",
         (0, "and_parts_pjif"),
-        (1, "expr"),
-        (3, "expr"),
+        (2, "expr_jitop"),
+        (6, "expr"),
         ),
 
     "and_or_expr": (
