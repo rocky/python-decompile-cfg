@@ -757,8 +757,8 @@ TABLE_DIRECT = {
     "or_and": (
         "(%c or %c) and %c",
         (0, "or_parts_pjit"),
-        (1, "expr"),
-        (3, "expr"),
+        (2, "expr_jifop"),
+        (5, "expr"),
         ),
 
     "or_part_pjit": (
