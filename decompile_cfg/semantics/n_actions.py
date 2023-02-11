@@ -788,6 +788,16 @@ class NonterminalActions:
         self.indent_less()
         self.prune()  # stop recursing
 
+    # def n_or_and(self, node):
+    #     or_part_node = node[0]
+    #     assert or_part_node.kind.startswith("or")
+    #     if or_part_node == "or_part_pjit":
+    #         template = (0, "expr_pjit", PRECEDENCE["or"])
+    #     else:
+    #         template = ("or %p", (0, "expr_pjit", PRECEDENCE["or"]))
+    #     self.template_engine(template, or_part_node)
+    #     self.prune()
+
     def n_return(self, node):
         if self.params["is_lambda"] or node[0] in (
             "pop_return",

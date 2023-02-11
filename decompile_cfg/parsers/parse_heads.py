@@ -70,7 +70,6 @@ class PythonBaseParser(GenericASTBuilder):
             "kvlist",
             "kwargs",
             "lists",
-            "or_parts_pjit",
             "stmts",
         ]
         self.collect = frozenset(nt_list)

@@ -1,4 +1,4 @@
-#  Copyright (c) 2019-2022 by Rocky Bernstein
+#  Copyright (c) 2019-2023 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -317,11 +317,6 @@ def customize_for_version37(self, version):
                 (0, "and_parts_pjif"),
                 (1, ("expr", "expr_pjit")),
             ),
-            "or_parts_pjit": (
-                "%P or %c",
-                (0, -1, "or ", PRECEDENCE["or"]),
-                (1, "expr_pjit"),
-            ),
             "testfalsec": (
                 "not %c",
                 (
@@ -386,19 +381,6 @@ def customize_for_version37(self, version):
         return
 
     self.n_await_expr = n_await_expr
-
-    # FIXME: we should be able to compress this into a single template
-    def n_or_parts_pjit(node):
-        self.template_engine(("%c", (0, "expr_pjit")), node[0])
-        if len(node) != 1:
-            self.write(" ")
-            for n in node[1:]:
-                self.default(n)
-                pass
-        self.prune()
-        return
-
-    self.n_or_parts_pjit = n_or_parts_pjit
 
     def n_assert_invert(node):
         testtrue = node[0]

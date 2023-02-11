@@ -235,7 +235,7 @@ TABLE_DIRECT = {
 
     "and":          	(
         "%p and %p",
-        (0,  ("and_parts",), PRECEDENCE["and"]),
+        (0,  ("and_parts", "and_part"), PRECEDENCE["and"]),
         (1,  ("expr"), PRECEDENCE["and"]),
     ),
 
@@ -756,15 +756,16 @@ TABLE_DIRECT = {
                          (1, "expr") ),
     "or_and": (
         "(%c or %c) and %c",
-        (0, "or_parts_pjit"),
+        (0, ("expr_pjit", "or_parts_pjit")),
         (2, "expr_jifop"),
-        (5, "expr"),
-        ),
+        (5, ("expr", "branch_op")),
+    ),
 
-    "or_part_pjit": (
-        "or %p",
-        (0, "expr_pjit", PRECEDENCE["or"]),
-        ),
+    "or_parts_pjit": (
+        "%P %p",
+        (0, -1, " or", PRECEDENCE["or"]),
+        (2, ("expr_pjit", "or_part_pjit"), PRECEDENCE["or"]),
+    ),
 
     "raise_stmt0":	    ( "%|raise\n", ),
     "raise_stmt1":	    ( "%|raise %c\n", 0),

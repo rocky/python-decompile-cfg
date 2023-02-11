@@ -69,10 +69,8 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                             BB_END BLOCK_END_JOIN
 
 
-
-        # or_part_pjit(s)_pjit are the right-hand side of an "or" without the leading expr
         or_part_pjit         ::= expr_pjit
-        or_parts_pjit        ::= or_part_pjit+
+        or_parts_pjit        ::= expr_pjit BB_START or_part_pjit
 
         or_part_pjit_true_loop  ::= expr_pjit_loop
         or_parts_pjit_true_loop ::= or_part_pjit_true_loop+
@@ -116,6 +114,13 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                            BLOCK_END_JOIN BB_START
                            expr
                            BB_END BLOCK_END_JOIN
+
+        or_and         ::= or_parts_pjit
+                           BB_START
+                           expr_jifop
+                           block_end_joins BB_START
+                           branch_op
+
 
         if_exp_dead_code   ::= return_expr_lambda
                                bb_end_start
@@ -741,9 +746,6 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         branch_op ::= or
         branch_op ::= or BB_START
-
-        branch_op ::= or_and block_end
-        branch_op ::= or_and block_end
 
         branch_op ::= or1 block_end
 

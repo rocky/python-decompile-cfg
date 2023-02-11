@@ -1,4 +1,4 @@
-#  Copyright (c) 2020-2022 Rocky Bernstein
+#  Copyright (c) 2020-2023 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@ from decompile_cfg.parsers.reduce_check.if_exp_check import if_exp_ok
 from decompile_cfg.parsers.reduce_check.comp_if_check import comp_if_ok
 from decompile_cfg.parsers.reduce_check.list_if_not_check import list_if_not_seems_ok
 from decompile_cfg.parsers.reduce_check.or_check import or_ok
-from decompile_cfg.parsers.reduce_check.or_parts_check import or_parts_ok
 from spark_parser.spark import rule2str
 
 class Python39LambdaCustom(Python39BaseParser):
@@ -1202,7 +1201,6 @@ class Python39LambdaCustom(Python39BaseParser):
             "comp_if": comp_if_ok,
             "comp_if_not": comp_if_ok,
             "list_if_not": list_if_not_seems_ok,
-            "or_parts_pjit": or_parts_ok,
             "or1": or_ok,
         }
 
