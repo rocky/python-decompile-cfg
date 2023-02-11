@@ -235,7 +235,7 @@ TABLE_DIRECT = {
 
     "and":          	(
         "%p and %p",
-        (0,  ("and_part",), PRECEDENCE["and"]),
+        (0,  ("and_parts",), PRECEDENCE["and"]),
         (1,  ("expr"), PRECEDENCE["and"]),
     ),
 

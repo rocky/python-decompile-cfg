@@ -39,10 +39,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # The "and" rule form with the "BB_END" is the inner-most "and".
         # All the other nested "ands" omit the "BB_END".
 
-        and_part        ::= expr_jifop BB_START
-        and_part        ::= expr_jifop BB_START and_part
-        and             ::= and_part expr BB_END BLOCK_END_JOIN
-        and             ::= and_part expr BLOCK_END_JOIN
+        and_parts       ::= expr_jifop BB_START
+        and_parts       ::= expr_jifop BB_START and_part
+        and             ::= and_parts expr BB_END block_end_joins
+        and             ::= and_parts expr block_end_joins
 
 
         and2            ::= and_parts_jifop
@@ -114,7 +114,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         or_and         ::= or_parts_pjit
                            BB_START
                            expr_jifop
-                           BLOCK_END_JOIN BB_START
+                           block_end_joins BB_START
                            expr
                            BB_END BLOCK_END_JOIN
 
@@ -339,9 +339,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         bb_doms_end        ::= BB_END doms_end
         bb_doms_end_opt    ::= bb_doms_end?
 
-        block_end          ::= BB_END
-        block_end          ::= BB_END BLOCK_END_JOIN_NO_ARG
-        block_end_start    ::= BB_END BLOCK_END_JOIN block_start
+        block_end           ::= BB_END
+        block_end           ::= BB_END BLOCK_END_JOIN_NO_ARG
+        block_end_joins     ::= BLOCK_END_JOIN+
+        block_end_joins_opt ::= BLOCK_END_JOIN+
 
         block_start        ::= BB_START
 
