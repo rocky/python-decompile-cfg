@@ -83,6 +83,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         or1                 ::= or_parts_pjit expr
 
+        # and_or is (a and ...) or y
+
         # Note: I don't know why, but  we can't replace "expr jitop expr"
         # with "or"
         and_or              ::= and_parts_pjif
@@ -91,6 +93,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                 BLOCK_END_JOIN BLOCK_END_JOIN BB_START
                                 expr
                                 BB_END BLOCK_END_JOIN
+
         and_or_expr         ::= expr_pjif
                                 BB_START
                                 expr_jitop
@@ -109,6 +112,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         #                   expr_pjif
         #                   expr_pjit
 
+        # or_and is (a or ...) and y
+
         or_and         ::= or_parts_pjit
                            BB_START
                            expr_jifop
@@ -121,6 +126,22 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                            expr_jifop
                            block_end_joins BB_START
                            branch_op
+
+
+        or_and         ::= or_parts_pjit
+                           BB_START
+                           expr_jifop
+                           block_end_joins BB_START
+                           branch_op
+
+        # "expr" below at end instead of block_end_joins above
+        # when "and" part is a simple expression
+        or_and         ::= expr_pjit
+                           BB_START
+                           expr_jifop
+                           block_end_joins BB_START
+                           expr
+                           BB_END BLOCK_END_JOIN
 
 
         if_exp_dead_code   ::= return_expr_lambda

@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # Mode: -*- python -*-
 #
-# Copyright (c) 2015-2016, 2018, 2020 by Rocky Bernstein <rb@dustyfeet.com>
+# Copyright (c) 2015-2016, 2018, 2023 by Rocky Bernstein <rb@dustyfeet.com>
 #
-import sys, os, getopt
+import getopt
+import os
+import sys
 
 from decompile_cfg.disas import disassemble_file
 from decompile_cfg.version import __version__
@@ -19,13 +21,13 @@ Disassemble/Tokenize FILE with in the way that is done to
 assist decompile-cfg in parsing the instruction stream. For example
 instructions with variable-length arguments like CALL_FUNCTION and
 BUILD_LIST have argument counts appended to the instruction name, and
-Basic Block and Dominator psuedo instructions are inserted into the instruction stream.
+Basic Block and Dominator pseudo instructions are inserted into the instruction stream.
 Bit flag values encoded in an operand are expanding, EXTENDED_ARG
 value are folded into the following instruction operand.
 
 Like the parser, you may find this more high-level and or helpful.
 However if you want a true disassembler see the Standard built-in
-Python library moudle module "dis", or pydisasm from the cross-version
+Python library module "dis", or pydisasm from the cross-version
 Python bytecode package "xdis".
 
 Examples:

@@ -15,6 +15,8 @@
 
 from decompile_cfg.show import maybe_show_tree
 from copy import copy
+from typing import Optional
+
 from spark_parser import GenericASTTraversal, GenericASTTraversalPruningException
 
 from decompile_cfg.semantics.helper import find_code_node
@@ -44,7 +46,7 @@ def is_not_docstring(call_stmt_node) -> bool:
 
 
 class TreeTransform(GenericASTTraversal, object):
-    def __init__(self, version, show_ast=None):
+    def __init__(self, version: tuple, show_ast: Optional[dict] = None):
         self.showast = show_ast
         self.version = version
         return
@@ -531,14 +533,14 @@ class TreeTransform(GenericASTTraversal, object):
             node.data = new_stmts
         return node
 
-    def traverse(self, node, is_lambda=False):
+    def traverse(self, node):
         node = self.preorder(node)
         return node
 
-    def transform(self, ast, code):
+    def transform(self, ast: GenericASTTraversal, code) -> GenericASTTraversal:
         self.maybe_show_tree(ast, "before")
         self.ast = copy(ast)
-        self.ast = self.traverse(self.ast, is_lambda=False)
+        self.ast = self.traverse(self.ast)
         n = len(self.ast)
 
         try:
@@ -553,9 +555,8 @@ class TreeTransform(GenericASTTraversal, object):
         except:
             pass
         try:
-
             for i in range(n):
-                if is_docstring(self.ast[i], self.version, code.co_consts):
+                if is_docstring(self.ast[i], code.co_consts):
                     load_const = self.ast[i].first_child()
                     docstring_ast = SyntaxTree(
                         "docstring",

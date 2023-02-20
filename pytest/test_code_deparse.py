@@ -50,7 +50,7 @@ def test_single_mode() -> None:
         try:
             # print("XXX", expr)
             deparsed = run_deparse(expr, compile_mode="single", debug=False)
-        except:
+        except Exception:
             assert False, expr
             continue
 
@@ -73,7 +73,7 @@ def test_eval_mode():
     for expr in expressions:
         try:
             deparsed = run_deparse(expr, compile_mode="eval", debug=False)
-        except:
+        except Exception:
             assert False, expr
             continue
 
@@ -96,7 +96,7 @@ def test_lambda_mode():
     for expr in expressions:
         try:
             deparsed = run_deparse(expr, compile_mode="lambda", debug=False)
-        except:
+        except Exception:
             assert False, expr
             continue
         if deparsed.text.endswith("\n"):
