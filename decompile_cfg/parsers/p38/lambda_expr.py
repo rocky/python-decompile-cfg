@@ -43,6 +43,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         and_parts       ::= expr_jifop BB_START and_part
         and             ::= and_parts expr BB_END block_end_joins
         and             ::= and_parts expr block_end_joins
+        and_or_and     ::= or BB_START and block_end_joins
 
         and2            ::= and_parts_jifop
                             bb_end_start
@@ -62,12 +63,16 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             expr
                             BLOCK_END_JOIN
 
-        # The inner-most "or" can have a BB_END before the JOIN
+        # The inner-most "or" or "or" that contains an "and" can have a BB_END before the JOIN
         or              ::= expr_jitop
                             BB_START
                             expr
                             BB_END BLOCK_END_JOIN
 
+        or              ::= expr_pjit
+                            BB_START
+                            expr_jifop
+                            BLOCK_END_JOIN
 
         or_part_pjit         ::= expr_pjit
         or_parts_pjit        ::= expr_pjit BB_START or_part_pjit
@@ -752,6 +757,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         branch_op ::= and_or
         branch_op ::= and_or BB_START
+
+        branch_op ::= and_or_and
+        branch_op ::= and_or_and BB_START
 
         branch_op ::= or_and
         branch_op ::= or_and BB_START

@@ -254,6 +254,12 @@ TABLE_DIRECT = {
         (6, "expr"),
         ),
 
+    "and_or_and": (
+        "%c and %c",
+        (0, "or"),
+        (2, "and"),
+        ),
+
     "and_or_expr": (
         "%c and %c or %c",
         (0, "expr_pjif"),
@@ -749,8 +755,9 @@ TABLE_DIRECT = {
     "elifelsestmtr2":	( "%|elif %c:\n%+%c%-%|else:\n%+%c%-\n\n", 0, 1, 3 ), # has COME_FROM
 
     "or":           	( "%c or %c",
-                         (0, "expr_jitop"),
-                         (2, "expr") ),
+                         (0, ("expr_jitop", "expr_pjit")),
+                         (2, ("expr", "expr_jifop") )
+                        ),
     "or1":           	( "%c or %c",
                          (0, "or_parts_pjit"),
                          (1, "expr") ),
