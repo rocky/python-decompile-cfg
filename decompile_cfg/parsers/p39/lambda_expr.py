@@ -38,11 +38,10 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         # The "and" rule form with the "BB_END" is the inner-most "and".
         # All the other nested "ands" omit the "BB_END".
 
-        and_part        ::= expr_jifop BB_START
-        and_part        ::= expr_jifop BB_START and_part
-        and             ::= and_part expr BB_END BLOCK_END_JOIN
-        and             ::= and_part expr BLOCK_END_JOIN
-
+        and_parts       ::= expr_jifop BB_START
+        and_parts       ::= expr_jifop BB_START and_part
+        and             ::= and_parts expr BB_END block_end_joins
+        and             ::= and_parts expr block_end_joins
 
         and2            ::= and_parts_jifop
                             bb_end_start
@@ -82,6 +81,8 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         or1                 ::= or_parts_pjit expr
 
+        # and_or is (a and ...) or y
+
         # Note: I don't know why, but  we can't replace "expr jitop expr"
         # with "or"
         and_or              ::= and_parts_pjif
@@ -108,6 +109,8 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         #                   expr_pjif
         #                   expr_pjit
 
+        # or_and is (a or ...) and y
+
         or_and         ::= or_parts_pjit
                            BB_START
                            expr_jifop
@@ -121,10 +124,25 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                            block_end_joins BB_START
                            branch_op
 
+        or_and         ::= or_parts_pjit
+                           BB_START
+                           expr_jifop
+                           block_end_joins BB_START
+                           branch_op
+
+        # "expr" below at end instead of block_end_joins above
+        # when "and" part is a simple expression
+        or_and         ::= expr_pjit
+                           BB_START
+                           expr_jifop
+                           block_end_joins BB_START
+                           expr
+                           BB_END BLOCK_END_JOIN
 
         if_exp_dead_code   ::= return_expr_lambda
                                bb_end_start
                                return_expr_lambda
+
 
         # Corresponds to AST IfExp; note this
         # must include an "else" part.
@@ -352,6 +370,9 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         block_end          ::= BB_END
         block_end          ::= BB_END BLOCK_END_JOIN_NO_ARG
+        block_end_joins     ::= BLOCK_END_JOIN+
+        block_end_joins_opt ::= BLOCK_END_JOIN+
+
         block_end_start    ::= BB_END BLOCK_END_JOIN block_start
 
         block_start        ::= BB_START
