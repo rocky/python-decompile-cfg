@@ -803,8 +803,8 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         compare_single    ::= expr expr COMPARE_OP
 
         # Note: in 3.9+ only
-        # compare_is        ::= expr expr IS_OP
-        # compare_in        ::= expr expr CONTAINS_OP
+        compare_single    ::= expr expr IS_OP
+        compare_single    ::= expr expr CONTAINS_OP
 
         constant ::= LOAD_CONST
         constant ::= LOAD_STR
