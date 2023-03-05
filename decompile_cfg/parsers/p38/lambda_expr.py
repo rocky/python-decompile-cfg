@@ -43,7 +43,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # And by doing such, we are proper keeping track and nesting.
 
         and_parts         ::= and_part
-        and_parts         ::= expr_jifop BB_START and_parts BLOCK_END_JOIN
+        and_parts         ::= expr_jifop BB_START expr BLOCK_END_JOIN
 
         and               ::= and_parts
 
@@ -147,13 +147,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         or_and         ::= or_parts_pjit
                            BB_START
                            expr_jifop
-                           block_end_joins BB_START
-                           branch_op
-
-        or_and         ::= or_parts_pjit
-                           BB_START
-                           expr_jifop
-                           block_end_joins BB_START
+                           BLOCK_END_JOIN BB_START
                            branch_op
 
         # "expr" below at end instead of block_end_joins above
