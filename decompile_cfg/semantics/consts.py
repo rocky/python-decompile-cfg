@@ -233,12 +233,6 @@ TABLE_DIRECT = {
     "UNARY_NOT":                ( "not ", ),
     "UNARY_POSITIVE":           ( "+",),
 
-    "and":          	(
-        "%p and %p",
-        (0,  ("and_parts", "and_part"), PRECEDENCE["and"]),
-        (1,  ("expr"), PRECEDENCE["and"]),
-    ),
-
     "and1": (
         "%c and %c",
         (0, "expr_pjif"),
@@ -246,10 +240,17 @@ TABLE_DIRECT = {
     ),
 
     "and_or": (
-        "%c and %c or %c",
-        (0, "and_parts_pjif"),
-        (2, "expr_jitop"),
-        (6, "expr"),
+        "%c or %c",
+        (0, "and_or_parts"),
+        (2, "expr"),
+        ),
+
+    # Note: "and_or_parts" can has only one child in the innermost and.
+    # This is handled by n_and_or_parts
+    "and_or_parts": (
+        "%c and %c",
+        (0, ("expr_pjif", "and_or_part")),
+        (2, ("and_or_parts", "and_or_part")),
         ),
 
     "and_or_and": (
@@ -264,6 +265,12 @@ TABLE_DIRECT = {
         (2, "expr_jitop"),
         (5, "expr"),
         ),
+
+    "and_parts":          	(
+        "%p and %p",
+        (0,  ("expr_jifop",), PRECEDENCE["and"]),
+        (2,  ("and_parts"), PRECEDENCE["and"]),
+    ),
 
     "and_part_pjif": (
         "and %p",

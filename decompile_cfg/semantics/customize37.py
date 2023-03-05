@@ -355,6 +355,16 @@ def customize_for_version37(self, version):
         }
     )
 
+    def n_and_parts(node):
+        if len(node) > 1:
+            self.default(node)
+        else:
+            self.template_engine(("%c", (0, "expr")), node[0])
+        self.prune()
+        return
+
+    self.n_and_parts = n_and_parts
+
     # FIXME: Can we to compress this into a single template?
     def n_and_parts_pjif(node):
         self.template_engine(("%c", (0, "expr_pjif")), node[0])
@@ -367,6 +377,17 @@ def customize_for_version37(self, version):
         return
 
     self.n_and_parts_pjif = n_and_parts_pjif
+
+    def n_and_or_parts(node):
+        if len(node) > 1:
+            self.default(node)
+        else:
+            assert len(node[0]) == 1
+            self.default(node[0][0])
+        self.prune()
+        return
+
+    self.n_and_or_parts = n_and_or_parts
 
     def n_await_expr(node):
         dict_comp_async = node[0][0]

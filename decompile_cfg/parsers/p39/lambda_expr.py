@@ -33,16 +33,26 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
     def p_branch_ops(self, args):
         """
 
-        # An "and" is one or more "and_parts" followed by a BLOCK_END_JOIN
+        # And "and_part" is an "expr" that is followed by a BB_END because there
+        # is a jump to the instruction after that "expr"
 
-        # The "and" rule form with the "BB_END" is the inner-most "and".
-        # All the other nested "ands" omit the "BB_END".
+        and_part          ::= expr BB_END
 
-        and_parts       ::= expr_jifop BB_START
-        and_parts       ::= expr_jifop BB_START and_part
-        and             ::= and_parts expr BB_END block_end_joins
-        and             ::= and_parts expr block_end_joins
-        and_or_and     ::= or BB_START and block_end_joins
+        # "and_parts" is basically an "and". Each nesting of "and_parts" adds a BLOCK_END_JOIN.
+        # And by doing such, we are proper keeping track and nesting.
+
+        and_parts         ::= and_part
+        and_parts         ::= expr_jifop BB_START and_parts BLOCK_END_JOIN
+
+        and               ::= and_parts
+
+        # "and_or_parts" is the "and" portion of "and_or" before the "or".
+        and_or_part     ::= and1
+
+        and_or_parts    ::= and_or_part
+        and_or_parts    ::= expr_pjif BB_START and_or_parts BLOCK_END_JOIN
+
+        and_or          ::= and_or_parts BB_START expr BB_END BLOCK_END_JOIN
 
         and1            ::= expr_pjif
                             BB_START
@@ -51,9 +61,12 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         # and_part_pjif are the right-hand side of an "and" without the leading expr
         and_part_pjif   ::= expr_pjif
-        and_parts_pjif  ::= and_part_pjif+
 
-        and_parts_jifop ::= and_part_jifop+
+        # This is less than ide because we lose track of the proper number of BLOCK_END_JOINs
+        # that should apear at the target jumps.
+        # To regain this, we need to count these in reduction rule. Sigh.
+        # and_parts_pjif  ::= and_part_pjif+
+        # and_parts_jifop ::= and_part_jifop+
 
         or3            ::= and1 BB_START and_or_expr BLOCK_END_JOIN
 
@@ -753,9 +766,6 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         branch_op ::= and
         branch_op ::= and BB_START
-
-        branch_op ::= and_or_expr
-        branch_op ::= and_or_expr BB_START
 
         branch_op ::= and_or
         branch_op ::= and_or BB_START
