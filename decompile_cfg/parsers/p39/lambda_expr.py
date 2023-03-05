@@ -156,7 +156,6 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                                bb_end_start
                                return_expr_lambda
 
-
         # Corresponds to AST IfExp; note this
         # must include an "else" part.
         # Don't confuse with comprehension if's
@@ -360,15 +359,6 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                                            block_end
         """
 
-    # Conditional jumps with dominator information included
-    def p_conditional_jump(self, args):
-        """
-        jifop_start ::= JUMP_IF_FALSE_OR_POP bb_end_start
-        jifop_opt   ::= JUMP_IF_FALSE_OR_POP bb_end_start_opt
-        jitop_start ::= JUMP_IF_TRUE_OR_POP BB_END dom_start
-        jitop_start ::= JUMP_IF_TRUE_OR_POP block_end
-        """
-
     # Dominator and basic block pseudo operations needed
     # to assist control flow
     def p_dom(self, args):
@@ -383,8 +373,10 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         block_end          ::= BB_END
         block_end          ::= BB_END BLOCK_END_JOIN_NO_ARG
+
+        # FIXME: remove this
+        # Not ideal since we lose track of the counts.
         block_end_joins     ::= BLOCK_END_JOIN+
-        block_end_joins_opt ::= BLOCK_END_JOIN+
 
         block_end_start    ::= BB_END BLOCK_END_JOIN block_start
 
@@ -540,6 +532,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         expr_or_arg     ::= expr
 
         for_loop        ::= BREAK_FOR LOOP FOR_ITER
+
         for_iter        ::= bb_end_start_opt
                             for_loop
                             bb_end_start
@@ -767,15 +760,6 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         branch_op ::= and_or_and
         branch_op ::= and_or_and BB_START
 
-        branch_op ::= or_and
-        branch_op ::= or_and BB_START
-
-        branch_op ::= or
-        branch_op ::= or BB_START
-
-        branch_op ::= or3
-        branch_op ::= or3 BB_START
-
         branch_op ::= and_or_expr
         branch_op ::= and_or_expr BB_START
 
@@ -784,7 +768,13 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         branch_op ::= or
         branch_op ::= or BB_START
 
+        branch_op ::= or_and
+        branch_op ::= or_and BB_START
+
         branch_op ::= or1 block_end
+
+        branch_op ::= or3
+        branch_op ::= or3 BB_START
 
         branch_op ::= if_exp block_end
         branch_op ::= if_exp_and block_end

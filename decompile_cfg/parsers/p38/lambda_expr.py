@@ -112,18 +112,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                 expr
                                 BB_END BLOCK_END_JOIN
 
-        # and_or_expr         ::= expr_pjif
-        #                       BB_START
-        #                       expr_jitop
-        #                       BLOCK_END_JOIN BB_START
-        #                       expr
-        #                       BB_END BLOCK_END_JOIN
-
-        # and_or_expr         ::= expr_pjif
-        #                        BB_START
-        #                        expr_jitop
-        #                        BLOCK_END_JOIN BLOCK_END_JOIN
-
         ## In cases where we have some sort of logic optimization the
         ## "or" using "expr_jitop" can get converted to "or" using "expr_pjit"
         ## In such cases we have an exra JUMP_IF_FALSE_OR_POP at the end.
@@ -140,7 +128,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         or_and         ::= or_parts_pjit
                            BB_START
                            expr_jifop
-                           block_end_joins BB_START
+                           BLOCK_END_JOIN BB_START
                            expr
                            BB_END BLOCK_END_JOIN
 
@@ -364,8 +352,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                            for_jump_pop_iff
                                            jump_or_break
                                            block_end
-
-
         """
 
     # Dominator and basic block pseudo operations needed
@@ -380,12 +366,12 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         bb_doms_end        ::= BB_END doms_end
         bb_doms_end_opt    ::= bb_doms_end?
 
-        block_end           ::= BB_END
-        block_end           ::= BB_END BLOCK_END_JOIN_NO_ARG
+        block_end          ::= BB_END
+        block_end          ::= BB_END BLOCK_END_JOIN_NO_ARG
 
+        # FIXME: remove this
         # Not ideal since we lose track of the counts.
         block_end_joins     ::= BLOCK_END_JOIN+
-        block_end_joins_opt ::= BLOCK_END_JOIN*
 
         block_start        ::= BB_START
 
@@ -773,22 +759,21 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         branch_op ::= and_or_and
         branch_op ::= and_or_and BB_START
 
-        branch_op ::= and1
-        branch_op ::= and1 BB_START
-
-        branch_op ::= or_and
-        branch_op ::= or_and BB_START
-
         branch_op ::= and_or_expr
         branch_op ::= and_or_expr BB_START
 
-        branch_op ::= or3
-        branch_op ::= or3 BB_START
+        branch_op ::= and1 BB_START
 
         branch_op ::= or
         branch_op ::= or BB_START
 
+        branch_op ::= or_and
+        branch_op ::= or_and BB_START
+
         branch_op ::= or1 block_end
+
+        branch_op ::= or3
+        branch_op ::= or3 BB_START
 
         branch_op ::= or_expr_jitop
         branch_op ::= or_expr_jitop BB_START
@@ -816,10 +801,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         compare           ::= compare_chained
         compare           ::= compare_single
         compare_single    ::= expr expr COMPARE_OP
-
-        # Note: in 3.9+ only
-        # compare_is        ::= expr expr IS_OP
-        # compare_in        ::= expr expr CONTAINS_OP
 
         constant ::= LOAD_CONST
         constant ::= LOAD_STR
@@ -1051,7 +1032,6 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         return_value              ::= NOT_FALLEN_INTO_BLOCK RETURN_VALUE
         not_fallen_into_block_opt ::= NOT_FALLEN_INTO_BLOCK?
-
         """
 
     def p_store(self, args):
