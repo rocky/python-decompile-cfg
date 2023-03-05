@@ -239,13 +239,11 @@ TABLE_DIRECT = {
         (1,  ("expr"), PRECEDENCE["and"]),
     ),
 
-    "and1":          	(
+    "and1": (
         "%c and %c",
-        (0,  "and_parts_pjif"),
-        (2,  ("expr",)),
+        (0, "expr_pjif"),
+        (2, "expr_jitop"),
     ),
-
-    "and2":          	( "%c", 3 ),
 
     "and_or": (
         "%c and %c or %c",
@@ -690,6 +688,36 @@ TABLE_DIRECT = {
     # function_def_async
     "mkfuncdeco0":  	        ( "%|def %c\n", (0, "mkfunc") ),
 
+    "or": (
+        "%c or %c",
+        (0, ("expr_jitop", "expr_pjit")),
+        (2, ("expr", "expr_jifop") )
+        ),
+    "or1": (
+        "%c or %c",
+        (0, "or_parts_pjit"),
+        (1, "expr")
+        ),
+
+    "or3": (
+        "%c or %c",
+        (0,  "and1"),
+        (2,  ("and_or_expr")),
+    ),
+
+    "or_and": (
+        "(%c or %c) and %c",
+        (0, ("expr_pjit", "or_parts_pjit")),
+        (2, "expr_jifop"),
+        (5, ("expr", "branch_op")),
+    ),
+
+    "or_parts_pjit": (
+        "%P %p",
+        (0, -1, " or", PRECEDENCE["or"]),
+        (2, ("expr_pjit", "or_part_pjit"), PRECEDENCE["or"]),
+    ),
+
     "pass":	            ( "%|pass\n", ),
 
     "print_items_nl_stmt": ( "%|print %c%c\n", 0, 2 ),
@@ -753,26 +781,6 @@ TABLE_DIRECT = {
     "ifelsestmtr2":	( "%|if %c:\n%+%c%-%|else:\n%+%c%-\n\n", 0, 1, 3 ), # has COME_FROM
     "elifelsestmtr":	( "%|elif %c:\n%+%c%-%|else:\n%+%c%-\n\n", 0, 1, 2 ),
     "elifelsestmtr2":	( "%|elif %c:\n%+%c%-%|else:\n%+%c%-\n\n", 0, 1, 3 ), # has COME_FROM
-
-    "or":           	( "%c or %c",
-                         (0, ("expr_jitop", "expr_pjit")),
-                         (2, ("expr", "expr_jifop") )
-                        ),
-    "or1":           	( "%c or %c",
-                         (0, "or_parts_pjit"),
-                         (1, "expr") ),
-    "or_and": (
-        "(%c or %c) and %c",
-        (0, ("expr_pjit", "or_parts_pjit")),
-        (2, "expr_jifop"),
-        (5, ("expr", "branch_op")),
-    ),
-
-    "or_parts_pjit": (
-        "%P %p",
-        (0, -1, " or", PRECEDENCE["or"]),
-        (2, ("expr_pjit", "or_part_pjit"), PRECEDENCE["or"]),
-    ),
 
     "raise_stmt0":	    ( "%|raise\n", ),
     "raise_stmt1":	    ( "%|raise %c\n", 0),

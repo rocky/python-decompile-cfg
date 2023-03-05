@@ -45,9 +45,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         and             ::= and_parts expr block_end_joins
         and_or_and     ::= or BB_START and block_end_joins
 
-        and2            ::= and_parts_jifop
-                            bb_end_start
-                            expr
+        and1            ::= expr_pjif
+                            BB_START
+                            expr_jitop
+                            BLOCK_END_JOIN
 
         # and_part_pjif are the right-hand side of an "and" without the leading expr
         and_part_pjif   ::= expr_pjif
@@ -55,7 +56,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         and_parts_jifop ::= and_part_jifop+
 
-        and1            ::= and_parts_pjif BB_START expr
+        or3            ::= and1 BB_START and_or_expr BLOCK_END_JOIN
 
         # Outer "or"s that contain other "or" will not have a BB_END before BLOCK_END_JOIN
         or              ::= expr_jitop
@@ -761,19 +762,25 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         branch_op ::= and_or_and
         branch_op ::= and_or_and BB_START
 
+        branch_op ::= and1
+        branch_op ::= and1 BB_START
+
         branch_op ::= or_and
         branch_op ::= or_and BB_START
 
         branch_op ::= and_or_expr
         branch_op ::= and_or_expr BB_START
 
-        branch_op ::= and1
-        branch_op ::= and1 BB_START
+        branch_op ::= or3
+        branch_op ::= or3 BB_START
 
         branch_op ::= or
         branch_op ::= or BB_START
 
         branch_op ::= or1 block_end
+
+        branch_op ::= or_expr_jitop
+        branch_op ::= or_expr_jitop BB_START
 
         branch_op ::= if_exp block_end
         branch_op ::= if_exp_and block_end
@@ -846,6 +853,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         jifop_start        ::= JUMP_IF_FALSE_OR_POP bb_end_start
 
         jitop              ::= JUMP_IF_TRUE_OR_POP BB_END
+
+        and_or_expr        ::= expr_jitop BLOCK_END_JOIN BB_START and_or_expr BLOCK_END_JOIN
 
         loop_jump_pop_iff  ::= JUMP_LOOP POP_JUMP_IF_FALSE_LOOP
         loop_jump_pop_ift  ::= JUMP_LOOP POP_JUMP_IF_TRUE_LOOP

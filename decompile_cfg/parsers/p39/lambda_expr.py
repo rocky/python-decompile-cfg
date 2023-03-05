@@ -44,9 +44,10 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         and             ::= and_parts expr block_end_joins
         and_or_and     ::= or BB_START and block_end_joins
 
-        and2            ::= and_parts_jifop
-                            bb_end_start
-                            expr
+        and1            ::= expr_pjif
+                            BB_START
+                            expr_jitop
+                            BLOCK_END_JOIN
 
         # and_part_pjif are the right-hand side of an "and" without the leading expr
         and_part_pjif   ::= expr_pjif
@@ -54,7 +55,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         and_parts_jifop ::= and_part_jifop+
 
-        and1            ::= and_parts_pjif BB_START expr
+        or3            ::= and1 BB_START and_or_expr BLOCK_END_JOIN
 
         # Outer "or"s that contain other "or" will not have a BB_END before BLOCK_END_JOIN
         or              ::= expr_jitop
@@ -768,6 +769,9 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         branch_op ::= or
         branch_op ::= or BB_START
 
+        branch_op ::= or3
+        branch_op ::= or3 BB_START
+
         branch_op ::= and_or_expr
         branch_op ::= and_or_expr BB_START
 
@@ -851,6 +855,8 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         jitop              ::= JUMP_IF_TRUE_OR_POP BB_END
 
         jitop_start        ::= JUMP_IF_TRUE_OR_POP BB_END dom_start
+
+        and_or_expr        ::= expr_jitop BLOCK_END_JOIN BB_START and_or_expr BLOCK_END_JOIN
 
         loop_jump_pop_iff  ::= JUMP_LOOP POP_JUMP_IF_FALSE_LOOP
         loop_jump_pop_ift  ::= JUMP_LOOP POP_JUMP_IF_TRUE_LOOP
