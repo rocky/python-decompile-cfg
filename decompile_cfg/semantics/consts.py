@@ -266,6 +266,13 @@ TABLE_DIRECT = {
         (5, "expr"),
         ),
 
+    "and_or_expr1": (
+        "%c and %c or %c",
+        (0, "expr_pjif"),
+        (2, "expr_jitop"),
+        (5, "and"),
+        ),
+
     "and_parts":          	(
         "%p and %p",
         (0,  ("expr_jifop",), PRECEDENCE["and"]),

@@ -115,6 +115,13 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                 expr
                                 BB_END BLOCK_END_JOIN
 
+        and_or_expr         ::= expr_pjif
+                                BB_START
+                                expr_jitop
+                                BLOCK_END_JOIN BB_START
+                                expr
+                                BB_END BLOCK_END_JOIN
+
         ## In cases where we have some sort of logic optimization the
         ## "or" using "expr_jitop" can get converted to "or" using "expr_pjit"
         ## In such cases we have an exra JUMP_IF_FALSE_OR_POP at the end.
@@ -765,6 +772,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         branch_op ::= and_or_expr
         branch_op ::= and_or_expr BB_START
 
+        branch_op ::= and_or_expr1
+        branch_op ::= and_or_expr1 BB_START
+
         branch_op ::= and1 BB_START
 
         branch_op ::= or
@@ -850,6 +860,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         jitop              ::= JUMP_IF_TRUE_OR_POP BB_END
 
         and_or_expr        ::= expr_jitop BLOCK_END_JOIN BB_START and_or_expr BLOCK_END_JOIN
+        and_or_expr1       ::= expr_pjif BB_START expr_jitop BLOCK_END_JOIN BB_START and BLOCK_END_JOIN
 
         loop_jump_pop_iff  ::= JUMP_LOOP POP_JUMP_IF_FALSE_LOOP
         loop_jump_pop_ift  ::= JUMP_LOOP POP_JUMP_IF_TRUE_LOOP

@@ -113,6 +113,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                                 BLOCK_END_JOIN BLOCK_END_JOIN BB_START
                                 expr
                                 BB_END BLOCK_END_JOIN
+
         and_or_expr         ::= expr_pjif
                                 BB_START
                                 expr_jitop
@@ -766,6 +767,9 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         branch_op ::= and_or_expr
         branch_op ::= and_or_expr BB_START
 
+        branch_op ::= and_or_expr1
+        branch_op ::= and_or_expr1 BB_START
+
         branch_op ::= and1 BB_START
 
         branch_op ::= or
@@ -854,6 +858,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         jitop_start        ::= JUMP_IF_TRUE_OR_POP BB_END dom_start
 
         and_or_expr        ::= expr_jitop BLOCK_END_JOIN BB_START and_or_expr BLOCK_END_JOIN
+        and_or_expr1       ::= expr_pjif BB_START expr_jitop BLOCK_END_JOIN BB_START and BLOCK_END_JOIN
 
         loop_jump_pop_iff  ::= JUMP_LOOP POP_JUMP_IF_FALSE_LOOP
         loop_jump_pop_ift  ::= JUMP_LOOP POP_JUMP_IF_TRUE_LOOP
