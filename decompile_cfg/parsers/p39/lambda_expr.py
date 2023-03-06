@@ -900,6 +900,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         # return_expr_lambda is a return value used inside a lambda
 
         return_expr               ::= expr RETURN_VALUE
+        return_expr               ::= expr RETURN_VALUE BB_END
         return_expr               ::= expr return_value
 
         # return_expr_lambda      ::= dom_start

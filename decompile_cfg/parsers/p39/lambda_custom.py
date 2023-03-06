@@ -709,11 +709,12 @@ class Python39LambdaCustom(Python39BaseParser):
                                              GET_ANEXT LOAD_CONST
                                              YIELD_FROM POP_BLOCK
 
-                    genexpr_func_async   ::= LOAD_ARG async_iter
+                    genexpr_func_async   ::= BUILD_SET_0
+                                             LOAD_ARG async_iter
                                              store
                                              comp_iter
-                                             JUMP_LOOP
-                                             block_end
+                                             jump_loop_absolute
+                                             BB_END BLOCK_END_JOIN BB_START
                                              END_ASYNC_FOR
 
                     list_afor2           ::= async_iter

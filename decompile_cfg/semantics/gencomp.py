@@ -142,6 +142,7 @@ class ComprehensionMixin:
     ):
         p = self.prec
         self.prec = PRECEDENCE["lambda_body"] - 1
+        from trepan.api import debug; debug()
 
         # FIXME: clean this up
         if node == "dict_comp":
@@ -504,6 +505,8 @@ class ComprehensionMixin:
             # So don't try to find the collection node.
             if not self.compile_mode.endswith("comp"):
                 collection_node_index = None
+            else:
+                collection_node_index = 1
             if collection_node_index is None:
                 for i, child in enumerate(node):
                     if child.kind in ("expr", "expr_get_aiter", "get_aiter", "get_iter"):
@@ -549,7 +552,7 @@ class ComprehensionMixin:
                 assert node[3] in ("get_aiter", "get_iter"), node[3].kind
                 self.preorder(node[3])
             else:
-                self.preorder(collection_node[0])
+                self.preorder(collection_node[1])
         else:
             if not collection_node:
                 collection_node = node[in_node_index]

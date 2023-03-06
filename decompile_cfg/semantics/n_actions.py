@@ -581,7 +581,7 @@ class NonterminalActions:
     # a comprehension.
     def n_genexpr_func_async(self, node):
         self.write("(")
-        self.comprehension_walk_newer(node, iter_index=3, collection_node=node)
+        self.comprehension_walk_newer(node, iter_index=2, collection_node=node)
         self.write(")")
         self.prune()
 
