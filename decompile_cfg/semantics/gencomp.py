@@ -585,7 +585,7 @@ class ComprehensionMixin:
 
         if tree == "set_comp_func":
             # Handle nested comp_for iterations.
-            comp_iter = tree[5]
+            comp_iter = tree[4]
             assert comp_iter in ("comp_iter", "await_expr")
             while comp_iter == "comp_iter":
                 comp_for = comp_iter[0]

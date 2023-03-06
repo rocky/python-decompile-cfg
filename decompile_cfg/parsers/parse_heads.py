@@ -327,7 +327,7 @@ class PythonParserLambda(PythonBaseParser):
         # When called from inside another expression like a call
         # there might not be a dom_start. So we need dom_start_opt
         # to start this off.
-        lambda_start       ::= block_start return_expr block_end
+        lambda_start       ::= BB_START return_expr block_end
         """
 
     # lambda_start is the highest level nonterminal. However

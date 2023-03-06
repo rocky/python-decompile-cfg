@@ -569,10 +569,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         set_comp_func ::= BUILD_SET_0
                           expr_or_arg
-                          bb_end_start_opt
                           for_iter store comp_iter
                           for_jump_unconditional
-                          block_end
+                          BB_END BLOCK_END_JOIN
         """
 
     def p_comprehension_dict(self, args):
@@ -635,7 +634,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                            for_iter
                            store set_iter
                            for_jump_unconditional
-                           bb_doms_end_start_opt
+                           BB_END BLOCK_END_JOIN
 
         list_if         ::= branch_op list_if_end list_iter
         list_if         ::= expr list_if_end list_iter
@@ -939,10 +938,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                                     RETURN_VALUE
                                     bb_doms_end
 
-        return_expr_lambda      ::= dom_start_opt
-                                    set_comp_func
+        return_expr             ::= set_comp_func
+                                    BB_START
                                     RETURN_VALUE
-                                    bb_doms_end
+                                    BB_END BLOCK_END_JOIN_NO_ARG
 
         return_expr_lambda      ::= if_exp_binop_lambda
         return_expr_lambda      ::= if_exp_dead_code
