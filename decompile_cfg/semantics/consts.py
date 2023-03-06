@@ -712,11 +712,23 @@ TABLE_DIRECT = {
         (2,  ("and_or_expr")),
     ),
 
+    # Single or part before an "and". It doesn't include the "and"
     "or_and": (
-        "(%c or %c) and %c",
-        (0, ("expr_pjit", "or_parts_pjit")),
+        "%c or %c",
+        (0, ("expr_pjit")),
         (2, "expr_jifop"),
-        (5, ("expr", "branch_op")),
+    ),
+
+    "or_and_parts": (
+        "%c or %p",
+        (0, ("expr_pjit")),
+        (2, ("expr_jifop", "or_and_parts"), PRECEDENCE["or"]),
+    ),
+
+    "or_ands": (
+        "%c and %p",
+        (0, ("or_and_parts")),
+        (2, "expr", PRECEDENCE["and"]),
     ),
 
     "or_parts_pjit": (

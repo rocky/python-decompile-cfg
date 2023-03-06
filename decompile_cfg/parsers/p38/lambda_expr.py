@@ -91,6 +91,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         or_part_pjit         ::= expr_pjit
         or_parts_pjit        ::= expr_pjit BB_START or_part_pjit
 
+        or_part_pjit         ::= expr_pjit
+
+
         or_part_pjit_true_loop  ::= expr_pjit_loop
         or_parts_pjit_true_loop ::= or_part_pjit_true_loop+
 
@@ -125,27 +128,27 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
 
         # or_and is (a or ...) and y
 
-        or_and         ::= or_parts_pjit
-                           BB_START
-                           expr_jifop
-                           BLOCK_END_JOIN BB_START
-                           expr
-                           BB_END BLOCK_END_JOIN
+        or_and         ::= expr_pjit BB_START expr_jifop BLOCK_END_JOIN
 
-        or_and         ::= or_parts_pjit
+        or_and_parts   ::= or_and
+        or_and_parts   ::= expr_pjit BB_START or_and_parts BLOCK_END_JOIN
+
+        or_ands        ::= or_and_parts BB_START expr BLOCK_END_JOIN
+
+        or_ands        ::= or_parts_pjit
                            BB_START
                            expr_jifop
                            BLOCK_END_JOIN BB_START
                            branch_op
 
-        # "expr" below at end instead of block_end_joins above
-        # when "and" part is a simple expression
-        or_and         ::= expr_pjit
-                           BB_START
-                           expr_jifop
-                           block_end_joins BB_START
-                           expr
-                           BB_END BLOCK_END_JOIN
+        # # "expr" below at end instead of block_end_joins above
+        # # when "and" part is a simple expression
+        # or_ands         ::= expr_pjit
+        #                    BB_START
+        #                    expr_jifop
+        #                    block_end_joins BB_START
+        #                    expr
+        #                    BB_END BLOCK_END_JOIN
 
         if_exp_dead_code   ::= return_expr_lambda
                                bb_end_start
@@ -767,8 +770,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         branch_op ::= or
         branch_op ::= or BB_START
 
-        branch_op ::= or_and
-        branch_op ::= or_and BB_START
+        branch_op ::= or_ands
+        branch_op ::= or_ands BB_START
 
         branch_op ::= or1 block_end
 

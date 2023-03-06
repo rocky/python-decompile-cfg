@@ -1374,6 +1374,16 @@ def customize_for_version37(self, version):
 
     self.n_joined_str = n_joined_str
 
+    def n_or_and_parts(node):
+        if len(node) > 1:
+            self.default(node)
+        else:
+            self.default(node[0])
+        self.prune()
+        return
+
+    self.n_or_and_parts = n_or_and_parts
+
     # FIXME: The following adjusts I guess a bug in the parser.
     # It might be as simple as renaming grammar symbol "testtrue" to "testtrue_or_false"
     # and then keeping this as is with the name change.
