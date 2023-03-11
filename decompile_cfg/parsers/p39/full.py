@@ -34,7 +34,7 @@ from decompile_cfg.parsers.p39.full_custom import Python39FullCustom
 class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
     def __init__(
         self,
-        start_symbol: str="stmts",
+        start_symbol: str="stmts_return_value",
         debug_parser:dict=PARSER_DEFAULT_DEBUG
     ):
         Python39LambdaParser.__init__(self, start_symbol, debug_parser)
@@ -106,6 +106,17 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
 
     def p_stmt_39full(self, args):
         """
+        # The start symbol is a statement followed by a an optional RETURN VALUE
+
+        # FIXME: some of the weirdness below is due to eng token removal in
+        # pysource.py in trying to "hide" instructions. When that is removed
+        # the below might be simplified.
+
+        stmts_return_value ::= stmts BB_START RETURN_VALUE BLOCK_END_JOIN_NO_ARG
+        stmts_return_value ::= stmts RETURN_VALUE block_end
+        stmts_return_value ::= stmts BB_START RETURN_VALUE
+        stmts_return_value ::= stmts
+
         pass ::=
 
         stmts_opt ::= stmts
@@ -161,8 +172,6 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         stmt ::= last_stmt
 
         stmt ::= set_comp_func
-                 RETURN_VALUE
-                 bb_doms_end
 
         stmt ::= try_elsestmtl38
         stmt ::= try_except

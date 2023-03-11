@@ -741,7 +741,7 @@ class Python38LambdaCustom(Python38BaseParser):
                 self.add_unique_doc_rules(
                     """
                     expr      ::= get_iter
-                    get_iter  ::= expr block_end GET_ITER
+                    get_iter  ::= expr GET_ITER
                     """,
                     customize,
                 )

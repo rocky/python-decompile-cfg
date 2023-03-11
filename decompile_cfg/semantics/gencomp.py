@@ -260,6 +260,7 @@ class ComprehensionMixin:
         p = self.prec
         self.prec = PRECEDENCE["lambda_body"] - 1
 
+
         # FIXME? Nonterminals in grammar maybe should be split out better?
         # Maybe test on self.compile_mode?
         if (
@@ -552,7 +553,7 @@ class ComprehensionMixin:
                 assert node[3] in ("get_aiter", "get_iter"), node[3].kind
                 self.preorder(node[3])
             else:
-                self.preorder(collection_node[1])
+                self.preorder(collection_node)
         else:
             if not collection_node:
                 collection_node = node[in_node_index]
@@ -670,7 +671,7 @@ class ComprehensionMixin:
                 tree = tree[1]
 
         while len(tree) == 1 or (
-            tree in ("stmt", "sstmt", "return", "return_expr", "return_expr_lambda")
+            tree in ("stmt", "stmts_return_value", "sstmt", "return", "return_expr", "return_expr_lambda")
         ):
             if tree[0] == "BUILD_SET_0":
                 break

@@ -34,7 +34,7 @@ from decompile_cfg.parsers.p38.full_custom import Python38FullCustom
 class Python38ParserFull(Python38LambdaParser, Python38FullCustom):
     def __init__(
         self,
-        start_symbol: str="stmts",
+        start_symbol: str="stmts_return_value",
         debug_parser:dict=PARSER_DEFAULT_DEBUG
     ):
         Python38LambdaParser.__init__(self, start_symbol, debug_parser)
@@ -106,6 +106,17 @@ class Python38ParserFull(Python38LambdaParser, Python38FullCustom):
 
     def p_stmt_38full(self, args):
         """
+        # The start symbol is a statement followed by a an optional RETURN VALUE
+
+        # FIXME: some of the weirdness below is due to eng token removal in
+        # pysource.py in trying to "hide" instructions. When that is removed
+        # the below might be simplified.
+
+        stmts_return_value ::= stmts BB_START RETURN_VALUE BLOCK_END_JOIN_NO_ARG
+        stmts_return_value ::= stmts RETURN_VALUE block_end
+        stmts_return_value ::= stmts BB_START RETURN_VALUE
+        stmts_return_value ::= stmts
+
         pass ::=
 
         stmts_opt ::= stmts
@@ -161,8 +172,6 @@ class Python38ParserFull(Python38LambdaParser, Python38FullCustom):
         stmt ::= last_stmt
 
         stmt ::= set_comp_func
-                 RETURN_VALUE
-                 bb_doms_end
 
         stmt ::= try_elsestmtl38
         stmt ::= try_except
@@ -1273,7 +1282,7 @@ if __name__ == "__main__":
     # Check grammar
     from decompile_cfg.parsers.dump import dump_and_check
 
-    p = Python38ParserFull(start_symbol="stmts")
+    p = Python38ParserFull(start_symbol="stmts_return_value")
     modified_tokens = set(
         """JUMP_LOOP CONTINUE
            LOAD_GENEXPR LOAD_ASSERT LOAD_SETCOMP LOAD_DICTCOMP LOAD_CLASSNAME

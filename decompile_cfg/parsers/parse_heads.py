@@ -307,10 +307,10 @@ class PythonParserExec(PythonBaseParser):
 
     # def p_exec(self, args):
     #     """
-    #     stmts ::= stmt+
+    #     stmts ::= stmt+ BB_START? RETURN_VALUE
     #     """
 
-    def __init__(self, debug_parser, start_symbol="stmts"):
+    def __init__(self, debug_parser, start_symbol="stmts_return_value"):
         super(PythonParserExec, self).__init__(
             debug_parser=debug_parser, start_symbol=start_symbol
         )
