@@ -396,6 +396,8 @@ class ComprehensionMixin:
         if_node_parent = None
         comp_for = None
         comp_store = None
+        if n == "comp_iter_outer":
+            n = n[0]
         if n == "comp_iter":
             comp_for = n
             if not store:
