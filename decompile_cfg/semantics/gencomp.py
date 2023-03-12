@@ -296,6 +296,12 @@ class ComprehensionMixin:
         # * the results we accumulate: "n"
 
         store = None
+        if tree.kind == "genexpr_func_async":
+            genexpr_func_async = tree
+        else:
+            # Not sure if this is still correct
+            genexpr_func_async = tree[2]
+
         if node == "list_comp_async":
             # We have two different kinds of grammar rules:
             #   list_comp_async ::= LOAD_LISTCOMP LOAD_STR MAKE_FUNCTION_0 expr ...
@@ -316,14 +322,13 @@ class ComprehensionMixin:
             #   dict_comp_async ::= LOAD_DICTCOMP LOAD_STR MAKE_FUNCTION_0 expr ...
             #   set_comp_async  ::= LOAD_SETCOMP LOAD_STR MAKE_FUNCTION_0 expr ...
             # and:
-            #  dict_comp_async  ::= BUILD_MAP_0 genexpr_func_async
-            #  set_comp_async   ::= BUILD_SET_0 genexpr_func_async
+            #  dict_comp_async  ::= BUILD_MAP_0 LOAD_ARG genexpr_func_async
+            #  set_comp_async   ::= BUILD_SET_0 LOAG_ARG genexpr_func_async
             if tree[0].kind in ("BUILD_MAP_0", "BUILD_SET_0"):
-                genexpr_func_async = tree[1]
                 if genexpr_func_async == "genexpr_func_async":
-                    store = genexpr_func_async[2]
+                    store = genexpr_func_async[3]
                     assert store.kind.startswith("store")
-                    n = genexpr_func_async[3]
+                    n = genexpr_func_async[4]
                 else:
                     set_afor2 = genexpr_func_async
                     assert set_afor2 == "set_afor2"
@@ -667,8 +672,7 @@ class ComprehensionMixin:
         # skip over: sstmt, stmt, return, return_expr
         # and other singleton derivations
         if tree == "lambda_start":
-            if tree[0] in ("dom_start", "dom_start_opt"):
-                tree = tree[1]
+            tree = tree[1]
 
         while len(tree) == 1 or (
             tree in ("stmt", "stmts_return_value", "sstmt", "return", "return_expr", "return_expr_lambda")
