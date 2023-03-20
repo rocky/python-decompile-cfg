@@ -430,11 +430,6 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         comp_body      ::= list_comp_body
         comp_body      ::= set_comp_body
 
-        # I think this can be removed:
-        # comp_for     ::= expr get_for_iter store comp_iter
-        #                  CONTINUE
-        #                  bb_end_start_opt
-
         comp_for       ::= expr get_for_iter store comp_iter
                            block_end
 
@@ -520,8 +515,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                             bb_end_start_opt
                             comp_iter
 
-        comp_iter_outer ::= comp_iter
-                            for_jump_unconditional BLOCK_END_JOIN
+        comp_iter_outer ::= comp_iter BLOCK_END_JOIN
 
         comp_iter     ::= comp_if
         comp_iter     ::= comp_if_chained
@@ -548,11 +542,10 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         expr_or_arg     ::= LOAD_ARG
         expr_or_arg     ::= expr
 
-        for_loop        ::= BREAK_FOR LOOP FOR_ITER
+        for_loop        ::= BREAK_FOR LOOP FOR_ITER BB_END
 
         for_iter        ::= bb_end_start_opt
                             for_loop
-                            bb_end_start
 
         gen_comp_body   ::= expr
                             bb_doms_end_start_opt
@@ -575,19 +568,23 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         # one may be a continue - sometimes classifies a JUMP_LOOP
         # as a CONTINUE. The two are kind of the same in a comprehension.
 
-        set_comp_body  ::= expr SET_ADD
+        set_comp_body  ::= expr SET_ADD for_jump_unconditional
 
         list_comp_body ::= LOAD_FAST LIST_APPEND
-
-        set_comp_func ::= BUILD_SET_0
-                          expr_or_arg
-                          for_iter store comp_iter_outer
 
         # FIXME: the BLOCK_END_JOIN may need to be part of something else
         set_comp_func ::= BUILD_SET_0
                           expr_or_arg
-                          for_iter store comp_iter_outer
-                          BLOCK_END_JOIN
+                          for_iter
+                          BB_START
+                          store
+                          comp_iter_outer
+
+        # FIXME: the BLOCK_END_JOIN may need to be part of something else
+        set_comp_func ::= BUILD_SET_0
+                          expr_or_arg
+                          for_iter store
+                          BB_START comp_iter_outer
 
         """
 

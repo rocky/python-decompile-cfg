@@ -1,4 +1,4 @@
-#  Copyright (c) 2022 by Rocky Bernstein
+#  Copyright (c) 2022-2023 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -76,10 +76,7 @@ class ComprehensionMixin:
         list_if = None
         write_if = False
 
-        try:
-            assert n in ("comp_iter", "set_iter")
-        except:
-            from trepan.api import debug; debug()
+        assert n in ("comp_iter", "set_iter")
 
         # Find inner-most node.
         while n == "comp_iter":
@@ -259,7 +256,6 @@ class ComprehensionMixin:
 
         p = self.prec
         self.prec = PRECEDENCE["lambda_body"] - 1
-
 
         # FIXME? Nonterminals in grammar maybe should be split out better?
         # Maybe test on self.compile_mode?
@@ -597,7 +593,7 @@ class ComprehensionMixin:
 
         if tree == "set_comp_func":
             # Handle nested comp_for iterations.
-            comp_iter = tree[4]
+            comp_iter = tree[5]
             if comp_iter == "comp_iter_outer":
                 comp_iter = comp_iter[0]
             assert comp_iter in ("comp_iter", "await_expr")
@@ -613,6 +609,7 @@ class ComprehensionMixin:
 
         if comp_store:
             self.preorder(comp_store)
+
         for if_node in if_nodes:
             if if_node != "comp_if_or":
                 self.write(" if ")
