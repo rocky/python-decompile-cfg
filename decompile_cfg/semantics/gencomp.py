@@ -296,7 +296,7 @@ class ComprehensionMixin:
             genexpr_func_async = tree
         else:
             # Not sure if this is still correct
-            genexpr_func_async = tree[2]
+            genexpr_func_async = tree[1]
 
         if node == "list_comp_async":
             # We have two different kinds of grammar rules:
@@ -510,7 +510,7 @@ class ComprehensionMixin:
             if not self.compile_mode.endswith("comp"):
                 collection_node_index = None
             else:
-                collection_node_index = 1
+                collection_node_index = 0
                 collection_node = node[collection_node_index]
             if collection_node_index is None:
                 for i, child in enumerate(node):

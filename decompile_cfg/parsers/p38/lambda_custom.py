@@ -685,8 +685,7 @@ class Python38LambdaCustom(Python38BaseParser):
                                              LOAD_ARG async_iter
                                              store
                                              comp_iter
-                                             jump_loop_absolute
-                                             BB_END BLOCK_END_JOIN BB_START
+                                             BLOCK_END_JOIN BB_START
                                              END_ASYNC_FOR
 
                     list_afor2           ::= async_iter
@@ -708,8 +707,7 @@ class Python38LambdaCustom(Python38BaseParser):
                     set_afor2            ::= async_iter
                                              store
                                              set_iter
-                                             jump_loop_absolute
-                                             block_end
+                                             BLOCK_END_JOIN BB_START
                                              END_ASYNC_FOR
 
                     set_afor2            ::= expr_or_arg
@@ -720,8 +718,7 @@ class Python38LambdaCustom(Python38BaseParser):
                     set_iter_async       ::= async_iter
                                              store
                                              set_iter
-                                             jump_loop_absolute
-                                             block_end
+                                             BLOCK_END_JOIN BB_START
                                              END_ASYNC_FOR
 
                    """,
