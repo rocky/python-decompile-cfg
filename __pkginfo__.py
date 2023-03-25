@@ -14,6 +14,8 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """decompile-cfg packaging information"""
 
+import os.path as osp
+
 # To the extent possible we make this file look more like a
 # configuration file rather than code like setup.py. I find putting
 # configuration stuff in the middle of a function call in setup.py,
@@ -52,7 +54,7 @@ install_requires = [
     "click",
     "control_flow >= 0.9",
     "spark-parser >= 1.8.9, < 1.9.0",
-    "xdis >= 6.0.3,<6.1.0",
+    "xdis >= 6.0.3,<6.2.0",
 ]
 
 license = "GPL3"
@@ -66,19 +68,16 @@ web = "https://github.com/rocky/python-decompile-cfg/"
 zip_safe = True
 
 
-import os.path
-
-
 def get_srcdir():
-    filename = os.path.normcase(os.path.dirname(os.path.abspath(__file__)))
-    return os.path.realpath(filename)
+    filename = osp.normcase(osp.dirname(osp.abspath(__file__)))
+    return osp.realpath(filename)
 
 
 srcdir = get_srcdir()
 
 
 def read(*rnames):
-    return open(os.path.join(srcdir, *rnames)).read()
+    return open(osp.join(srcdir, *rnames)).read()
 
 
 # Get info from files; set: long_description and VERSION

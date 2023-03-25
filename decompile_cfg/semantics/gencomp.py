@@ -45,6 +45,7 @@ class ComprehensionMixin:
 
         code_index = 0 if node[0] == "load_genexpr" else 1
         tree = self.get_comprehension_function(node, code_index=code_index)
+        from trepan.api import debug; debug()
 
         if tree.kind in ("stmts", "lambda_start"):
             tree = tree[0]
@@ -139,7 +140,6 @@ class ComprehensionMixin:
     ):
         p = self.prec
         self.prec = PRECEDENCE["lambda_body"] - 1
-        from trepan.api import debug; debug()
 
         # FIXME: clean this up
         if node == "dict_comp":
@@ -392,8 +392,6 @@ class ComprehensionMixin:
         if_node_parent = None
         comp_for = None
         comp_store = None
-        if n == "comp_iter_outer":
-            n = n[0]
         if n == "comp_iter":
             comp_for = n
             if not store:
@@ -457,7 +455,7 @@ class ComprehensionMixin:
                 if n in ("list_if37", "list_if37_not", "comp_if"):
                     if n == "comp_if":
                         if_nodes.append(n[0])
-                    n = n[-1]
+                    n = n[-2]
                 else:
                     if n in ("comp_if_not",):
                         if_nodes.append(n)
@@ -466,7 +464,7 @@ class ComprehensionMixin:
                         if_nodes.append(n[0])
                     if n[1] == "store":
                         store = n[1]
-                    n = n[-1]
+                    n = n[-2]
                     pass
             elif n.kind in ("list_if_and_or", "list_if_or", "list_if_or_not"):
                 # FIXME: something is very weird here.
@@ -474,9 +472,9 @@ class ComprehensionMixin:
                     if n[-1][0] != "lc_body":
                         if_not_hack = True
                         if_nodes.append(n[-3])
-                    n = n[-1]
+                    n = n[-2]
                 else:
-                    n = n[-1]
+                    n = n[-2]
                     if_nodes.append(n[0])
                 assert n == "list_iter"
             pass

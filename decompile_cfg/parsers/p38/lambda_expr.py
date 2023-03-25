@@ -441,13 +441,13 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         # reduce redundancy?
 
         comp_if         ::= expr_pjif BB_START
-                            comp_iter
+                            comp_iter BLOCK_END_JOIN
 
         comp_if         ::= expr_pjiff BB_START
-                            comp_iter
+                            comp_iter BLOCK_END_JOIN
 
         comp_if         ::= expr_pjif_loop BB_START
-                            comp_iter
+                            comp_iter BLOCK_END_JOIN
 
         comp_if_chained ::= list_if_compare
                             bb_end_start
@@ -514,9 +514,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                             bb_end_start_opt
                             comp_iter
 
-        comp_iter_outer ::= comp_iter BLOCK_END_JOIN
+        comp_iter     ::= comp_iter BLOCK_END_JOIN
 
-        comp_iter     ::= comp_if
+        comp_iter     ::= comp_if BLOCK_END_JOIN
         comp_iter     ::= comp_if_chained
         comp_iter     ::= comp_if_or
         comp_iter     ::= comp_if_or2
@@ -577,13 +577,13 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           for_iter
                           BB_START
                           store
-                          comp_iter_outer
+                          comp_iter
 
         # FIXME: the BLOCK_END_JOIN may need to be part of something else
         set_comp_func ::= BUILD_SET_0
                           expr_or_arg
                           for_iter store
-                          BB_START comp_iter_outer
+                          BB_START comp_iter
 
         """
 
@@ -597,8 +597,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
                           for_iter
                           BB_START
                           store
-                          comp_iter_outer
-                          BLOCK_END_JOIN
+                          comp_iter
         """
 
     def p_comprehension_list(self, args):
@@ -870,7 +869,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         jitop              ::= JUMP_IF_TRUE_OR_POP BB_END
 
         and_or_expr        ::= expr_jitop BLOCK_END_JOIN BB_START and_or_expr BLOCK_END_JOIN
-        and_or_expr1       ::= expr_pjif BB_START expr_jitop BLOCK_END_JOIN BB_START and BLOCK_END_JOIN
+        and_or_expr1       ::= expr_pjif BB_START expr_jitop BLOCK_END_JOIN BB_START and
+                               BLOCK_END_JOIN
 
         loop_jump_pop_iff  ::= JUMP_LOOP POP_JUMP_IF_FALSE_LOOP
         loop_jump_pop_ift  ::= JUMP_LOOP POP_JUMP_IF_TRUE_LOOP
