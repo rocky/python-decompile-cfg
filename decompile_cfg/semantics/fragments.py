@@ -72,7 +72,7 @@ from decompile_cfg.semantics import pysource
 from decompile_cfg.scanner import Token, Code, get_scanner
 from decompile_cfg.semantics.check_tree import checker
 
-from decompile_cfg.show import maybe_show_asm, maybe_show_tree
+from decompile_cfg.show import maybe_show_asm
 
 from decompile_cfg.parsers.treenode import SyntaxTree
 
@@ -1205,7 +1205,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
             ## FIXME: So as not to remove tokens with offsets,
             ## remove this phase until we have a chance to go over,
             # transform_ast = self.treeTransform.transform(ast)
-            maybe_show_tree(self, ast, "before")
+            self.maybe_show_tree(ast, "before")
             return ast
             # del ast # Save memory
             # return transform_ast
@@ -1245,7 +1245,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
         except (heads.ParserError, AssertionError) as e:
             raise ParserError(e, tokens, self.debug_parser.get("reduce", False))
 
-        maybe_show_tree(self, ast, "before")
+        self.maybe_show_tree(ast, "before")
 
         checker(ast, False, self.ast_errors)
 

@@ -1,4 +1,4 @@
-#  Copyright (c) 2019-2022 by Rocky Bernstein
+#  Copyright (c) 2019-2023 by Rocky Bernstein
 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 
 from decompile_cfg.show import maybe_show_tree
 from copy import copy
-from typing import Optional
+from typing import Callable, Optional
 
 from spark_parser import GenericASTTraversal, GenericASTTraversalPruningException
 
@@ -51,9 +51,11 @@ class TreeTransform(GenericASTTraversal, object):
         self.version = version
         return
 
-    def maybe_show_tree(self, ast, phase: str):
+    def maybe_show_tree(self, tree, phase: str, print_fn: Callable):
+        phase_name = "parse_tree" if phase == "before" else "transformed_tree"
         if isinstance(self.showast, dict) and self.showast.get(phase, False):
-            maybe_show_tree(self, ast)
+            print_fn(f"""\n# ---- {phase_name}:\n """)
+            maybe_show_tree(self, tree)
 
     def preorder(self, node=None):
         """Walk the tree in roughly 'preorder' (a bit of a lie explained below).
@@ -486,6 +488,18 @@ class TreeTransform(GenericASTTraversal, object):
             pass
         return node
 
+    def n_lambda_start(self, node):
+        """Here strip off extraneous nodes in lambda_start"""
+
+        assert node[0] == "BB_START"
+        assert node[-1] ==  "block_end"
+        new_node = copy(node)
+        del new_node[0]
+        del new_node[-1]
+        new_node.transofrmed_by = "n_lambda_start"
+        del node
+        return new_node
+
     # def n_list_if_or(self, list_if_node):
     #     # If we chain to another list_if, we should drop the "if"
     #     list_iter = list_if_node[2]
@@ -537,9 +551,10 @@ class TreeTransform(GenericASTTraversal, object):
         node = self.preorder(node)
         return node
 
-    def transform(self, ast: GenericASTTraversal, code) -> GenericASTTraversal:
-        self.maybe_show_tree(ast, "before")
+    def transform(self, ast: GenericASTTraversal, code, print_fn: Callable) -> GenericASTTraversal:
+        self.maybe_show_tree(ast, "before", print_fn)
         self.ast = copy(ast)
+        del ast
         self.ast = self.traverse(self.ast)
         n = len(self.ast)
 
@@ -581,6 +596,7 @@ class TreeTransform(GenericASTTraversal, object):
         except:
             pass
 
+        self.maybe_show_tree(self.ast, "after", print_fn)
         return self.ast
 
     # Write template_engine

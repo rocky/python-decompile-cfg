@@ -131,8 +131,6 @@ Python.
 
 import sys
 
-IS_PYPY = "__pypy__" in sys.builtin_module_names
-
 from xdis import COMPILER_FLAG_BIT, iscode
 from xdis.version_info import PYTHON_VERSION_TRIPLE
 
@@ -170,10 +168,11 @@ from decompile_cfg.semantics.consts import (
 )
 
 
-from decompile_cfg.show import maybe_show_tree
 from decompile_cfg.util import better_repr
 
 from io import StringIO
+
+IS_PYPY = "__pypy__" in sys.builtin_module_names
 
 PARSER_DEFAULT_DEBUG = {
     "rules": False,
@@ -304,16 +303,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         customize_for_version(self, is_pypy, version)
         return
 
-    def maybe_show_tree(self, tree, phase):
-        if self.showast.get("after", False):
-            self.println(
-                """\n# ---- transformed tree\n"""
-                + " "
-            )
-        if self.showast.get(phase, False):
-            maybe_show_tree(self, tree)
-
-    def str_with_template(self, tree) -> str:
+    def str_with_template(self, tree):
         stream = sys.stdout
         stream.write(self.str_with_template1(tree, "", None))
         stream.write("\n")
@@ -1011,21 +1001,19 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
 
             except AssertionError as e:
                 raise ParserError(e, tokens, self.p.debug["reduce"])
-            if self.showast.get("before", True):
-                self.println(
-                    """\n# --- parse tree\n """
-                )
 
-            transform_tree = self.treeTransform.transform(parse_tree, code)
+            transform_tree = self.treeTransform.transform(
+                parse_tree, code, self.println
+            )
 
-            self.maybe_show_tree(parse_tree, phase="after")
             del parse_tree  # Save memory
             return transform_tree
 
-        # The bytecode for the end of the main routine has a
-        # "return None". However you can't issue a "return" statement in
-        # main. So as the old cigarette slogan goes: I'd rather switch (the token stream)
-        # than fight (with the grammar to not emit "return None").
+        # The bytecode for the end of the main routine has a "return
+        # None". However you can't issue a "return" statement in
+        # main. So as the old cigarette slogan goes: I'd rather switch
+        # (the token stream) than fight (with the grammar to not emit
+        # "return None").
 
         # FIXME: do we need to remove this here or can we consolidate
         # this with the below where we remove "return"
@@ -1068,9 +1056,8 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         checker(parse_tree, False, self.ast_errors)
 
         self.customize(customize)
-        transform_tree = self.treeTransform.transform(parse_tree, code)
 
-        self.maybe_show_tree(parse_tree, phase="after")
+        transform_tree = self.treeTransform.transform(parse_tree, code, self.println)
 
         del parse_tree  # Save memory
 
@@ -1245,11 +1232,13 @@ def deparse_code2str(
     compile_mode="exec",
     is_pypy=IS_PYPY,
     walker=SourceWalker,
-):
-    """Return the deparsed text for a Python code object. `out` is where any intermediate
-    output for assembly or tree output will be sent.
+) -> str:
     """
-    return code_deparse(
+    Return the deparsed text for a Python code object. `out` is where
+    any intermediate output for assembly or tree output will be sent.
+
+    """
+    tree = code_deparse(
         code,
         out,
         version,
@@ -1258,7 +1247,9 @@ def deparse_code2str(
         compile_mode=compile_mode,
         is_pypy=is_pypy,
         walker=walker,
-    ).text
+    )
+
+    return "# deparse failed" if tree is None else tree.text
 
 
 if __name__ == "__main__":
