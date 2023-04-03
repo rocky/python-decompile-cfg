@@ -104,6 +104,8 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
     # maybe a second -a will do before as well
     asm = "after" if show_asm else None
 
+    if tree_plus:
+        tree = True
     show_ast = {"before": tree, "after": tree_plus}
     show_grammar = {
         "rules": False,

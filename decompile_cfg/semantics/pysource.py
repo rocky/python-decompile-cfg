@@ -305,17 +305,9 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         return
 
     def maybe_show_tree(self, tree, phase):
-        if self.showast.get("before", False):
-            self.println(
-                """
----- end before transform
-"""
-            )
         if self.showast.get("after", False):
             self.println(
-                """
----- begin after transform
-"""
+                """\n# ---- transformed tree\n"""
                 + " "
             )
         if self.showast.get(phase, False):
@@ -357,7 +349,6 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         indent += "    "
         i = 0
         for node in tree:
-
             if hasattr(node, "__repr1__"):
                 if enumerate_children:
                     child = self.str_with_template1(node, indent, i)
@@ -823,7 +814,6 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                 "CALL_FUNCTION_VAR_KW",
                 "CALL_FUNCTION_KW",
             ):
-
                 # FIXME: handle everything in customize.
                 # Right now, some of this is here, and some in that.
 
@@ -999,7 +989,6 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         noneInNames=False,
         is_top_level_module=False,
     ):
-
         # FIXME: DRY with fragments.py
 
         assert isinstance(tokens[0], Token)
@@ -1022,7 +1011,13 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
 
             except AssertionError as e:
                 raise ParserError(e, tokens, self.p.debug["reduce"])
+            if self.showast.get("before", True):
+                self.println(
+                    """\n# --- parse tree\n """
+                )
+
             transform_tree = self.treeTransform.transform(parse_tree, code)
+
             self.maybe_show_tree(parse_tree, phase="after")
             del parse_tree  # Save memory
             return transform_tree
@@ -1068,7 +1063,6 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
 
             self.p.insts = p_insts
         except (heads.ParserError, AssertionError) as e:
-            # from trepan.api import debug; debug()
             raise ParserError(e, tokens, self.p.debug["reduce"])
 
         checker(parse_tree, False, self.ast_errors)
@@ -1092,7 +1086,6 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
     @classmethod
     def _get_mapping(cls, node):
         return MAP.get(node, MAP_DIRECT)
-
 
     def pp_tuple(self, tup):
         """Pretty print a tuple"""
