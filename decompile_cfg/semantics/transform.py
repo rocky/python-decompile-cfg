@@ -25,6 +25,9 @@ from decompile_cfg.scanners.tok import NoneToken, Token
 from decompile_cfg.semantics.consts import RETURN_NONE, ASSIGN_DOC_STRING
 
 
+STRIPPED_NODES = ("and_or_expr1", "and_part", "expr_jitop", "expr_pjif")
+
+
 def is_docstring(node, version: str, co_consts) -> bool:
     """
     Build what would look like a docstring for this code and check to see
@@ -41,18 +44,29 @@ def is_not_docstring(call_stmt_node) -> bool:
             and call_stmt_node[0][0] == "LOAD_STR"
             and call_stmt_node[1] == "POP_TOP"
         )
-    except:
+    except Exception:
         return False
 
 
 class TreeTransform(GenericASTTraversal, object):
-    def __init__(self, version: tuple, show_ast: Optional[dict] = None):
+    def __init__(
+        self,
+        version: tuple,
+        str_with_template: Callable,
+        show_ast: Optional[dict] = None,
+    ):
         self.showast = show_ast
         self.version = version
+        self.str_with_template_for_later = str_with_template
+        self.str_with_template = None
         return
 
     def maybe_show_tree(self, tree, phase: str, print_fn: Callable):
-        phase_name = "parse_tree" if phase == "before" else "transformed_tree"
+        if phase == "before":
+            phase_name = "parse tree"
+        else:
+            phase_name = "transformed abstract tree"
+            self.str_with_template = self.str_with_template_for_later
         if isinstance(self.showast, dict) and self.showast.get(phase, False):
             print_fn(f"""\n# ---- {phase_name}:\n """)
             maybe_show_tree(self, tree)
@@ -79,21 +93,24 @@ class TreeTransform(GenericASTTraversal, object):
         except GenericASTTraversalPruningException:
             return
 
+        if node.kind in STRIPPED_NODES:
+            return self.strip_pseudo_ops(node)
+
         for i, kid in enumerate(node):
             node[i] = self.preorder(kid)
         return node
 
-    def n_await_expr(self, node):
+    def n_await_expr(self, node: SyntaxTree) -> SyntaxTree:
         """Here we check for await(await)"""
 
         expr = node[0]
         assert expr == "expr"
         if expr[0] == "await_expr":
-            expr[0].transformed_by="n_await_expr"
+            expr[0].transformed_by = "n_await_expr"
             return expr[0]
         return node
 
-    def n_mkfunc(self, node):
+    def n_mkfunc(self, node: SyntaxTree) -> SyntaxTree:
         """If the function has a docstring (this is found in the code
         constants), pull that out and make it part of the syntax
         tree. When generating the source string that AST node rather
@@ -165,9 +182,7 @@ class TreeTransform(GenericASTTraversal, object):
         if len(n) == 0:
             return node
 
-        if n[0].kind in (
-            "ifstmt",
-            ):
+        if n[0].kind in ("ifstmt",):
             n = n[0]
         else:
             if (
@@ -228,7 +243,7 @@ class TreeTransform(GenericASTTraversal, object):
                 pass
             return node
 
-    def n_ifstmt(self, node):
+    def n_ifstmt(self, node: SyntaxTree) -> SyntaxTree:
         """Here we check if we can turn an `ifstmt` or 'iflaststmtc` into
         some kind of `assert` statement"""
 
@@ -461,7 +476,7 @@ class TreeTransform(GenericASTTraversal, object):
                 pass
             return node
 
-    def n_import_from37(self, node):
+    def n_import_from37(self, node: SyntaxTree) -> SyntaxTree:
         importlist37 = node[3]
         if importlist37 != "importlist37":
             return node
@@ -488,11 +503,11 @@ class TreeTransform(GenericASTTraversal, object):
             pass
         return node
 
-    def n_lambda_start(self, node):
+    def n_lambda_start(self, node: SyntaxTree) -> SyntaxTree:
         """Here strip off extraneous nodes in lambda_start"""
 
         assert node[0] == "BB_START"
-        assert node[-1] ==  "block_end"
+        assert node[-1] == "block_end"
         new_node = copy(node)
         del new_node[0]
         del new_node[-1]
@@ -517,13 +532,13 @@ class TreeTransform(GenericASTTraversal, object):
             list_for_node.transformed_by = ("n_list_for",)
         return list_for_node
 
-    def n_negated_testtrue(self, node):
+    def n_negated_testtrue(self, node: SyntaxTree) -> SyntaxTree:
         assert node[0] == "testtrue"
         test_node = node[0][0]
         test_node.transformed_by = "n_negated_testtrue"
         return test_node
 
-    def n_stmts(self, node):
+    def n_stmts(self, node: SyntaxTree) -> SyntaxTree:
         if node.first_child() == "SETUP_ANNOTATIONS":
             prev = node[0]
             new_stmts = [node[0]]
@@ -547,11 +562,13 @@ class TreeTransform(GenericASTTraversal, object):
             node.data = new_stmts
         return node
 
-    def traverse(self, node):
+    def traverse(self, node: SyntaxTree) -> SyntaxTree:
         node = self.preorder(node)
         return node
 
-    def transform(self, ast: GenericASTTraversal, code, print_fn: Callable) -> GenericASTTraversal:
+    def transform(
+        self, ast: GenericASTTraversal, code, print_fn: Callable
+    ) -> GenericASTTraversal:
         self.maybe_show_tree(ast, "before", print_fn)
         self.ast = copy(ast)
         del ast
@@ -593,7 +610,7 @@ class TreeTransform(GenericASTTraversal, object):
             if self.ast[-1] == RETURN_NONE:
                 self.ast.pop()  # remove last node
                 # todo: if empty, add 'pass'
-        except:
+        except Exception:
             pass
 
         self.maybe_show_tree(self.ast, "after", print_fn)
@@ -601,3 +618,13 @@ class TreeTransform(GenericASTTraversal, object):
 
     # Write template_engine
     # def template_engine
+    def strip_pseudo_ops(self, node: SyntaxTree) -> SyntaxTree:
+        new_node = SyntaxTree(node.kind)
+        for i, kid in enumerate(node):
+            if hasattr(kid, "optype") and kid.optype == "pseudo":
+                continue
+            new_kid = self.preorder(kid)
+            new_node.data.append(new_kid)
+
+        del node
+        return new_node
