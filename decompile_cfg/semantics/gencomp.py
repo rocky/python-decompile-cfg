@@ -245,7 +245,7 @@ class ComprehensionMixin:
         self,
         node,
         iter_index: Optional[int],
-        code_index: int = -5,
+        code_index: int = -4,
         collection_node=None,
     ):
         """Non-closure-based comprehensions.
@@ -591,7 +591,7 @@ class ComprehensionMixin:
 
         if tree == "set_comp_func":
             # Handle nested comp_for iterations.
-            comp_iter = tree[5]
+            comp_iter = tree[-1]
             if comp_iter == "comp_iter_outer":
                 comp_iter = comp_iter[0]
             assert comp_iter in ("comp_iter", "await_expr")

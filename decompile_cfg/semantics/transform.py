@@ -28,12 +28,15 @@ from decompile_cfg.semantics.consts import RETURN_NONE, ASSIGN_DOC_STRING
 STRIPPED_NODES = (
     "and_or_expr1",
     "and_part",
+    "block_join_end_final",
     "branch_op",
+    "comp_iter_outer",
     "expr_jitop",
     "expr_pjif",
     "expr_pjit",
     "or",
     "or_parts_pjit",
+    "set_comp_func",
 )
 
 

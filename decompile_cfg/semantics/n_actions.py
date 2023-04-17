@@ -397,7 +397,7 @@ class NonterminalActions:
     # a comprehension.
     def n_dict_comp_func(self, node: SyntaxTree):
         self.write("{")
-        self.comprehension_walk_newer(node, 5, 0, collection_node=node[1])
+        self.comprehension_walk_newer(node, -1, 0, collection_node=node[1])
         self.write("}")
         self.prune()
 
@@ -566,7 +566,7 @@ class NonterminalActions:
             self.is_lambda = is_lambda
         else:
             self.comprehension_walk_newer(node, iter_index=5, collection_node=node[0])
-            # code_index = -6
+            # code_index = -5
             # self.comprehension_walk(node, iter_index=5, code_index=code_index)
         self.write(")")
         self.prune()
@@ -878,7 +878,7 @@ class NonterminalActions:
     def n_set_comp(self, node: SyntaxTree):
         self.write("{")
         if node[0] in ["LOAD_SETCOMP", "LOAD_DICTCOMP"]:
-            self.comprehension_walk_newer(node, 5, 0)
+            self.comprehension_walk_newer(node, -1, 0)
         elif node[0].kind == "load_closure":
             # Token GET_ITER forms or nonterminal "get_iter" forms
             assert node[-2].kind.lower() in ("get_iter", "get_aiter")
