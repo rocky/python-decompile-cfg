@@ -25,7 +25,16 @@ from decompile_cfg.scanners.tok import NoneToken, Token
 from decompile_cfg.semantics.consts import RETURN_NONE, ASSIGN_DOC_STRING
 
 
-STRIPPED_NODES = ("and_or_expr1", "and_part", "expr_jitop", "expr_pjif")
+STRIPPED_NODES = (
+    "and_or_expr1",
+    "and_part",
+    "branch_op",
+    "expr_jitop",
+    "expr_pjif",
+    "expr_pjit",
+    "or",
+    "or_parts_pjit",
+)
 
 
 def is_docstring(node, version: str, co_consts) -> bool:

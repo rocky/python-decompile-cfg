@@ -705,7 +705,7 @@ TABLE_DIRECT = {
     "or": (
         "%c or %c",
         (0, ("expr_jitop", "expr_pjit")),
-        (2, ("expr", "expr_jifop") )
+        (-1, ("expr", "expr_jifop") )
         ),
     "or1": (
         "%c or %c",
@@ -741,7 +741,7 @@ TABLE_DIRECT = {
     "or_parts_pjit": (
         "%P %p",
         (0, -1, " or", PRECEDENCE["or"]),
-        (2, ("expr_pjit", "or_part_pjit"), PRECEDENCE["or"]),
+        (-1, ("expr_pjit", "or_part_pjit"), PRECEDENCE["or"]),
     ),
 
     "pass":	            ( "%|pass\n", ),
