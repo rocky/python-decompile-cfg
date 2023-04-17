@@ -442,19 +442,19 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         # reduce redundancy?
 
         comp_if         ::= expr_pjif BB_START
-                            comp_iter
+                            comp_iter BLOCK_END_JOIN
 
         comp_if         ::= expr_pjiff BB_START
-                            comp_iter
+                            comp_iter BLOCK_END_JOIN
 
         comp_if         ::= expr_pjif_loop BB_START
-                            comp_iter
+                            comp_iter BLOCK_END_JOIN
 
         comp_if_chained ::= list_if_compare
                             bb_end_start
                             POP_TOP jump_loop_absolute
                             bb_doms_end_start
-                            comp_iter
+                            comp_iter BLOCK_END_JOIN
 
 
         # We have a bunch of these comp_if_<logic expression>
