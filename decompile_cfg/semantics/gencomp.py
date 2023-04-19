@@ -671,8 +671,6 @@ class ComprehensionMixin:
 
         # skip over: sstmt, stmt, return, return_expr
         # and other singleton derivations
-        if tree == "lambda_start":
-            tree = tree[1]
 
         while len(tree) == 1 or (
             tree in ("stmt", "stmts_return_value", "sstmt", "return", "return_expr", "return_expr_lambda")
