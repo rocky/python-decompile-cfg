@@ -24,15 +24,22 @@ By leaving out the start symbol rules and name, this module and its classes can
 be used as a superclass in other grammars, such as a full grammar for Python 3.10.
 """
 
-from decompile_cfg.parsers.p38.lambda_custom import Python38LambdaCustom
-from decompile_cfg.parsers.parse_heads import PythonParserLambda, PythonBaseParser
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
+
+from decompile_cfg.parsers.p38.lambda_custom import Python38LambdaCustom
+from decompile_cfg.parsers.parse_heads import PythonBaseParser, PythonParserLambda
 
 
 class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
-
+    """
+    Python 3.8 lambda grammar rules
+    """
     def p_branch_ops(self, args):
         """
+
+        # "and" is the final reduction that hooks into the higher level
+        # levels of the grammar.
+        and               ::= and_parts
 
         # And "and_part" is an "expr" that is followed by a BB_END because there
         # is a jump to the instruction after that "expr"
@@ -45,11 +52,10 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         and_parts         ::= and_part
         and_parts         ::= expr_jifop BB_START expr BLOCK_END_JOIN
 
-        and               ::= and_parts
-
         # "and_or" is a sequence of "and"s followed by an "or".
         # What makes the "and" part of an "and_or" different from
-        # "and_parts" is that "expr_pjif" is used instead of "expr_jiop"
+        # "and_parts" is that "expr_pjif" is used instead of "expr_jiop".
+        # Notice the similarity with "and_
 
         and_or          ::= and_or_parts BB_START expr BLOCK_END_JOIN
 
@@ -59,6 +65,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         and_or_parts    ::= and_or_part
         and_or_parts    ::= expr_pjif BB_START and_or_parts BLOCK_END_JOIN
 
+        # "and1" is like "and" and hooks into higher levels.
+        # It also is used in "and_or".
         and1            ::= expr_pjif
                             BB_START
                             expr_jitop
@@ -862,7 +870,7 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         """
 
     # Conditional jumps with dominator information included
-    def p_jump_conditional (self, args):
+    def p_jump_conditional(self, args):
         """
         for_jump_pop_iff   ::= JUMP_FOR POP_JUMP_IF_FALSE_LOOP BB_END
         for_jump_pop_ift   ::= JUMP_FOR POP_JUMP_IF_TRUE_LOOP BB_END

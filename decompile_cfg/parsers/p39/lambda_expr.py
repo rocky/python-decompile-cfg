@@ -30,8 +30,15 @@ from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 
 
 class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
+    """
+    Python 3.9 lambda grammar rules
+    """
     def p_branch_ops(self, args):
         """
+
+        # "and" is the final reduction that hooks into the higher level
+        # levels of the grammar.
+        and               ::= and_parts
 
         # And "and_part" is an "expr" that is followed by a BB_END because there
         # is a jump to the instruction after that "expr"
@@ -44,11 +51,9 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         and_parts         ::= and_part
         and_parts         ::= expr_jifop BB_START expr BLOCK_END_JOIN
 
-        and               ::= and_parts
-
         # "and_or" is a sequence of "and"s followed by an "or".
         # What makes the "and" part of an "and_or" different from
-        # "and_parts" is that "expr_pjif" is used instead of "expr_jiop"
+        # "and_parts" is that "expr_pjif" is used instead of "expr_jiop".
 
         and_or          ::= and_or_parts BB_START expr BLOCK_END_JOIN
 
@@ -60,6 +65,8 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         and_or          ::= and_or_parts BB_START expr block_end_join
 
+        # "and1" is like "and" and hooks into higher levels.
+        # It also is used in "and_or".
         and1            ::= expr_pjif
                             BB_START
                             expr_jitop
