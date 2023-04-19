@@ -35,13 +35,18 @@ STRIPPED_NODES = (
     "block_join_end_final",
     "block_start",
     "branch_op",
+    "comp_if",
+    "comp_iter",
     "comp_iter_outer",
     "expr_jitop",
     "expr_pjif",
     "expr_pjit",
+    "for_jump_pop_iff",
+    "for_jump_unconditional",
     "for_loop",
     "or",
     "or_parts_pjit",
+    "return_expr",
     "set_comp_func",
 )
 
