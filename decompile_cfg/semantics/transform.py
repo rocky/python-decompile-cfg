@@ -26,8 +26,11 @@ from decompile_cfg.semantics.consts import RETURN_NONE, ASSIGN_DOC_STRING
 
 
 STRIPPED_NODES = (
+    "and_or",
     "and_or_expr1",
+    "and_or_parts",
     "and_part",
+    "and1",
     "bb_end_start",
     "block_join_end_final",
     "block_start",

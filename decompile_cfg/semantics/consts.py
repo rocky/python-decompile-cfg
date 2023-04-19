@@ -236,13 +236,13 @@ TABLE_DIRECT = {
     "and1": (
         "%c and %c",
         (0, "expr_pjif"),
-        (2, "expr_jitop"),
+        (1, "expr_jitop"),
     ),
 
     "and_or": (
-        "%c or %c",
+        "%c or %p",
         (0, "and_or_parts"),
-        (2, "expr"),
+        (1, "expr", PRECEDENCE["or"]),
         ),
 
     # Note: "and_or_parts" can has only one child in the innermost and.
@@ -250,7 +250,7 @@ TABLE_DIRECT = {
     "and_or_parts": (
         "%c and %c",
         (0, ("expr_pjif", "and_or_part")),
-        (2, ("and_or_parts", "and_or_part")),
+        (1, ("and_or_parts", "and_or_part")),
         ),
 
     "and_or_and": (

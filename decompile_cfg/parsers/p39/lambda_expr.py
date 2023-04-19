@@ -46,6 +46,12 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         and               ::= and_parts
 
+        # "and_or" is a sequence of "and"s followed by an "or".
+        # What makes the "and" part of an "and_or" different from
+        # "and_parts" is that "expr_pjif" is used instead of "expr_jiop"
+
+        and_or          ::= and_or_parts BB_START expr BLOCK_END_JOIN
+
         # "and_or_parts" is the "and" portion of "and_or" before the "or".
         and_or_part     ::= and1
 
