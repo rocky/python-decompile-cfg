@@ -892,8 +892,8 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         pjump_iff          ::= pjump_iff_forward
         pjump_iff          ::= pjump_iff_loop
         pjump_iff_forward  ::= POP_JUMP_IF_FALSE dom_end_start_opt
-        pjump_iff_loop     ::= JUMP_FOR POP_JUMP_IF_FALSE_LOOP dom_end_start_opt
-        pjump_iff_loop     ::= JUMP_LOOP POP_JUMP_IF_FALSE_LOOP dom_end_start_opt
+        pjump_iff_loop     ::= JUMP_FOR POP_JUMP_IF_FALSE_LOOP BB_END
+        pjump_iff_loop     ::= JUMP_LOOP POP_JUMP_IF_FALSE_LOOP BB_END
 
         pjump_ift          ::= POP_JUMP_IF_TRUE
         pjump_ift          ::= for_jump_pop_ift

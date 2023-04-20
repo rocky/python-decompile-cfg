@@ -33,6 +33,7 @@ from decompile_cfg.semantics.helper import flatten_list
 from decompile_cfg.semantics.make_function36 import make_function36
 from decompile_cfg.util import better_repr
 
+
 class NonterminalActions:
     """
     Methods here all start with n_ and the remaining portion should be a nonterminal
@@ -140,7 +141,6 @@ class NonterminalActions:
         self.prune()  # stop recursing
 
     def n_classdef(self, node: SyntaxTree):
-
         self.n_classdef36(node)
 
         # class definition ('class X(A,B,C):')
@@ -404,7 +404,6 @@ class NonterminalActions:
     n_set_comp_func = n_dict_comp_func
 
     def n_docstring(self, node: SyntaxTree):
-
         indent = self.indent
         doc_node = node[0]
         if doc_node.attr:
@@ -426,7 +425,7 @@ class NonterminalActions:
         self.write(indent)
         docstring = repr(docstring.expandtabs())[1:-1]
 
-        for (orig, replace) in (
+        for orig, replace in (
             ("\\\\", "\t"),
             ("\\r\\n", "\n"),
             ("\\n", "\n"),
@@ -580,9 +579,14 @@ class NonterminalActions:
     # now encounter this outside of the embedding of
     # a comprehension.
     def n_genexpr_func_async(self, node: SyntaxTree):
-        self.write("(")
-        self.comprehension_walk_newer(node, iter_index=2, collection_node=node)
-        self.write(")")
+        open_delim, close_delim = (
+            ("{", "}")
+            if node[0].kind in ("BUILD_SET_0", "BUILD_DICT_0")
+            else ("(", ")")
+        )
+        self.write(open_delim)
+        self.comprehension_walk_newer(node, iter_index=4, collection_node=node)
+        self.write(close_delim)
         self.prune()
 
     def n_ifelsestmtr(self, node: SyntaxTree):
@@ -730,7 +734,6 @@ class NonterminalActions:
         make_function36(self, node, is_lambda=True, code_node=node[-2])
         self.prune()  # stop recursing
 
-
     def n_list_comp(self, node: SyntaxTree):
         self.write("[")
         if node[0].kind == "load_closure":
@@ -748,7 +751,6 @@ class NonterminalActions:
 
     n_list_comp_async = n_list_comp
 
-
     def n_list_if_or_not(self, node: SyntaxTree):
         or_node = node[0]
         assert or_node.kind.startswith("or")
@@ -758,13 +760,12 @@ class NonterminalActions:
             or_node = or_node[0]
         template = ("%p", (0, PRECEDENCE["or"]))
         self.template_engine(template, or_node[0])
-        self.write( " or not ")
+        self.write(" or not ")
         template = ("%p", (0, PRECEDENCE["not"]))
         self.template_engine(template, not_part)
         self.prune()
 
     def n_mkfunc(self, node: SyntaxTree):
-
         # MAKE_FUNCTION ..
         code_node = node[-3]
         if not iscode(code_node.attr):
@@ -818,7 +819,6 @@ class NonterminalActions:
             self.prune()  # stop recursing
 
     def n_return_call_lambda(self, node: SyntaxTree):
-
         # Understand where the non-psuedo instructions lie.
         opt_start = 1 if node[0].kind in ("dom_start_opt", "dom_start") else 0
         call_index = -3 if node[-1].kind == "bb_doms_end" else -2
@@ -845,7 +845,6 @@ class NonterminalActions:
     # Python 3.x can have be dead code as a result of its optimization?
     # So we'll add a # at the end of the return lambda so the rest is ignored
     def n_return_expr_lambda(self, node: SyntaxTree):
-
         # Understand where non-pseudo instructions lie.
         opt_start = 1 if node[0].kind in ("dom_start_opt", "dom_start") else 0
         opt_end = 1 if node[-1].kind == "bb_doms_end" else 0
@@ -858,7 +857,10 @@ class NonterminalActions:
             self.prune()
         else:
             if len(node) - opt_start - opt_end >= 4:
-                assert len(node) == 4 + opt_start and node[2 + opt_start].kind == "return_value"
+                assert (
+                    len(node) == 4 + opt_start
+                    and node[2 + opt_start].kind == "return_value"
+                )
             self.preorder(node[opt_start])
             self.prune()
 

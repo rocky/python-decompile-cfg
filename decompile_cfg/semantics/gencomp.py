@@ -17,15 +17,16 @@ Generators and comprehension functions
 """
 
 
-from spark_parser.ast import GenericASTTraversalPruningException
 from typing import Optional
+
+from spark_parser.ast import GenericASTTraversalPruningException
 from xdis import iscode
 
 from decompile_cfg.parsers.main import get_python_parser
 from decompile_cfg.scanner import Code
+from decompile_cfg.scanners.tok import Token
 from decompile_cfg.semantics.consts import PRECEDENCE
 from decompile_cfg.semantics.helper import is_lambda_mode
-from decompile_cfg.scanners.tok import Token
 
 
 class ComprehensionMixin:
@@ -45,7 +46,6 @@ class ComprehensionMixin:
 
         code_index = 0 if node[0] == "load_genexpr" else 1
         tree = self.get_comprehension_function(node, code_index=code_index)
-        from trepan.api import debug; debug()
 
         if tree.kind in ("stmts", "lambda_start"):
             tree = tree[0]
@@ -74,12 +74,12 @@ class ComprehensionMixin:
         else:
             collection = node[collection_index]
         n = tree[iter_index]
-        list_if = None
+        if_condition = None
         write_if = False
 
         assert n in ("comp_iter", "set_iter")
 
-        # Find inner-most node.
+        # Find inner-most body node.
         while n == "comp_iter":
             n = n[0]  # recurse one step
             if n in ("list_for", "comp_for"):
@@ -97,23 +97,23 @@ class ComprehensionMixin:
                 # Some of the older ones can be: expr <jump> <iter>
                 # This may disappear though.
                 if n[0].kind == "expr":
-                    list_if = n
+                    if_condition = n
                     n = n[-1]
                 elif n[0].kind in ("expr_pjif", "expr_pjiff"):
-                    list_if = n
+                    if_condition = n
                     n = n[-1]
                     assert n == "comp_iter"
                 else:
                     if len(n) == 2:
-                        list_if = n[0]
+                        if_condition = n[0]
                         n = n[1]
                     else:
-                        list_if = n[1]
+                        if_condition = n[1]
                         n = n[2]
                 pass
             elif n.kind in ("comp_if_or", "comp_if_or2", "comp_if_or_not"):
                 write_if = True
-                list_if = n
+                if_condition = n
                 n = n[-1]
                 assert n == "comp_iter"
 
@@ -126,10 +126,10 @@ class ComprehensionMixin:
         self.preorder(store)
         self.write(" in ")
         self.preorder(collection)
-        if list_if:
+        if if_condition:
             if write_if:
                 self.write(" if ")
-            self.preorder(list_if)
+            self.preorder(if_condition)
         self.prec = p
 
     def comprehension_walk(
@@ -202,6 +202,7 @@ class ComprehensionMixin:
 
         # Find the comprehension body. It is the inner-most
         # node that is not list_.. .
+
         while n == "comp_iter":  # list_iter
             n = n[0]  # recurse one step
             if n == "comp_for":
@@ -252,6 +253,7 @@ class ComprehensionMixin:
 
         Note: there are also other comprehensions.
         """
+
         # FIXME: DRY with listcomp_closure3
 
         p = self.prec
@@ -292,6 +294,7 @@ class ComprehensionMixin:
         # * the results we accumulate: "n"
 
         store = None
+
         if tree.kind == "genexpr_func_async":
             genexpr_func_async = tree
         else:
@@ -362,13 +365,13 @@ class ComprehensionMixin:
             "set_comp_func",
             "set_comp_func_header",
         ):
+            # Find location of stor
             for k in tree:
                 if k.kind in ("comp_iter", "list_iter", "set_iter", "await_expr"):
                     n = k
                 elif k == "store":
                     store = k
-
-                    pass
+                    break
                 pass
             pass
         elif tree.kind in ("list_comp_async", "dict_comp_async", "set_afor2"):
@@ -398,13 +401,14 @@ class ComprehensionMixin:
                 store = tree[3]
 
         if_not_hack = False
-        # Iterate to find the inner-most "store".
+
+        # Iterate to find the inner-most comprehension body.
         # We'll come back to the list iteration below.
         while n in (
-            "list_iter",
+            "comp_iter",
             "list_afor",
             "list_afor2",
-            "comp_iter",
+            "list_iter",
             "set_afor",
             "set_afor2",
             "set_iter",
@@ -435,13 +439,14 @@ class ComprehensionMixin:
                 n = n[-1]
                 assert n == "list_iter"
             elif n in (
+                "comp_if",
                 "comp_if_not_and",
                 "comp_if_or",
                 "comp_if_or2",
                 "comp_if_or_not",
                 "comp_if_not_or",
             ):
-                if_nodes.append(n)
+                if_nodes.append(n[0])
                 n = n[-1]
                 assert n == "comp_iter"
             elif n in (
@@ -455,7 +460,7 @@ class ComprehensionMixin:
                 if n in ("list_if37", "list_if37_not", "comp_if"):
                     if n == "comp_if":
                         if_nodes.append(n[0])
-                    n = n[-2]
+                    n = n[-1]
                 else:
                     if n in ("comp_if_not",):
                         if_nodes.append(n)
@@ -464,7 +469,7 @@ class ComprehensionMixin:
                         if_nodes.append(n[0])
                     if n[1] == "store":
                         store = n[1]
-                    n = n[-2]
+                    n = n[-1]
                     pass
             elif n.kind in ("list_if_and_or", "list_if_or", "list_if_or_not"):
                 # FIXME: something is very weird here.
@@ -472,9 +477,9 @@ class ComprehensionMixin:
                     if n[-1][0] != "lc_body":
                         if_not_hack = True
                         if_nodes.append(n[-3])
-                    n = n[-2]
+                    n = n[-1]
                 else:
-                    n = n[-2]
+                    n = n[-1]
                     if_nodes.append(n[0])
                 assert n == "list_iter"
             pass
@@ -507,8 +512,8 @@ class ComprehensionMixin:
             # So don't try to find the collection node.
             if not self.compile_mode.endswith("comp"):
                 collection_node_index = None
-            else:
-                collection_node_index = 0
+            elif node[0].kind.startswith("BUILD_"):
+                collection_node_index = 1
                 collection_node = node[collection_node_index]
             if collection_node_index is None:
                 for i, child in enumerate(node):
@@ -542,10 +547,8 @@ class ComprehensionMixin:
             list_iter = list_afor2[2]
             assert list_iter == "list_iter"
             self.preorder(collection_node)
-            if_nodes = []
         elif node == "set_comp_async":
             self.preorder(collection_node)
-            if_nodes = []
         elif node == "list_comp_async":
             self.preorder(node[collection_node_index])
         elif is_lambda_mode(self.compile_mode):

@@ -673,11 +673,11 @@ class Python38LambdaCustom(Python38BaseParser):
 
                     dict_comp_async      ::= BUILD_MAP_0 genexpr_func_async
 
-                    async_for_loop       ::= BREAK_LOOP LOOP SETUP_FINALLY
+                    async_for_loop       ::= BREAK_LOOP LOOP SETUP_FINALLY BB_END
 
                     async_iter           ::= block_end
                                              async_for_loop
-                                             bb_end_start
+                                             BB_START
                                              GET_ANEXT LOAD_CONST
                                              YIELD_FROM POP_BLOCK
 
