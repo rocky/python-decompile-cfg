@@ -42,7 +42,7 @@ class ComprehensionMixin:
 
     def closure_walk(self, node, collection_index: int):
         """Dictionary and Set comprehensions using closures."""
-        p = self.prec
+        p: int = self.prec
 
         code_index = 0 if node[0] == "load_genexpr" else 1
         tree = self.get_comprehension_function(node, code_index=code_index)
@@ -55,8 +55,8 @@ class ComprehensionMixin:
             iter_index = 3
             collection_index = 3
         elif tree in ("genexpr_func", "dict_comp_func", "set_comp_func"):
-            store = tree[4]
-            iter_index = 5
+            store = tree[3]
+            iter_index = 4
         elif tree == "set_comp":
             tree = tree[1][0]
             assert tree == "set_for", tree.kind
@@ -82,6 +82,7 @@ class ComprehensionMixin:
         # Find inner-most body node.
         while n == "comp_iter":
             n = n[0]  # recurse one step
+
             if n in ("list_for", "comp_for"):
                 store = n[2]
                 n = n[3]
@@ -138,7 +139,7 @@ class ComprehensionMixin:
         iter_index: Optional[int],
         code_index: int = -5,
     ):
-        p = self.prec
+        p: int = self.prec
         self.prec = PRECEDENCE["lambda_body"] - 1
 
         # FIXME: clean this up
@@ -219,6 +220,7 @@ class ComprehensionMixin:
                 "comp_if_or",
             ):
                 n = n[-1]
+                assert n == "comp_iter"
 
         assert n == "comp_body", n.kind
 
@@ -240,6 +242,10 @@ class ComprehensionMixin:
         assert iter_expr in ("expr", "get_aiter"), iter_expr
         self.preorder(iter_expr)
         self.preorder(tree[iter_index])
+        if if_condition and not tree[iter_index][0].kind.startswith("comp_if"):
+            if write_if:
+                self.write(" if ")
+            self.preorder(if_condition)
         self.prec = p
 
     def comprehension_walk_newer(
@@ -365,13 +371,13 @@ class ComprehensionMixin:
             "set_comp_func",
             "set_comp_func_header",
         ):
-            # Find location of stor
+            # Find location of store
             for k in tree:
                 if k.kind in ("comp_iter", "list_iter", "set_iter", "await_expr"):
                     n = k
                 elif k == "store":
                     store = k
-                    break
+                    pass
                 pass
             pass
         elif tree.kind in ("list_comp_async", "dict_comp_async", "set_afor2"):
@@ -385,6 +391,7 @@ class ComprehensionMixin:
             # Not sure what the best this thing to do is.
             if n.kind == "return_expr_lambda":
                 self.prune()
+
             assert n.kind in ("list_iter", "comp_iter", "set_iter_async"), n
 
         # FIXME: I'm not totally sure this is right.
@@ -527,7 +534,7 @@ class ComprehensionMixin:
             collection_node = node[3][0]
             assert collection_node == "expr"
         else:
-            in_node_index = -3
+            collection_node_index = -3
 
         self.write(" for ")
 
@@ -561,7 +568,7 @@ class ComprehensionMixin:
                 self.preorder(collection_node)
         else:
             if not collection_node:
-                collection_node = node[in_node_index]
+                collection_node = node[collection_node_index]
             self.preorder(collection_node)
 
         # Here is where we handle nested list iterations which

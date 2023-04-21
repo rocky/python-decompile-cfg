@@ -391,6 +391,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         block_end            ::= BB_END
         block_end            ::= block_join_end_final
         block_join_end       ::= block_end_join
+        block_join_end_final ::= BB_END BLOCK_END_JOIN BLOCK_END_JOIN_NO_ARG
         block_join_end_final ::= BB_END BLOCK_END_JOIN_NO_ARG
 
         # FIXME: remove this
@@ -561,9 +562,12 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
                             for_loop
 
         gen_comp_body   ::= expr
-                            bb_doms_end_start_opt
+                            BB_START
                             YIELD_VALUE
-                            block_end
+                            BB_END
+                            BLOCK_END_JOIN
+                            BLOCK_END_JOIN
+                            BB_START
                             POP_TOP
 
         generator_exp   ::= expr_or_arg
@@ -703,9 +707,6 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         comp_body     ::= gen_comp_body
 
 
-        gen_comp_body ::= expr
-                          YIELD_VALUE
-                          BB_END DOM_END BB_START POP_TOP
         gen_comp_body ::= branch_op
                           bb_end_start
                           YIELD_VALUE
@@ -841,12 +842,13 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         genexpr_func      ::= LOAD_ARG
                               block_end
+                              BB_START
                               for_loop
-                              bb_end_start
+                              BB_START
                               store
                               comp_iter
                               for_jump_unconditional
-                              block_end
+                              BLOCK_END_JOIN
 
 
         # named_expr is also known as the "walrus op" :=
@@ -864,7 +866,7 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         unary_not         ::= expr UNARY_NOT
 
-        yield             ::= expr YIELD_VALUE
+        yield             ::= expr YIELD_VALUE BB_END
         yield_from        ::= expr
                               GET_YIELD_FROM_ITER LOAD_CONST YIELD_FROM
         """
@@ -965,6 +967,12 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         return_expr             ::= set_comp_func
                                     BB_START
+                                    RETURN_VALUE
+                                    block_join_end_final
+
+        return_expr             ::= genexpr_func
+                                    BB_START
+                                    LOAD_CONST
                                     RETURN_VALUE
                                     block_join_end_final
 
