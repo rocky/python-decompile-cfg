@@ -290,10 +290,9 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
         compare_chained      ::= expr
                                  compare_chained1
-                                 block_end
-                                 not_fallen_into_block_opt
+                                 BB_START SIBLING_BLOCK
                                  ROT_TWO POP_TOP
-                                 bb_doms_end_start_opt
+                                 BB_END BLOCK_END_JOIN
 
         compare_chained      ::= expr chained_parts
         compare_chained      ::= compare_chained37_false
@@ -302,21 +301,21 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
 
 
         # FIXME: simplify the compare_chain1 recursion?
-        compare_chained1     ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop_opt
-                                 compare_chained1
+        compare_chained1     ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                 BB_START compare_chained1 BLOCK_END_JOIN
 
-        compare_chained1     ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop_opt
-                                 compare_chained2 bb_doms_end_start_opt
+        compare_chained1     ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                 BB_START compare_chained2 BLOCK_END_JOIN
 
         compare_chained1a_37 ::= chained_parts
                                  compare_chained2a_37
                                  block_end
                                  POP_TOP block_end
 
-        compare_chained2     ::= expr COMPARE_OP JUMP_FORWARD
+        compare_chained2     ::= expr COMPARE_OP JUMP_FORWARD BB_END
         compare_chained2     ::= expr COMPARE_OP return_value
 
-        compare_chained2a_37 ::= expr COMPARE_OP block_end POP_JUMP_IF_TRUE JUMP_FORWARD
+        compare_chained2a_37 ::= expr COMPARE_OP block_end POP_JUMP_IF_TRUE JUMP_FORWARD BB_END
 
 
         # When used in an "if" of a comprehension
@@ -380,7 +379,9 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
     # to assist control flow
     def p_dom(self, args):
         """
-        dom_start          ::= DOM_START BB_START
+        bb_start_opt       ::= BB_START
+        bb_start_opt       ::=
+
         dom_start_opt      ::= dom_start?
         dom_end            ::= BB_END DOM_END
         bb_end_start       ::= BB_END block_start
@@ -877,9 +878,11 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         for_jump_pop_iff   ::= JUMP_FOR POP_JUMP_IF_FALSE_LOOP BB_END
         for_jump_pop_ift   ::= JUMP_FOR POP_JUMP_IF_TRUE_LOOP BB_END
 
+        # Remove these when no longer used
         jifop_opt          ::= JUMP_IF_FALSE_OR_POP bb_end_start_opt
         jifop_start        ::= JUMP_IF_FALSE_OR_POP bb_end_start
 
+        jifop              ::= JUMP_IF_FALSE_OR_POP BB_END
         jitop              ::= JUMP_IF_TRUE_OR_POP BB_END
 
         jitop_start        ::= JUMP_IF_TRUE_OR_POP BB_END dom_start

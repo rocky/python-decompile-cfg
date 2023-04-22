@@ -1,4 +1,4 @@
-#  Copyright (c) 2017-2022 Rocky Bernstein
+#  Copyright (c) 2017-2023 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -141,7 +141,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         else_suite ::= returns
 
 
-        expr_stmt ::= expr POP_TOP
+        expr_stmt ::= expr bb_start_opt POP_TOP
         expr_stmt ::= branch_op dom_start POP_TOP
         call_stmt ::= call
 
@@ -1083,8 +1083,6 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         return_closure   ::= LOAD_CLOSURE DUP_TOP STORE_NAME RETURN_VALUE RETURN_LAST
 
         except_suite ::= stmts_opt COME_FROM POP_EXCEPT jump_except COME_FROM
-
-        compare_chained2 ::= expr COMPARE_OP block_break JUMP_FORWARD
 
         stmt               ::= async_for_stmt38
         stmt               ::= async_forelse_stmt38

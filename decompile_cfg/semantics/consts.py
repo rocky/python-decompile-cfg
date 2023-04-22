@@ -445,7 +445,7 @@ TABLE_DIRECT = {
     "compare_chained1":	(
         '%[3]{pattr.replace("-", " ")} %p %p',
         (0, 19),
-        (5, 19)
+        (-1, 19)
         ),
 
     "compare_chained2b_false":	(
