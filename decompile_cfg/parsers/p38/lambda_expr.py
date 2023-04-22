@@ -307,6 +307,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         compare_chained1     ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
                                  BB_START compare_chained2 BLOCK_END_JOIN
 
+        compare_chained1     ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                 BB_START compare_chained2
+
         compare_chained1a_37 ::= chained_parts
                                  compare_chained2a_37
                                  block_end
@@ -425,8 +428,8 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         expr_pjit                  ::= expr POP_JUMP_IF_TRUE BB_END
         expr_pjit_loop             ::= expr for_jump_pop_ift
         expr_pjit_loop             ::= expr loop_jump_pop_ift
-        expr_jifop                 ::= expr JUMP_IF_FALSE_OR_POP BB_END
-        expr_jitop                 ::= expr JUMP_IF_TRUE_OR_POP BB_END
+        expr_jifop                 ::= expr jifop
+        expr_jitop                 ::= expr jitop
 
         # FIXME: the below two names are horrible and can be confused with the above
         # "expr_pji{f,t} rules. The differences that here we don't care if we
@@ -799,6 +802,9 @@ class Python38LambdaParser(Python38LambdaCustom, PythonParserLambda):
         branch_op ::= and_or_expr1 BB_START
 
         branch_op ::= and1 BB_START
+
+        branch_op ::= compare
+        branch_op ::= compare BB_START
 
         branch_op ::= or
         branch_op ::= or BB_START

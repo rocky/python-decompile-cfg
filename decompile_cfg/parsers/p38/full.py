@@ -112,10 +112,14 @@ class Python38ParserFull(Python38LambdaParser, Python38FullCustom):
         # pysource.py in trying to "hide" instructions. When that is removed
         # the below might be simplified.
 
-        stmts_return_value ::= stmts BB_START RETURN_VALUE BLOCK_END_JOIN_NO_ARG
         stmts_return_value ::= stmts RETURN_VALUE block_end
         stmts_return_value ::= stmts BB_START RETURN_VALUE
+        stmts_return_value ::= stmts BB_START RETURN_VALUE
         stmts_return_value ::= stmts
+
+        # The junk after stmts is to append an implied "return None" when no "return"
+        # is explicitly given
+        stmts_return_value ::= stmts LOAD_CONST RETURN_VALUE BB_END BLOCK_END_JOIN_NO_ARG
 
         pass ::=
 
