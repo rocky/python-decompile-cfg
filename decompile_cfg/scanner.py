@@ -38,8 +38,8 @@ from xdis import (
 from decompile_cfg.scanners.tok import Token
 
 # The byte code versions we support.
-# Note: these all have to be floats
-PYTHON_VERSIONS = frozenset(((3, 8), (3, 9)))
+# Note: these all have to be tuples
+PYTHON_VERSIONS = frozenset(((3, 8), (3, 9), (3, 10)))
 
 CANONIC2VERSION = dict(
     (canonic_python_version[version_tuple_to_str(python_version)], python_version)

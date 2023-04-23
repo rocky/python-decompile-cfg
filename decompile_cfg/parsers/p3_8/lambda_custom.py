@@ -16,17 +16,16 @@
 Grammar Customization rules for Python 3.8's Lambda expression grammar.
 """
 
-from decompile_cfg.parsers.p39.base import Python39BaseParser
+from decompile_cfg.parsers.p3_8.base import Python3_8BaseParser
 from decompile_cfg.parsers.parse_heads import ParserError, nop_func
 from decompile_cfg.parsers.reduce_check.and_check import and_ok
-from decompile_cfg.parsers.reduce_check.and_parts_check import and_parts_ok
 from decompile_cfg.parsers.reduce_check.if_exp_check import if_exp_ok
 from decompile_cfg.parsers.reduce_check.comp_if_check import comp_if_ok
 from decompile_cfg.parsers.reduce_check.list_if_not_check import list_if_not_seems_ok
 from decompile_cfg.parsers.reduce_check.or_check import or_ok
 from spark_parser.spark import rule2str
 
-class Python39LambdaCustom(Python39BaseParser):
+class Python3_8LambdaCustom(Python3_8BaseParser):
     def __init__(self):
         self.new_rules = set()
         self.customized = {}
@@ -81,40 +80,13 @@ class Python39LambdaCustom(Python39BaseParser):
             self.add_unique_rule(rule, token.kind, args_pos, customize)
 
         # Has to come before generic CALL_FUNCTION else below
-        elif opname == "CALL_FUNCTION_EX":
+        elif opname == "CALL_FUNCTION_EX_KW":
             self.addRule(
-                """
-                expr        ::= call_ex_39
-                expr        ::= call_ex0_39
-                expr        ::= call_ex1_39
-                call_ex_39  ::= expr
-                                BUILD_TUPLE_0
-                                dict
-                                expr
-                                DICT_MERGE
-                                CALL_FUNCTION_EX
-                call_ex_39  ::= expr
-                                list
-                                expr
-                                LIST_EXTEND
-                                LIST_TO_TUPLE
-                                dict
-                                expr
-                                DICT_MERGE
-                                CALL_FUNCTION_EX
-                call_ex0_39 ::= expr
-                                expr
-                                dict
-                                expr
-                                DICT_MERGE
-                                CALL_FUNCTION_EX
-                call_ex1_39 ::= expr
-                                list
-                                expr
-                                LIST_EXTEND
-                                LIST_TO_TUPLE
-                                CALL_FUNCTION_EX
-
+                """expr        ::= call_ex_kw4
+                   call_ex_kw4 ::= expr
+                                   expr
+                                   BUILD_MAP_0 expr DICT_MERGE
+                                   CALL_FUNCTION_EX_KW
                 """,
                 nop_func,
             )
@@ -188,9 +160,9 @@ class Python39LambdaCustom(Python39BaseParser):
 
                 self.add_unique_rule(rule, token.kind, uniq_param, customize)
 
-    def customize_grammar_rules_lambda39(self, tokens, customize):
+    def customize_grammar_rules_lambda3_8(self, tokens, customize):
 
-        self.customize_reduce_checks_lambda39()
+        self.customize_reduce_checks_lambda3_8()
 
         is_pypy = False
 
@@ -503,18 +475,18 @@ class Python39LambdaCustom(Python39BaseParser):
                 self.addRule(rule, nop_func)
 
             elif opname in frozenset(
-                    (
-                        "CALL_FUNCTION",
-                        "CALL_FUNCTION_EX",
-                        "CALL_FUNCTION_EX_KW",
-                        "CALL_FUNCTION_VAR",
-                        "CALL_FUNCTION_VAR_KW",
-                    )
-            ):
+                (
+                    "CALL_FUNCTION",
+                    "CALL_FUNCTION_EX",
+                    "CALL_FUNCTION_EX_KW",
+                    "CALL_FUNCTION_VAR",
+                    "CALL_FUNCTION_VAR_KW",
+                )
+            ) or opname.startswith("CALL_FUNCTION_KW"):
 
                 self.addRule(
-                    """expr        ::= call_ex_39
-                       call_ex_39  ::= arg arg arg
+                    """expr        ::= call_ex_kw4
+                       call_ex_kw4 ::= arg arg arg
                                        CALL_FUNCTION_EX_KW
                      """,
                     nop_func,
@@ -699,9 +671,9 @@ class Python39LambdaCustom(Python39BaseParser):
                     expr                 ::= list_comp_async
                     expr                 ::= set_comp_async
 
-                    async_for_loop       ::= BREAK_LOOP LOOP SETUP_FINALLY BB_END
-
                     dict_comp_async      ::= BUILD_MAP_0 genexpr_func_async
+
+                    async_for_loop       ::= BREAK_LOOP LOOP SETUP_FINALLY BB_END
 
                     async_iter           ::= block_end
                                              async_for_loop
@@ -719,13 +691,19 @@ class Python39LambdaCustom(Python39BaseParser):
                     list_afor2           ::= async_iter
                                              store
                                              list_iter
-                                             JUMP_LOOP
-                                             JUMP_ABSOLUTE
+                                             jump_loop_absolute
                                              block_end
                                              END_ASYNC_FOR
 
                     list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
 
+                    return_expr_lambda   ::= genexpr_func_async
+                                             LOAD_CONST RETURN_VALUE
+                                             bb_doms_end_opt
+
+                    return_expr_lambda   ::= BUILD_SET_0 genexpr_func_async
+                                             RETURN_VALUE
+                                             bb_doms_end_opt
                     set_afor2            ::= async_iter
                                              store
                                              set_iter
@@ -743,13 +721,6 @@ class Python39LambdaCustom(Python39BaseParser):
                                              BLOCK_END_JOIN BB_START
                                              END_ASYNC_FOR
 
-                    return_expr_lambda   ::= genexpr_func_async
-                                             LOAD_CONST RETURN_VALUE
-                                             bb_doms_end_opt
-
-                    return_expr_lambda   ::= BUILD_SET_0 genexpr_func_async
-                                             RETURN_VALUE
-                                             bb_doms_end_opt
                    """,
                     nop_func,
                 )
@@ -1187,13 +1158,12 @@ class Python39LambdaCustom(Python39BaseParser):
                 )
                 self.addRule(rule, nop_func)
 
-    def customize_reduce_checks_lambda39(self):
+    def customize_reduce_checks_lambda3_8(self):
         """
         Extra tests when a reduction is made in the lambda grammar
         """
 
         self.reduce_check_table = {
-            "and_parts_jifop": and_parts_ok,
             "and1": and_ok,
             "if_exp": if_exp_ok,
             "comp_if": comp_if_ok,
@@ -1219,8 +1189,9 @@ class Python39LambdaCustom(Python39BaseParser):
         try:
             if fn:
                 return not fn(self, lhs, n, rule, ast, tokens, first, last)
-        except:
-            import sys, traceback
+        except Exception:
+            import sys
+            import traceback
 
             print(
                 f"Exception in {fn.__name__} {sys.exc_info()[1]}\n"

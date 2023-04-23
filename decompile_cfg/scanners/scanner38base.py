@@ -52,11 +52,15 @@ import sys
 
 globals().update(op3.opmap)
 
+
 def get_jump_val(jump_arg: int, version: Tuple[int]) -> int:
-    return jump_arg * 2 if version[:2] >= (3, 8)  else jump_arg
+    return jump_arg * 2 if version[:2] >= (3, 8) else jump_arg
+
 
 class Scanner38Base(Scanner):
-    def __init__(self, version: Tuple[int], show_asm=None, debug=False, is_pypy=False):
+    def __init__(
+        self, version: Tuple[int, int], show_asm=None, debug=False, is_pypy=False
+    ):
         super(Scanner38Base, self).__init__(version, show_asm, is_pypy)
         self.debug = debug
         self.is_pypy = is_pypy
@@ -191,13 +195,13 @@ class Scanner38Base(Scanner):
         cause specific rules for the specific number of arguments they take.
 
         """
+
         def tokens_append(j, token):
             tokens.append(token)
             self.offset2tok_index[token.offset] = j
             j += 1
             assert j == len(tokens)
             return j
-
 
         bb_mgr = basic_blocks(co, self.offset2inst_index, version=self.version)
         if show_asm in ("both", "before"):
@@ -212,12 +216,11 @@ class Scanner38Base(Scanner):
             if name.endswith(">"):
                 name = name[:-1]
         try:
-
             version = version_tuple_to_str(self.opc.version_tuple, end=2)
             dot_path = f"/tmp/flow-{name}-{version}.dot"
             png_path = f"/tmp/flow-{name}-{version}.png"
             if show_asm in ("both", "before", "after"):
-                open(dot_path, 'w').write(cfg.graph.to_dot(False))
+                open(dot_path, "w").write(cfg.graph.to_dot(False))
                 print("%s written" % dot_path)
                 os.system("dot -Tpng %s > %s" % (dot_path, png_path))
             dt = DominatorTree(cfg)
@@ -225,7 +228,7 @@ class Scanner38Base(Scanner):
             dfs_forest(cfg.dom_tree, False)
             build_dom_set(cfg.dom_tree, False)
             if show_asm in ("both", "before", "after"):
-                open(dot_path, 'w').write(cfg.dom_tree.to_dot())
+                open(dot_path, "w").write(cfg.dom_tree.to_dot())
                 print("%s written" % dot_path)
                 os.system("dot -Tpng %s > %s" % (dot_path, png_path))
 
@@ -234,20 +237,23 @@ class Scanner38Base(Scanner):
             dfs_forest(cfg.pdom_tree, True)
             build_dom_set(cfg.pdom_tree, True)
             if show_asm in ("both", "before"):
-                dot_path = '/tmp/flow-pdom-%s.dot' % name
-                png_path = '/tmp/flow-pdom-%s.png' % name
-                open(dot_path, 'w').write(cfg.pdom_tree.to_dot())
+                dot_path = "/tmp/flow-pdom-%s.dot" % name
+                png_path = "/tmp/flow-pdom-%s.png" % name
+                open(dot_path, "w").write(cfg.pdom_tree.to_dot())
                 print("%s written" % dot_path)
                 os.system("dot -Tpng %s > %s" % (dot_path, png_path))
 
-            self.insts = augment_instructions(co, cfg, self.opc, self.offset2inst_index, bb_mgr)
+            self.insts = augment_instructions(
+                co, cfg, self.opc, self.offset2inst_index, bb_mgr
+            )
             if show_asm in ("both", "before"):
-                print('=' * 30)
+                print("=" * 30)
                 for inst in self.insts:
                     print(inst.disassemble(self.opc))
 
         except:
             import traceback
+
             traceback.print_exc()
             print("Unexpected error:", sys.exc_info()[0])
             print("%s had an error" % name)
@@ -280,7 +286,6 @@ class Scanner38Base(Scanner):
 
         n = len(self.insts)
         for i, inst in enumerate(self.insts):
-
             # We need to detect the difference between:
             #   raise AssertionError
             #  and
@@ -313,7 +318,6 @@ class Scanner38Base(Scanner):
 
         j = 0
         for i, inst in enumerate(self.insts):
-
             argval = inst.argval
             op = inst.opcode
 
@@ -480,7 +484,7 @@ class Scanner38Base(Scanner):
                 j,
                 Token(
                     opname=opname,
-                    optype = inst.optype,
+                    optype=inst.optype,
                     attr=argval,
                     pattr=pattr,
                     offset=inst.offset,
@@ -501,13 +505,17 @@ class Scanner38Base(Scanner):
             print()
         return tokens, customize
 
+
 if __name__ == "__main__":
-    from xdis.version_info import PYTHON_VERSION_TRIPLE, version_tuple_to_str
+    from xdis.version_info import PYTHON_VERSION_TRIPLE
 
     unsupported_version = False
     if len(sys.argv) > 1:
         from xdis.load import load_module
-        version_tuple, ts, maghic_int, co, is_pypy, source_size, sip_hash = load_module(sys.argv[1])
+
+        version_tuple, ts, maghic_int, co, is_pypy, source_size, sip_hash = load_module(
+            sys.argv[1]
+        )
         if version_tuple[:2] not in ((3, 8),):
             unsupported_version = True
 
@@ -517,12 +525,15 @@ if __name__ == "__main__":
         co = inspect.currentframe().f_code  # type: ignore
 
     if (3, 8) <= PYTHON_VERSION_TRIPLE[:2] < (3, 10):
-        tokens, customize = Scanner38Base(PYTHON_VERSION_TRIPLE).ingest(co, show_asm="both")
+        tokens, customize = Scanner38Base(PYTHON_VERSION_TRIPLE).ingest(
+            co, show_asm="both"
+        )
     else:
         unsupported_version = True
 
     if unsupported_version:
         print(
-            f"Need to be Python 3.8..3.9 to demo; I am version {version_tuple_to_str()}."
+            "Need to be Python 3.8..3.9 to demo; "
+            f"I am version {version_tuple_to_str()}."
         )
     pass

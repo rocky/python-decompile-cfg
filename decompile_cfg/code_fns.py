@@ -117,8 +117,8 @@ def decompile_code_type(
     codename_map: dict,
     outstream=None,
     showasm=None,
-    showast=TREE_DEFAULT_DEBUG,
-    showgrammar=PARSER_DEFAULT_DEBUG,
+    showast: dict=TREE_DEFAULT_DEBUG,
+    showgrammar: dict=PARSER_DEFAULT_DEBUG,
 ) -> bool:
     """
     decompile all of the lambda functions in a python byte-code file (.pyc)
@@ -217,8 +217,8 @@ def decompile_lambda_fns(
     filename: str,
     outstream=None,
     showasm=None,
-    showast=TREE_DEFAULT_DEBUG,
-    showgrammar=PARSER_DEFAULT_DEBUG,
+    showgrammar: dict=PARSER_DEFAULT_DEBUG,
+    showast: dict=TREE_DEFAULT_DEBUG,
 ) -> Optional[bool]:
     """
     decompile all of the lambda functions in a python byte-code file (.pyc)
@@ -235,8 +235,8 @@ def decompile_list_comprehensions(
     filename: str,
     outstream=None,
     showasm=None,
-    showast=TREE_DEFAULT_DEBUG,
-    showgrammar=PARSER_DEFAULT_DEBUG,
+    showast: dict=TREE_DEFAULT_DEBUG,
+    showgrammar: dict=PARSER_DEFAULT_DEBUG,
 ) -> Optional[bool]:
     """
     decompile all of the lambda functions in a python byte-code file (.pyc)

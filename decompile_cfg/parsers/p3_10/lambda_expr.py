@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Spark parser grammar for Python 3.9's Lambda's.
+Spark parser grammar for Python 3.10's Lambda's.
 
 Lambda's encompass expressions but don't have statements.  This contains
 grammar rules but not rules for the start symbol or a start symbol name. That is
@@ -24,12 +24,12 @@ By leaving out the start symbol rules and name, this module and its classes can
 be used as a superclass in other grammars, such as a full grammar for Python 3.10.
 """
 
-from decompile_cfg.parsers.p39.lambda_custom import Python39LambdaCustom
+from decompile_cfg.parsers.p3_10.lambda_custom import Python3_10LambdaCustom
 from decompile_cfg.parsers.parse_heads import PythonParserLambda, PythonBaseParser
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 
 
-class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
+class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
     """
     Python 3.9 lambda grammar rules
     """
@@ -1115,10 +1115,10 @@ class Python39LambdaParser(Python39LambdaCustom, PythonParserLambda):
         PythonBaseParser.__init__(
             self, start_symbol=start_symbol, debug_parser=debug_parser
         )
-        Python39LambdaCustom.__init__(self)
+        Python3_10LambdaCustom.__init__(self)
 
     def customize_grammar_rules(self, tokens, customize):
-        self.customize_grammar_rules_lambda39(tokens, customize)
+        self.customize_grammar_rules_lambda3_10(tokens, customize)
 
 
 if __name__ == "__main__":
@@ -1129,9 +1129,9 @@ if __name__ == "__main__":
     # Note that the start_symbol from parse_heads is "lambda_start"
     # which is the same thing surrounded by dominator information.
     # But that doesn't appear here.
-    p = Python39LambdaParser(start_symbol="lambda_start")
+    p = Python3_10LambdaParser(start_symbol="lambda_start")
     modified_tokens = set(
         """JUMP_LOOP CONTINUE BB_END BB_START DOM_END DOM_START""".split()
     )
 
-    dump_and_check(p, (3, 9), modified_tokens, set(["lambda_start"]))
+    dump_and_check(p, (3, 10), modified_tokens, set(["lambda_start"]))

@@ -66,9 +66,9 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
     """Decompile all code objects of a certain format."""
 
     version_tuple = sys.version_info[0:2]
-    if not version_tuple in ((3, 8), (3, 9)):
+    if not ((3, 8) <= version_tuple <= (3, 10)):
         print(
-            f"Note: {program} can decompile only bytecode from Python 3.8 or 3.9"
+            f"Note: {program} can decompile only bytecode from Python 3.8 to 3.10"
             f"""\n\tYou have version: {version_tuple_to_str()}."""
         )
 

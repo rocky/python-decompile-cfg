@@ -1,4 +1,4 @@
-#  Copyright (c) 2019-2022 Rocky Bernstein
+#  Copyright (c) 2019-2023 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -27,20 +27,28 @@ import sys
 from xdis import iscode
 from xdis.version_info import PYTHON_VERSION_TRIPLE, IS_PYPY
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
-from decompile_cfg.parsers.p38.heads import (
-    Python38ParserLambda,
-    Python38ParserEval,
-    Python38ParserExec,
-    Python38ParserExpr,
-    Python38ParserSingle,
+from decompile_cfg.parsers.p3_8.heads import (
+    Python3_8ParserLambda,
+    Python3_8ParserEval,
+    Python3_8ParserExec,
+    Python3_8ParserExpr,
+    Python3_8ParserSingle,
 )
 
-from decompile_cfg.parsers.p39.heads import (
-    Python39ParserLambda,
-    Python39ParserEval,
-    Python39ParserExec,
-    Python39ParserExpr,
-    Python39ParserSingle,
+from decompile_cfg.parsers.p3_9.heads import (
+    Python3_9ParserLambda,
+    Python3_9ParserEval,
+    Python3_9ParserExec,
+    Python3_9ParserExpr,
+    Python3_9ParserSingle,
+)
+
+from decompile_cfg.parsers.p3_10.heads import (
+    Python3_10ParserLambda,
+    Python3_10ParserEval,
+    Python3_10ParserExec,
+    Python3_10ParserExpr,
+    Python3_10ParserSingle,
 )
 
 from decompile_cfg.show import maybe_show_asm
@@ -59,17 +67,20 @@ def parse(p, tokens, customize, is_lambda):
 def get_python_parser(
     version, debug_parser=PARSER_DEFAULT_DEBUG, compile_mode="exec", is_pypy=False
 ):
-    """Returns parser object for Python version 3.8 depending on the parameters passed.  *compile_mode* is either
-    "exec", "eval", "eval_expr", or "single" or "lambda".
+    """Returns parser object for Python version 3.8 depending on the
+    parameters passed.  *compile_mode* is either "exec", "eval",
+    "eval_expr", or "single" or "lambda".
 
     * "lambda" is for the grammar that can appear in lambda statements.
-    * "eval_expr" is for grammar "expr" kinds of expressions - this is a smaller kind of "eval" that users only grammar inside lambdas.
+    * "eval_expr" is for grammar "expr" kinds of expressions - this is a smaller kind of
+       "eval" that users only grammar inside lambdas.
     * "eval" is for Python eval() kinds of expressions or eval compile mode
     * "exec" is for Python exec() kind of expresssions, or exec compile mode
     * "single" is python compile "single" compile mode
 
     See https://docs.python.org/3/library/functions.html#compile for an
     explanation of the different modes.
+
     """
 
     # FIXME: there has to be a better way...
@@ -81,32 +92,47 @@ def get_python_parser(
     if version == (3, 8):
 
         if compile_mode in ("exec"):
-            p = Python38ParserExec(debug_parser=debug_parser)
+            p = Python3_8ParserExec(debug_parser=debug_parser)
         elif compile_mode == "single":
-            p = Python38ParserSingle(debug_parser=debug_parser)
+            p = Python3_8ParserSingle(debug_parser=debug_parser)
         elif compile_mode == "lambda":
-            p = Python38ParserLambda(debug_parser=debug_parser)
+            p = Python3_8ParserLambda(debug_parser=debug_parser)
         elif compile_mode == "eval":
-            p = Python38ParserEval(debug_parser=debug_parser)
+            p = Python3_8ParserEval(debug_parser=debug_parser)
         elif compile_mode == "expr":
-            p = Python38ParserExpr(debug_parser=debug_parser)
+            p = Python3_8ParserExpr(debug_parser=debug_parser)
         else:
-            p = Python38ParserSingle(debug_parser=debug_parser)
+            p = Python3_8ParserSingle(debug_parser=debug_parser)
 
     elif version == (3, 9):
 
         if compile_mode in ("exec"):
-            p = Python39ParserExec(debug_parser=debug_parser)
+            p = Python3_9ParserExec(debug_parser=debug_parser)
         elif compile_mode == "single":
-            p = Python39ParserSingle(debug_parser=debug_parser)
+            p = Python3_9ParserSingle(debug_parser=debug_parser)
         elif compile_mode == "lambda":
-            p = Python39ParserLambda(debug_parser=debug_parser)
+            p = Python3_9ParserLambda(debug_parser=debug_parser)
         elif compile_mode == "eval":
-            p = Python39ParserEval(debug_parser=debug_parser)
+            p = Python3_9ParserEval(debug_parser=debug_parser)
         elif compile_mode == "expr":
-            p = Python39ParserExpr(debug_parser=debug_parser)
+            p = Python3_9ParserExpr(debug_parser=debug_parser)
         else:
-            p = Python39ParserSingle(debug_parser=debug_parser)
+            p = Python3_9ParserSingle(debug_parser=debug_parser)
+
+    elif version == (3, 10):
+
+        if compile_mode in ("exec"):
+            p = Python3_10ParserExec(debug_parser=debug_parser)
+        elif compile_mode == "single":
+            p = Python3_10ParserSingle(debug_parser=debug_parser)
+        elif compile_mode == "lambda":
+            p = Python3_10ParserLambda(debug_parser=debug_parser)
+        elif compile_mode == "eval":
+            p = Python3_10ParserEval(debug_parser=debug_parser)
+        elif compile_mode == "expr":
+            p = Python3_10ParserExpr(debug_parser=debug_parser)
+        else:
+            p = Python3_10ParserSingle(debug_parser=debug_parser)
 
     else:
         raise RuntimeError(f"Unsupported Python version {version}")

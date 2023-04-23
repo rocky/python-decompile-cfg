@@ -52,12 +52,12 @@ def usage():
 @click.argument("files", nargs=-1, type=click.Path(readable=True), required=True)
 def main_bin(show_asm, show_grammar, tree, tree_plus, verify, recurse_dirs, outfile, files):
     """
-    Python byecode decompiler for CPython 3.8..3.9 bytecode
+    Python byecode decompiler for CPython 3.8..3.10 bytecode
     """
     version_tuple = sys.version_info[0:2]
-    if not version_tuple in ((3, 8), (3, 9)):
+    if not ((3, 8) <= version_tuple <= (3, 10)):
         print(
-            f"Note: {program} can decompile only bytecode from Python 3.8 or 3.9"
+            f"Note: {program} can decompile only bytecode from Python 3.8 to 3.10"
             f"""\n\tYou have version: {version_tuple_to_str()}."""
         )
 
