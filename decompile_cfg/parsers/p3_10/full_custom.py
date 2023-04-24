@@ -413,7 +413,8 @@ class Python3_10FullCustom(Python3_10LambdaCustom, PythonBaseParser):
                                               END_FINALLY COME_FROM
                                               for_block
                                               COME_FROM
-                                              POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP POP_BLOCK
+                                              POP_TOP POP_TOP POP_TOP POP_EXCEPT
+                                              POP_TOP POP_BLOCK
                                               else_suite COME_FROM_LOOP
 
                     # FIXME: come froms after the else_suite or
@@ -432,8 +433,8 @@ class Python3_10FullCustom(Python3_10LambdaCustom, PythonBaseParser):
                                              else_suite
                                              POP_TOP COME_FROM
 
-                    # FIXME: come froms after the else_suite or END_ASYNC_FOR distinguish which of
-                    # for / forelse is used.
+                    # FIXME: come froms after the else_suite or END_ASYNC_FOR
+                    # distinguish which of for / forelse is used.
                     # Add come froms and check of add up control-flow detection phase.
                     async_forelse_stmt3_10  ::= expr async_for
                                               store for_block

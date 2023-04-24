@@ -304,7 +304,7 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
                                    compare_chained1_return
                                    BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
-                                   RETURN_VALUE BB_END BLOCK_END_JOIN
+                                   RETURN_VALUE BB_END
 
 
         # FIXME: simplify the compare_chain1 recursion?
@@ -771,7 +771,7 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         expr ::= yield
         expr ::= yield_from
 
-        expr_return ::= compare_return BLOCK_END_JOIN_NO_ARG
+        expr_return ::= compare_return
 
         # In calls, we use "arg" rather than "expr" so we can
         # bound expressions with conditional branches.
