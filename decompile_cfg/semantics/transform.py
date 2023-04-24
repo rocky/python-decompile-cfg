@@ -42,8 +42,11 @@ STRIPPED_NODES = (
     "comp_iter",
     "comp_iter_outer",
     "compare_chained",
+    "compare_chained_return",
     "compare_chained1",
+    "compare_chained1_return",
     "compare_chained2",
+    "compare_chained2_return",
     "dict_comp_func",
     "expr_pjif",
     "expr_pjit",
@@ -541,7 +544,7 @@ class TreeTransform(GenericASTTraversal, object):
         """Here strip off extraneous nodes in lambda_start"""
 
         assert node[0] == "BB_START"
-        assert node[-1] == "block_end"
+        assert node[-1] in ("block_end", "BLOCK_END_JOIN_NO_ARG")
         new_node = copy(node)
         del new_node[0]
         del new_node[-1]

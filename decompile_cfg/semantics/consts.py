@@ -14,7 +14,9 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """Constants and initial table values used in pysource.py and fragments.py"""
 
-import re, sys
+import re
+import sys
+
 from decompile_cfg.parsers.treenode import SyntaxTree
 from decompile_cfg.scanners.tok import Token, NoneToken
 
@@ -59,8 +61,9 @@ PRECEDENCE = {
     "dict_unpack":            38,  # **kwargs
     "list_unpack":            38,  # *args
 
-    "lambda_body":            30,  # lambda ... : lambda_body
+    "lambda_body":            32,  # lambda ... : lambda_body
 
+    "compare_chained":        30,  # a <= b <= c
     "if_exp":                 28,  # IfExp ( a if x else b)
     "if_exp_lambda":          28,  # IfExp involving a lambda expression
     "if_exp_not_lambda":      28,  # negated IfExp involving a lambda expression
@@ -421,31 +424,44 @@ TABLE_DIRECT = {
 
     "comp_body":( "", ), # ignore when recursing
 
-    "compare_single":	    ( '%p %[-1]{pattr.replace("-", " ")} %p',
-                             (0, "expr", 19), (1, "expr", 19) ),
-    "compare_chained":(
+    "compare_chained": (
         "%p %p",
-        (0, "expr", 29),
+        (0, "expr", PRECEDENCE["compare"] - 1),
         (1, (
             "compare_chained1",
             "compare_chained1a_37",
             "compare_chained1b_false",
             "compare_chained37_false"
             ),
-         30)
-        ),
+         PRECEDENCE["compare"])
+     ),
 
     "compare_chained_comprehension": (
         ' %[3]{pattr.replace("-", " ")} %p %p',
-        (0, "expr", 29),
+        (0, "expr", PRECEDENCE["compare"] - 1),
         (5, 30)
         ),
 
 
+    "compare_chained_return": (
+        "%p %p",
+        (0, "expr", PRECEDENCE["compare"] - 1),
+        (1, (
+            "compare_chained1_return",
+            ),
+         PRECEDENCE["compare"])
+      ),
+
     "compare_chained1":	(
         '%[3]{pattr.replace("-", " ")} %p %p',
-        (0, 19),
-        (-1, 19)
+        (0, PRECEDENCE["compare"] -1),
+        (-1, PRECEDENCE["compare"] -1),
+        ),
+
+    "compare_chained1_return":	(
+        '%[3]{pattr.replace("-", " ")} %p %p',
+        (0, PRECEDENCE["compare"] -1),
+        (-1, PRECEDENCE["compare"] -1),
         ),
 
     "compare_chained2b_false":	(
@@ -455,7 +471,12 @@ TABLE_DIRECT = {
 
     "compare_chained2":	(
         '%[1]{pattr.replace("-", " ")} %p',
-        (0, 19)
+        (0, PRECEDENCE["compare"] - 1)
+        ),
+
+    "compare_chained2_return":	(
+        '%[1]{pattr.replace("-", " ")} %p',
+        (0, PRECEDENCE["compare"] - 1)
         ),
 
     "compare_chained2b_false_loop":	(
@@ -474,6 +495,10 @@ TABLE_DIRECT = {
 
     "compare_in":	        ( "%p in %p",(0, "expr", 19), (1, "expr", 19) ),
     "compare_is":	        ( "%p is %p",(0, "expr", 19), (1, "expr", 19) ),
+
+    "compare_single":	    ( '%p %[-1]{pattr.replace("-", " ")} %p',
+                             (0, "expr", PRECEDENCE["compare"]-1),
+                             (1, "expr", PRECEDENCE["compare"]-1) ),
 
     "continue":	            ( "%|continue\n", ),
 

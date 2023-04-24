@@ -218,8 +218,6 @@ class PythonBaseParser(GenericASTBuilder):
         represented by the attr field of token"""
         # Low byte indicates number of positional paramters,
         # high byte number of keyword parameters
-        if token.attr is None:
-            from trepan.api import debug; debug()
         args_pos = token.attr & 0xFF
         args_kw = (token.attr >> 8) & 0xFF
         return args_pos, args_kw
@@ -328,6 +326,7 @@ class PythonParserLambda(PythonBaseParser):
         # there might not be a dom_start. So we need dom_start_opt
         # to start this off.
         lambda_start       ::= BB_START return_expr block_end
+        lambda_start       ::= BB_START expr_return BLOCK_END_JOIN_NO_ARG
         """
 
     # lambda_start is the highest level nonterminal. However

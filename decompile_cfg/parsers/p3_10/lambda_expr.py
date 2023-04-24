@@ -45,7 +45,8 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
 
         and_part          ::= expr BB_END
 
-        # "and_parts" is basically an "and". Each nesting of "and_parts" adds a BLOCK_END_JOIN.
+        # "and_parts" is basically an "and". Each nesting of "and_parts" adds a
+        # BLOCK_END_JOIN.
         # And by doing such, we are proper keeping track and nesting.
 
         and_parts         ::= and_part
@@ -288,41 +289,59 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         # In the Python docs it says "Comparisons can be chained ..."
         # In the Python AST, this appears as: Compare(.. ops=)
 
-        compare_chained      ::= expr
-                                 compare_chained1
-                                 BB_START SIBLING_BLOCK
-                                 ROT_TWO POP_TOP
-                                 BB_END BLOCK_END_JOIN
+        compare_chained        ::= expr
+                                   compare_chained1
+                                   BB_START SIBLING_BLOCK
+                                   ROT_TWO POP_TOP
+                                   BB_END BLOCK_END_JOIN
 
-        compare_chained      ::= expr chained_parts
-        compare_chained      ::= compare_chained37_false
-        compare_chained      ::= expr compare_chained1a_37
-        compare_chained      ::= expr compare_chained1b_false
+        compare_chained        ::= expr chained_parts
+        compare_chained        ::= compare_chained37_false
+        compare_chained        ::= expr compare_chained1a_37
+        compare_chained        ::= expr compare_chained1b_false
+
+        compare_chained_return ::= expr
+                                   compare_chained1_return
+                                   BB_START NOT_FALLEN_INTO_BLOCK
+                                   ROT_TWO POP_TOP
+                                   RETURN_VALUE BB_END BLOCK_END_JOIN
 
 
         # FIXME: simplify the compare_chain1 recursion?
-        compare_chained1     ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                 BB_START compare_chained1 BLOCK_END_JOIN
+        compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                   BB_START compare_chained1 BLOCK_END_JOIN
 
-        compare_chained1     ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                 BB_START compare_chained2 BLOCK_END_JOIN
+        compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                   BB_START compare_chained2 BLOCK_END_JOIN
 
-        compare_chained1     ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                 BB_START compare_chained2
+        compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                   BB_START compare_chained2
 
-        compare_chained1a_37 ::= chained_parts
-                                 compare_chained2a_37
-                                 block_end
-                                 POP_TOP block_end
+        compare_chained1_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                    BB_START compare_chained2_return
+
+        compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                   BB_START compare_chained2 BLOCK_END_JOIN
+
+        compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                   BB_START compare_chained2
+
+        compare_chained1a_37   ::= chained_parts
+                                   compare_chained2a_37
+                                   block_end
+                                   POP_TOP block_end
 
         compare_chained2     ::= expr COMPARE_OP JUMP_FORWARD BB_END
-        compare_chained2     ::= expr COMPARE_OP return_value
 
-        compare_chained2a_37 ::= expr COMPARE_OP block_end POP_JUMP_IF_TRUE JUMP_FORWARD BB_END
+        compare_chained2_return ::= expr COMPARE_OP RETURN_VALUE BB_END
+
+        compare_chained2a_37 ::= expr COMPARE_OP block_end POP_JUMP_IF_TRUE JUMP_FORWARD
+                                 BB_END
 
 
         # When used in an "if" of a comprehension
-        compare_chained_comprehension  ::= expr DUP_TOP ROT_THREE COMPARE_OP pjump_iff_forward
+        compare_chained_comprehension  ::= expr DUP_TOP ROT_THREE COMPARE_OP
+                                           pjump_iff_forward
                                            compare_chained2_comprehension
 
         compare_chained2_comprehension ::= expr
@@ -752,6 +771,8 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         expr ::= yield
         expr ::= yield_from
 
+        expr_return ::= compare_return BLOCK_END_JOIN_NO_ARG
+
         # In calls, we use "arg" rather than "expr" so we can
         # bound expressions with conditional branches.
         # Arg also matches Python's AST in a Call beter.
@@ -838,6 +859,7 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
 
         compare           ::= compare_chained
         compare           ::= compare_single
+        compare_return    ::= compare_chained_return
         compare_single    ::= expr expr COMPARE_OP
 
         # Note: in 3.9+ only
