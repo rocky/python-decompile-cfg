@@ -302,6 +302,14 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         compare_chained_return ::= expr
                                    compare_chained1_return
+                                   BLOCK_END_JOIN BB_START NOT_FALLEN_INTO_BLOCK
+                                   ROT_TWO POP_TOP
+                                   RETURN_VALUE BB_END BLOCK_END_JOIN
+
+        # Something is funky in control-flow. Sometimes we have BLOCK_END_JOIN and
+        # sometimes not. Figure out why the random changes.
+        compare_chained_return ::= expr
+                                   compare_chained1_return
                                    BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
                                    RETURN_VALUE BB_END BLOCK_END_JOIN
@@ -771,7 +779,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         expr ::= yield
         expr ::= yield_from
 
-        expr_return ::= compare_return BLOCK_END_JOIN_NO_ARG
+        expr_return ::= compare_return
 
         # In calls, we use "arg" rather than "expr" so we can
         # bound expressions with conditional branches.

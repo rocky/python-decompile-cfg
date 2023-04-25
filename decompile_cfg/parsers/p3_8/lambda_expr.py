@@ -770,7 +770,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         expr ::= yield
         expr ::= yield_from
 
-        expr_return ::= compare_return BLOCK_END_JOIN_NO_ARG
+        expr_return ::= compare_return
 
         # In calls, we use "arg" rather than "expr" so we can
         # bound expressions with conditional branches.

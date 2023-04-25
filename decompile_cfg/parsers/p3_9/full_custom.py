@@ -380,8 +380,7 @@ class Python3_9FullCustom(Python3_9LambdaCustom, PythonBaseParser):
                                               END_FINALLY COME_FROM
                                               for_block
                                               COME_FROM
-                                              POP_TOP POP_TOP POP_TOP POP_EXCEPT
-                                              POP_TOP POP_BLOCK
+                                              POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP POP_BLOCK
                                               else_suite COME_FROM_LOOP
 
                     # FIXME: come froms after the else_suite or

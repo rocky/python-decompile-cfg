@@ -451,16 +451,19 @@ class Python3_8FullCustom(Python3_8LambdaCustom, PythonBaseParser):
                                               SETUP_EXCEPT GET_ANEXT LOAD_CONST
                                               YIELD_FROM
                                               store
-                                              POP_BLOCK JUMP_FORWARD COME_FROM_EXCEPT DUP_TOP
-                                              LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
+                                              POP_BLOCK JUMP_FORWARD COME_FROM_EXCEPT
+                                              DUP_TOP LOAD_GLOBAL COMPARE_OP
+                                              POP_JUMP_IF_TRUE
                                               END_FINALLY COME_FROM
                                               for_block
                                               COME_FROM
-                                              POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP POP_BLOCK
+                                              POP_TOP POP_TOP POP_TOP POP_EXCEPT
+                                              POP_TOP POP_BLOCK
                                               else_suite COME_FROM_LOOP
 
-                    # FIXME: come froms after the else_suite or END_ASYNC_FOR distinguish which of
-                    # for / forelse is used. Add come froms and check of add up control-flow detection phase.
+                    # FIXME: come froms after the else_suite or END_ASYNC_FOR distinguish
+                    # which of for / forelse is used. Add come froms and check of add up
+                    # control-flow detection phase.
                     async_forelse_stmt3_8 ::= expr async_for
                                              store for_block
                                              COME_FROM_FINALLY
@@ -474,8 +477,8 @@ class Python3_8FullCustom(Python3_8LambdaCustom, PythonBaseParser):
                                              else_suite
                                              POP_TOP COME_FROM
 
-                    # FIXME: come froms after the else_suite or END_ASYNC_FOR distinguish which of
-                    # for / forelse is used.
+                    # FIXME: come froms after the else_suite or END_ASYNC_FOR distinguish
+                    # which of for / forelse is used.
                     # Add come froms and check of add up control-flow detection phase.
                     async_forelse_stmt3_8  ::= expr async_for
                                               store for_block
