@@ -18,12 +18,12 @@ import re
 import sys
 
 from decompile_cfg.parsers.treenode import SyntaxTree
-from decompile_cfg.scanners.tok import Token, NoneToken
+from decompile_cfg.scanners.tok import NoneToken, Token
 
 minint = -sys.maxsize - 1
 maxint = sys.maxsize
 
-# Operator precidence See
+# Operator precedence See
 # https://docs.python.org/3/reference/expressions.html#operator-precedence
 # for a list. We keep the same top-to-botom order here as in the above links,
 # so we start with low precedence (high values) and go down in value.
@@ -36,12 +36,12 @@ maxint = sys.maxsize
 # various templates we use odd values. Avoiding equal-precedent comparisons
 # avoids ambiguity what to do when the precedence is equal.
 
-# The precidence of a key below applies the key, a node, and the its
-# *parent*. A node however sometimes sets the precidence for its
-# children. For example, "call" has precidence 2 so we don't get
+# The precedence of a key below applies the key, a node, and the its
+# *parent*. A node however sometimes sets the precedence for its
+# children. For example, "call" has precedence 2 so we don't get
 # additional the additional parenthesis of: ".. op (call())".  However
-# for call's children, it parameters, we set the the precidence high,
-# say to 100, to make sure we avoid additional prenthesis in
+# for call's children, it parameters, we set the the precedence high,
+# say to 100, to make sure we avoid additional parenthesis in
 # call((.. op ..)).
 
 NO_PARENTHESIS_EVER = 100
@@ -55,13 +55,17 @@ PRECEDENCE = {
     "return_expr":            NO_PARENTHESIS_EVER,
 
     "named_expr":             40,  # :=
-    "yield":                  38,  # Needs to be below named_expr
     "yield_from":             38,
     "tuple_list_starred":     38,  # *x, *y, *z - about at the level of yield?
+    "unpack":                 38,  # A guess. Used in "async with ... as ...
+                                   # This might also get used in tuple assignment?
     "dict_unpack":            38,  # **kwargs
     "list_unpack":            38,  # *args
 
     "lambda_body":            32,  # lambda ... : lambda_body
+
+    "yield":                  30,  # Needs to be below named_expr and lambda_body
+
 
     "compare_chained":        30,  # a <= b <= c
     "if_exp":                 28,  # IfExp ( a if x else b)

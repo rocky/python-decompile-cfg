@@ -17,30 +17,12 @@ Isolate Python 3.9 version-specific semantic actions here.
 """
 
 ########################
-# Python 3.9 changes
+# Python 3.10 changes
 #######################
 
-from decompile_cfg.semantics.consts import PRECEDENCE, TABLE_DIRECT
+def customize_for_version3_10(self):
 
-
-def customize_for_version3_9(self):
-
-    # fmt: off
-    PRECEDENCE["call_ex_3_9"] = 1
-    PRECEDENCE["and2"]       = PRECEDENCE["and"]
-    # fmt: on
-
-    TABLE_DIRECT.update(
-        {
-            "and2": (
-                "%p and %p",
-                (0, ("and_parts_jifop", "and_parts_jifops"), PRECEDENCE["and"]),
-                (2, ("and", "expr"), PRECEDENCE["and"]),
-            ),
-        }
-    )
-
-    def call_ex_3_9(node):
+    def call_ex_3_10(node):
         """Handle CALL_FUNCTION_EX when there are positional arguments"""
 
         # Format call function name
@@ -93,9 +75,9 @@ def customize_for_version3_9(self):
         self.write(")")
         self.prune()
 
-    self.n_call_ex_3_9 = call_ex_3_9
+    self.n_call_ex_3_10 = call_ex_3_10
 
-    def call_ex0_3_9(node):
+    def call_ex0_3_10(node):
         """Handle CALL_FUNCTION_EX when there are no positional arguments"""
         # Format call function name
         call_fn_name = node[0]
@@ -142,12 +124,9 @@ def customize_for_version3_9(self):
         self.write(")")
         self.prune()
 
-    self.n_call_ex0_3_9 = call_ex0_3_9
+    self.n_call_ex0_3_10 = call_ex0_3_10
 
-    # Until we have a dedicated routine ...
-    self.n_call_ex0_3_10 = call_ex0_3_9
-
-    def call_ex1_3_9(node):
+    def call_ex1_3_10(node):
         """
         Handle CALL_FUNCTION_EX when there positional arguments and no keyword arguments
         """
@@ -195,4 +174,4 @@ def customize_for_version3_9(self):
         self.write(")")
         self.prune()
 
-    self.n_call_ex1_3_9 = call_ex1_3_9
+    self.n_call_ex1_3_10 = call_ex1_3_10
