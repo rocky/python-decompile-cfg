@@ -48,15 +48,14 @@ def customize_for_version3_9(self):
         self.preorder(call_fn_name)
         self.write("(")
 
-        seen_arg = False
         star_args = node[2]
 
         star_star_kwargs = None
 
         # Format positional args
-        seen_arg = True
         positional_args = node[1]
         self.template_engine(("%P", (0, -1, ", ", 100)), positional_args)
+        trailing_comma = False
 
         # Format keyword args if it exists
         keyword_args = node[-4]
@@ -64,14 +63,13 @@ def customize_for_version3_9(self):
             self.write(", ")
             self.call36_dict(keyword_args)
             self.write(", ")
+            trailing_comma = True
 
         # Format *args if it exists
         if star_args is not None:
-            if seen_arg:
-                self.write(", ")
             self.write("*")
             self.preorder(star_args)
-            seen_arg = True
+            trailing_comma = False
 
         # Format **kwargs if it exists
 
@@ -85,7 +83,7 @@ def customize_for_version3_9(self):
             star_star_kwargs = node[-3]
 
         if star_star_kwargs:
-            if seen_arg:
+            if not trailing_comma:
                 self.write(", ")
             self.write("**")
             self.preorder(star_star_kwargs)

@@ -20,8 +20,8 @@ Isolate Python 3.9 version-specific semantic actions here.
 # Python 3.10 changes
 #######################
 
-def customize_for_version3_10(self):
 
+def customize_for_version3_10(self):
     def call_ex_3_10(node):
         """Handle CALL_FUNCTION_EX when there are positional arguments"""
 
@@ -30,15 +30,14 @@ def customize_for_version3_10(self):
         self.preorder(call_fn_name)
         self.write("(")
 
-        seen_arg = False
         star_args = node[2]
 
         star_star_kwargs = None
 
         # Format positional args
-        seen_arg = True
         positional_args = node[1]
         self.template_engine(("%P", (0, -1, ", ", 100)), positional_args)
+        trailing_comma = False
 
         # Format keyword args if it exists
         keyword_args = node[-4]
@@ -46,14 +45,13 @@ def customize_for_version3_10(self):
             self.write(", ")
             self.call36_dict(keyword_args)
             self.write(", ")
+            trailing_comma = True
 
         # Format *args if it exists
         if star_args is not None:
-            if seen_arg:
-                self.write(", ")
             self.write("*")
             self.preorder(star_args)
-            seen_arg = True
+            trailing_comma = False
 
         # Format **kwargs if it exists
 
@@ -67,7 +65,7 @@ def customize_for_version3_10(self):
             star_star_kwargs = node[-3]
 
         if star_star_kwargs:
-            if seen_arg:
+            if not trailing_comma:
                 self.write(", ")
             self.write("**")
             self.preorder(star_star_kwargs)
@@ -86,7 +84,11 @@ def customize_for_version3_10(self):
 
         seen_arg = False
         first_child = node[1].first_child()
-        star_args = None if first_child == "BUILD_TUPLE_0" else node[1]
+        star_args = (
+            None
+            if (first_child == "LOAD_CONST" and first_child.attr == ())
+            else node[1]
+        )
 
         star_star_kwargs = None
 
@@ -128,7 +130,8 @@ def customize_for_version3_10(self):
 
     def call_ex1_3_10(node):
         """
-        Handle CALL_FUNCTION_EX when there positional arguments and no keyword arguments
+        Handle CALL_FUNCTION_EX when there positional arguments and no
+        keyword arguments
         """
 
         # Format call function name
