@@ -232,6 +232,34 @@ def customize_for_version3_8(self):
 
     self.n_except_return_value = except_return_value
 
+    def format_pos_args(node):
+        """
+        Positional args should format to:
+        (*(2, ), ...) -> (2, ...)
+        We remove starting and trailing parenthesis and ', ' if
+        tuple has only one element.
+        """
+        if node[0] == "expr" and node[0][0] == "constant" and node[0][0][0] == "LOAD_CONST":
+            load_const = node[0][0][0]
+            const_value = load_const.attr
+            if isinstance(const_value, tuple):
+                return const_value
+
+        value = self.traverse(node, indent="")
+        if value.startswith("*("):
+            assert value.endswith(")")
+            value = value[2:-1].rstrip(
+                " "
+            )  # Remove starting '(' and trailing ')' and additional spaces
+            if value == "":
+                pass  # args is empty
+            else:
+                if value.endswith(","):  # if args has only one item
+                    value = value[:-1]
+        return value
+
+    self.format_pos_args = format_pos_args
+
     # FIXME: now that we've split out cond_except_stmt,
     # we should be able to get this working as a pure transformation rule,
     # so no procedure is needed here.
@@ -252,6 +280,32 @@ def customize_for_version3_8(self):
         self.prune()
 
     self.n_try_except38r3 = try_except38r3
+
+    def n_call_ex_kw2(node):
+        """Handle CALL_FUNCTION_EX 2  (have KW) but with
+        BUILD_{MAP,TUPLE}_UNPACK_WITH_CALL"""
+
+        assert node[1] == "build_tuple_unpack_with_call"
+        value = self.format_pos_args(node[1])
+        if value == "":
+            fmt = "%c(%p)"
+        elif isinstance(value, tuple):
+            str_value = str(value)[1:-1]
+            if len(value) == 1:
+                # There is a comma at the end
+                fmt = "%%c(%s %%p)" % str_value
+            else:
+                fmt = "%%c(%s, %%p)" % str_value
+        else:
+            fmt = "%%c(%s, %%p)" % value
+
+        self.template_engine(
+            (fmt, (0, "expr"), (2, "build_map_unpack_with_call", 100)), node
+        )
+
+        self.prune()
+
+    self.n_call_ex_kw2 = n_call_ex_kw2
 
     def n_list_afor(node):
         if len(node) == 2:
