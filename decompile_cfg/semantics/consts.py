@@ -609,6 +609,13 @@ TABLE_DIRECT = {
         (4, "else_suite"),
      ),
 
+    "if_else_return": (
+        "%c if %c else %c",
+        (1, "return_expr"),
+        (0, ("expr_pjif")),
+        (-1, "return_expr"),
+    ),
+
     # IfExp equivalents ..
 
     "if_exp_and": (
@@ -658,13 +665,6 @@ TABLE_DIRECT = {
         (3, "expr", PRECEDENCE["if_exp"]),
         (0, "expr"),
         (-1, "expr"),
-    ),
-
-    "if_exp_lambda": (
-        "%c if %c else %c",
-        (3, "expr"),
-        (0, ("expr", "branch_op")),
-        (-1, "return_expr_lambda"),
     ),
 
     "if_exp_loop": (

@@ -416,6 +416,7 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         block_join_end       ::= block_end_join
         block_join_end_final ::= BB_END BLOCK_END_JOIN BLOCK_END_JOIN_NO_ARG
         block_join_end_final ::= BB_END BLOCK_END_JOIN_NO_ARG
+        block_join_end_final ::= BLOCK_END_JOIN_NO_ARG
 
         # FIXME: remove this
         # Not ideal since we lose track of the counts.
@@ -956,11 +957,12 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
 
     def p_lambda(self, args):
         """
-        # return_expr_lambda is a return value used inside a lambda
+        # return_expr is a return value used inside a lambda
 
         return_expr               ::= expr RETURN_VALUE
         return_expr               ::= expr RETURN_VALUE BB_END
         return_expr               ::= expr return_value
+        return_expr               ::= if_else_return
 
         # return_expr_lambda      ::= dom_start
         #                             expr
@@ -1036,8 +1038,15 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
                                     dom_end dom_start
                                     return_call_lambda
 
-        # if_exp_lambda is an if_exp with a return value used
-        # inside a lambda
+        # if else with return on both branches such as
+        # inside a lambda.
+
+        if_else_return      ::= expr_pjif
+                               BB_START
+                               return_expr
+                               BLOCK_END_JOIN BB_START
+                               NOT_FALLEN_INTO_BLOCK
+                               return_expr
 
         # Note these two if_exp_lambda are distinct and cannot be generalized combined
         # into once. Otherwise we would need to disabmiguate
