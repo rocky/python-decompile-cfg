@@ -82,18 +82,19 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
 
         # Has to come before generic CALL_FUNCTION else below
         elif opname == "CALL_FUNCTION_EX":
+            # 3.10 parsing is the same as 3.9
             self.addRule(
                 """
-                expr        ::= call_ex_3_10
-                expr        ::= call_ex0_3_10
-                expr        ::= call_ex1_3_10
-                call_ex_3_10  ::= expr
+                expr        ::= call_ex_3_9
+                expr        ::= call_ex0_3_9
+                expr        ::= call_ex1_3_9
+                call_ex_3_9  ::= expr
                                 BUILD_TUPLE_0
                                 dict
                                 expr
                                 DICT_MERGE
                                 CALL_FUNCTION_EX
-                call_ex_3_10  ::= expr
+                call_ex_3_9  ::= expr
                                 list
                                 expr
                                 LIST_EXTEND
@@ -102,13 +103,13 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                                 expr
                                 DICT_MERGE
                                 CALL_FUNCTION_EX
-                call_ex0_3_10 ::= expr
+                call_ex0_3_9 ::= expr
                                 expr
                                 dict
                                 expr
                                 DICT_MERGE
                                 CALL_FUNCTION_EX
-                call_ex1_3_10 ::= expr
+                call_ex1_3_9 ::= expr
                                 list
                                 expr
                                 LIST_EXTEND

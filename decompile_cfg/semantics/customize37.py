@@ -1300,6 +1300,13 @@ def customize_for_version3_7(self):
         We remove starting and trailing parenthesis and ', ' if
         tuple has only one element.
         """
+        if node[0] == "expr" and node[0][0] == "constant" and node[0][0][0] == "LOAD_CONST":
+            load_const = node[0][0][0]
+            const_value = load_const.attr
+            if isinstance(const_value, tuple):
+                if len(const_value) == 1:
+                    return const_value[0]
+
         value = self.traverse(node, indent="")
         if value.startswith("("):
             assert value.endswith(")")

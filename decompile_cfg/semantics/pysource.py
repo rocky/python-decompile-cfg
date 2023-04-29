@@ -261,20 +261,21 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
             show_ast=showast,
             str_with_template=self.str_with_template,
         )
-        self.debug_parser = dict(debug_parser)
-        self.showast = showast
-        self.params = params
-        self.param_stack = []
         self.ERROR = None
+        self.ast_errors = []
+        self.classes = []
+        self.currentclass = None
+        self.debug_parser = dict(debug_parser)
+
+        self.line_number = 1
+        self.linestarts = linestarts
+        self.mod_globs = set()
+        self.param_stack = []
+        self.params = params
+        self.pending_newlines = 0
         self.prec = 100
         self.return_none = False
-        self.mod_globs = set()
-        self.currentclass = None
-        self.classes = []
-        self.pending_newlines = 0
-        self.linestarts = linestarts
-        self.line_number = 1
-        self.ast_errors = []
+        self.showast = showast
         # FIXME: have p.insts update in a better way
         # modularity is broken here
         self.p.insts = scanner.insts
@@ -1044,7 +1045,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         # Build a parse tree from a tokenized and massaged disassembly.
         try:
             # FIXME: have p.insts update in a better way
-            # modularity is broken here
+            # modularity is broken here.
             p_insts = self.p.insts
             self.p.insts = self.scanner.insts
             self.p.offset2inst_index = self.scanner.offset2inst_index

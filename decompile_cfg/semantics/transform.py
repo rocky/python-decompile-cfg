@@ -25,6 +25,9 @@ from decompile_cfg.scanners.tok import NoneToken, Token
 from decompile_cfg.semantics.consts import RETURN_NONE, ASSIGN_DOC_STRING
 
 
+# Eventually we won't need STRIPPED_NODES because all semantic
+# actions will have bene converted to new form, and so we will
+# do everythong by default
 STRIPPED_NODES = (
     "and_or",
     "and_or_expr1",
@@ -604,11 +607,11 @@ class TreeTransform(GenericASTTraversal, object):
         return node
 
     def transform(
-        self, ast: GenericASTTraversal, code, print_fn: Callable
+        self, parse_tree: GenericASTTraversal, code, print_fn: Callable
     ) -> GenericASTTraversal:
-        self.maybe_show_tree(ast, "before", print_fn)
-        self.ast = copy(ast)
-        del ast
+        self.maybe_show_tree(parse_tree, "before", print_fn)
+        self.ast = copy(parse_tree)
+        del parse_tree
         self.ast = self.traverse(self.ast)
         n = len(self.ast)
 
@@ -621,7 +624,7 @@ class TreeTransform(GenericASTTraversal, object):
                 call_stmt.kind = "string_at_beginning"
                 call_stmt.transformed_by = "transform"
                 pass
-        except:
+        except Exception:
             pass
         try:
             for i in range(n):

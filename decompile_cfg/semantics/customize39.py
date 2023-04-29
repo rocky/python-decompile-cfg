@@ -40,7 +40,7 @@ def customize_for_version3_9(self):
         }
     )
 
-    def call_ex_3_9(node):
+    def n_call_ex_3_9(node):
         """Handle CALL_FUNCTION_EX when there are positional arguments"""
 
         # Format call function name
@@ -67,6 +67,8 @@ def customize_for_version3_9(self):
 
         # Format *args if it exists
         if star_args is not None:
+            if trailing_comma is False:
+                self.write(", ")
             self.write("*")
             self.preorder(star_args)
             trailing_comma = False
@@ -91,7 +93,7 @@ def customize_for_version3_9(self):
         self.write(")")
         self.prune()
 
-    self.n_call_ex_3_9 = call_ex_3_9
+    self.n_call_ex_3_9 = n_call_ex_3_9
 
     def call_ex0_3_9(node):
         """Handle CALL_FUNCTION_EX when there are no positional arguments"""
@@ -141,9 +143,6 @@ def customize_for_version3_9(self):
         self.prune()
 
     self.n_call_ex0_3_9 = call_ex0_3_9
-
-    # Until we have a dedicated routine ...
-    self.n_call_ex0_3_10 = call_ex0_3_9
 
     def call_ex1_3_9(node):
         """
