@@ -61,6 +61,7 @@ class PythonBaseParser(GenericASTBuilder):
         #   stmts -> stmts stmt -> stmts stmt stmt ...
         # collect as stmts -> stmt stmt ...
         nt_list = [
+            "and_or_parts",
             "and_parts_pjif",
             "and_parts_jifop",
             "attributes",
@@ -69,6 +70,8 @@ class PythonBaseParser(GenericASTBuilder):
             "exprs",
             "kvlist",
             "kwargs",
+            "or_and_parts",
+            "or_parts",
             "lists",
             "stmts",
         ]
@@ -84,7 +87,13 @@ class PythonBaseParser(GenericASTBuilder):
         # FIXME: optional_nt is a misnomer. It's really about there being a
         # singleton reduction that we can simplify. It also happens to be optional
         # in its other derivation
-        self.optional_nt |= frozenset(("suite_stmts", "c_stmts_opt", "stmt", "sstmt"))
+        self.optional_nt |= frozenset((
+            "and_or_parts",
+            "or_and_parts",
+            "suite_stmts",
+            "c_stmts_opt",
+            "stmt",
+            "sstmt"))
 
         # Reduce singleton reductions in these nonterminals:
         # FIXME: would love to do sstmts, stmts and

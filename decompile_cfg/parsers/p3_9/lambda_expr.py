@@ -148,9 +148,9 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         # or_and is (a or ...) and y
 
-        or_and         ::= expr_pjit BB_START expr_jifop BLOCK_END_JOIN
+        or_and_part    ::= expr_pjit BB_START expr_jifop BLOCK_END_JOIN
 
-        or_and_parts   ::= or_and
+        or_and_parts   ::= or_and_part
         or_and_parts   ::= expr_pjit BB_START or_and_parts BLOCK_END_JOIN
 
         or_ands        ::= or_and_parts BB_START expr BLOCK_END_JOIN

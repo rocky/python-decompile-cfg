@@ -71,23 +71,6 @@ def customize_for_version3_7(self):
                 (1, "expr"),
                 (2, "jitop_come_from_expr"),
             ),
-            "or_and": (
-                "%c or (%c and %c)",
-                (0, "expr_jitop"),
-                (1, "expr"),
-                (4, "expr"),
-            ),
-            "or_and1": (
-                "%p or %p",
-                (0, "or_parts", PRECEDENCE["or"]),
-                (1, "and_parts", PRECEDENCE["or"]),
-            ),
-            "and_or": (
-                "%c and (%c or %c)",
-                (0, "expr_jifop"),
-                (1, "expr"),
-                (4, "expr"),
-            ),
             "and_not": ("%c and not %c", (0, "expr_pjif"), (1, "expr_pjit")),
             "and_cond": (
                 "%c and %c",
@@ -331,31 +314,10 @@ def customize_for_version3_7(self):
                 (0, "not"),
                 (1, "expr_pjif"),
             ),
-            "nor_cond": (
-                "%c or %c",
-                (0, ("or_parts", "and")),
-                (1, "expr_pjif"),
-            ),
             "or_and_not": (
                 "%c or %c",
                 (0, "expr_pjit"),
                 (1, "and_not"),
-            ),
-            "or_cond": (
-                "%c or %c",
-                (0, ("or_parts", "and", "not_and_not")),
-                (1, "expr_pjif"),
-            ),
-            "or_cond1": (
-                "%c or %c",
-                (0, ("or_parts", "and")),
-                (-2, "expr_pjif"),
-            ),
-            "and_or_cond": (
-                "%c and %c or %c",
-                (0, ("and_parts", "or_parts")),
-                (1, "expr"),
-                (4, "expr_pjif"),
             ),
             "not": (
                 "not %p",
@@ -375,11 +337,6 @@ def customize_for_version3_7(self):
                 "not (%c and %c)",
                 (0, "and_parts"),
                 (1, "expr_pjitt"),
-            ),
-            "or_parts": (
-                "%P or %p",
-                (0, -1, "or ", PRECEDENCE["or"]),
-                (1, "expr_pjif", PRECEDENCE["or"]),
             ),
             "store_async_iter_end": ("%c", (0, "store")),
             "testfalsec": (
@@ -579,18 +536,6 @@ def customize_for_version3_7(self):
         return
 
     self.n_await_expr = n_await_expr
-
-    # FIXME: we should be able to compress this into a single template
-    def n_or_parts(node):
-        if len(node) == 1:
-            self.template_engine(("%c", (0, "expr_pjit")), node)
-            self.prune()
-        else:
-            self.default(node)
-            pass
-        return
-
-    self.n_or_parts = n_or_parts
 
     def n_assert_invert(node):
         testtrue = node[0]

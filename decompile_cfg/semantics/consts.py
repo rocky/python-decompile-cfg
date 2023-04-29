@@ -248,7 +248,7 @@ TABLE_DIRECT = {
 
     "and_or": (
         "%c or %p",
-        (0, "and_or_parts"),
+        (0, ("expr_pjif", "and_or_part")),
         (1, "expr", PRECEDENCE["or"]),
         ),
 
@@ -270,7 +270,7 @@ TABLE_DIRECT = {
         "%c and %c or %c",
         (0, "expr_pjif"),
         (2, "expr_jitop"),
-        (5, "expr"),
+        (-1, "expr"),
         ),
 
     "and_or_expr1": (
@@ -751,21 +751,29 @@ TABLE_DIRECT = {
 
     # Single or part before an "and". It doesn't include the "and"
     "or_and": (
-        "%c or %c",
-        (0, ("expr_pjit")),
-        (2, "expr_jifop"),
+        "%c or (%c and %c)",
+        (0, "expr_pjit"),
+        (1, "expr_jifop"),
+        (-1, "expr"),
     ),
 
-    "or_and_parts": (
+    "or_and_part": (
         "%c or %p",
         (0, ("expr_pjit")),
-        (2, ("expr_jifop", "or_and_parts"), PRECEDENCE["or"]),
+        (1, ("expr_jifop", "or_and_parts"), PRECEDENCE["or"]),
+    ),
+
+    # Only when we have do not have a single retuction to or_and_part
+    "or_and_parts": (
+        "%c or %p",
+        (0, ("expr_pjit", "or_and_part")),
+        (1, ("expr_jifop", "or_and_parts"), PRECEDENCE["or"]),
     ),
 
     "or_ands": (
         "%c and %p",
-        (0, ("or_and_parts")),
-        (2, "expr", PRECEDENCE["and"]),
+        (0, ("expr_pjit", "or_and_part")),
+        (1, "expr", PRECEDENCE["and"]),
     ),
 
     "or_parts_pjit": (

@@ -28,6 +28,7 @@ lambda b: b and (b + 1)
 lambda a, b, c: (a and b) or c
 lambda a, b, c, d: (a and b and c) or d
 
+
 lambda a, b, c: (a or b) and c
 lambda a, b, c, d, e: (a or b or c) and (d and e)
 lambda a, b, c, d: a and (b or c) and d
