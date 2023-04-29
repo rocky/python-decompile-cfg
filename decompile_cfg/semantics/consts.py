@@ -610,14 +610,7 @@ TABLE_DIRECT = {
         (4, "else_suite"),
      ),
 
-    "if_else_return": (
-        "%c if %c else %c",
-        (1, "return_expr"),
-        (0, ("expr_pjif")),
-        (-1, "return_expr"),
-    ),
-
-    # IfExp equivalents ..
+    # AST IfExp equivalents (if else) ..
 
     "if_exp_and": (
         "%p if %p and %p else %c",
@@ -701,7 +694,14 @@ TABLE_DIRECT = {
     "if_exp_true":      ( "%p if 1 else %c", (0, "expr", 27), 4 ),
     "if_exp_ret":       ( "%p if %p else %p", (2, 27), (0, 27), (-1, 27) ),
 
-    # end IfExp
+    "if_exp_return": (
+        "%c if %c else %c",
+        (1, "return_expr"),
+        (0, ("expr_pjif")),
+        (-1, "return_expr"),
+    ),
+
+    # end AST IfExp (if else)
 
     "ifelsestmt":	( "%|if %c:\n%+%c%-%|else:\n%+%c%-", 0, 1, 3 ),
     "ifelsestmtc":	( "%|if %c:\n%+%c%-%|else:\n%+%c%-", 0, 1, 3 ),

@@ -959,7 +959,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         return_expr               ::= expr RETURN_VALUE
         return_expr               ::= expr RETURN_VALUE BB_END
         return_expr               ::= expr return_value
-        return_expr               ::= if_else_return
+        return_expr               ::= if_exp_return
 
         # return_expr_lambda      ::= dom_start
         #                             expr
@@ -1035,10 +1035,10 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                     dom_end dom_start
                                     return_call_lambda
 
-        # if else with return on both branches such as
+        # AST IfExp (if else) with return on both branches such as
         # inside a lambda.
 
-        if_else_return      ::= expr_pjif
+        if_exp_return       ::= expr_pjif
                                 BB_START
                                 return_expr
                                 BLOCK_END_JOIN BB_START
