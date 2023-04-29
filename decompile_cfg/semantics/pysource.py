@@ -637,14 +637,18 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                     if isinstance(index[1], str):
                         # if node[index[0]] != index[1]:
                         #     from trepan.api import debug; debug()
-                        assert (
-                            node[index[0]] == index[1]
-                        ), "at %s[%d], expected '%s' node; got '%s'" % (
-                            node.kind,
-                            arg,
-                            index[1],
-                            node[index[0]].kind,
-                        )
+                        try:
+                            assert (
+                                node[index[0]] == index[1]
+                            ), "at %s[%d], expected '%s' node; got '%s'" % (
+                                node.kind,
+                                arg,
+                                index[1],
+                                node[index[0]].kind,
+                            )
+                        except:
+                            from trepan.api import debug; debug()
+                            pass
                     else:
                         assert (
                             node[index[0]] in index[1]
@@ -686,14 +690,18 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                     if isinstance(tup[1], str):
                         # if node[index] != nonterm_name:
                         #     from trepan.api import debug; debug()
-                        assert (
-                            node[index] == nonterm_name
-                        ), "at %s[%d], expected '%s' node; got '%s'" % (
-                            node.kind,
-                            arg,
-                            nonterm_name,
-                            node[index].kind,
-                        )
+                        try:
+                            assert (
+                                node[index] == nonterm_name
+                            ), "at %s[%d], expected '%s' node; got '%s'" % (
+                                node.kind,
+                                arg,
+                                nonterm_name,
+                                node[index].kind,
+                            )
+                        except:
+                            raise
+                            from trepan.api import debug; debug()
                     else:
                         assert (
                             node[tup[0]] in tup[1]
