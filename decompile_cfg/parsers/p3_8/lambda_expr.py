@@ -306,6 +306,13 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                    ROT_TWO POP_TOP
                                    RETURN_VALUE BB_END BLOCK_END_JOIN
 
+        compare_chained_return ::= expr
+                                   compare_chained1_return
+                                   BLOCK_END_JOIN BB_START NOT_FALLEN_INTO_BLOCK
+                                   ROT_TWO POP_TOP
+                                   RETURN_VALUE BB_END BLOCK_END_JOIN
+
+
 
         # FIXME: simplify the compare_chain1 recursion?
         compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop

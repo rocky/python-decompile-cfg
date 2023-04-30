@@ -146,6 +146,7 @@ class Python3_10ParserFull(Python3_10LambdaParser, Python3_10FullCustom):
 
 
         expr_stmt ::= expr bb_start_opt POP_TOP
+        expr_stmt ::= expr_return bb_start_opt POP_TOP
         expr_stmt ::= branch_op dom_start POP_TOP
         call_stmt ::= call
 

@@ -321,7 +321,7 @@ def make_function36(self, node, is_lambda, nested=1, code_node=None):
         # docstring exists, dump it
         self.println(self.traverse(node[-2]))
 
-    assert tree in ("stmts_return_value", "lambda_start")
+    assert tree in ("stmts_return_value", "lambda_start", "stmts")
 
     all_globals = find_all_globals(tree, set())
     globals, nonlocals = find_globals_and_nonlocals(

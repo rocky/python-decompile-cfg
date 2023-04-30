@@ -7,13 +7,13 @@ test_pythonlib.py -- compile, decompile, and verify Python libraries
 Usage-Examples:
 
   # decompile, and verify the first 100 python 3.7 byte-compiled files
-  test_pythonlib.py --3.7 --syntax-verify
+  test_pythonlib.py --3.9 --syntax-verify
 
   # Same as above longer decompile up to 2100
-  test_pythonlib.py --3.7 --syntax-verify --max=2100
+  test_pythonlib.py --3.9 --syntax-verify --max=2100
 
   # Same as above but compile the base set first
-  test_pythonlib.py --3.7 --syntax-verify --max=2100 --compile
+  test_pythonlib.py --3.9 --syntax-verify --max=2100 --compile
 
 Adding own test-trees:
 
@@ -24,7 +24,13 @@ Step 2: Run the test:
   test_pythonlib.py --mylib --syntax-verify # decompile verify 'mylib'
 """
 
-import getopt, os, py_compile, sys, shutil, tempfile, time
+import getopt
+import os
+import py_compile
+import shutil
+import sys
+import tempfile
+import time
 
 from xdis.version_info import PYTHON_VERSION_TRIPLE
 from decompile_cfg.main import main
@@ -56,7 +62,7 @@ test_options = {
     "test": ("test", PYC, "test"),
 }
 
-for vers in ("3.8", "3.9"):
+for vers in ("3.8", "3.9", "3.10"):
     bytecode = "bytecode_%s" % vers
     key = "bytecode-%s" % vers
     test_options[key] = (bytecode, PYC, bytecode, vers)
@@ -222,6 +228,7 @@ if __name__ == "__main__":
         "compile_type": "exec",
     }
 
+    test_opts["rmtree"] = True
     for opt, val in opts:
         if opt == "--syntax-verify":
             test_opts["do_verify"] = "weak"
@@ -281,5 +288,5 @@ if __name__ == "__main__":
     for src_dir, pattern, target_dir in checked_dirs:
         target_dir = os.path.join(target_base, target_dir)
         if os.path.exists(target_dir):
-            shutil.rmtree(target_dir, ignore_errors=1)
+            shutil.rmtree(target_dir, ignore_errors=False)
         do_tests(src_dir, pattern, target_dir, test_opts)
