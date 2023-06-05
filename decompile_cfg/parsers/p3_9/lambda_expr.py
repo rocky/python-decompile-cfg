@@ -483,8 +483,8 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         comp_body      ::= list_comp_body
         comp_body      ::= set_comp_body
 
-        comp_for       ::= expr get_for_iter store comp_iter
-                           block_end
+        comp_for       ::= expr get_for_iter BB_START store comp_iter
+                           BB_START JUMP_FOR
 
 
         # Note: `comp_if_xxx`, we always start with an
@@ -579,7 +579,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         comp_iter     ::= comp_if_not_and
         comp_iter     ::= comp_if_not_or
 
-        comp_iter     ::= comp_body
+        comp_iter     ::= comp_body for_jump_unconditional BLOCK_END_JOIN
         comp_iter     ::= comp_if
         comp_iter     ::= comp_if_chained
         comp_iter     ::= comp_if_or
@@ -589,8 +589,8 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         comp_iter     ::= comp_if_not_and
         comp_iter     ::= comp_if_not_or
 
-        comp_iter      ::= comp_for
-        comp_for       ::= expr gen_comp_body JUMP_LOOP bb_doms_end_start
+        comp_iter     ::= comp_for JUMP_ABSOLUTE BB_END BLOCK_END_JOIN
+        comp_for      ::= expr gen_comp_body JUMP_LOOP bb_doms_end_start
 
         expr_or_arg     ::= LOAD_ARG
         expr_or_arg     ::= expr
@@ -618,13 +618,13 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                             JUMP_LOOP
                             block_end
 
-        get_for_iter   ::= GET_ITER block_end FOR_ITER bb_end_start_opt
+        get_for_iter   ::= GET_ITER BB_END BB_START for_iter
 
         # Our "continue" heuristic -  in two successive JUMP_LOOPS, the first
         # one may be a continue - sometimes classifies a JUMP_LOOP
         # as a CONTINUE. The two are kind of the same in a comprehension.
 
-        set_comp_body  ::= expr SET_ADD for_jump_unconditional
+        set_comp_body  ::= expr SET_ADD
 
         list_comp_body ::= LOAD_FAST LIST_APPEND
 
@@ -634,13 +634,13 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                           for_iter
                           BB_START
                           store
-                          comp_iter_outer
+                          comp_iter
 
         # FIXME: the BLOCK_END_JOIN may need to be part of something else
         set_comp_func ::= BUILD_SET_0
                           expr_or_arg
                           for_iter store
-                          BB_START comp_iter_outer
+                          BB_START comp_iter
 
         """
 
@@ -704,7 +704,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                            for_iter
                            store set_iter
                            for_jump_unconditional
-                           block_end_join
+
 
         list_if         ::= branch_op list_if_end list_iter
         list_if         ::= expr list_if_end list_iter
@@ -741,8 +741,8 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
     def p_comprehension_set(self, args):
         """
-        comp_iter     ::= comp_body
-        comp_iter     ::= comp_for
+        comp_iter     ::= comp_body BLOCK_END_JOIN
+        comp_iter     ::= comp_for BLOCK_END_JOIN
         comp_body     ::= gen_comp_body
 
 
@@ -1017,6 +1017,10 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                                     BB_START
                                     RETURN_VALUE
                                     block_join_end_final
+
+        return_expr             ::= set_comp_func
+                                    BLOCK_END_JOIN
+                                    BB_START RETURN_VALUE BB_END
 
         return_expr             ::= genexpr_func
                                     BB_START

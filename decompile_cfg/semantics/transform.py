@@ -25,9 +25,13 @@ from decompile_cfg.scanners.tok import NoneToken, Token
 from decompile_cfg.semantics.consts import RETURN_NONE, ASSIGN_DOC_STRING
 
 
+REMOVED_NODES = (
+    "block_join_end_final",
+)
+
 # Eventually we won't need STRIPPED_NODES because all semantic
 # actions will have bene converted to new form, and so we will
-# do everythong by default
+# do everything by default.
 STRIPPED_NODES = (
     "and_or",
     "and_or_expr1",
@@ -45,6 +49,7 @@ STRIPPED_NODES = (
     "comp_if",
     "comp_iter",
     "comp_iter_outer",
+    "comp_for",
     "compare_chained",
     "compare_chained_return",
     "compare_chained1",

@@ -533,7 +533,7 @@ class ComprehensionMixin:
             collection_node_index = 3
             collection_node = node[3][0]
             assert collection_node == "expr"
-        else:
+        elif collection_node is None:
             collection_node_index = -3
 
         self.write(" for ")
