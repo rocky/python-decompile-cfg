@@ -31,24 +31,20 @@ Finally we save token information.
 
 import os
 import os.path as osp
+import sys
+from typing import Tuple
 
+# Get all the opcodes into globals
+import xdis.opcodes.opcode_38 as op3
 from control_flow.augment_disasm import augment_instructions
 from control_flow.bb import basic_blocks
 from control_flow.cfg import ControlFlowGraph
-from control_flow.dominators import DominatorTree, dfs_forest, build_dom_set
-
-from typing import Tuple
-
+from control_flow.dominators import DominatorTree, build_dom_set, dfs_forest
 from xdis import iscode
 from xdis.bytecode import _get_const_info
 from xdis.version_info import version_tuple_to_str
 
-from decompile_cfg.scanner import Token, Scanner
-
-# Get all the opcodes into globals
-import xdis.opcodes.opcode_38 as op3
-
-import sys
+from decompile_cfg.scanner import Scanner, Token
 
 globals().update(op3.opmap)
 
@@ -203,7 +199,7 @@ class Scanner38Base(Scanner):
             assert j == len(tokens)
             return j
 
-        bb_mgr = basic_blocks(co, self.offset2inst_index, version=self.version)
+        bb_mgr = basic_blocks(co, self.offset2inst_index, version_tuple=self.version)
         if show_asm in ("both", "before"):
             for bb in bb_mgr.bb_list:
                 print("\t", bb)

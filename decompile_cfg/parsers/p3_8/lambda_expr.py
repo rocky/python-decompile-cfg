@@ -53,6 +53,10 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         and_parts         ::= and_part
         and_parts         ::= expr_jifop BB_START expr BLOCK_END_JOIN
 
+        # This is wrong - we should not need this and use only the above.
+        # there is something in control-flow that is intermittent.
+        and_parts         ::= expr_jifop BB_START expr
+
         # "and_or" is a sequence of "and"s followed by an "or".
         # What makes the "and" part of an "and_or" different from
         # "and_parts" is that "expr_pjif" is used instead of "expr_jiop".
@@ -60,11 +64,19 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         and_or          ::= and_or_parts BB_START expr BLOCK_END_JOIN
 
+        # This is wrong - we should not need this and use only the above.
+        # there is something in control-flow that is intermittent.
+        and_or          ::= and_or_parts BB_START expr
+
         # "and_or_parts" is the "and" portion of "and_or" before the "or".
         and_or_part     ::= and1
 
         and_or_parts    ::= and_or_part
         and_or_parts    ::= expr_pjif BB_START and_or_parts BLOCK_END_JOIN
+
+        # This is wrong - we should not need this and use only the above.
+        # there is something in control-flow that is intermittent.
+        and_or_parts    ::= expr_pjif BB_START and_or_parts
 
         # "and1" is like "and" and hooks into higher levels.
         # It also is used in "and_or".
@@ -73,28 +85,30 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                             expr_jitop
                             BLOCK_END_JOIN
 
+        # This is wrong - we should not need this and use only the above.
+        # there is something in control-flow that is intermittent.
+        and1            ::= expr_pjif
+                            BB_START
+                            expr_jitop
+
+
         # and_part_pjif are the right-hand side of an "and" without the leading expr
         and_part_pjif   ::= expr_pjif
 
-        # This is less than ide because we lose track of the proper number of BLOCK_END_JOINs
-        # that should apear at the target jumps.
-        # To regain this, we need to count these in reduction rule. Sigh.
-        # and_parts_pjif  ::= and_part_pjif+
-        # and_parts_jifop ::= and_part_jifop+
-
         or3            ::= and1 BB_START and_or_expr BLOCK_END_JOIN
 
-        # Outer "or"s that contain other "or" will not have a BB_END before BLOCK_END_JOIN
+        # Outer "or"s that contain other "or" will not have a BB_END before
+        # BLOCK_END_JOIN
         or              ::= expr_jitop
                             BB_START
                             expr
                             BLOCK_END_JOIN
 
-        # The inner-most "or" or "or" that contains an "and" can have a BB_END before the JOIN
-        or              ::= expr_jitop
+        # This is wrong - we should not need this and use only the above.
+        # there is something in control-flow that is intermittent.
+        or               ::= expr_jitop
                             BB_START
                             expr
-                            block_end_join
 
         or              ::= expr_pjit
                             BB_START
@@ -965,6 +979,12 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         return_expr               ::= expr RETURN_VALUE
         return_expr               ::= expr RETURN_VALUE BB_END
+
+        # This is wrong and control_flow may need fixing.
+        block_end_joins           ::= BLOCK_END_JOIN+
+        return_expr               ::= expr RETURN_VALUE BB_END block_end_joins
+
+
         return_expr               ::= expr return_value
         return_expr               ::= if_exp_return
 

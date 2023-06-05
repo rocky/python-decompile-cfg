@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 # Mode: -*- python -*-
 #
-# Copyright (c) 2015-2017, 2019-2022 by Rocky Bernstein
+# Copyright (c) 2015-2017, 2019-2023 by Rocky Bernstein
 # Copyright (c) 2000-2002 by hartmut Goebel <h.goebel@crazy-compilers.com>
 #
 
-import click
 import os
 import sys
 
+import click
 from xdis.version_info import version_tuple_to_str
-
-case_sensitive = {"case_sensitive": False}
-program = "decompile_cfg"
 
 from decompile_cfg.main import main, status_msg
 from decompile_cfg.version import __version__
+
+case_sensitive = {"case_sensitive": False}
+program = "decompile_cfg"
 
 
 def usage():
@@ -50,7 +50,9 @@ def usage():
 )
 @click.version_option(version=__version__)
 @click.argument("files", nargs=-1, type=click.Path(readable=True), required=True)
-def main_bin(show_asm, show_grammar, tree, tree_plus, verify, recurse_dirs, outfile, files):
+def main_bin(
+    show_asm, show_grammar, tree, tree_plus, verify, recurse_dirs, outfile, files
+):
     """
     Python byecode decompiler for CPython 3.8..3.10 bytecode
     """
