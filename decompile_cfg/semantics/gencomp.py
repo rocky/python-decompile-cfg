@@ -453,9 +453,9 @@ class ComprehensionMixin:
                 "comp_if_or_not",
                 "comp_if_not_or",
             ):
-                if_nodes.append(n[0])
+                if_nodes.append(n)
                 n = n[-1]
-                assert n == "comp_iter"
+                assert n,kind in ("comp_body", "comp_iter")
             elif n in (
                 "list_if",
                 "list_if_not",
@@ -619,8 +619,7 @@ class ComprehensionMixin:
             self.preorder(comp_store)
 
         for if_node in if_nodes:
-            if if_node != "comp_if_or":
-                self.write(" if ")
+            self.write(" if ")
             if if_node in (
                 "comp_if_not_and",
                 "comp_if_not_or",
