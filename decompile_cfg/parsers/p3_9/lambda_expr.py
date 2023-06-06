@@ -50,7 +50,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         # And by doing such, we are proper keeping track and nesting.
 
         and_parts         ::= and_part
-        and_parts         ::= expr_jifop BB_START expr BLOCK_END_JOIN
+        and_parts         ::= and_parts BB_START expr BLOCK_END_JOIN
 
         # "and_or" is a sequence of "and"s followed by an "or".
         # What makes the "and" part of an "and_or" different from
@@ -904,6 +904,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                               for_jump_unconditional
                               BLOCK_END_JOIN
 
+        return_expr               ::= if_exp_and_return
 
         # named_expr is also known as the "walrus op" :=
         named_expr        ::= expr DUP_TOP store
@@ -985,6 +986,12 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         return_expr               ::= expr RETURN_VALUE
         return_expr               ::= expr RETURN_VALUE BB_END
+
+        # This is wrong and control_flow may need fixing.
+        block_end_joins           ::= BLOCK_END_JOIN+
+        return_expr               ::= expr RETURN_VALUE BB_END block_end_joins
+
+        return_expr               ::= if_exp_and_return
         return_expr               ::= expr return_value
         return_expr               ::= if_exp_return
 
@@ -1057,6 +1064,16 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                                     CALL_FUNCTION_1
                                     RETURN_VALUE
                                     bb_doms_end
+
+        # AST IfExp (if .. and .. else) with return on both branches such as
+        # inside a lambda.
+
+        if_exp_and_return   ::= expr_pjif BB_START
+                                expr_pjif BB_START
+                                return_expr
+                                BLOCK_END_JOIN BB_START
+                                NOT_FALLEN_INTO_BLOCK
+                                return_expr
 
         if_exp_call_lambda      ::= expr expr
                                     POP_JUMP_IF_FALSE
