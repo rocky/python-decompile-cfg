@@ -134,7 +134,7 @@ def customize_for_version3_7(self):
             #   return await (await bar())
             # need parenthesis.
             # Note there are async dictionary expressions are like await expr's
-            # the below is just the default fersion
+            # the below is just the default version
             "await_expr": ("await %p", (0, PRECEDENCE["await_expr"] - 1)),
             "await_stmt": ("%|%c\n", 0),
             "c_async_with_stmt": ("%|async with %c:\n%+%c%-", (0, "expr"), 3),

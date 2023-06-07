@@ -156,7 +156,7 @@ class TreeTransform(GenericASTTraversal, object):
     def n_await_expr(self, node: SyntaxTree) -> SyntaxTree:
         """Here we check for await(await)"""
 
-        expr = node[0]
+        expr = node[0] if self.version < (3, 10) else node[1]
         assert expr == "expr"
         if expr[0] == "await_expr":
             expr[0].transformed_by = "n_await_expr"

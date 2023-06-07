@@ -710,11 +710,11 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                                              GET_ANEXT LOAD_CONST
                                              YIELD_FROM POP_BLOCK
 
-                    genexpr_func_async   ::= BUILD_SET_0
+                    genexpr_func_async   ::= GEN_START BUILD_SET_0
                                              LOAD_ARG async_iter
                                              store
                                              comp_iter
-                                             BLOCK_END_JOIN BB_START
+                                             BB_START
                                              END_ASYNC_FOR
 
                     list_afor2           ::= async_iter
@@ -759,7 +759,7 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
             elif opname == "GET_AWAITABLE":
                 rule_str = """
                     await      ::= GET_AWAITABLE LOAD_CONST YIELD_FROM
-                    await_expr ::= expr await
+                    await_expr ::= GEN_START expr await
                     expr       ::= await_expr
                 """
                 self.add_unique_doc_rules(rule_str, customize)

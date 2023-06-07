@@ -685,7 +685,7 @@ class Python3_8LambdaCustom(Python3_8BaseParser):
                                              LOAD_ARG async_iter
                                              store
                                              comp_iter
-                                             BLOCK_END_JOIN BB_START
+                                             BB_START
                                              END_ASYNC_FOR
 
                     list_afor2           ::= async_iter
