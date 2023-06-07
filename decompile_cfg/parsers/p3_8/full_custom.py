@@ -322,8 +322,10 @@ class Python3_8FullCustom(Python3_8LambdaCustom, PythonBaseParser):
                 self.addRule(
                     """
                       expr                  ::= formatted_value_debug
-                      formatted_value_debug ::= LOAD_STR formatted_value2 LOAD_STR BUILD_STRING_3
-                      formatted_value_debug ::= LOAD_STR formatted_value1 LOAD_STR BUILD_STRING_3
+                      formatted_value_debug ::= LOAD_STR formatted_value2 LOAD_STR
+                                                BUILD_STRING_3
+                      formatted_value_debug ::= LOAD_STR formatted_value1 LOAD_STR
+                                                BUILD_STRING_3
                     """,
                     nop_func,
                 )
@@ -613,16 +615,23 @@ class Python3_8FullCustom(Python3_8LambdaCustom, PythonBaseParser):
                   stmt        ::= withasstmt
                   c_stmt      ::= c_with
 
-                  c_with      ::= expr SETUP_WITH POP_TOP
+                  c_with      ::= expr SETUP_WITH
+                                  BB_END BB_START
+                                  POP_TOP
                                   c_suite_stmts_opt
                                   COME_FROM_WITH
                                   with_suffix
-                  c_with      ::= expr SETUP_WITH POP_TOP
+
+                  c_with      ::= expr SETUP_WITH
+                                  BB_END BB_START
+                                  POP_TOP
                                   c_suite_stmts_opt
                                   POP_BLOCK LOAD_CONST COME_FROM_WITH
                                   with_suffix
 
-                  with        ::= expr SETUP_WITH POP_TOP
+                  with        ::= expr SETUP_WITH
+                                  BB_END BB_START
+                                  POP_TOP
                                   suite_stmts_opt
                                   COME_FROM_WITH
                                   with_suffix
@@ -631,7 +640,9 @@ class Python3_8FullCustom(Python3_8LambdaCustom, PythonBaseParser):
                                   with_suffix
 
                   with        ::= expr
-                                  SETUP_WITH POP_TOP suite_stmts_opt
+                                  SETUP_WITH
+                                  BB_END BB_START
+                                  POP_TOP suite_stmts_opt
                                   POP_BLOCK LOAD_CONST COME_FROM_WITH
                                   with_suffix
                   withasstmt  ::= expr
@@ -640,11 +651,15 @@ class Python3_8FullCustom(Python3_8LambdaCustom, PythonBaseParser):
                                   with_suffix
 
                   with        ::= expr
-                                  SETUP_WITH POP_TOP suite_stmts_opt
+                                  SETUP_WITH
+                                  BB_END BB_START
+                                  POP_TOP suite_stmts_opt
                                   POP_BLOCK LOAD_CONST COME_FROM_WITH
                                   with_suffix
                   withasstmt  ::= expr
-                                  SETUP_WITH store suite_stmts_opt
+                                  SETUP_WITH
+                                  BB_END BB_START
+                                  store suite_stmts_opt
                                   POP_BLOCK LOAD_CONST COME_FROM_WITH
                                   with_suffix
                 """
@@ -667,7 +682,9 @@ class Python3_8FullCustom(Python3_8LambdaCustom, PythonBaseParser):
                                      RETURN_VALUE
 
                       with       ::= expr
-                                     SETUP_WITH POP_TOP suite_stmts_opt
+                                     SETUP_WITH
+                                     BB_END BB_START
+                                     POP_TOP suite_stmts_opt
                                      POP_BLOCK LOAD_CONST COME_FROM_WITH
                                      with_suffix
 
@@ -681,14 +698,12 @@ class Python3_8FullCustom(Python3_8LambdaCustom, PythonBaseParser):
                                      POP_BLOCK BEGIN_FINALLY COME_FROM_WITH
                                      with_suffix
 
-                      # withasstmt ::= expr SETUP_WITH store suite_stmts
-                      #                COME_FROM expr COME_FROM POP_BLOCK ROT_TWO
-                      #                BEGIN_FINALLY WITH_CLEANUP_START WITH_CLEANUP_FINISH
-                      #                POP_FINALLY RETURN_VALUE COME_FROM_WITH
-                      #                WITH_CLEANUP_START WITH_CLEANUP_FINISH END_FINALLY
-
-                      with         ::= expr SETUP_WITH POP_TOP suite_stmts_opt POP_BLOCK
-                                       BEGIN_FINALLY COME_FROM_WITH
+                      with         ::= expr SETUP_WITH
+                                       BB_END BB_START
+                                       POP_TOP suite_stmts_opt POP_BLOCK
+                                       BEGIN_FINALLY
+                                       BB_END
+                                       BLOCK_END_JOIN BB_START
                                        with_suffix
                     """
                 self.addRule(rules_str, nop_func)

@@ -537,38 +537,63 @@ class Python3_9FullCustom(Python3_9LambdaCustom, PythonBaseParser):
                   stmt        ::= withasstmt
                   c_stmt      ::= c_with
 
-                  c_with      ::= expr SETUP_WITH POP_TOP
+                  c_with      ::= expr SETUP_WITH
+                                  BB_END BB_START
+                                  POP_TOP
                                   c_suite_stmts_opt
                                   COME_FROM_WITH
                                   with_suffix
-                  c_with      ::= expr SETUP_WITH POP_TOP
+
+                  c_with      ::= expr SETUP_WITH
+                                  BB_END BB_START
+                                  POP_TOP
                                   c_suite_stmts_opt
                                   POP_BLOCK LOAD_CONST COME_FROM_WITH
                                   with_suffix
 
-                  with        ::= expr SETUP_WITH POP_TOP
+                  with        ::= expr SETUP_WITH
+                                  BB_END BB_START
+                                  POP_TOP
                                   suite_stmts_opt
-                                  COME_FROM_WITH
+                                  BB_END BLOCK_END_JOIN BB_START
                                   with_suffix
 
                   withasstmt  ::= expr SETUP_WITH store suite_stmts_opt COME_FROM_WITH
                                   with_suffix
 
                   with        ::= expr
-                                  SETUP_WITH POP_TOP suite_stmts_opt
-                                  POP_BLOCK LOAD_CONST COME_FROM_WITH
-                                  with_suffix
+                                  SETUP_WITH
+                                  BB_END BB_START
+                                  POP_TOP suite_stmts_opt
+                                  POP_BLOCK LOAD_CONST DUP_TOP DUP_TOP
+                                  CALL_FUNCTION_3
+                                  POP_TOP
+                                  JUMP_FORWARD BB_END BB_START
+                                  SIBLING_BLOCK WITH_EXCEPT_START
+                                  POP_JUMP_IF_TRUE BB_END BB_START
+                                  RERAISE
+                                  BB_END BLOCK_END_JOIN
+                                  BLOCK_END_JOIN
+                                  BB_START POP_TOP POP_TOP POP_TOP
+                                  POP_EXCEPT POP_TOP
+                                  BB_END
+                                  BLOCK_END_JOIN
+                                  BB_START
                   withasstmt  ::= expr
                                   SETUP_WITH store suite_stmts_opt
                                   POP_BLOCK LOAD_CONST COME_FROM_WITH
                                   with_suffix
 
                   with        ::= expr
-                                  SETUP_WITH POP_TOP suite_stmts_opt
+                                  SETUP_WITH
+                                  BB_END BB_START
+                                  POP_TOP suite_stmts_opt
                                   POP_BLOCK LOAD_CONST COME_FROM_WITH
                                   with_suffix
                   withasstmt  ::= expr
-                                  SETUP_WITH store suite_stmts_opt
+                                  SETUP_WITH
+                                  BB_END BB_START
+                                  store suite_stmts_opt
                                   POP_BLOCK LOAD_CONST COME_FROM_WITH
                                   with_suffix
                 """
@@ -591,7 +616,9 @@ class Python3_9FullCustom(Python3_9LambdaCustom, PythonBaseParser):
                                      RETURN_VALUE
 
                       with       ::= expr
-                                     SETUP_WITH POP_TOP suite_stmts_opt
+                                     SETUP_WITH
+                                     BB_END BB_START
+                                     POP_TOP suite_stmts_opt
                                      POP_BLOCK LOAD_CONST COME_FROM_WITH
                                      with_suffix
 
@@ -605,14 +632,12 @@ class Python3_9FullCustom(Python3_9LambdaCustom, PythonBaseParser):
                                      POP_BLOCK BEGIN_FINALLY COME_FROM_WITH
                                      with_suffix
 
-                      # withasstmt ::= expr SETUP_WITH store suite_stmts
-                      #                COME_FROM expr COME_FROM POP_BLOCK ROT_TWO
-                      #                BEGIN_FINALLY WITH_CLEANUP_START WITH_CLEANUP_FINISH
-                      #                POP_FINALLY RETURN_VALUE COME_FROM_WITH
-                      #                WITH_CLEANUP_START WITH_CLEANUP_FINISH END_FINALLY
-
-                      with         ::= expr SETUP_WITH POP_TOP suite_stmts_opt POP_BLOCK
-                                       BEGIN_FINALLY COME_FROM_WITH
+                      with         ::= expr SETUP_WITH
+                                       BB_END BB_START
+                                       POP_TOP suite_stmts_opt POP_BLOCK
+                                       BEGIN_FINALLY
+                                       BB_END
+                                       BLOCK_END_JOIN BB_START
                                        with_suffix
                     """
                 self.addRule(rules_str, nop_func)
