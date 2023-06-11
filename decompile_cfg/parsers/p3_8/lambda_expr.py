@@ -644,10 +644,19 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                           store
                           comp_iter
 
+        set_comp_func ::= BUILD_SET_0
+                          expr_or_arg
+                          for_iter
+                          BB_START
+                          store
+                          comp_iter
+                          BLOCK_END_JOIN
+
         # FIXME: the BLOCK_END_JOIN may need to be part of something else
         set_comp_func ::= BUILD_SET_0
                           expr_or_arg
-                          for_iter store
+                          for_iter
+                          store
                           BB_START comp_iter
 
         """

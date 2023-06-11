@@ -108,12 +108,11 @@ class Python3_8ParserFull(Python3_8LambdaParser, Python3_8FullCustom):
         """
         # The start symbol is a statement followed by a an optional RETURN VALUE
 
-        # FIXME: some of the weirdness below is due to eng token removal in
+        # FIXME: some of the weirdness below is due to end token removal in
         # pysource.py in trying to "hide" instructions. When that is removed
         # the below might be simplified.
 
         stmts_return_value ::= stmts RETURN_VALUE block_end
-        stmts_return_value ::= stmts BB_START RETURN_VALUE
         stmts_return_value ::= stmts BB_START RETURN_VALUE
         stmts_return_value ::= stmts
 
