@@ -564,13 +564,13 @@ class NonterminalActions:
             )
             self.is_lambda = is_lambda
         else:
-            self.comprehension_walk_newer(node, iter_index=5, collection_node=node[0])
-            # code_index = -5
+            self.comprehension_walk_newer(node, iter_index=-1, collection_node=node[0])
             # self.comprehension_walk(node, iter_index=5, code_index=code_index)
         self.write(")")
         self.prune()
 
-    n_generator_exp_async = n_generator_exp
+    n_genexpr_func = n_generator_exp_async = n_generator_exp
+
 
     # In the old days this node would never get called because
     # it was embedded inside some sort of comprehension

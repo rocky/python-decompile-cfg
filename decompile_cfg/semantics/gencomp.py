@@ -303,7 +303,7 @@ class ComprehensionMixin:
 
         if tree.kind == "genexpr_func_async":
             genexpr_func_async = tree
-        else:
+        elif tree.kind != "genexpr_func":
             # Not sure if this is still correct
             genexpr_func_async = tree[1]
 
@@ -371,6 +371,7 @@ class ComprehensionMixin:
             "set_comp_func",
             "set_comp_func_header",
         ):
+            from trepan.api import debug; debug()
             # Find location of store
             for k in tree:
                 if k.kind in ("comp_iter", "list_iter", "set_iter", "await_expr"):

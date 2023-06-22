@@ -612,6 +612,13 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
                             BB_START
                             POP_TOP
 
+        gen_comp_body   ::= expr
+                            YIELD_VALUE
+                            BB_END
+                            BLOCK_END_JOIN
+                            BB_START
+                            POP_TOP
+
         generator_exp   ::= expr_or_arg
                             bb_end_start
                             for_loop
@@ -897,15 +904,14 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         constant ::= LOAD_CONST
         constant ::= LOAD_STR
 
-        genexpr_func      ::= LOAD_ARG
+        genexpr_func      ::= GEN_START
+                              LOAD_ARG
                               block_end
                               BB_START
                               for_loop
                               BB_START
                               store
                               comp_iter
-                              for_jump_unconditional
-                              BLOCK_END_JOIN
 
         return_expr               ::= if_exp_and_return
 
