@@ -359,6 +359,9 @@ class ComprehensionMixin:
             store = set_iter_async[1]
             assert store == "store"
             n = set_iter_async[2]
+        elif node == "list_comp" and tree[0] == "expr":
+            tree = tree[0][0]
+            n = tree[iter_index]
         else:
             n = tree[iter_index]
 
@@ -377,7 +380,7 @@ class ComprehensionMixin:
                     n = k
                 elif k == "store":
                     store = k
-                    pass
+                    break
                 pass
             pass
         elif tree.kind in ("list_comp_async", "dict_comp_async", "set_afor2"):
@@ -518,8 +521,8 @@ class ComprehensionMixin:
         ):
             self.write(" async")
 
-            # For listcomp, setcomp, etc., the collection is .0 and that's the best we can do.
-            # So don't try to find the collection node.
+            # For listcomp, setcomp, etc., the collection is .0 and that's the best we
+            # can do. So don't try to find the collection node.
             if not self.compile_mode.endswith("comp"):
                 collection_node_index = None
             elif node[0].kind.startswith("BUILD_"):

@@ -68,7 +68,7 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
     version_tuple = sys.version_info[0:2]
     if not ((3, 8) <= version_tuple <= (3, 10)):
         print(
-            f"Note: {program} can decompile only bytecode from Python 3.8 to 3.10"
+            f"Note: {program} can decompile only bytecode from up to Python 3.8"
             f"""\n\tYou have version: {version_tuple_to_str()}."""
         )
 
