@@ -371,7 +371,6 @@ class ComprehensionMixin:
             "set_comp_func",
             "set_comp_func_header",
         ):
-            from trepan.api import debug; debug()
             # Find location of store
             for k in tree:
                 if k.kind in ("comp_iter", "list_iter", "set_iter", "await_expr"):
@@ -406,7 +405,10 @@ class ComprehensionMixin:
         if n == "comp_iter":
             comp_for = n
             if not store:
-                store = tree[3]
+                # Python 3.10 adds GEN_START at the beginning of
+                # generators and this adds one to pre 3.10 indices.
+                store_index = 4 if self.version >= (3, 10) else 3
+                store = tree[store_index]
 
         if_not_hack = False
 

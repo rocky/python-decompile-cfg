@@ -564,7 +564,11 @@ class NonterminalActions:
             )
             self.is_lambda = is_lambda
         else:
-            self.comprehension_walk_newer(node, iter_index=-1, collection_node=node[0])
+            # Python 3.10 adds GEN_START at the beginning of
+            # generators and this adds one to pre 3.10 indices.
+            collection_node_index = 1 if self.version >= (3, 10) else 0
+            self.comprehension_walk_newer(node, iter_index=-1,
+                                          collection_node=node[collection_node_index])
             # self.comprehension_walk(node, iter_index=5, code_index=code_index)
         self.write(")")
         self.prune()
