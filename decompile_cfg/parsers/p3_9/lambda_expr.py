@@ -609,6 +609,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         for_iter        ::= bb_end_start_opt
                             for_loop
 
+        # Can occur when no trailing "if"
         gen_comp_body   ::= expr
                             BB_START
                             YIELD_VALUE
@@ -618,12 +619,18 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                             BB_START
                             POP_TOP
 
+        # Can occur when trailing "if"
         gen_comp_body   ::= expr
                             YIELD_VALUE
                             BB_END
                             BLOCK_END_JOIN
                             BB_START
                             POP_TOP
+
+        gen_comp_body   ::= expr
+                            YIELD_VALUE
+                            BB_END
+                            BLOCK_END_JOIN
 
         generator_exp   ::= expr_or_arg
                             bb_end_start
@@ -766,6 +773,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
     def p_comprehension_set(self, args):
         """
+        comp_iter     ::= comp_body
         comp_iter     ::= comp_body BLOCK_END_JOIN
         comp_iter     ::= comp_for BLOCK_END_JOIN
         comp_body     ::= gen_comp_body
@@ -910,6 +918,9 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         constant ::= LOAD_CONST
         constant ::= LOAD_STR
 
+        # We have this form when "comp_iter" does not contain
+        # a "comp_if" ("if" condition on a comprehension) at the
+        # end.
         genexpr_func      ::= LOAD_ARG
                               block_end
                               BB_START
@@ -917,6 +928,21 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                               BB_START
                               store
                               comp_iter
+
+        # We have this form when "comp_iter" contains
+        # a "comp_if" ("if" condition on a comprehension) at the
+        # end.
+        genexpr_func      ::= LOAD_ARG
+                              block_end
+                              BB_START
+                              for_loop
+                              BB_START
+                              store
+                              comp_iter
+                              BB_START
+                              POP_TOP
+                              for_jump_unconditional
+                              BLOCK_END_JOIN
 
         return_expr               ::= if_exp_and_return
 

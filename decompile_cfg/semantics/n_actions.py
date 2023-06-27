@@ -567,7 +567,13 @@ class NonterminalActions:
             # Python 3.10 adds GEN_START at the beginning of
             # generators and this adds one to pre 3.10 indices.
             collection_node_index = 1 if self.version >= (3, 10) else 0
-            self.comprehension_walk_newer(node, iter_index=-1,
+
+            # generator_exp may have an additional:
+            #   POP_TOP for_jump_unconditional
+            # after its comp_iter
+            iter_index = -3 if node[-1] == "for_jump_unconditional" else -1
+
+            self.comprehension_walk_newer(node, iter_index=iter_index,
                                           collection_node=node[collection_node_index])
             # self.comprehension_walk(node, iter_index=5, code_index=code_index)
         self.write(")")

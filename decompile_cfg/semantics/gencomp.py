@@ -460,8 +460,11 @@ class ComprehensionMixin:
                 "comp_if_not_or",
             ):
                 if_nodes.append(n)
-                n = n[-1]
-                assert n,kind in ("comp_body", "comp_iter")
+                for n in reversed(n):
+                    if n.kind in ("comp_body", "comp_iter"):
+                        break
+                assert n.kind in ("comp_body", "comp_iter")
+
             elif n in (
                 "list_if",
                 "list_if_not",
