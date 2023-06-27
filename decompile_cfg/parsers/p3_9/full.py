@@ -122,6 +122,9 @@ class Python3_9ParserFull(Python3_9LambdaParser, Python3_9FullCustom):
         stmts_return_value ::= stmts LOAD_CONST RETURN_VALUE
                                BB_END BLOCK_END_JOIN_NO_ARG
 
+        stmts_return_value ::= stmts BB_START LOAD_CONST RETURN_VALUE
+                               BB_END BLOCK_END_JOIN
+
         pass ::=
 
         stmts_opt ::= stmts
@@ -166,6 +169,7 @@ class Python3_9ParserFull(Python3_9LambdaParser, Python3_9FullCustom):
         stmt ::= forelsestmt3_9
 
         stmt ::= generator_exp
+        stmt ::= genexpr_func
 
         stmt ::= if_and_elsestmt
         stmt ::= if_and_stmt

@@ -55,8 +55,13 @@ class ComprehensionMixin:
             iter_index = 3
             collection_index = 3
         elif tree in ("genexpr_func", "dict_comp_func", "set_comp_func"):
-            store = tree[3]
-            iter_index = 4
+            if self.version >= (3, 10):
+                # 3.10+ adds a GEN_START
+                store = tree[4]
+                iter_index = 5
+            else:
+                store = tree[3]
+                iter_index = 4
         elif tree == "set_comp":
             tree = tree[1][0]
             assert tree == "set_for", tree.kind
