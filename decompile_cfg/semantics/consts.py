@@ -543,12 +543,14 @@ TABLE_DIRECT = {
         (3, maxint, "")
         ),
 
-    "expr_stmt": (
-        "%|%p\n",
-        # When a statment contains only a named_expr (:=)
-        # the named_expr should have parenthesis around it.
-        (0, "expr", PRECEDENCE["named_expr"] - 1)
-        ),
+    # The following is covered by n_expr_stmt which
+    # adjusts depending on whether expr is a named statement or not.
+    # "expr_stmt": (
+    #     "%|%p\n",
+    #     # When a statement contains only a named_expr (:=)
+    #     # the named_expr should have parenthesis around it.
+    #     (0, "expr", PRECEDENCE["named_expr"] - 1)
+    #     ),
 
     "if_exp_compare": (
         "%p if %c else %c",

@@ -555,6 +555,17 @@ class NonterminalActions:
         self.prec = p
         self.prune()
 
+    def n_expr_stmt(self, node: SyntaxTree):
+        # When a statement contains only a named_expr (:=)
+        # the named_expr should have parenthesis around it.
+        if node[0] == "expr" and node[0][0] != "named_expr":
+            template = ("%|%p\n", (0, "expr", NO_PARENTHESIS_EVER))
+        else:
+            template = ("%|%p\n", (0, "expr", PRECEDENCE["named_expr"] - 1))
+        self.template_engine(template, node)
+        self.prune()
+
+
     def n_generator_exp(self, node: SyntaxTree):
         self.write("(")
         if node[0].kind in ("load_closure", "load_genexpr"):
