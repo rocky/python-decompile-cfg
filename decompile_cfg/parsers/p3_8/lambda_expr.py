@@ -480,6 +480,10 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
     def p_comprehension(self, args):
         """
+        # comp_body is the body of some sort of list, dict, set, or generator
+        # comprehension. The body is what adds to the accumulated collection
+        # (or contains a "yield" in the case of a generator).
+
         comp_body      ::= dict_comp_body
         comp_body      ::= gen_comp_body
         comp_body      ::= list_comp_body
@@ -488,6 +492,9 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         comp_for       ::= expr get_for_iter BB_START store comp_iter
                            BB_START JUMP_FOR
 
+
+        # "comp_if" is a comprehension iteration (comp_iter) with some sort of
+        # "if" condition which preceeds the iteration.
 
         # Note: `comp_if_xxx`, we always start with an
         # `expr `and end with a `comp_iter`. Semantic actions
@@ -578,6 +585,13 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                             expr JUMP_FOR POP_JUMP_IF_FALSE_LOOP
                             bb_end_start_opt
                             comp_iter
+
+        # "comp_iter" is a comprehension iteration which
+        # contains ultimately a comprehension body.
+        # The body is the part that adds to the result
+        # and is custom to the kind of comprehension we have.
+        # comprehension interations may be comp_if's
+        # which is a comprehension together with some condition.
 
         comp_iter     ::= comp_if BLOCK_END_JOIN
         comp_iter     ::= comp_if_chained

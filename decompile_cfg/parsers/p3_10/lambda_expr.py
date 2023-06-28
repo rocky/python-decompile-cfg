@@ -306,13 +306,13 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
                                    ROT_TWO POP_TOP
                                    RETURN_VALUE BB_END
 
+        # Something is funky in control-flow. Sometimes we have BLOCK_END_JOIN and
+        # sometimes not. Figure out why the random changes.
         compare_chained_return ::= expr
                                    compare_chained1_return
                                    BLOCK_END_JOIN BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
                                    RETURN_VALUE BB_END BLOCK_END_JOIN
-
-
 
         # FIXME: simplify the compare_chain1 recursion?
         compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
@@ -470,6 +470,10 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
 
     def p_comprehension(self, args):
         """
+        # comp_body is the body of some sort of list, dict, set, or generator
+        # comprehension. The body is what adds to the accumulated collection
+        # (or contains a "yield" in the case of a generator).
+
         comp_body      ::= dict_comp_body
         comp_body      ::= gen_comp_body
         comp_body      ::= list_comp_body
@@ -478,6 +482,9 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         comp_for       ::= expr get_for_iter BB_START store comp_iter
                            BB_START JUMP_FOR
 
+
+        # "comp_if" is a comprehension iteration (comp_iter) with some sort of
+        # "if" condition which preceeds the iteration.
 
         # Note: `comp_if_xxx`, we always start with an
         # `expr `and end with a `comp_iter`. Semantic actions
@@ -569,7 +576,14 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
                             bb_end_start_opt
                             comp_iter
 
-        comp_iter_outer ::= comp_iter BLOCK_END_JOIN
+        comp_for      ::= expr gen_comp_body JUMP_LOOP bb_doms_end_start
+
+        # "comp_iter" is a comprehension iteration which
+        # contains ultimately a comprehension body.
+        # The body is the part that adds to the result
+        # and is custom to the kind of comprehension we have.
+        # comprehension interations may be comp_if's
+        # which is a comprehension together with some condition.
 
         comp_iter     ::= comp_if
         comp_iter     ::= comp_if_chained
@@ -593,10 +607,11 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         comp_iter     ::= comp_if_not_or
 
         comp_iter     ::= comp_for JUMP_ABSOLUTE BB_END BLOCK_END_JOIN
-        comp_for      ::= expr gen_comp_body JUMP_LOOP bb_doms_end_start
 
-        expr_or_arg     ::= LOAD_ARG
+        comp_iter_outer ::= comp_iter BLOCK_END_JOIN
+
         expr_or_arg     ::= expr
+        expr_or_arg     ::= LOAD_ARG
 
         for_loop        ::= BREAK_FOR LOOP FOR_ITER BB_END
 
