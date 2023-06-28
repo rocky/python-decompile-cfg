@@ -78,6 +78,7 @@ STRIPPED_NODES = (
     "pjump_iff_loop",
     "return_expr",
     "set_comp_func",
+    "stmts_return_value",
     "with",
 )
 
