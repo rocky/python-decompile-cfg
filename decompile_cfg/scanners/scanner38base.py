@@ -191,7 +191,6 @@ class Scanner38Base(Scanner):
         cause specific rules for the specific number of arguments they take.
 
         """
-
         def tokens_append(j, token):
             tokens.append(token)
             self.offset2tok_index[token.offset] = j
@@ -247,7 +246,7 @@ class Scanner38Base(Scanner):
                 for inst in self.insts:
                     print(inst.disassemble(self.opc))
 
-        except:
+        except Exception:
             import traceback
 
             traceback.print_exc()
