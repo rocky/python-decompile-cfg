@@ -521,6 +521,15 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                               BB_END BLOCK_END_JOIN
                               BB_START comp_body
 
+        comp_if_or        ::= expr
+                              POP_JUMP_IF_TRUE
+                              bb_end_start_opt
+                              expr
+                              JUMP_FOR
+                              POP_JUMP_IF_FALSE_LOOP
+                              BB_END BLOCK_END_JOIN
+                              BB_START comp_body BLOCK_END_JOIN
+
         comp_if_chained ::= list_if_compare
                             bb_end_start
                             POP_TOP jump_loop_absolute
@@ -606,6 +615,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         comp_iter     ::= comp_body for_jump_unconditional BLOCK_END_JOIN
         comp_iter     ::= comp_if
         comp_iter     ::= comp_if_chained
+        comp_iter     ::= comp_if_or
         comp_iter     ::= comp_if_or2
         comp_iter     ::= comp_if_or_not
         comp_iter     ::= comp_if_not

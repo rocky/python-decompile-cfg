@@ -121,7 +121,7 @@ class ComprehensionMixin:
                 write_if = True
                 if_condition = n
                 n = n[-1]
-                assert n == "comp_iter"
+                assert n in ("comp_iter", "comp_body")
 
         assert n in ("comp_body", "set_iter"), n.kind
 

@@ -385,8 +385,9 @@ TABLE_DIRECT = {
     # Note: Adding "if" is handled inside the
     # comprehension
     "comp_if_or": (
-        "%p or %p ",
-        (0, ("or_parts_pjit", "or_parts_pjit_true_loop", "or_parts_pjit_false_loop", "expr"),
+        "%p or %p",
+        (0, ("or_parts_pjit", "or_parts_pjit_true_loop", "or_parts_pjit_false_loop",
+             "expr"),
          PRECEDENCE["or"] ),
         (3, "expr", PRECEDENCE["or"] ),
         ),
