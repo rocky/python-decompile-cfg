@@ -565,7 +565,6 @@ class NonterminalActions:
         self.template_engine(template, node)
         self.prune()
 
-
     def n_generator_exp(self, node: SyntaxTree):
         self.write("(")
         if node[0].kind in ("load_closure", "load_genexpr"):
@@ -584,14 +583,14 @@ class NonterminalActions:
             # after its comp_iter
             iter_index = -3 if node[-1] == "for_jump_unconditional" else -1
 
-            self.comprehension_walk_newer(node, iter_index=iter_index,
-                                          collection_node=node[collection_node_index])
+            self.comprehension_walk_newer(
+                node, iter_index=iter_index, collection_node=node[collection_node_index]
+            )
             # self.comprehension_walk(node, iter_index=5, code_index=code_index)
         self.write(")")
         self.prune()
 
     n_genexpr_func = n_generator_exp_async = n_generator_exp
-
 
     # In the old days this node would never get called because
     # it was embedded inside some sort of comprehension
@@ -853,8 +852,8 @@ class NonterminalActions:
         self.prune()
 
     def n_return_expr(self, node: SyntaxTree):
-        if len(node) == 1 and node[0] == "expr":
-            # If expr is yield we want parens.
+        if 1 <= len(node) <= 2 and node[0] == "expr" and node[0][0] == "yield_from":
+            # If expr is yield_from we want parens.
             self.prec = PRECEDENCE["yield"] - 1
             self.n_expr(node[0])
         else:

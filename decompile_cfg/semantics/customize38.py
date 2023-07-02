@@ -21,7 +21,7 @@ import re
 # Python 3.8 changes
 #######################
 
-from decompile_cfg.semantics.consts import PRECEDENCE, TABLE_DIRECT
+from decompile_cfg.semantics.consts import NO_PARENTHESIS_EVER, PRECEDENCE, TABLE_DIRECT
 from decompile_cfg.semantics.customize37 import FSTRING_CONVERSION_MAP
 from decompile_cfg.semantics.helper import escape_string, strip_quotes
 
@@ -35,6 +35,11 @@ def customize_for_version3_8(self):
 
     TABLE_DIRECT.update(
         {
+            "and_compare_chained_return": (
+                "%c %c",
+                (0, "and_parts"),
+                (1, "compare_chained1_return"),
+            ),
             "async_for_stmt38": (
                 "%|async for %c in %c:\n%+%c%-%-\n\n",
                 (2, "store"),

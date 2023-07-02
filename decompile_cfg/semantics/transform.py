@@ -33,6 +33,7 @@ REMOVED_NODES = (
 # actions will have bene converted to new form, and so we will
 # do everything by default.
 STRIPPED_NODES = (
+    "and_compare_chained_return",
     "and_or",
     "and_or_expr1",
     "and_or_parts",

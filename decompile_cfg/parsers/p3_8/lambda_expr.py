@@ -59,7 +59,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         # "and_or" is a sequence of "and"s followed by an "or".
         # What makes the "and" part of an "and_or" different from
-        # "and_parts" is that "expr_pjif" is used instead of "expr_jiop".
+        # "and_parts" is that "expr_pjif" is used instead of "expr_jifop".
         # Notice the similarity with "and_
 
         and_or          ::= and_or_parts BB_START expr BLOCK_END_JOIN
@@ -314,6 +314,14 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         compare_chained        ::= expr compare_chained1a_37
         compare_chained        ::= expr compare_chained1b_false
 
+        # "and" with a compare_chained_return
+        and_compare_chained_return ::= and_parts
+                                   compare_chained1_return
+                                   BLOCK_END_JOIN BB_START NOT_FALLEN_INTO_BLOCK
+                                   ROT_TWO POP_TOP
+                                   BB_END BLOCK_END_JOIN
+
+
         compare_chained_return ::= expr
                                    compare_chained1_return
                                    BB_START NOT_FALLEN_INTO_BLOCK
@@ -325,7 +333,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                    BLOCK_END_JOIN BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
                                    RETURN_VALUE BB_END BLOCK_END_JOIN
-
 
 
         # FIXME: simplify the compare_chain1 recursion?
@@ -340,6 +347,9 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         compare_chained1_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
                                     BB_START compare_chained2_return
+
+        compare_chained1_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                    BB_START compare_chained2_return BLOCK_END_JOIN
 
         compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
                                    BB_START compare_chained2 BLOCK_END_JOIN
@@ -468,6 +478,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         expr_pjit_loop             ::= expr for_jump_pop_ift
         expr_pjit_loop             ::= expr loop_jump_pop_ift
         expr_jifop                 ::= expr jifop
+        expr_jifop                 ::= branch_op BB_START jifop
         expr_jitop                 ::= expr jitop
 
         # FIXME: the below two names are horrible and can be confused with the above
@@ -847,6 +858,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         expr ::= yield_from
 
         expr_return ::= compare_return
+        expr_return ::= and_compare_chained_return
 
         # In calls, we use "arg" rather than "expr" so we can
         # bound expressions with conditional branches.
@@ -1049,6 +1061,8 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         return_expr               ::= expr RETURN_VALUE
         return_expr               ::= expr RETURN_VALUE BB_END
+        return_expr               ::= expr_return BLOCK_END_JOIN BB_START RETURN_VALUE
+                                      BB_END BLOCK_END_JOIN BLOCK_END_JOIN_NO_ARG
 
         # This is wrong and control_flow may need fixing.
         block_end_joins           ::= BLOCK_END_JOIN+
