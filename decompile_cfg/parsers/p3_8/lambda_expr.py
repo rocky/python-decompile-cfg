@@ -60,7 +60,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         # "and_or" is a sequence of "and"s followed by an "or".
         # What makes the "and" part of an "and_or" different from
         # "and_parts" is that "expr_pjif" is used instead of "expr_jifop".
-        # Notice the similarity with "and_
+        # Notice the similarity with "and".
 
         and_or          ::= and_or_parts BB_START expr BLOCK_END_JOIN
 
@@ -334,7 +334,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                    ROT_TWO POP_TOP
                                    RETURN_VALUE BB_END BLOCK_END_JOIN
 
-
         # FIXME: simplify the compare_chain1 recursion?
         compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
                                    BB_START compare_chained1 BLOCK_END_JOIN
@@ -366,11 +365,13 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         compare_chained2_return ::= expr COMPARE_OP RETURN_VALUE BB_END
 
-        compare_chained2a_37 ::= expr COMPARE_OP block_end POP_JUMP_IF_TRUE JUMP_FORWARD BB_END
+        compare_chained2a_37 ::= expr COMPARE_OP block_end POP_JUMP_IF_TRUE JUMP_FORWARD
+                                 BB_END
 
 
         # When used in an "if" of a comprehension
-        compare_chained_comprehension  ::= expr DUP_TOP ROT_THREE COMPARE_OP pjump_iff_forward
+        compare_chained_comprehension  ::= expr DUP_TOP ROT_THREE COMPARE_OP
+                                           pjump_iff_forward
                                            compare_chained2_comprehension
 
         compare_chained2_comprehension ::= expr

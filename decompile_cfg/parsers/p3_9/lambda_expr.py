@@ -24,9 +24,10 @@ By leaving out the start symbol rules and name, this module and its classes can
 be used as a superclass in other grammars, such as a full grammar for Python 3.10.
 """
 
+from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
+
 from decompile_cfg.parsers.p3_9.lambda_custom import Python3_9LambdaCustom
 from decompile_cfg.parsers.parse_heads import PythonParserLambda, PythonBaseParser
-from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 
 
 class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
@@ -54,7 +55,8 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         # "and_or" is a sequence of "and"s followed by an "or".
         # What makes the "and" part of an "and_or" different from
-        # "and_parts" is that "expr_pjif" is used instead of "expr_jiop".
+        # "and_parts" is that "expr_pjif" is used instead of "expr_jifop".
+        # Notice the similarity with "and".
 
         and_or          ::= and_or_parts BB_START expr BLOCK_END_JOIN
 
@@ -300,11 +302,13 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         compare_chained        ::= expr compare_chained1a_37
         compare_chained        ::= expr compare_chained1b_false
 
-        compare_chained_return ::= expr
+        # "and" with a compare_chained_return
+        and_compare_chained_return ::= and_parts
                                    compare_chained1_return
                                    BLOCK_END_JOIN BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
-                                   RETURN_VALUE BB_END BLOCK_END_JOIN
+                                   BB_END BLOCK_END_JOIN
+
 
         # Something is funky in control-flow. Sometimes we have BLOCK_END_JOIN and
         # sometimes not. Figure out why the random changes.
@@ -332,6 +336,9 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         compare_chained1_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
                                     BB_START compare_chained2_return
+
+        compare_chained1_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                    BB_START compare_chained2_return BLOCK_END_JOIN
 
         compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
                                    BB_START compare_chained2 BLOCK_END_JOIN
@@ -464,6 +471,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         expr_pjit_loop             ::= expr for_jump_pop_ift
         expr_pjit_loop             ::= expr loop_jump_pop_ift
         expr_jifop                 ::= expr jifop
+        expr_jifop                 ::= branch_op BB_START jifop
         expr_jitop                 ::= expr jitop
 
         # FIXME: the below two names are horrible and can be confused with the above
@@ -661,7 +669,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                             bb_end_start
                             store
                             comp_iter
-                            JUMP_LOOP
+                            for_jump_unconditional
                             block_end
 
         get_for_iter   ::= GET_ITER BB_END BB_START for_iter
@@ -967,7 +975,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                               for_jump_unconditional
                               BLOCK_END_JOIN
 
-        return_expr               ::= if_exp_and_return
+        return_expr       ::= if_exp_and_return
 
         # named_expr is also known as the "walrus op" :=
         named_expr        ::= expr DUP_TOP store
