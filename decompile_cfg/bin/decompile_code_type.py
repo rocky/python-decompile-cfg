@@ -48,7 +48,7 @@ PATTERNS = ("*.pyc", "*.pyo")
     ),
 )
 @click.version_option(version=__version__)
-@click.option("--asm/--no-asm", "-a", "show_asm", default=False)
+@click.option("--asm", "-a", "show_asm", count=True)
 @click.option("--grammar/--no-grammar", "-g", default=False)
 @click.option("--tree/--no-tree", "-t", default=False)
 @click.option("--tree++/--no-tree++", "-T", "tree_plus", default=False)
@@ -62,7 +62,7 @@ PATTERNS = ("*.pyc", "*.pyo")
     required=False,
 )
 @click.argument("files", nargs=-1, type=click.Path(readable=True), required=True)
-def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
+def main(code_format, show_asm: int, grammar, tree, tree_plus, outfile, files):
     """Decompile all code objects of a certain format."""
 
     version_tuple = sys.version_info[0:2]
@@ -101,8 +101,14 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
         if os.path.isdir(outfile):
             outfile = None
 
-    # maybe a second -a will do before as well
-    asm = "after" if show_asm else None
+    # A second -a turns show_asm="after" into show_asm="before"
+    from trepan.api import debug
+
+    debug()
+    if show_asm > 0:
+        asm_opt = "both" if show_asm > 1 else "after"
+    else:
+        asm_opt = None
 
     if tree_plus:
         tree = True
@@ -135,7 +141,7 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
                             succeeded = decompile_fn(
                                 filepath,
                                 outfile,
-                                showasm=asm,
+                                showasm=asm_opt,
                                 showgrammar=show_grammar,
                                 showast=show_ast,
                             )
@@ -156,7 +162,7 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
                     succeeded = decompile_fn(
                         filename,
                         outfile,
-                        showasm=asm,
+                        showasm=asm_opt,
                         showgrammar=show_grammar,
                         showast=show_ast,
                     )

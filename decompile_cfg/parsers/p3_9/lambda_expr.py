@@ -852,6 +852,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         expr ::= yield_from
 
         expr_return ::= compare_return
+        expr_return ::= and_compare_chained_return
 
         # In calls, we use "arg" rather than "expr" so we can
         # bound expressions with conditional branches.
