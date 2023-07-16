@@ -30,7 +30,7 @@ REMOVED_NODES = (
 )
 
 # Eventually we won't need STRIPPED_NODES because all semantic
-# actions will have bene converted to new form, and so we will
+# actions will have bene converted to the new form. So here, we will
 # do everything by default.
 STRIPPED_NODES = (
     "and_compare_chained_return",
