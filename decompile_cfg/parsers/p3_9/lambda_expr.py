@@ -39,7 +39,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         # "and" is the final reduction that hooks into the higher level
         # levels of the grammar.
-        and               ::= and_parts
+        and               ::= and_parts BLOCK_END_JOIN
 
         # And "and_part" is an "expr" that is followed by a BB_END because there
         # is a jump to the instruction after that "expr"
@@ -51,7 +51,12 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         # And by doing such, we are proper keeping track and nesting.
 
         and_parts         ::= and_part
-        and_parts         ::= and_parts BB_START expr BLOCK_END_JOIN
+        and_parts         ::= and_parts BB_START expr BB_END
+        and_parts         ::= or_and_part BB_START expr BB_END
+
+        # This is wrong - we should not need this and use only the above.
+        # there is something in control-flow that is intermittent.
+        and_parts         ::= expr_jifop BB_START expr BB_END
 
         # "and_or" is a sequence of "and"s followed by an "or".
         # What makes the "and" part of an "and_or" different from
@@ -883,9 +888,9 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         # Note: we use "branch_op" in an implementation-specific way.
         #
-        # What distinguishes these kinds of Boolean expressions from other kinds of expressions,
-        # even from those that return True and False (like "is" and "in") is that
-        # they have basic block and dominator pseudo instructions.
+        # What distinguishes these kinds of Boolean expressions from other kinds of
+        # expressions, even from those that return True and False (like "is" and "in")
+        # is that they have basic block and dominator pseudo instructions.
 
         branch_op ::= and
         branch_op ::= and BB_START
@@ -909,6 +914,9 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         branch_op ::= or
         branch_op ::= or BB_START
+
+        # This is weird one; investigate and fix
+        branch_op ::= or_and_part BB_START
 
         branch_op ::= or_ands
         branch_op ::= or_ands BB_START
