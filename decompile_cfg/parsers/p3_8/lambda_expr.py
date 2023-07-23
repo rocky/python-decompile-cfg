@@ -326,7 +326,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                    compare_chained1_return
                                    BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
-                                   RETURN_VALUE BB_END BLOCK_END_JOIN
+                                   RETURN_VALUE BB_END
 
         compare_chained_return ::= expr
                                    compare_chained1_return
@@ -346,9 +346,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         compare_chained1_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
                                     BB_START compare_chained2_return
-
-        compare_chained1_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                    BB_START compare_chained2_return BLOCK_END_JOIN
 
         compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
                                    BB_START compare_chained2 BLOCK_END_JOIN
@@ -1062,8 +1059,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         return_expr               ::= expr RETURN_VALUE
         return_expr               ::= expr RETURN_VALUE BB_END
-        return_expr               ::= expr_return BLOCK_END_JOIN BB_START RETURN_VALUE
-                                      BB_END BLOCK_END_JOIN BLOCK_END_JOIN_NO_ARG
+        return_expr               ::= expr_return
 
         # This is wrong and control_flow may need fixing.
         block_end_joins           ::= BLOCK_END_JOIN+
