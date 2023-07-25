@@ -998,7 +998,7 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         unary_not         ::= expr UNARY_NOT
 
         yield             ::= expr YIELD_VALUE BB_END
-        yield_from        ::= expr
+        yield_from        ::= GEN_START expr
                               GET_YIELD_FROM_ITER LOAD_CONST YIELD_FROM
         """
 

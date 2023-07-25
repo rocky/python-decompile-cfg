@@ -33,6 +33,7 @@ def customize_for_version3_10(self):
     TABLE_DIRECT.update(
         {
             "await_expr": ("await %p", (1, PRECEDENCE["await_expr"] - 1)),
+            "yield_from": ("yield from %c", (1, "expr")),
         }
     )
 
