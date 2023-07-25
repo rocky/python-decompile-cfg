@@ -803,7 +803,7 @@ class Python3_9ParserFull(Python3_9LambdaParser, Python3_9FullCustom):
 
         testfalse  ::= expr_pjif
         testfalsec ::= expr POP_JUMP_IF_TRUE_LOOP
-        testfalsec ::= c_compare_chained1b_false_3_9
+        testfalsec ::= c_compare_chained_middleb_false_3_9
 
         testtrue   ::= expr_pjit
         testtruec  ::= expr POP_JUMP_IF_FALSE_LOOP

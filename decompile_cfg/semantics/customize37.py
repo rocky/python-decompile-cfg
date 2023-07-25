@@ -39,6 +39,7 @@ EMPTY_DICT = SyntaxTree(
 
 FSTRING_CONVERSION_MAP = {1: "!s", 2: "!r", 3: "!a", "X": ":X"}
 
+
 #######################
 def customize_for_version3_7(self):
     ########################
@@ -139,26 +140,26 @@ def customize_for_version3_7(self):
             "await_stmt": ("%|%c\n", 0),
             "c_async_with_stmt": ("%|async with %c:\n%+%c%-", (0, "expr"), 3),
             "call_ex": ("%c(%p)", (0, "expr"), (1, 100)),
-            "compare_chained1a_37": (
+            "compare_chained_middlea_37": (
                 "%p %p",
                 (0, PRECEDENCE["compare"] - 1),
                 (1, PRECEDENCE["compare"] - 1),
             ),
-            "c_compare_chained1a_37": (
+            "c_compare_chained_middlea_37": (
                 "%p %p",
                 (0, PRECEDENCE["compare"] - 1),
                 (1, PRECEDENCE["compare"] - 1),
             ),
-            "compare_chained1_false_37": (
+            "compare_chained_middle_false_37": (
                 "%p%p",
                 (0, "chained_parts", PRECEDENCE["compare"] - 1),
                 (1, PRECEDENCE["compare"] - 1),
             ),
-            "compare_chained2_false_37": (
+            "compare_chained_right_false_37": (
                 (0, "chained_part", PRECEDENCE["compare"] - 1),
                 (1, PRECEDENCE["compare"] - 1),
             ),
-            "compare_chained1b_false_37": (
+            "compare_chained_middleb_false_37": (
                 "%p %p",
                 (0, PRECEDENCE["compare"] - 1),
                 (1, PRECEDENCE["compare"] - 1),
@@ -173,37 +174,37 @@ def customize_for_version3_7(self):
                 (1, "chained_parts"),
                 -2,  # Is often a transformed negated_testtrue
             ),
-            "compare_chained1c_37": (
+            "compare_chained_middlec_37": (
                 "%p %p",
                 (0, PRECEDENCE["compare"] - 1),
                 (1, PRECEDENCE["compare"] - 1),
             ),
-            "compare_chained2a_37": (
+            "compare_chained_righta_37": (
                 '%[1]{pattr.replace("-", " ")} %p',
                 (0, PRECEDENCE["compare"] - 1),
             ),
-            "c_compare_chained2a_37": (
+            "c_compare_chained_righta_37": (
                 '%[1]{pattr.replace("-", " ")} %p',
                 (0, PRECEDENCE["compare"] - 1),
             ),
             "c_try_except36": ("%|try:\n%+%c%-%c\n\n", 1, 2),
-            "compare_chained2b_false_37": (
+            "compare_chained_rightb_false_37": (
                 '%[1]{pattr.replace("-", " ")} %p',
                 (0, PRECEDENCE["compare"] - 1),
             ),
-            "c_compare_chained2b_false_37": (
+            "c_compare_chained_rightb_false_37": (
                 ' %[1]{pattr.replace("-", " ")} %p',
                 (0, PRECEDENCE["compare"] - 1),
             ),
-            "compare_chained2a_false_37": (
+            "compare_chained_righta_false_37": (
                 '%[1]{pattr.replace("-", " ")} %p',
                 (0, PRECEDENCE["compare"] - 1),
             ),
-            "c_compare_chained2a_false_37": (
+            "c_compare_chained_righta_false_37": (
                 ' %[1]{pattr.replace("-", " ")} %p',
                 (0, PRECEDENCE["compare"] - 1),
             ),
-            "compare_chained2c_37": (
+            "compare_chained_rightc_37": (
                 "%p %p",
                 (0, PRECEDENCE["compare"] - 1),
                 (1, PRECEDENCE["compare"] - 1),
@@ -346,7 +347,7 @@ def customize_for_version3_7(self):
                     (
                         "expr",
                         "c_compare_chained37_false",
-                        "c_compare_chained1b_false_37",
+                        "c_compare_chained_middleb_false_37",
                         "c_nand",
                     ),
                 ),
@@ -510,9 +511,16 @@ def customize_for_version3_7(self):
     # FIXME: Can we to compress this into a single template?
     def n_and_parts(node):
         if len(node) == 1:
-            self.template_engine(("%c", (0, ("expr_pjif", "and_part", "expr"))),
-                                 node)
+            self.template_engine(("%c", (0, ("expr_pjif", "and_part", "expr"))), node)
             self.prune()
+        elif len(node) == 2 and node[0] == "or_and_part" and len(node[0]) == 2:
+            # We have this when the "or" portion is just one item, so in effect
+            # we just have a compsit "and".
+            self.template_engine(
+                ("%c and %c and ", (0, "expr_pjit"), (1, "expr_jifop")), node[0]
+            )
+            self.n_expr(node[1])
+
         else:
             self.default(node)
             pass
@@ -1402,12 +1410,12 @@ def customize_for_version3_7(self):
         compare_chained37 = node[0]
         if (
             compare_chained37 == "compare_chained37"
-            and compare_chained37[1] == "compare_chained1b_37"
+            and compare_chained37[1] == "compare_chained_middleb_37"
         ):
-            compare_chained1b_37 = compare_chained37[1]
+            compare_chained_middleb_37 = compare_chained37[1]
             if (
-                len(compare_chained1b_37) > 2
-                and compare_chained1b_37[-2] == "JUMP_FORWARD"
+                len(compare_chained_middleb_37) > 2
+                and compare_chained_middleb_37[-2] == "JUMP_FORWARD"
             ):
                 node.kind = "testfalse"
                 pass

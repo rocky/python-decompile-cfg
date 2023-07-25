@@ -793,7 +793,7 @@ class Python3_8ParserFull(Python3_8LambdaParser, Python3_8FullCustom):
 
         testfalse  ::= expr_pjif
         testfalsec ::= expr POP_JUMP_IF_TRUE_LOOP
-        testfalsec ::= c_compare_chained1b_false_3_8
+        testfalsec ::= c_compare_chained_middleb_false_3_8
 
         testtrue   ::= expr_pjit
         testtruec  ::= expr POP_JUMP_IF_FALSE_LOOP

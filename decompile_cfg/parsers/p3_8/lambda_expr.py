@@ -39,7 +39,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         # "and" is the final reduction that hooks into the higher level
         # levels of the grammar.
-        and               ::= and_parts
+        and               ::= and_parts BLOCK_END_JOIN
 
         # And "and_part" is an "expr" that is followed by a BB_END because there
         # is a jump to the instruction after that "expr"
@@ -51,11 +51,13 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         # And by doing such, we are proper keeping track and nesting.
 
         and_parts         ::= and_part
-        and_parts         ::= and_parts BB_START expr BLOCK_END_JOIN
+        and_parts         ::= and_parts BB_START expr BB_END
+
+        and_parts         ::= or_and_part BB_START expr BB_END
 
         # This is wrong - we should not need this and use only the above.
         # there is something in control-flow that is intermittent.
-        and_parts         ::= expr_jifop BB_START expr
+        and_parts         ::= expr_jifop BB_START expr BB_END
 
         # "and_or" is a sequence of "and"s followed by an "or".
         # What makes the "and" part of an "and_or" different from
@@ -304,77 +306,74 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         # In the Python AST, this appears as: Compare(.. ops=)
 
         compare_chained        ::= expr
-                                   compare_chained1
+                                   compare_chained_middle
                                    BB_START SIBLING_BLOCK
                                    ROT_TWO POP_TOP
                                    BB_END BLOCK_END_JOIN
 
         compare_chained        ::= expr chained_parts
         compare_chained        ::= compare_chained37_false
-        compare_chained        ::= expr compare_chained1a_37
-        compare_chained        ::= expr compare_chained1b_false
+        compare_chained        ::= expr compare_chained_middlea_37
+        compare_chained        ::= expr compare_chained_middleb_false
 
         # "and" with a compare_chained_return
         and_compare_chained_return ::= and_parts
-                                   compare_chained1_return
+                                   compare_chained_middle_return
                                    BLOCK_END_JOIN BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
                                    BB_END BLOCK_END_JOIN
 
 
         compare_chained_return ::= expr
-                                   compare_chained1_return
+                                   compare_chained_middle_return
                                    BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
-                                   RETURN_VALUE BB_END BLOCK_END_JOIN
+                                   RETURN_VALUE BB_END
 
         compare_chained_return ::= expr
-                                   compare_chained1_return
+                                   compare_chained_middle_return
                                    BLOCK_END_JOIN BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
                                    RETURN_VALUE BB_END BLOCK_END_JOIN
 
         # FIXME: simplify the compare_chain1 recursion?
-        compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                   BB_START compare_chained1 BLOCK_END_JOIN
+        compare_chained_middle       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                   BB_START compare_chained_middle BLOCK_END_JOIN
 
-        compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                   BB_START compare_chained2 BLOCK_END_JOIN
+        compare_chained_middle       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                   BB_START compare_chained_right BLOCK_END_JOIN
 
-        compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                   BB_START compare_chained2
+        compare_chained_middle       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                   BB_START compare_chained_right
 
-        compare_chained1_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                    BB_START compare_chained2_return
+        compare_chained_middle_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                    BB_START compare_chained_right_return
 
-        compare_chained1_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                    BB_START compare_chained2_return BLOCK_END_JOIN
+        compare_chained_middle       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                   BB_START compare_chained_right BLOCK_END_JOIN
 
-        compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                   BB_START compare_chained2 BLOCK_END_JOIN
+        compare_chained_middle       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                   BB_START compare_chained_right
 
-        compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                   BB_START compare_chained2
-
-        compare_chained1a_37   ::= chained_parts
-                                   compare_chained2a_37
+        compare_chained_middlea_37   ::= chained_parts
+                                   compare_chained_righta_37
                                    block_end
                                    POP_TOP block_end
 
-        compare_chained2     ::= expr COMPARE_OP JUMP_FORWARD BB_END
+        compare_chained_right     ::= expr COMPARE_OP JUMP_FORWARD BB_END
 
-        compare_chained2_return ::= expr COMPARE_OP RETURN_VALUE BB_END
+        compare_chained_right_return ::= expr COMPARE_OP RETURN_VALUE BB_END
 
-        compare_chained2a_37 ::= expr COMPARE_OP block_end POP_JUMP_IF_TRUE JUMP_FORWARD
+        compare_chained_righta_37 ::= expr COMPARE_OP block_end POP_JUMP_IF_TRUE JUMP_FORWARD
                                  BB_END
 
 
         # When used in an "if" of a comprehension
         compare_chained_comprehension  ::= expr DUP_TOP ROT_THREE COMPARE_OP
                                            pjump_iff_forward
-                                           compare_chained2_comprehension
+                                           compare_chained_right_comprehension
 
-        compare_chained2_comprehension ::= expr
+        compare_chained_right_comprehension ::= expr
                                            COMPARE_OP
                                            loop_jump_pop_iff
                                            JUMP_FORWARD
@@ -386,27 +385,27 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         # in a nonterminal and if we need it, have a reduction check
         # test at the nonterminal symbol level.
         compare_chained37_false        ::= expr
-                                           compare_chained1b_false_loop
+                                           compare_chained_middleb_false_loop
 
         compare_chained37_false        ::= expr
                                            compare_chained
 
-        compare_chained1b_false        ::= chained_parts
+        compare_chained_middleb_false  ::= chained_parts
                                            bb_end_start
-                                           compare_chained2b_false
+                                           compare_chained_rightb_false
                                            POP_TOP jump
                                            bb_doms_end_start_opt
 
-        compare_chained1b_false_loop   ::= chained_parts
+        compare_chained_middleb_false_loop   ::= chained_parts
                                            bb_end_start
-                                           compare_chained2b_false_loop
+                                           compare_chained_rightb_false_loop
                                            POP_TOP jump bb_doms_end_start_opt
 
-        compare_chained1b_false_loop   ::= expr
-                                           compare_chained2b_false_loop
+        compare_chained_middleb_false_loop   ::= expr
+                                           compare_chained_rightb_false_loop
                                            POP_TOP JUMP_LOOP bb_doms_end_start_opt
 
-        compare_chained2b_false        ::= expr COMPARE_OP
+        compare_chained_rightb_false        ::= expr COMPARE_OP
                                            POP_JUMP_IF_FALSE
                                            bb_end_start_opt
                                            jump_or_break
@@ -414,13 +413,13 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                            SIBLING_BLOCK
 
 
-        compare_chained2b_false_loop   ::= expr COMPARE_OP
+        compare_chained_rightb_false_loop   ::= expr COMPARE_OP
                                            bb_end_start_opt
                                            loop_jump_pop_iff
                                            jump_or_break
                                            block_end
 
-        compare_chained2b_false_loop   ::= expr COMPARE_OP
+        compare_chained_rightb_false_loop   ::= expr COMPARE_OP
                                            bb_end_start_opt
                                            for_jump_pop_iff
                                            jump_or_break
@@ -890,9 +889,9 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         # Note: we use "branch_op" in an implementation-specific way.
         #
-        # What distinguishes these kinds of Boolean expressions from other kinds of expressions,
-        # even from those that return True and False (like "is" and "in") is that
-        # they have basic block and dominator pseudo instructions.
+        # What distinguishes these kinds of Boolean expressions from other kinds of
+        # expressions, even from those that return True and False (like "is" and "in")
+        # is that they have basic block and dominator pseudo instructions.
 
         branch_op ::= and
         branch_op ::= and BB_START
@@ -916,6 +915,9 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         branch_op ::= or
         branch_op ::= or BB_START
+
+        # This is weird one; investigate and fix
+        branch_op ::= or_and_part BB_START
 
         branch_op ::= or_ands
         branch_op ::= or_ands BB_START
@@ -1062,8 +1064,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         return_expr               ::= expr RETURN_VALUE
         return_expr               ::= expr RETURN_VALUE BB_END
-        return_expr               ::= expr_return BLOCK_END_JOIN BB_START RETURN_VALUE
-                                      BB_END BLOCK_END_JOIN BLOCK_END_JOIN_NO_ARG
+        return_expr               ::= expr_return
 
         # This is wrong and control_flow may need fixing.
         block_end_joins           ::= BLOCK_END_JOIN+
