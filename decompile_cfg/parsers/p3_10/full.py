@@ -793,7 +793,7 @@ class Python3_10ParserFull(Python3_10LambdaParser, Python3_10FullCustom):
 
         testfalse  ::= expr_pjif
         testfalsec ::= expr POP_JUMP_IF_TRUE_LOOP
-        testfalsec ::= c_compare_chained1b_false_3_10
+        testfalsec ::= c_compare_chained_middleb_false_3_10
 
         testtrue   ::= expr_pjit
         testtruec  ::= expr POP_JUMP_IF_FALSE_LOOP

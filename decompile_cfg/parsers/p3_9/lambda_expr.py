@@ -297,19 +297,19 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         # In the Python AST, this appears as: Compare(.. ops=)
 
         compare_chained        ::= expr
-                                   compare_chained1
+                                   compare_chained_middle
                                    BB_START SIBLING_BLOCK
                                    ROT_TWO POP_TOP
                                    BB_END BLOCK_END_JOIN
 
         compare_chained        ::= expr chained_parts
         compare_chained        ::= compare_chained37_false
-        compare_chained        ::= expr compare_chained1a_37
-        compare_chained        ::= expr compare_chained1b_false
+        compare_chained        ::= expr compare_chained_middlea_37
+        compare_chained        ::= expr compare_chained_middleb_false
 
         # "and" with a compare_chained_return
         and_compare_chained_return ::= and_parts
-                                   compare_chained1_return
+                                   compare_chained_middle_return
                                    BLOCK_END_JOIN BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
                                    BB_END BLOCK_END_JOIN
@@ -318,58 +318,58 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         # Something is funky in control-flow. Sometimes we have BLOCK_END_JOIN and
         # sometimes not. Figure out why the random changes.
         compare_chained_return ::= expr
-                                   compare_chained1_return
+                                   compare_chained_middle_return
                                    BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
                                    RETURN_VALUE BB_END BLOCK_END_JOIN
 
         compare_chained_return ::= expr
-                                   compare_chained1_return
+                                   compare_chained_middle_return
                                    BLOCK_END_JOIN BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
                                    RETURN_VALUE BB_END BLOCK_END_JOIN
 
         # FIXME: simplify the compare_chain1 recursion?
-        compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                   BB_START compare_chained1 BLOCK_END_JOIN
+        compare_chained_middle       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                   BB_START compare_chained_middle BLOCK_END_JOIN
 
-        compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                   BB_START compare_chained2 BLOCK_END_JOIN
+        compare_chained_middle       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                   BB_START compare_chained_right BLOCK_END_JOIN
 
-        compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                   BB_START compare_chained2
+        compare_chained_middle       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                   BB_START compare_chained_right
 
-        compare_chained1_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                    BB_START compare_chained2_return
+        compare_chained_middle_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                    BB_START compare_chained_right_return
 
-        compare_chained1_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                    BB_START compare_chained2_return BLOCK_END_JOIN
+        compare_chained_middle_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                    BB_START compare_chained_right_return BLOCK_END_JOIN
 
-        compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                   BB_START compare_chained2 BLOCK_END_JOIN
+        compare_chained_middle       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                   BB_START compare_chained_right BLOCK_END_JOIN
 
-        compare_chained1       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
-                                   BB_START compare_chained2
+        compare_chained_middle       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                   BB_START compare_chained_right
 
-        compare_chained1a_37   ::= chained_parts
-                                   compare_chained2a_37
+        compare_chained_middlea_37   ::= chained_parts
+                                   compare_chained_righta_37
                                    block_end
                                    POP_TOP block_end
 
-        compare_chained2     ::= expr COMPARE_OP JUMP_FORWARD BB_END
+        compare_chained_right     ::= expr COMPARE_OP JUMP_FORWARD BB_END
 
-        compare_chained2_return ::= expr COMPARE_OP RETURN_VALUE BB_END
+        compare_chained_right_return ::= expr COMPARE_OP RETURN_VALUE BB_END
 
-        compare_chained2a_37 ::= expr COMPARE_OP block_end POP_JUMP_IF_TRUE JUMP_FORWARD
+        compare_chained_righta_37 ::= expr COMPARE_OP block_end POP_JUMP_IF_TRUE JUMP_FORWARD
                                  BB_END
 
 
         # When used in an "if" of a comprehension
         compare_chained_comprehension  ::= expr DUP_TOP ROT_THREE COMPARE_OP
                                            pjump_iff_forward
-                                           compare_chained2_comprehension
+                                           compare_chained_right_comprehension
 
-        compare_chained2_comprehension ::= expr
+        compare_chained_right_comprehension ::= expr
                                            COMPARE_OP
                                            loop_jump_pop_iff
                                            JUMP_FORWARD
@@ -381,27 +381,27 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         # in a nonterminal and if we need it, have a reduction check
         # test at the nonterminal symbol level.
         compare_chained37_false        ::= expr
-                                           compare_chained1b_false_loop
+                                           compare_chained_middleb_false_loop
 
         compare_chained37_false        ::= expr
                                            compare_chained
 
-        compare_chained1b_false        ::= chained_parts
+        compare_chained_middleb_false  ::= chained_parts
                                            bb_end_start
-                                           compare_chained2b_false
+                                           compare_chained_rightb_false
                                            POP_TOP jump
                                            bb_doms_end_start_opt
 
-        compare_chained1b_false_loop   ::= chained_parts
+        compare_chained_middleb_false_loop   ::= chained_parts
                                            bb_end_start
-                                           compare_chained2b_false_loop
+                                           compare_chained_rightb_false_loop
                                            POP_TOP jump bb_doms_end_start_opt
 
-        compare_chained1b_false_loop   ::= expr
-                                           compare_chained2b_false_loop
+        compare_chained_middleb_false_loop   ::= expr
+                                           compare_chained_rightb_false_loop
                                            POP_TOP JUMP_LOOP bb_doms_end_start_opt
 
-        compare_chained2b_false        ::= expr COMPARE_OP
+        compare_chained_rightb_false        ::= expr COMPARE_OP
                                            POP_JUMP_IF_FALSE
                                            bb_end_start_opt
                                            jump_or_break
@@ -409,13 +409,13 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                                            SIBLING_BLOCK
 
 
-        compare_chained2b_false_loop   ::= expr COMPARE_OP
+        compare_chained_rightb_false_loop   ::= expr COMPARE_OP
                                            bb_end_start_opt
                                            loop_jump_pop_iff
                                            jump_or_break
                                            block_end
 
-        compare_chained2b_false_loop   ::= expr COMPARE_OP
+        compare_chained_rightb_false_loop   ::= expr COMPARE_OP
                                            bb_end_start_opt
                                            for_jump_pop_iff
                                            jump_or_break

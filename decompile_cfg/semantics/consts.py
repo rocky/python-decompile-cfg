@@ -435,9 +435,9 @@ TABLE_DIRECT = {
         "%p %p",
         (0, "expr", PRECEDENCE["compare"] - 1),
         (1, (
-            "compare_chained1",
-            "compare_chained1a_37",
-            "compare_chained1b_false",
+            "compare_chained_middle",
+            "compare_chained_middlea_37",
+            "compare_chained_middleb_false",
             "compare_chained37_false"
             ),
          PRECEDENCE["compare"])
@@ -454,39 +454,39 @@ TABLE_DIRECT = {
         "%p %p",
         (0, "expr", PRECEDENCE["compare"] - 1),
         (1, (
-            "compare_chained1_return",
+            "compare_chained_middle_return",
             ),
          PRECEDENCE["compare"])
       ),
 
-    "compare_chained1":	(
+    "compare_chained_middle":	(
         '%[3]{pattr.replace("-", " ")} %p %p',
         (0, PRECEDENCE["compare"] -1),
         (-1, PRECEDENCE["compare"] -1),
         ),
 
-    "compare_chained1_return":	(
+    "compare_chained_middle_return":	(
         '%[3]{pattr.replace("-", " ")} %p %p',
         (0, PRECEDENCE["compare"] -1),
         (-1, PRECEDENCE["compare"] -1),
         ),
 
-    "compare_chained2b_false":	(
+    "compare_chained_rightb_false":	(
         ' %[1]{pattr.replace("-", " ")} %p',
         (0, "expr", 19),
         ),
 
-    "compare_chained2":	(
+    "compare_chained_right":	(
         '%[1]{pattr.replace("-", " ")} %p',
         (0, PRECEDENCE["compare"] - 1)
         ),
 
-    "compare_chained2_return":	(
+    "compare_chained_right_return":	(
         '%[1]{pattr.replace("-", " ")} %p',
         (0, PRECEDENCE["compare"] - 1)
         ),
 
-    "compare_chained2b_false_loop":	(
+    "compare_chained_rightb_false_loop":	(
         ' %[1]{pattr.replace("-", " ")} %p',
         (0, 19)
         ),
@@ -495,7 +495,7 @@ TABLE_DIRECT = {
         "%c %c", 0, 1
     ),
 
-    "compare_chained2_comprehension":	(
+    "compare_chained_right_comprehension":	(
         '%[1]{pattr.replace("-", " ")} %p',
         (0, 19)
         ),
