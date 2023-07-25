@@ -1,4 +1,4 @@
-#  Copyright (c) 2019-2022 by Rocky Bernstein
+#  Copyright (c) 2019-2023 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -23,10 +23,10 @@ Isolate Python 3.9 version-specific semantic actions here.
 from decompile_cfg.semantics.consts import PRECEDENCE, TABLE_DIRECT
 
 
-def customize_for_version39(self, version):
+def customize_for_version3_9(self):
 
     # fmt: off
-    PRECEDENCE["call_ex_39"] = 1
+    PRECEDENCE["call_ex_3_9"] = 1
     PRECEDENCE["and2"]       = PRECEDENCE["and"]
     # fmt: on
 
@@ -40,7 +40,7 @@ def customize_for_version39(self, version):
         }
     )
 
-    def call_ex_39(node):
+    def n_call_ex_3_9(node):
         """Handle CALL_FUNCTION_EX when there are positional arguments"""
 
         # Format call function name
@@ -48,15 +48,14 @@ def customize_for_version39(self, version):
         self.preorder(call_fn_name)
         self.write("(")
 
-        seen_arg = False
         star_args = node[2]
 
         star_star_kwargs = None
 
         # Format positional args
-        seen_arg = True
         positional_args = node[1]
         self.template_engine(("%P", (0, -1, ", ", 100)), positional_args)
+        trailing_comma = False
 
         # Format keyword args if it exists
         keyword_args = node[-4]
@@ -64,14 +63,15 @@ def customize_for_version39(self, version):
             self.write(", ")
             self.call36_dict(keyword_args)
             self.write(", ")
+            trailing_comma = True
 
         # Format *args if it exists
         if star_args is not None:
-            if seen_arg:
+            if trailing_comma is False:
                 self.write(", ")
             self.write("*")
             self.preorder(star_args)
-            seen_arg = True
+            trailing_comma = False
 
         # Format **kwargs if it exists
 
@@ -85,7 +85,7 @@ def customize_for_version39(self, version):
             star_star_kwargs = node[-3]
 
         if star_star_kwargs:
-            if seen_arg:
+            if not trailing_comma:
                 self.write(", ")
             self.write("**")
             self.preorder(star_star_kwargs)
@@ -93,9 +93,9 @@ def customize_for_version39(self, version):
         self.write(")")
         self.prune()
 
-    self.n_call_ex_39 = call_ex_39
+    self.n_call_ex_3_9 = n_call_ex_3_9
 
-    def call_ex0_39(node):
+    def call_ex0_3_9(node):
         """Handle CALL_FUNCTION_EX when there are no positional arguments"""
         # Format call function name
         call_fn_name = node[0]
@@ -142,9 +142,9 @@ def customize_for_version39(self, version):
         self.write(")")
         self.prune()
 
-    self.n_call_ex0_39 = call_ex0_39
+    self.n_call_ex0_3_9 = call_ex0_3_9
 
-    def call_ex1_39(node):
+    def call_ex1_3_9(node):
         """
         Handle CALL_FUNCTION_EX when there positional arguments and no keyword arguments
         """
@@ -192,4 +192,4 @@ def customize_for_version39(self, version):
         self.write(")")
         self.prune()
 
-    self.n_call_ex1_39 = call_ex1_39
+    self.n_call_ex1_3_9 = call_ex1_3_9

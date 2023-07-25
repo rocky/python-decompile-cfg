@@ -1,4 +1,4 @@
-#  Copyright (c) 2017-2022 Rocky Bernstein
+#  Copyright (c) 2017-2023 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,34 +19,34 @@ start symbol name. That is elsewhere.
 
 By leaving out the start symbol rules and name, this module and its
 classes be can used as a superclass in other grammars, although
-Python38Parser is probably pretty much top-level.
+Python3_8Parser is probably pretty much top-level.
 
 Methods that start p_ have docstrings that are rule names.
-Here we add a suffix _38full ito ensure there are no method name
+Here we add a suffix _3_8full ito ensure there are no method name
 conflicts with classes are smooshed together.
 """
 
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
-from decompile_cfg.parsers.p39.lambda_expr import Python39LambdaParser
-from decompile_cfg.parsers.p39.full_custom import Python39FullCustom
+from decompile_cfg.parsers.p3_8.lambda_expr import Python3_8LambdaParser
+from decompile_cfg.parsers.p3_8.full_custom import Python3_8FullCustom
 
 
-class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
+class Python3_8ParserFull(Python3_8LambdaParser, Python3_8FullCustom):
     def __init__(
         self,
-        start_symbol: str="stmts",
+        start_symbol: str="stmts_return_value",
         debug_parser:dict=PARSER_DEFAULT_DEBUG
     ):
-        Python39LambdaParser.__init__(self, start_symbol, debug_parser)
+        Python3_8LambdaParser.__init__(self, start_symbol, debug_parser)
         self.customized = {}
 
     def customize_grammar_rules(self, tokens, customize):
-        self.customize_grammar_rules_full39(tokens, customize)
+        self.customize_grammar_rules_full3_8(tokens, customize)
 
     ###############################################
     #  Python 3.8 grammar rules with statements
     ###############################################
-    def p_stmt_loop39full(self, args):
+    def p_stmt_loop3_8full(self, args):
         """
         #########################################################
         # Higher-level rules for statements in some sort of loop.
@@ -80,7 +80,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         c_stmt  ::= c_tryfinallystmt
 
         c_stmt  ::= c_try_except
-        c_stmt  ::= c_try_except38
+        c_stmt  ::= c_try_except3_8
         c_stmt  ::= stmt
 
         else_suitec ::= c_stmts
@@ -104,8 +104,26 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         lastc_stmt ::= iflaststmtc
         """
 
-    def p_stmt_39full(self, args):
+    def p_stmt_3_8full(self, args):
         """
+        # The start symbol is a statement followed by a an optional RETURN VALUE
+
+        # FIXME: some of the weirdness below is due to end token removal in
+        # pysource.py in trying to "hide" instructions. When that is removed
+        # the below might be simplified.
+
+        stmts_return_value ::= stmts RETURN_VALUE block_end
+        stmts_return_value ::= stmts BB_START RETURN_VALUE
+        stmts_return_value ::= stmts
+
+        # The junk after stmts is to append an implied "return None" when no "return"
+        # is explicitly given
+        stmts_return_value ::= stmts LOAD_CONST RETURN_VALUE
+                               BB_END BLOCK_END_JOIN_NO_ARG
+
+        stmts_return_value ::= stmts BB_START LOAD_CONST RETURN_VALUE
+                               BB_END BLOCK_END_JOIN
+
         pass ::=
 
         stmts_opt ::= stmts
@@ -130,7 +148,8 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         else_suite ::= returns
 
 
-        expr_stmt ::= expr POP_TOP
+        expr_stmt ::= expr bb_start_opt POP_TOP
+        expr_stmt ::= expr_return bb_start_opt POP_TOP
         expr_stmt ::= branch_op dom_start POP_TOP
         call_stmt ::= call
 
@@ -141,14 +160,15 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         stmt ::= expr_stmt
 
         stmt ::= for
-        stmt ::= for38
-        stmt ::= for38
-        stmt ::= forelselaststmt38
-        stmt ::= forelselaststmtc38
+        stmt ::= for3_8
+        stmt ::= for3_8
+        stmt ::= forelselaststmt3_8
+        stmt ::= forelselaststmtc3_8
         stmt ::= forelsestmt
-        stmt ::= forelsestmt38
+        stmt ::= forelsestmt3_8
 
         stmt ::= generator_exp
+        stmt ::= genexpr_func
 
         stmt ::= if_and_elsestmt
         stmt ::= if_and_stmt
@@ -161,37 +181,35 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         stmt ::= last_stmt
 
         stmt ::= set_comp_func
-                 RETURN_VALUE
-                 bb_doms_end
 
-        stmt ::= try_elsestmtl38
+        stmt ::= try_elsestmtl3_8
         stmt ::= try_except
-        stmt ::= try_except38
-        stmt ::= try_except38r
-        stmt ::= try_except38r2
-        stmt ::= try_except38r3
-        stmt ::= try_except38r4
+        stmt ::= try_except3_8
+        stmt ::= try_except3_8r
+        stmt ::= try_except3_8r2
+        stmt ::= try_except3_8r3
+        stmt ::= try_except3_8r4
         stmt ::= try_except_as
-        stmt ::= try_except_ret38
-        stmt ::= try_except_ret38a
+        stmt ::= try_except_ret3_8
+        stmt ::= try_except_ret3_8a
         stmt ::= tryelsestmt
         stmt ::= tryfinally_return_stmt1
         stmt ::= tryfinally_return_stmt2
-        stmt ::= tryfinally38
-        stmt ::= tryfinally38astmt
-        stmt ::= tryfinally38rstmt
-        stmt ::= tryfinally38rstmt2
-        stmt ::= tryfinally38rstmt3
-        stmt ::= tryfinally38rstmt4
-        stmt ::= tryfinally38stmt
+        stmt ::= tryfinally3_8
+        stmt ::= tryfinally3_8astmt
+        stmt ::= tryfinally3_8rstmt
+        stmt ::= tryfinally3_8rstmt2
+        stmt ::= tryfinally3_8rstmt3
+        stmt ::= tryfinally3_8rstmt4
+        stmt ::= tryfinally3_8stmt
         stmt ::= tryfinallystmt
 
         stmt ::= while1elsestmt
         stmt ::= while1stmt
-        stmt ::= whileTruestmt38
+        stmt ::= whileTruestmt3_8
         stmt ::= whileelsestmt
         stmt ::= whilestmt
-        stmt ::= whilestmt38
+        stmt ::= whilestmt3_8
 
         # last_stmt is a Python statement for which
         # end is a "return" or raise statement and
@@ -232,7 +250,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
     #     if_cond_else_stmt ::= condition
     #     """
 
-    def p_function_def_39full(self, args):
+    def p_function_def_3_8full(self, args):
         """
         stmt               ::= function_def
         function_def       ::= mkfunc store
@@ -245,7 +263,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         load_closure       ::= LOAD_CLOSURE
         """
 
-    def p_augmented_assign_39full(self, args):
+    def p_augmented_assign_3_8full(self, args):
         """
         stmt ::= aug_assign1
         stmt ::= aug_assign2
@@ -274,7 +292,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         inplace_op ::= INPLACE_OR
         """
 
-    def p_assign_39full(self, args):
+    def p_assign_3_8full(self, args):
         """
         assign ::= expr DUP_TOP designList
         assign ::= expr store
@@ -303,14 +321,14 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         stmt ::= assign3
         """
 
-    def p_await_39full(self, args):
+    def p_await_3_8full(self, args):
         # Python 3.5+ Await things
         """
         stmt       ::= await_stmt
         await_stmt ::= await_expr POP_TOP
         """
 
-    def p_ifstmt_39full(self, args):
+    def p_ifstmt_3_8full(self, args):
         """
         # If statement inside a loop. The RHS may have looping jumps in them.
         c_stmt  ::= ifstmtc
@@ -346,11 +364,11 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         # rules with and without ELSE.
 
         if_and_elsestmt ::= testfalse testfalse
-                            stmts_opt jf_bb_end_start else_suite block_break
+                            stmts_opt jf_bb_end_start else_suite block_end
         ifelsestmt      ::= testexpr
-                            stmts_opt jf_bb_end_start else_suite block_break
+                            stmts_opt jf_bb_end_start else_suite block_end
         ifelsestmt      ::= branch_op
-                            stmts_opt jf_bb_end_start else_suite block_break
+                            stmts_opt jf_bb_end_start else_suite block_end
 
         ifelsestmtc ::= testexpr
                         stmts_opt jump_forward_else
@@ -371,19 +389,19 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         # of "ifstmt".
         ifstmt        ::= testexpr ifstmts_jump
 
-        ifstmt_branch ::= or_and_not stmts block_break
-        ifstmt_branch ::= or_and1 stmts block_break
-        ifstmt_branch ::= not_and_not stmts block_break
+        ifstmt_branch ::= or_and_not stmts block_end
+        ifstmt_branch ::= or_and1 stmts block_end
+        ifstmt_branch ::= not_and_not stmts block_end
 
         ifstmts_jump ::= return_if_stmts
-        ifstmts_jump ::= stmts_opt block_break
-        ifstmts_jump ::= block_break stmts block_break
+        ifstmts_jump ::= stmts_opt block_end
+        ifstmts_jump ::= block_end stmts block_end
 
         # Python 3.4+ optimizes the trailing two JUMPS away
         ifstmts_jump ::= stmts_opt JUMP_FORWARD JUMP_FORWARD _come_froms
         """
 
-    def p_for_loop_39full(self, args):
+    def p_for_loop_3_8full(self, args):
         """
         setup_loop  ::= SETUP_LOOP _come_froms
         for         ::= setup_loop expr get_for_iter store for_block
@@ -398,7 +416,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
 
         come_from_loops ::= COME_FROM_LOOP*
 
-        for_block   ::= block_break stmts_opt come_from_loops JUMP_LOOP
+        for_block   ::= block_end stmts_opt come_from_loops JUMP_LOOP
         for_block   ::= stmts
 
         for_block   ::= stmts_opt COME_FROM_LOOP JUMP_BACK
@@ -426,12 +444,12 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         """
 
 
-    def p_stmt_jump_39full(self, args):
+    def p_stmt_jump_3_8full(self, args):
         """
         jf_bb_end_start    ::= JUMP_FORWARD bb_end_start
         """
 
-    def p_try_except_39full(self, args):
+    def p_try_except_3_8full(self, args):
         """
         # Note: there is a suite_stmts_opt which seems
         # to be bookkeeping which is not expressed in source code
@@ -444,22 +462,22 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         except_handler     ::= JUMP_FORWARD COME_FROM_EXCEPT except_return
         except_handler     ::= jmp_abs COME_FROM_EXCEPT except_stmts
 
-        except_handler38   ::= COME_FROM_EXCEPT except_stmts
-        except_handler38   ::= JUMP_FORWARD COME_FROM_EXCEPT except_stmts
+        except_handler3_8   ::= COME_FROM_EXCEPT except_stmts
+        except_handler3_8   ::= JUMP_FORWARD COME_FROM_EXCEPT except_stmts
 
 
         # Try middle following a returns
-        except_handler38   ::= COME_FROM_EXCEPT except_stmts END_FINALLY
+        except_handler3_8   ::= COME_FROM_EXCEPT except_stmts END_FINALLY
 
-        except_handler38   ::= jump COME_FROM_FINALLY
+        except_handler3_8   ::= jump COME_FROM_FINALLY
                                except_stmts END_FINALLY opt_come_from_except
-        except_handler38a  ::= COME_FROM_FINALLY POP_TOP POP_TOP POP_TOP
+        except_handler3_8a  ::= COME_FROM_FINALLY POP_TOP POP_TOP POP_TOP
                                POP_EXCEPT POP_TOP stmts END_FINALLY
-        except_handler38b  ::= COME_FROM_FINALLY POP_TOP POP_TOP POP_TOP
+        except_handler3_8b  ::= COME_FROM_FINALLY POP_TOP POP_TOP POP_TOP
                                POP_EXCEPT returns END_FINALLY
-        except_handler38c  ::= COME_FROM_FINALLY except_cond1a except_stmts
+        except_handler3_8c  ::= COME_FROM_FINALLY except_cond1a except_stmts
                                COME_FROM
-        except_handler38c  ::= COME_FROM_FINALLY except_cond1a except_stmts
+        except_handler3_8c  ::= COME_FROM_FINALLY except_cond1a except_stmts
                                POP_EXCEPT JUMP_FORWARD COME_FROM
 
         except_handler_as  ::= COME_FROM_FINALLY except_cond_as tryfinallystmt
@@ -468,29 +486,29 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         except_suite_finalize ::= SETUP_FINALLY returns
                                   COME_FROM_FINALLY suite_stmts_opt END_FINALLY jump
 
-        except_ret38       ::= SETUP_FINALLY expr ROT_FOUR POP_BLOCK POP_EXCEPT
+        except_ret3_8       ::= SETUP_FINALLY expr ROT_FOUR POP_BLOCK POP_EXCEPT
                                CALL_FINALLY RETURN_VALUE COME_FROM
                                COME_FROM_FINALLY
                                suite_stmts_opt END_FINALLY
-        except_ret38a      ::= COME_FROM_FINALLY POP_TOP POP_TOP POP_TOP
+        except_ret3_8a      ::= COME_FROM_FINALLY POP_TOP POP_TOP POP_TOP
                                expr ROT_FOUR
                                POP_EXCEPT RETURN_VALUE END_FINALLY
 
         except_return    ::= POP_TOP POP_TOP POP_TOP returns
 
         try_except         ::= SETUP_FINALLY suite_stmts_opt POP_BLOCK
-                               except_handler38
+                               except_handler3_8
         try_except         ::= SETUP_FINALLY suite_stmts_opt POP_BLOCK
-                               except_handler38
+                               except_handler3_8
                                jump_excepts
                                come_from_except_clauses
-        try_except38       ::= SETUP_FINALLY POP_BLOCK POP_TOP suite_stmts_opt
-                               except_handler38a
+        try_except3_8       ::= SETUP_FINALLY POP_BLOCK POP_TOP suite_stmts_opt
+                               except_handler3_8a
         # suite_stmts has a return
-        try_except38       ::= SETUP_FINALLY POP_BLOCK suite_stmts
-                               except_handler38b
-        try_except38r      ::= SETUP_FINALLY return_except
-                               except_handler38b
+        try_except3_8       ::= SETUP_FINALLY POP_BLOCK suite_stmts
+                               except_handler3_8b
+        try_except3_8r      ::= SETUP_FINALLY return_except
+                               except_handler3_8b
         return_except      ::= stmts POP_BLOCK return
 
 
@@ -500,7 +518,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         cond_except_stmt      ::= except_cond1 except_stmts
         cond_except_stmts_opt ::= cond_except_stmt*
 
-        try_except38r2     ::= SETUP_FINALLY
+        try_except3_8r2     ::= SETUP_FINALLY
                                suite_stmts_opt
                                POP_BLOCK JUMP_FORWARD
                                COME_FROM_FINALLY POP_TOP POP_TOP POP_TOP
@@ -509,7 +527,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
                                END_FINALLY
                                COME_FROM
 
-        try_except38r3     ::= SETUP_FINALLY
+        try_except3_8r3     ::= SETUP_FINALLY
                                suite_stmts_opt
                                POP_BLOCK JUMP_FORWARD
                                COME_FROM_FINALLY
@@ -520,7 +538,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
                                COME_FROM
 
 
-        try_except38r4     ::= SETUP_FINALLY
+        try_except3_8r4     ::= SETUP_FINALLY
                                returns_in_except
                                COME_FROM_FINALLY
                                except_cond1
@@ -535,28 +553,28 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
                                except_handler_as END_FINALLY COME_FROM
 
 
-        try_except_ret38   ::= SETUP_FINALLY returns except_ret38a
-        try_except_ret38a  ::= SETUP_FINALLY returns except_handler38c
+        try_except_ret3_8   ::= SETUP_FINALLY returns except_ret3_8a
+        try_except_ret3_8a  ::= SETUP_FINALLY returns except_handler3_8c
                                END_FINALLY come_from_opt
 
-        try_except38     ::= SETUP_EXCEPT returns except_handler38
+        try_except3_8     ::= SETUP_EXCEPT returns except_handler3_8
                              opt_come_from_except
-        try_except38     ::= SETUP_EXCEPT suite_stmts
-        try_except38     ::= SETUP_EXCEPT suite_stmts_opt POP_BLOCK
-                             except_handler38 come_from_opt
+        try_except3_8     ::= SETUP_EXCEPT suite_stmts
+        try_except3_8     ::= SETUP_EXCEPT suite_stmts_opt POP_BLOCK
+                             except_handler3_8 come_from_opt
 
         tryfinally_return_stmt1 ::= SETUP_FINALLY suite_stmts_opt POP_BLOCK LOAD_CONST
                                     COME_FROM_FINALLY returns
         tryfinally_return_stmt2 ::= SETUP_FINALLY suite_stmts_opt POP_BLOCK LOAD_CONST
                                     COME_FROM_FINALLY
 
-        tryfinally38     ::= SETUP_FINALLY returns
+        tryfinally3_8     ::= SETUP_FINALLY returns
                              COME_FROM_FINALLY suite_stmts
-        tryfinally38     ::= SETUP_FINALLY returns
+        tryfinally3_8     ::= SETUP_FINALLY returns
                              COME_FROM_FINALLY suite_stmts_opt END_FINALLY
         """
 
-    def p_whilestmt_39full(self, args):
+    def p_whilestmt_3_8full(self, args):
         """
         while1elsestmt ::= setup_loop c_stmts JUMP_BACK POP_BLOCK else_suite COME_FROM_LOOP
         while1elsestmt ::= setup_loop c_stmts JUMP_BACK _come_froms POP_BLOCK else_suitec COME_FROM_LOOP
@@ -631,7 +649,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         attributes   ::= LOAD_ATTR+
         """
 
-    def p_import_39full(self, args):
+    def p_import_3_8full(self, args):
         """
         # The 3.8base scanner adds IMPORT_NAME_ATTR
         alias            ::= IMPORT_NAME_ATTR attributes store
@@ -702,7 +720,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         # iflaststmt  ::= testexpr stmts_opt JUMP_FORWARD
         """
 
-    def p_grammar_39full(self, args):
+    def p_grammar_3_8full(self, args):
         """sstmt ::= stmt
         sstmt ::= ifelsestmtr
         sstmt ::= return RETURN_LAST
@@ -775,23 +793,23 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
 
         testfalse  ::= expr_pjif
         testfalsec ::= expr POP_JUMP_IF_TRUE_LOOP
-        testfalsec ::= c_compare_chained1b_false_38
+        testfalsec ::= c_compare_chained_middleb_false_3_8
 
         testtrue   ::= expr_pjit
         testtruec  ::= expr POP_JUMP_IF_FALSE_LOOP
-        # Do we have to check the c_compare_chained38 ends in a POP_JUMP_IF_FALSE_BACK?
-        testtruec  ::= c_compare_chained38_false
-        testtruec  ::= c_compare_chained38
+        # Do we have to check the c_compare_chained3_8 ends in a POP_JUMP_IF_FALSE_BACK?
+        testtruec  ::= c_compare_chained3_8_false
+        testtruec  ::= c_compare_chained3_8
         testtruec  ::= c_nand
 
-        testtrue   ::= compare_chained38
+        testtrue   ::= compare_chained3_8
         testtrue   ::= compare_chained_and
 
         testtrue   ::= nor_cond
 
         testfalse  ::= and_not
         testfalse  ::= not_or
-        testfalse  ::= compare_chained38_false
+        testfalse  ::= compare_chained3_8_false
         testfalse  ::= or_cond
         testfalse  ::= or_cond1
         testfalse  ::= and_or_cond
@@ -816,11 +834,11 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
 
         c_except_suite     ::= except_suite
         c_except_suite     ::= c_stmts POP_EXCEPT JUMP_LOOP
-        c_except_handler38 ::= COME_FROM_EXCEPT c_except_stmts END_FINALLY
-        c_try_except38     ::= SETUP_EXCEPT suite_stmts_opt POP_BLOCK
-                               c_except_handler38 come_from_opt
-        c_try_except38     ::= SETUP_EXCEPT returns
-                               c_except_handler38 come_from_opt
+        c_except_handler3_8 ::= COME_FROM_EXCEPT c_except_stmts END_FINALLY
+        c_try_except3_8     ::= SETUP_EXCEPT suite_stmts_opt POP_BLOCK
+                               c_except_handler3_8 come_from_opt
+        c_try_except3_8     ::= SETUP_EXCEPT returns
+                               c_except_handler3_8 come_from_opt
 
 
         except_handler ::= jmp_abs COME_FROM except_stmts
@@ -906,7 +924,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         stmt    ::= assert2_not
         """
 
-    def p_except_39full(self, args):
+    def p_except_3_8full(self, args):
         """
         except_handler ::= JUMP_FORWARD COME_FROM_EXCEPT except_stmts
                            come_froms END_FINALLY
@@ -918,7 +936,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         c_except_handler ::= jmp_abs COME_FROM_EXCEPT c_except_stmts
         """
 
-    def p_come_from_39full(self, args):
+    def p_come_from_3_8full(self, args):
         """
         # In 3.7+ a SETUP_LOOP to a JUMP_FORWARD can
         # get replaced by the JUMP_FORWARD addressed. Therefore come froms may
@@ -947,7 +965,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         come_from_except_clauses ::= COME_FROM_EXCEPT_CLAUSE*
         """
 
-    def p_jump_39full(self, args):
+    def p_jump_3_8full(self, args):
         """
         # Do we need this?
         # Note: lambda_expr.py has jump_or_break ::= jump
@@ -974,7 +992,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
 
         """
 
-    def p_stmt_more_39full(self, args):
+    def p_stmt_more_3_8full(self, args):
         """
         if_exp_lambda      ::= expr_pjif expr return_if_lambda
                                return_stmt_lambda
@@ -987,7 +1005,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         return_closure     ::= LOAD_CLOSURE RETURN_VALUE RETURN_LAST
 
         stmt               ::= whileTruestmt
-        ifelsestmt         ::= testexpr stmts_opt JUMP_FORWARD else_suite block_break
+        ifelsestmt         ::= testexpr stmts_opt JUMP_FORWARD else_suite block_end
 
         ifstmtc            ::= testexpr ifstmts_jumpc
         ifstmtc            ::= testexprc ifstmts_jumpc _come_froms
@@ -1030,7 +1048,7 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         subscript2 ::= expr expr DUP_TOP_TWO BINARY_SUBSCR
         """
 
-    def p_39if_ifelse(self, args):
+    def p_3_8if_ifelse(self, args):
         """
         # cf_pt introduced to keep indices the same in ifelsestmtc
         cf_pt              ::= COME_FROM POP_TOP
@@ -1056,17 +1074,17 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         #    j = 10
         """
 
-    def p_for39full(self, args):
+    def p_for3_8full(self, args):
         """
-        for38              ::= expr get_for_iter store for_block JUMP_LOOP block_break
-        for38              ::= expr get_for_iter store for_block JUMP_LOOP block_break POP_BLOCK
-        for38              ::= expr get_for_iter store for_block block_break
+        for3_8              ::= expr get_for_iter store for_block JUMP_LOOP block_end
+        for3_8              ::= expr get_for_iter store for_block JUMP_LOOP block_end POP_BLOCK
+        for3_8              ::= expr get_for_iter store for_block block_end
 
-        forelsestmt38      ::= expr get_for_iter store for_block POP_BLOCK else_suite
-        forelsestmt38      ::= expr get_for_iter store for_block JUMP_LOOP _come_froms else_suite
+        forelsestmt3_8      ::= expr get_for_iter store for_block POP_BLOCK else_suite
+        forelsestmt3_8      ::= expr get_for_iter store for_block JUMP_LOOP _come_froms else_suite
         """
 
-    def p_misc39full(self, args):
+    def p_misc3_8full(self, args):
         """
         sstmt ::= sstmt RETURN_LAST
 
@@ -1075,10 +1093,8 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
 
         except_suite ::= stmts_opt COME_FROM POP_EXCEPT jump_except COME_FROM
 
-        compare_chained2 ::= expr COMPARE_OP block_break JUMP_FORWARD
-
-        stmt               ::= async_for_stmt38
-        stmt               ::= async_forelse_stmt38
+        stmt               ::= async_for_stmt3_8
+        stmt               ::= async_forelse_stmt3_8
 
         # break could be isolated to loops but many
         # rules would be for with and without loops.
@@ -1097,8 +1113,8 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         break ::= POP_EXCEPT BREAK_LOOP
 
         # FIXME: this should be restricted to being inside a try block
-        stmt               ::= except_ret38
-        stmt               ::= except_ret38a
+        stmt               ::= except_ret3_8
+        stmt               ::= except_ret3_8a
 
         # Seems to be used to discard values before a return in a "for" loop
         discard_top        ::= ROT_TWO POP_TOP
@@ -1118,30 +1134,29 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
 
         except_stmt        ::= except_cond1a except_suite come_from_opt
 
-        get_for_iter       ::= GET_ITER block_break FOR_ITER
-        get_for_iter       ::= GET_ITER FOR_ITER
+        get_for_iter       ::= GET_ITER BREAK_FOR for_iter
 
-        c_stmt             ::= c_forelsestmt38
+        c_stmt             ::= c_forelsestmt3_8
         c_stmt             ::= pop_tops return
-        c_forelsestmt38    ::= expr get_for_iter store for_block POP_BLOCK else_suitec
-        c_forelsestmt38    ::= expr get_for_iter store for_block JUMP_LOOP _come_froms else_suitec
+        c_forelsestmt3_8    ::= expr get_for_iter store for_block POP_BLOCK else_suitec
+        c_forelsestmt3_8    ::= expr get_for_iter store for_block JUMP_LOOP _come_froms else_suitec
 
-        forelselaststmt38  ::= expr get_for_iter store for_block POP_BLOCK else_suitec
-        forelselaststmtc38 ::= expr get_for_iter store for_block POP_BLOCK else_suitec
+        forelselaststmt3_8  ::= expr get_for_iter store for_block POP_BLOCK else_suitec
+        forelselaststmtc3_8 ::= expr get_for_iter store for_block POP_BLOCK else_suitec
 
-        whilestmt38        ::= _come_froms testexpr stmts_opt COME_FROM JUMP_LOOP POP_BLOCK
-        whilestmt38        ::= _come_froms testexpr stmts_opt JUMP_LOOP POP_BLOCK
-        whilestmt38        ::= _come_froms testexpr stmts_opt JUMP_LOOP come_froms
-        whilestmt38        ::= _come_froms testexpr returns               POP_BLOCK
-        whilestmt38        ::= _come_froms testexpr c_stmts     JUMP_LOOP _come_froms
-        whilestmt38        ::= _come_froms testexpr c_stmts     come_froms
+        whilestmt3_8        ::= _come_froms testexpr stmts_opt COME_FROM JUMP_LOOP POP_BLOCK
+        whilestmt3_8        ::= _come_froms testexpr stmts_opt JUMP_LOOP POP_BLOCK
+        whilestmt3_8        ::= _come_froms testexpr stmts_opt JUMP_LOOP come_froms
+        whilestmt3_8        ::= _come_froms testexpr returns               POP_BLOCK
+        whilestmt3_8        ::= _come_froms testexpr c_stmts     JUMP_LOOP _come_froms
+        whilestmt3_8        ::= _come_froms testexpr c_stmts     come_froms
 
         # while1elsestmt   ::=          c_stmts     JUMP_LOOP
         whileTruestmt      ::= _come_froms c_stmts              JUMP_LOOP _come_froms POP_BLOCK
         while1stmt         ::= _come_froms c_stmts COME_FROM_LOOP
         while1stmt         ::= _come_froms c_stmts COME_FROM JUMP_LOOP COME_FROM_LOOP
-        whileTruestmt38    ::= _come_froms c_stmts JUMP_LOOP _come_froms
-        whileTruestmt38    ::= _come_froms c_stmts JUMP_LOOP COME_FROM_EXCEPT_CLAUSE
+        whileTruestmt3_8    ::= _come_froms c_stmts JUMP_LOOP _come_froms
+        whileTruestmt3_8    ::= _come_froms c_stmts JUMP_LOOP COME_FROM_EXCEPT_CLAUSE
 
         except_cond1       ::= DUP_TOP expr COMPARE_OP POP_JUMP_IF_FALSE
                                POP_TOP POP_TOP POP_TOP
@@ -1153,21 +1168,21 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
         except_cond_as     ::= DUP_TOP expr COMPARE_OP POP_JUMP_IF_FALSE
                                POP_TOP STORE_FAST POP_TOP
 
-        try_elsestmtl38    ::= SETUP_FINALLY suite_stmts_opt POP_BLOCK
-                               except_handler38 COME_FROM
+        try_elsestmtl3_8    ::= SETUP_FINALLY suite_stmts_opt POP_BLOCK
+                               except_handler3_8 COME_FROM
                                else_suitec opt_come_from_except
         try_except         ::= SETUP_FINALLY suite_stmts_opt POP_BLOCK
-                               except_handler38
+                               except_handler3_8
         try_except         ::= SETUP_FINALLY suite_stmts_opt POP_BLOCK
-                               except_handler38
+                               except_handler3_8
                                jump_excepts
                                come_from_except_clauses
 
         c_try_except       ::= SETUP_FINALLY c_suite_stmts POP_BLOCK
-                               except_handler38
+                               except_handler3_8
 
-        c_stmt             ::= c_tryfinallystmt38
-        c_tryfinallystmt38 ::= SETUP_FINALLY c_suite_stmts_opt
+        c_stmt             ::= c_tryfinallystmt3_8
+        c_tryfinallystmt3_8 ::= SETUP_FINALLY c_suite_stmts_opt
                                POP_BLOCK
                                CALL_FINALLY
                                POP_BLOCK
@@ -1179,18 +1194,18 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
                                COME_FROM_FINALLY
                                c_suite_stmts_opt END_FINALLY
 
-        c_tryfinallystmt38 ::= SETUP_FINALLY c_suite_stmts_opt
+        c_tryfinallystmt3_8 ::= SETUP_FINALLY c_suite_stmts_opt
                                POP_BLOCK BEGIN_FINALLY COME_FROM COME_FROM_FINALLY
                                c_suite_stmts_opt END_FINALLY
 
-        try_except38       ::= SETUP_FINALLY POP_BLOCK POP_TOP suite_stmts_opt
-                               except_handler38a
+        try_except3_8       ::= SETUP_FINALLY POP_BLOCK POP_TOP suite_stmts_opt
+                               except_handler3_8a
 
         # suite_stmts has a return
-        try_except38       ::= SETUP_FINALLY POP_BLOCK suite_stmts
-                               except_handler38b
-        try_except38r      ::= SETUP_FINALLY return_except
-                               except_handler38b
+        try_except3_8       ::= SETUP_FINALLY POP_BLOCK suite_stmts
+                               except_handler3_8b
+        try_except3_8r      ::= SETUP_FINALLY return_except
+                               except_handler3_8b
         return_except      ::= stmts POP_BLOCK return
 
 
@@ -1216,29 +1231,29 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
 
 
         # FIXME: DRY rules below
-        tryfinally38rstmt  ::= sf_pb_call_returns
+        tryfinally3_8rstmt  ::= sf_pb_call_returns
                                cf_cf_finally
                                ss_end_finally
-        tryfinally38rstmt  ::= sf_pb_call_returns
+        tryfinally3_8rstmt  ::= sf_pb_call_returns
                                cf_cf_finally END_FINALLY
                                suite_stmts
-        tryfinally38rstmt  ::= sf_pb_call_returns
+        tryfinally3_8rstmt  ::= sf_pb_call_returns
                                cf_cf_finally POP_FINALLY
                                ss_end_finally
-        tryfinally38rstmt  ::= sf_pb_call_returns
+        tryfinally3_8rstmt  ::= sf_pb_call_returns
                                COME_FROM_FINALLY POP_FINALLY
                                ss_end_finally
 
-        tryfinally38rstmt2 ::= lc_setup_finally POP_BLOCK call_finally_pt
+        tryfinally3_8rstmt2 ::= lc_setup_finally POP_BLOCK call_finally_pt
                                returns
                                cf_cf_finally pop_finally_pt
                                ss_end_finally POP_TOP
 
-        tryfinally38rstmt3 ::= SETUP_FINALLY expr POP_BLOCK CALL_FINALLY RETURN_VALUE
+        tryfinally3_8rstmt3 ::= SETUP_FINALLY expr POP_BLOCK CALL_FINALLY RETURN_VALUE
                                COME_FROM COME_FROM_FINALLY
                                ss_end_finally
 
-        tryfinally38rstmt4 ::= lc_setup_finally suite_stmts_opt POP_BLOCK
+        tryfinally3_8rstmt4 ::= lc_setup_finally suite_stmts_opt POP_BLOCK
                                BEGIN_FINALLY COME_FROM_FINALLY
                                suite_stmts_return
                                POP_FINALLY ROT_TWO POP_TOP
@@ -1246,11 +1261,11 @@ class Python39ParserFull(Python39LambdaParser, Python39FullCustom):
                                END_FINALLY POP_TOP
 
 
-        tryfinally38stmt   ::= SETUP_FINALLY suite_stmts_opt POP_BLOCK
+        tryfinally3_8stmt   ::= SETUP_FINALLY suite_stmts_opt POP_BLOCK
                                BEGIN_FINALLY COME_FROM_FINALLY
                                POP_FINALLY suite_stmts_opt END_FINALLY
 
-        tryfinally38astmt  ::= LOAD_CONST SETUP_FINALLY suite_stmts_opt POP_BLOCK
+        tryfinally3_8astmt  ::= LOAD_CONST SETUP_FINALLY suite_stmts_opt POP_BLOCK
                                BEGIN_FINALLY COME_FROM_FINALLY
                                POP_FINALLY POP_TOP suite_stmts_opt END_FINALLY POP_TOP
         """
@@ -1259,7 +1274,7 @@ def info(args):
     # Check grammar
     import sys
 
-    p = Python38ParserFull()
+    p = Python3_8ParserFull()
     if len(args) > 0:
         arg = args[0][:2]
         if arg != (3, 8):
@@ -1274,7 +1289,7 @@ if __name__ == "__main__":
     # Check grammar
     from decompile_cfg.parsers.dump import dump_and_check
 
-    p = Python38ParserFull(start_symbol="stmts")
+    p = Python3_8ParserFull(start_symbol="stmts_return_value")
     modified_tokens = set(
         """JUMP_LOOP CONTINUE
            LOAD_GENEXPR LOAD_ASSERT LOAD_SETCOMP LOAD_DICTCOMP LOAD_CLASSNAME

@@ -1,4 +1,4 @@
-#  Copyright (c) 2015-2022 by Rocky Bernstein
+#  Copyright (c) 2015-2023 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@ from decompile_cfg.semantics import pysource
 from decompile_cfg.scanner import Token, Code, get_scanner
 from decompile_cfg.semantics.check_tree import checker
 
-from decompile_cfg.show import maybe_show_asm, maybe_show_tree
+from decompile_cfg.show import maybe_show_asm
 
 from decompile_cfg.parsers.treenode import SyntaxTree
 
@@ -99,6 +99,7 @@ from xdis import iscode
 from xdis.version_info import IS_PYPY, PYTHON_VERSION_TRIPLE
 
 from collections import namedtuple
+from typing import Optional
 
 NodeInfo = namedtuple("NodeInfo", "node start finish")
 ExtractInfo = namedtuple(
@@ -153,7 +154,6 @@ TABLE_DIRECT_FRAGMENT = {
 
 
 class FragmentsWalker(pysource.SourceWalker, object):
-
     MAP_DIRECT_FRAGMENT = ()
 
     stacked_params = ("f", "indent", "is_lambda", "_globals")
@@ -363,7 +363,6 @@ class FragmentsWalker(pysource.SourceWalker, object):
             self.prune()  # stop recursing
 
     def n_return_if_stmt(self, node):
-
         start = len(self.f.getvalue()) + len(self.indent)
         if self.params["is_lambda"]:
             node[0].parent = node
@@ -959,8 +958,8 @@ class FragmentsWalker(pysource.SourceWalker, object):
         self.write(" in ")
         self.preorder(param_node)
         start = len(self.f.getvalue())
-        self.preorder(node[4])
-        self.set_pos_info(node[4], start, len(self.f.getvalue()))
+        self.preorder(node[3])
+        self.set_pos_info(node[3], start, len(self.f.getvalue()))
         self.write("}")
         fin = len(self.f.getvalue())
         self.set_pos_info(node, setcomp_start, fin)
@@ -1178,7 +1177,6 @@ class FragmentsWalker(pysource.SourceWalker, object):
         noneInNames=False,
         is_top_level_module=False,
     ):
-
         # FIXME: DRY with pysource.py
 
         assert isinstance(tokens[0], Token)
@@ -1207,7 +1205,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
             ## FIXME: So as not to remove tokens with offsets,
             ## remove this phase until we have a chance to go over,
             # transform_ast = self.treeTransform.transform(ast)
-            maybe_show_tree(self, ast, "before")
+            self.maybe_show_tree(ast, "before")
             return ast
             # del ast # Save memory
             # return transform_ast
@@ -1247,7 +1245,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
         except (heads.ParserError, AssertionError) as e:
             raise ParserError(e, tokens, self.debug_parser.get("reduce", False))
 
-        maybe_show_tree(self, ast, "before")
+        self.maybe_show_tree(ast, "before")
 
         checker(ast, False, self.ast_errors)
 
@@ -1491,7 +1489,6 @@ class FragmentsWalker(pysource.SourceWalker, object):
         self.set_pos_info(node, start, len(self.f.getvalue()))
 
     def print_super_classes3(self, node):
-
         # FIXME: wrap superclasses onto a node
         # as a custom rule
         start = len(self.f.getvalue())
@@ -1539,19 +1536,19 @@ class FragmentsWalker(pysource.SourceWalker, object):
             if node[0].kind.startswith("kvlist"):
                 # Python 3.5+ style key/value list in dict
                 kv_node = node[0]
-                l = list(kv_node)
-                length = len(l)
+                ll = list(kv_node)
+                length = len(ll)
                 if kv_node[-1].kind.startswith("BUILD_MAP"):
                     length -= 1
                 i = 0
                 while i < length:
                     self.write(sep)
-                    name = self.traverse(l[i], indent="")
-                    l[i].parent = kv_node
-                    l[i + 1].parent = kv_node
+                    name = self.traverse(ll[i], indent="")
+                    ll[i].parent = kv_node
+                    ll[i + 1].parent = kv_node
                     self.write(name, ": ")
                     value = self.traverse(
-                        l[i + 1], indent=self.indent + (len(name) + 2) * " "
+                        ll[i + 1], indent=self.indent + (len(name) + 2) * " "
                     )
                     self.write(sep, name, ": ", value)
                     sep = line_seperator
@@ -1561,25 +1558,25 @@ class FragmentsWalker(pysource.SourceWalker, object):
             elif node[1].kind.startswith("kvlist"):
                 # Python 3.0..3.4 style key/value list in dict
                 kv_node = node[1]
-                l = list(kv_node)
-                if len(l) > 0 and l[0].kind == "kv3":
+                ll = list(kv_node)
+                if len(ll) > 0 and ll[0].kind == "kv3":
                     # Python 3.2 does this
                     kv_node = node[1][0]
-                    l = list(kv_node)
+                    ll = list(kv_node)
                 i = 0
-                while i < len(l):
-                    l[i].parent = kv_node
-                    l[i + 1].parent = kv_node
+                while i < len(ll):
+                    ll[i].parent = kv_node
+                    ll[i + 1].parent = kv_node
                     key_start = len(self.f.getvalue()) + len(sep)
-                    name = self.traverse(l[i + 1], indent="")
+                    name = self.traverse(ll[i + 1], indent="")
                     key_finish = key_start + len(name)
                     val_start = key_finish + 2
                     value = self.traverse(
-                        l[i], indent=self.indent + (len(name) + 2) * " "
+                        ll[i], indent=self.indent + (len(name) + 2) * " "
                     )
                     self.write(sep, name, ": ", value)
-                    self.set_pos_info_recurse(l[i + 1], key_start, key_finish)
-                    self.set_pos_info_recurse(l[i], val_start, val_start + len(value))
+                    self.set_pos_info_recurse(ll[i + 1], key_start, key_finish)
+                    self.set_pos_info_recurse(ll[i], val_start, val_start + len(value))
                     sep = line_seperator
                     i += 3
                     pass
@@ -1724,7 +1721,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
                 if m.group("child"):
                     node = node[int(m.group("child"))]
                     node.parent = startnode
-            except:
+            except Exception:
                 print(node.__dict__)
                 raise
 
@@ -1885,7 +1882,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
                     start = len(self.f.getvalue())
                     self.write(eval(expr, d, d))
                     self.set_pos_info(node, start, len(self.f.getvalue()))
-                except:
+                except Exception:
                     print(node)
                     raise
             m = escape.search(fmt, i)
@@ -1924,6 +1921,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
 #
 DEFAULT_DEBUG_OPTS = {"asm": False, "tree": False, "grammar": False}
 
+
 # This interface is deprecated
 def deparse_code(
     version,
@@ -1957,7 +1955,7 @@ def code_deparse(
     debug_opts=DEFAULT_DEBUG_OPTS,
     code_objects={},
     compile_mode="exec",
-    is_pypy=None,
+    is_pypy: Optional[bool] = None,
     walker=FragmentsWalker,
 ):
     """

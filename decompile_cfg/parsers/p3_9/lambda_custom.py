@@ -1,4 +1,4 @@
-#  Copyright (c) 2020-2022 Rocky Bernstein
+#  Copyright (c) 2020-2023 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 Grammar Customization rules for Python 3.8's Lambda expression grammar.
 """
 
-from decompile_cfg.parsers.p39.base import Python39BaseParser
+from decompile_cfg.parsers.p3_9.base import Python3_9BaseParser
 from decompile_cfg.parsers.parse_heads import ParserError, nop_func
 from decompile_cfg.parsers.reduce_check.and_check import and_ok
 from decompile_cfg.parsers.reduce_check.and_parts_check import and_parts_ok
@@ -24,10 +24,9 @@ from decompile_cfg.parsers.reduce_check.if_exp_check import if_exp_ok
 from decompile_cfg.parsers.reduce_check.comp_if_check import comp_if_ok
 from decompile_cfg.parsers.reduce_check.list_if_not_check import list_if_not_seems_ok
 from decompile_cfg.parsers.reduce_check.or_check import or_ok
-from decompile_cfg.parsers.reduce_check.or_parts_check import or_parts_ok
 from spark_parser.spark import rule2str
 
-class Python39LambdaCustom(Python39BaseParser):
+class Python3_9LambdaCustom(Python3_9BaseParser):
     def __init__(self):
         self.new_rules = set()
         self.customized = {}
@@ -85,16 +84,16 @@ class Python39LambdaCustom(Python39BaseParser):
         elif opname == "CALL_FUNCTION_EX":
             self.addRule(
                 """
-                expr        ::= call_ex_39
-                expr        ::= call_ex0_39
-                expr        ::= call_ex1_39
-                call_ex_39  ::= expr
+                expr        ::= call_ex_3_9
+                expr        ::= call_ex0_3_9
+                expr        ::= call_ex1_3_9
+                call_ex_3_9  ::= expr
                                 BUILD_TUPLE_0
                                 dict
                                 expr
                                 DICT_MERGE
                                 CALL_FUNCTION_EX
-                call_ex_39  ::= expr
+                call_ex_3_9  ::= expr
                                 list
                                 expr
                                 LIST_EXTEND
@@ -103,13 +102,13 @@ class Python39LambdaCustom(Python39BaseParser):
                                 expr
                                 DICT_MERGE
                                 CALL_FUNCTION_EX
-                call_ex0_39 ::= expr
+                call_ex0_3_9 ::= expr
                                 expr
                                 dict
                                 expr
                                 DICT_MERGE
                                 CALL_FUNCTION_EX
-                call_ex1_39 ::= expr
+                call_ex1_3_9 ::= expr
                                 list
                                 expr
                                 LIST_EXTEND
@@ -189,9 +188,9 @@ class Python39LambdaCustom(Python39BaseParser):
 
                 self.add_unique_rule(rule, token.kind, uniq_param, customize)
 
-    def customize_grammar_rules_lambda39(self, tokens, customize):
+    def customize_grammar_rules_lambda3_9(self, tokens, customize):
 
-        self.customize_reduce_checks_lambda39()
+        self.customize_reduce_checks_lambda3_9()
 
         is_pypy = False
 
@@ -514,8 +513,8 @@ class Python39LambdaCustom(Python39BaseParser):
             ):
 
                 self.addRule(
-                    """expr        ::= call_ex_39
-                       call_ex_39  ::= arg arg arg
+                    """expr        ::= call_ex_3_9
+                       call_ex_3_9  ::= arg arg arg
                                        CALL_FUNCTION_EX_KW
                      """,
                     nop_func,
@@ -671,7 +670,7 @@ class Python39LambdaCustom(Python39BaseParser):
                                             DUP_TOP LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
                                             END_FINALLY bb_end_start
 
-                    # async_iter         ::= block_break SETUP_EXCEPT GET_ANEXT LOAD_CONST YIELD_FROM
+                    # async_iter         ::= block_end SETUP_EXCEPT GET_ANEXT LOAD_CONST YIELD_FROM
 
                     get_aiter            ::= expr GET_AITER
 
@@ -700,23 +699,29 @@ class Python39LambdaCustom(Python39BaseParser):
                     expr                 ::= list_comp_async
                     expr                 ::= set_comp_async
 
+                    async_for_loop       ::= BREAK_LOOP LOOP SETUP_FINALLY BB_END
+
                     dict_comp_async      ::= BUILD_MAP_0 genexpr_func_async
 
-                    async_iter           ::= block_break
-                                             SETUP_FINALLY GET_ANEXT LOAD_CONST YIELD_FROM POP_BLOCK
+                    async_iter           ::= block_end
+                                             async_for_loop
+                                             BB_START
+                                             GET_ANEXT LOAD_CONST
+                                             YIELD_FROM POP_BLOCK
 
-                    genexpr_func_async   ::= LOAD_ARG async_iter
+                    genexpr_func_async   ::= BUILD_SET_0
+                                             LOAD_ARG async_iter
                                              store
                                              comp_iter
-                                             JUMP_LOOP
-                                             block_break
+                                             BB_START
                                              END_ASYNC_FOR
 
                     list_afor2           ::= async_iter
                                              store
                                              list_iter
                                              JUMP_LOOP
-                                             block_break
+                                             JUMP_ABSOLUTE
+                                             block_end
                                              END_ASYNC_FOR
 
                     list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
@@ -724,8 +729,7 @@ class Python39LambdaCustom(Python39BaseParser):
                     set_afor2            ::= async_iter
                                              store
                                              set_iter
-                                             JUMP_LOOP
-                                             block_break
+                                             BLOCK_END_JOIN BB_START
                                              END_ASYNC_FOR
 
                     set_afor2            ::= expr_or_arg
@@ -736,8 +740,7 @@ class Python39LambdaCustom(Python39BaseParser):
                     set_iter_async       ::= async_iter
                                              store
                                              set_iter
-                                             JUMP_LOOP
-                                             block_break
+                                             BLOCK_END_JOIN BB_START
                                              END_ASYNC_FOR
 
                     return_expr_lambda   ::= genexpr_func_async
@@ -764,7 +767,7 @@ class Python39LambdaCustom(Python39BaseParser):
                 self.add_unique_doc_rules(
                     """
                     expr      ::= get_iter
-                    get_iter  ::= expr block_break GET_ITER
+                    get_iter  ::= expr GET_ITER
                     """,
                     customize,
                 )
@@ -1184,7 +1187,7 @@ class Python39LambdaCustom(Python39BaseParser):
                 )
                 self.addRule(rule, nop_func)
 
-    def customize_reduce_checks_lambda39(self):
+    def customize_reduce_checks_lambda3_9(self):
         """
         Extra tests when a reduction is made in the lambda grammar
         """
@@ -1196,7 +1199,6 @@ class Python39LambdaCustom(Python39BaseParser):
             "comp_if": comp_if_ok,
             "comp_if_not": comp_if_ok,
             "list_if_not": list_if_not_seems_ok,
-            "or_parts_pjit": or_parts_ok,
             "or1": or_ok,
         }
 

@@ -1,4 +1,4 @@
-#  Copyright (c) 2021-2022 Rocky Bernstein
+#  Copyright (c) 2021-2023 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,12 +14,12 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from decompile_cfg.parsers.parse_heads import PythonBaseParser, nop_func
-from decompile_cfg.parsers.p38.lambda_custom import Python38LambdaCustom
+from decompile_cfg.parsers.p3_10.lambda_custom import Python3_10LambdaCustom
 from decompile_cfg.parsers.reduce_check.ifelsestmt_check import ifelsestmt_ok
 from decompile_cfg.parsers.reduce_check.ifstmt_check import ifstmt_ok
 from decompile_cfg.parsers.reduce_check import joined_str_ok
 
-class Python39FullCustom(Python38LambdaCustom, PythonBaseParser):
+class Python3_10FullCustom(Python3_10LambdaCustom, PythonBaseParser):
     def add_make_function_rule(self, rule, opname, attr, customize):
         """Python 3.3 added a an addtional LOAD_STR before MAKE_FUNCTION and
         this has an effect on many rules.
@@ -35,7 +35,7 @@ class Python39FullCustom(Python38LambdaCustom, PythonBaseParser):
         else:
             return f"{token.kind}_0"
 
-    def remove_rules_38(self):
+    def remove_rules_3_10(self):
         self.remove_rules(
             """
            stmt               ::= async_for_stmt37
@@ -43,15 +43,20 @@ class Python39FullCustom(Python38LambdaCustom, PythonBaseParser):
            stmt               ::= forelsestmt
            stmt               ::= try_except36
            stmt               ::= async_forelse_stmt
-           stmt               ::= async_forelse_stmt38
+           stmt               ::= async_forelse_stmt3_10
 
-           for                ::= setup_loop expr get_for_iter store for_block POP_BLOCK
-           for                ::= setup_loop expr get_for_iter store for_block POP_BLOCK NOP
+           for                ::= setup_loop expr get_for_iter store for_block
+                                  POP_BLOCK
+           for                ::= setup_loop expr get_for_iter store for_block
+                                  POP_BLOCK NOP
 
            for_block          ::= c_stmts_opt COME_FROM_LOOP JUMP_LOOP
-           forelsestmt        ::= setup_loop expr get_for_iter store for_block POP_BLOCK else_suite
-           forelselaststmt    ::= setup_loop expr get_for_iter store for_block POP_BLOCK else_suitec
-           forelselaststmtc   ::= setup_loop expr get_for_iter store for_block POP_BLOCK else_suitec
+           forelsestmt        ::= setup_loop expr get_for_iter store for_block
+                                  POP_BLOCK else_suite
+           forelselaststmt    ::= setup_loop expr get_for_iter store for_block
+                                  POP_BLOCK else_suitec
+           forelselaststmtc   ::= setup_loop expr get_for_iter store for_block
+                                  POP_BLOCK else_suitec
 
            try_except         ::= SETUP_EXCEPT suite_stmts_opt POP_BLOCK
                                   except_handler opt_come_from_except
@@ -66,10 +71,10 @@ class Python39FullCustom(Python38LambdaCustom, PythonBaseParser):
         """
         )
 
-    def customize_grammar_rules_full39(self, tokens, customize):
+    def customize_grammar_rules_full3_10(self, tokens, customize):
 
-        self.customize_grammar_rules_lambda39(tokens, customize)
-        self.customize_reduce_checks_full39()
+        self.customize_grammar_rules_lambda3_10(tokens, customize)
+        self.customize_reduce_checks_full3_10()
 
         # include instructions that don't need customization,
         # but we'll do a finer check after the rough breakout.
@@ -377,13 +382,13 @@ class Python39FullCustom(Python38LambdaCustom, PythonBaseParser):
                     """
                     async_for            ::= GET_AITER _come_froms
                                              SETUP_FINALLY GET_ANEXT LOAD_CONST YIELD_FROM POP_BLOCK
-                    async_for_stmt38     ::= expr async_for
+                    async_for_stmt3_10     ::= expr async_for
                                              store for_block
                                              COME_FROM_FINALLY
                                              END_ASYNC_FOR
 
                     # Order of LOAD_CONST YIELD_FROM is switched from 3.6 to save a LOAD_CONST
-                    async_for_stmt38     ::= setup_loop expr
+                    async_for_stmt3_10     ::= setup_loop expr
                                              GET_AITER
                                              block_break
                                              SETUP_EXCEPT GET_ANEXT
@@ -408,35 +413,37 @@ class Python39FullCustom(Python38LambdaCustom, PythonBaseParser):
                                               END_FINALLY COME_FROM
                                               for_block
                                               COME_FROM
-                                              POP_TOP POP_TOP POP_TOP POP_EXCEPT POP_TOP POP_BLOCK
+                                              POP_TOP POP_TOP POP_TOP POP_EXCEPT
+                                              POP_TOP POP_BLOCK
                                               else_suite COME_FROM_LOOP
 
-                    # FIXME: come froms after the else_suite or END_ASYNC_FOR distinguish which of
-                    # for / forelse is used. Add come froms and check of add up control-flow detection phase.
-                    async_forelse_stmt38 ::= expr async_for
-                                             store for_block
-                                             COME_FROM_FINALLY
-                                             END_ASYNC_FOR
-                                             else_suite
+                    # FIXME: come froms after the else_suite or
+                    # END_ASYNC_FOR distinguish which of for / forelse
+                    # is used. Add come froms and check of add up
+                    # control-flow detection phase.
 
-                    async_forelse_stmt38 ::= expr async_for
+                    # async_forelse_stmt3_10 ::= expr async_for store
+                    #                            for_block COME_FROM_FINALLY END_ASYNC_FOR
+                    #                            else_suite
+
+                    async_forelse_stmt3_10 ::= expr async_for
                                              store for_block
                                              COME_FROM_FINALLY
                                              END_ASYNC_FOR
                                              else_suite
                                              POP_TOP COME_FROM
 
-                    # FIXME: come froms after the else_suite or END_ASYNC_FOR distinguish which of
-                    # for / forelse is used.
+                    # FIXME: come froms after the else_suite or END_ASYNC_FOR
+                    # distinguish which of for / forelse is used.
                     # Add come froms and check of add up control-flow detection phase.
-                    async_forelse_stmt38  ::= expr async_for
+                    async_forelse_stmt3_10  ::= expr async_for
                                               store for_block
                                               block_break
                                               END_ASYNC_FOR
                                               else_suite
 
-                    stmt                  ::= async_for_stmt38
-                    stmt                  ::= async_forelse_stmt38
+                    stmt                  ::= async_for_stmt3_10
+                    stmt                  ::= async_forelse_stmt3_10
                     stmt                  ::= generator_exp_async
                     stmt                  ::= genexpr_func_async
                     """,
@@ -562,38 +569,64 @@ class Python39FullCustom(Python38LambdaCustom, PythonBaseParser):
                   stmt        ::= withasstmt
                   c_stmt      ::= c_with
 
-                  c_with      ::= expr SETUP_WITH POP_TOP
+                  c_with      ::= expr SETUP_WITH
+                                  BB_END BB_START
+                                  POP_TOP
                                   c_suite_stmts_opt
                                   COME_FROM_WITH
                                   with_suffix
-                  c_with      ::= expr SETUP_WITH POP_TOP
+
+                  c_with      ::= expr SETUP_WITH
+                                  BB_END BB_START
+                                  POP_TOP
                                   c_suite_stmts_opt
                                   POP_BLOCK LOAD_CONST COME_FROM_WITH
                                   with_suffix
 
-                  with        ::= expr SETUP_WITH POP_TOP
+                  with        ::= expr SETUP_WITH
+                                  BB_END BB_START
+                                  POP_TOP
                                   suite_stmts_opt
-                                  COME_FROM_WITH
+                                  BB_END BLOCK_END_JOIN BB_START
                                   with_suffix
 
                   withasstmt  ::= expr SETUP_WITH store suite_stmts_opt COME_FROM_WITH
                                   with_suffix
 
                   with        ::= expr
-                                  SETUP_WITH POP_TOP suite_stmts_opt
-                                  POP_BLOCK LOAD_CONST COME_FROM_WITH
-                                  with_suffix
+                                  SETUP_WITH
+                                  BB_END BB_START
+                                  POP_TOP suite_stmts_opt
+                                  POP_BLOCK LOAD_CONST DUP_TOP DUP_TOP
+                                  CALL_FUNCTION_3
+                                  POP_TOP
+                                  LOAD_CONST RETURN_VALUE
+                                  BB_END BLOCK_END_JOIN
+                                  BB_START NOT_FALLEN_INTO_BLOCK
+                                  WITH_EXCEPT_START
+                                  POP_JUMP_IF_TRUE BB_END BB_START
+                                  RERAISE
+                                  BB_END BLOCK_END_JOIN
+                                  BB_START POP_TOP POP_TOP POP_TOP
+                                  POP_EXCEPT POP_TOP
+                                  LOAD_CONST RETURN_VALUE BB_END
+                                  BLOCK_END_JOIN BLOCK_END_JOIN
+
                   withasstmt  ::= expr
                                   SETUP_WITH store suite_stmts_opt
                                   POP_BLOCK LOAD_CONST COME_FROM_WITH
                                   with_suffix
 
                   with        ::= expr
-                                  SETUP_WITH POP_TOP suite_stmts_opt
+                                  SETUP_WITH
+                                  BB_END BB_START
+                                  POP_TOP suite_stmts_opt
                                   POP_BLOCK LOAD_CONST COME_FROM_WITH
                                   with_suffix
                   withasstmt  ::= expr
-                                  SETUP_WITH store suite_stmts_opt
+                                  SETUP_WITH
+                                  BB_END BB_START
+                                  store suite_stmts_opt
                                   POP_BLOCK LOAD_CONST COME_FROM_WITH
                                   with_suffix
                 """
@@ -616,7 +649,9 @@ class Python39FullCustom(Python38LambdaCustom, PythonBaseParser):
                                      RETURN_VALUE
 
                       with       ::= expr
-                                     SETUP_WITH POP_TOP suite_stmts_opt
+                                     SETUP_WITH
+                                     BB_END BB_START
+                                     POP_TOP suite_stmts_opt
                                      POP_BLOCK LOAD_CONST COME_FROM_WITH
                                      with_suffix
 
@@ -630,14 +665,12 @@ class Python39FullCustom(Python38LambdaCustom, PythonBaseParser):
                                      POP_BLOCK BEGIN_FINALLY COME_FROM_WITH
                                      with_suffix
 
-                      # withasstmt ::= expr SETUP_WITH store suite_stmts
-                      #                COME_FROM expr COME_FROM POP_BLOCK ROT_TWO
-                      #                BEGIN_FINALLY WITH_CLEANUP_START WITH_CLEANUP_FINISH
-                      #                POP_FINALLY RETURN_VALUE COME_FROM_WITH
-                      #                WITH_CLEANUP_START WITH_CLEANUP_FINISH END_FINALLY
-
-                      with         ::= expr SETUP_WITH POP_TOP suite_stmts_opt POP_BLOCK
-                                       BEGIN_FINALLY COME_FROM_WITH
+                      with         ::= expr SETUP_WITH
+                                       BB_END BB_START
+                                       POP_TOP suite_stmts_opt POP_BLOCK
+                                       BEGIN_FINALLY
+                                       BB_END
+                                       BLOCK_END_JOIN BB_START
                                        with_suffix
                     """
                 self.addRule(rules_str, nop_func)
@@ -645,69 +678,34 @@ class Python39FullCustom(Python38LambdaCustom, PythonBaseParser):
 
         return
 
-    def customize_reduce_checks_full39(self):
+    def customize_reduce_checks_full3_10(self):
         """
         Extra tests when a reduction is made in the full grammar.
 
         Reductions here are extended from those used in the lambda grammar
         """
         self.reduce_check_table.update({
-        #     "break": break_check,
-        #     "for38": for38_check,
              "joined_str": joined_str_ok,
-        #     "ifstmts_jump": ifstmts_jump,
-        #     "if_and_stmt": if_and_stmt,
-        #     "ifelsestmt": ifelsestmt,
-        #     "iflaststmt": iflaststmt,
-        #     "ifstmt": ifstmt,
-        #     "list_if_not": list_if_not,
-        #     "not_or": not_or_check,
-        #     "or": or_check,
-        #     "or_cond": or_cond_check,
-        #     ""pop_return": pop_return_check
-        #     "testtrue": testtrue,
-        #     "while1elsestmt": while1elsestmt,
-        #     "while1stmt": while1stmt,
-        #     "whilestmt": whilestmt,
         })
 
-        # self.check_reduce["annotate_tuple"] = "tokens"
-        # self.check_reduce["aug_assign2"] = "AST"
-        # self.check_reduce["break"] = "tokens"
-        # self.check_reduce["for38"] = "tokens"
-        # self.check_reduce["if_and_stmt"] = "AST"
-        # self.check_reduce["iflaststmt"] = "AST"
-        # self.check_reduce["ifstmt"] = "AST"
-        # self.check_reduce["ifstmts_jump"] = "AST"
         self.check_reduce["joined_str"] = "AST"
-        # self.check_reduce["lastc_stmt"] = "tokens"
-        # self.check_reduce["list_if_not"] = "AST"
-        # self.check_reduce["pop_return"] = "tokens"
-        # self.check_reduce["try_elsestmtl38"] = "AST"
-        # self.check_reduce["while1elsestmt"] = "tokens"
-        # self.check_reduce["while1stmt"] = "tokens"
-        # self.check_reduce["whileTruestmt38"] = "tokens"
-        # self.check_reduce["whilestmt"] = "tokens"
-        # self.check_reduce["whilestmt38"] = "tokens"
 
         # Use update we don't destroy entries from lambda.
         self.reduce_check_table.update({
             "ifelsestmt": ifelsestmt_ok,
             "ifstmt": ifstmt_ok,
-            # "import_from37": import_from37_ok,
         })
 
         self.check_reduce["ifelsestmt"] = "AST"
         self.check_reduce["ifstmt"] = "AST"
-        # self.check_reduce["import_from37"] = "AST"
 
 
     def reduce_is_invalid(self, rule, ast, tokens, first, last):
-        invalid = Python38LambdaCustom.reduce_is_invalid(self, rule, ast, tokens, first, last)
+        invalid = Python3_10LambdaCustom.reduce_is_invalid(self, rule, ast, tokens, first, last)
         if invalid:
             return invalid
         lhs = rule[0]
-        if lhs in ("whileTruestmt38", "whilestmt38"):
+        if lhs in ("whileTruestmt3_10", "whilestmt3_10"):
             jb_index = last - 1
             while jb_index > 0 and tokens[jb_index].kind.startswith("COME_FROM"):
                 jb_index -= 1

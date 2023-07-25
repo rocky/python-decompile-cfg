@@ -1,4 +1,4 @@
-#  Copyright (c) 2016-2020, 2022 by Rocky Bernstein
+#  Copyright (c) 2016-2020, 2022-2023 by Rocky Bernstein
 #  Copyright (c) 2000-2002 by hartmut Goebel <h.goebel@crazy-compilers.com>
 #  Copyright (c) 1999 John Aycock
 #
@@ -15,7 +15,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re, sys
+import re
+import sys
 from typing import Optional
 
 

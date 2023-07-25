@@ -53,6 +53,7 @@ def maybe_show_tree(walker, tree) -> None:
             isinstance(walker.showast, dict)
             and walker.showast.get("after", False)
             and hasattr(walker, "str_with_template")
+            and walker.str_with_template
         ):
             walker.str_with_template(tree)
         else:

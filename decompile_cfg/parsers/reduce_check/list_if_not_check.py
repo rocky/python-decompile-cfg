@@ -24,7 +24,7 @@ def list_if_not_seems_ok(
     #    print(tokens[i])
     # print(tree)
     # print(rule)
-    list_iter = tree[2]
+    list_iter = tree[3]
     assert list_iter == "list_iter"
     # Since this is an "not" we must have something that doesn't assume a binary operation
     # like a "list_if_or".

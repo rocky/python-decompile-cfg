@@ -1,4 +1,4 @@
-#  Copyright (c) 2020-2022 Rocky Bernstein
+#  Copyright (c) 2020-2023 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 Grammar Customization rules for Python 3.8's Lambda expression grammar.
 """
 
-from decompile_cfg.parsers.p38.base import Python38BaseParser
+from decompile_cfg.parsers.p3_10.base import Python3_10BaseParser
 from decompile_cfg.parsers.parse_heads import ParserError, nop_func
 from decompile_cfg.parsers.reduce_check.and_check import and_ok
 from decompile_cfg.parsers.reduce_check.and_parts_check import and_parts_ok
@@ -24,10 +24,9 @@ from decompile_cfg.parsers.reduce_check.if_exp_check import if_exp_ok
 from decompile_cfg.parsers.reduce_check.comp_if_check import comp_if_ok
 from decompile_cfg.parsers.reduce_check.list_if_not_check import list_if_not_seems_ok
 from decompile_cfg.parsers.reduce_check.or_check import or_ok
-from decompile_cfg.parsers.reduce_check.or_parts_check import or_parts_ok
 from spark_parser.spark import rule2str
 
-class Python38LambdaCustom(Python38BaseParser):
+class Python3_10LambdaCustom(Python3_10BaseParser):
     def __init__(self):
         self.new_rules = set()
         self.customized = {}
@@ -82,13 +81,41 @@ class Python38LambdaCustom(Python38BaseParser):
             self.add_unique_rule(rule, token.kind, args_pos, customize)
 
         # Has to come before generic CALL_FUNCTION else below
-        elif opname == "CALL_FUNCTION_EX_KW":
+        elif opname == "CALL_FUNCTION_EX":
+            # 3.10 parsing is the same as 3.9
             self.addRule(
-                """expr        ::= call_ex_kw4
-                   call_ex_kw4 ::= expr
-                                   expr
-                                   BUILD_MAP_0 expr DICT_MERGE
-                                   CALL_FUNCTION_EX_KW
+                """
+                expr        ::= call_ex_3_9
+                expr        ::= call_ex0_3_9
+                expr        ::= call_ex1_3_9
+                call_ex_3_9  ::= expr
+                                BUILD_TUPLE_0
+                                dict
+                                expr
+                                DICT_MERGE
+                                CALL_FUNCTION_EX
+                call_ex_3_9  ::= expr
+                                list
+                                expr
+                                LIST_EXTEND
+                                LIST_TO_TUPLE
+                                dict
+                                expr
+                                DICT_MERGE
+                                CALL_FUNCTION_EX
+                call_ex0_3_9 ::= expr
+                                expr
+                                dict
+                                expr
+                                DICT_MERGE
+                                CALL_FUNCTION_EX
+                call_ex1_3_9 ::= expr
+                                list
+                                expr
+                                LIST_EXTEND
+                                LIST_TO_TUPLE
+                                CALL_FUNCTION_EX
+
                 """,
                 nop_func,
             )
@@ -162,9 +189,9 @@ class Python38LambdaCustom(Python38BaseParser):
 
                 self.add_unique_rule(rule, token.kind, uniq_param, customize)
 
-    def customize_grammar_rules_lambda38(self, tokens, customize):
+    def customize_grammar_rules_lambda3_10(self, tokens, customize):
 
-        self.customize_reduce_checks_lambda38()
+        self.customize_reduce_checks_lambda3_10()
 
         is_pypy = False
 
@@ -477,18 +504,18 @@ class Python38LambdaCustom(Python38BaseParser):
                 self.addRule(rule, nop_func)
 
             elif opname in frozenset(
-                (
-                    "CALL_FUNCTION",
-                    "CALL_FUNCTION_EX",
-                    "CALL_FUNCTION_EX_KW",
-                    "CALL_FUNCTION_VAR",
-                    "CALL_FUNCTION_VAR_KW",
-                )
-            ) or opname.startswith("CALL_FUNCTION_KW"):
+                    (
+                        "CALL_FUNCTION",
+                        "CALL_FUNCTION_EX",
+                        "CALL_FUNCTION_EX_KW",
+                        "CALL_FUNCTION_VAR",
+                        "CALL_FUNCTION_VAR_KW",
+                    )
+            ):
 
                 self.addRule(
-                    """expr        ::= call_ex_kw4
-                       call_ex_kw4 ::= arg arg arg
+                    """expr        ::= call_ex_3_10
+                       call_ex_3_10  ::= arg arg arg
                                        CALL_FUNCTION_EX_KW
                      """,
                     nop_func,
@@ -673,41 +700,37 @@ class Python38LambdaCustom(Python38BaseParser):
                     expr                 ::= list_comp_async
                     expr                 ::= set_comp_async
 
+                    async_for_loop       ::= BREAK_LOOP LOOP SETUP_FINALLY BB_END
+
                     dict_comp_async      ::= BUILD_MAP_0 genexpr_func_async
 
                     async_iter           ::= block_end
-                                             BREAK_LOOP SETUP_FINALLY
+                                             async_for_loop
+                                             BB_START
                                              GET_ANEXT LOAD_CONST
                                              YIELD_FROM POP_BLOCK
 
-                    genexpr_func_async   ::= LOAD_ARG async_iter
+                    genexpr_func_async   ::= GEN_START BUILD_SET_0
+                                             LOAD_ARG async_iter
                                              store
                                              comp_iter
-                                             jump_loop_absolute
-                                             block_end
+                                             BB_START
                                              END_ASYNC_FOR
 
                     list_afor2           ::= async_iter
                                              store
                                              list_iter
-                                             jump_loop_absolute
+                                             JUMP_LOOP
+                                             JUMP_ABSOLUTE
                                              block_end
                                              END_ASYNC_FOR
 
                     list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
 
-                    return_expr_lambda   ::= genexpr_func_async
-                                             LOAD_CONST RETURN_VALUE
-                                             bb_doms_end_opt
-
-                    return_expr_lambda   ::= BUILD_SET_0 genexpr_func_async
-                                             RETURN_VALUE
-                                             bb_doms_end_opt
                     set_afor2            ::= async_iter
                                              store
                                              set_iter
-                                             jump_loop_absolute
-                                             block_end
+                                             BLOCK_END_JOIN BB_START
                                              END_ASYNC_FOR
 
                     set_afor2            ::= expr_or_arg
@@ -718,10 +741,16 @@ class Python38LambdaCustom(Python38BaseParser):
                     set_iter_async       ::= async_iter
                                              store
                                              set_iter
-                                             jump_loop_absolute
-                                             block_end
+                                             BLOCK_END_JOIN BB_START
                                              END_ASYNC_FOR
 
+                    return_expr_lambda   ::= genexpr_func_async
+                                             LOAD_CONST RETURN_VALUE
+                                             bb_doms_end_opt
+
+                    return_expr_lambda   ::= BUILD_SET_0 genexpr_func_async
+                                             RETURN_VALUE
+                                             bb_doms_end_opt
                    """,
                     nop_func,
                 )
@@ -730,7 +759,7 @@ class Python38LambdaCustom(Python38BaseParser):
             elif opname == "GET_AWAITABLE":
                 rule_str = """
                     await      ::= GET_AWAITABLE LOAD_CONST YIELD_FROM
-                    await_expr ::= expr await
+                    await_expr ::= GEN_START expr await
                     expr       ::= await_expr
                 """
                 self.add_unique_doc_rules(rule_str, customize)
@@ -739,7 +768,7 @@ class Python38LambdaCustom(Python38BaseParser):
                 self.add_unique_doc_rules(
                     """
                     expr      ::= get_iter
-                    get_iter  ::= expr block_end GET_ITER
+                    get_iter  ::= expr GET_ITER
                     """,
                     customize,
                 )
@@ -1159,7 +1188,7 @@ class Python38LambdaCustom(Python38BaseParser):
                 )
                 self.addRule(rule, nop_func)
 
-    def customize_reduce_checks_lambda38(self):
+    def customize_reduce_checks_lambda3_10(self):
         """
         Extra tests when a reduction is made in the lambda grammar
         """
@@ -1171,7 +1200,6 @@ class Python38LambdaCustom(Python38BaseParser):
             "comp_if": comp_if_ok,
             "comp_if_not": comp_if_ok,
             "list_if_not": list_if_not_seems_ok,
-            "or_parts_pjit": or_parts_ok,
             "or1": or_ok,
         }
 
@@ -1192,8 +1220,9 @@ class Python38LambdaCustom(Python38BaseParser):
         try:
             if fn:
                 return not fn(self, lhs, n, rule, ast, tokens, first, last)
-        except:
-            import sys, traceback
+        except Exception:
+            import sys
+            import traceback
 
             print(
                 f"Exception in {fn.__name__} {sys.exc_info()[1]}\n"

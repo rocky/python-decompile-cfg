@@ -1,4 +1,4 @@
-#  Copyright (c) 2019-2022 by Rocky Bernstein
+#  Copyright (c) 2019-2023 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -15,18 +15,18 @@
 """Isolate Python 3.7 version-specific semantic actions here.
 """
 
-import re
 from spark_parser.ast import GenericASTTraversalPruningException
 from xdis import co_flags_is_async, iscode
+
+from decompile_cfg.parsers.treenode import SyntaxTree
 from decompile_cfg.scanners.tok import Token
 from decompile_cfg.semantics.consts import (
+    INDENT_PER_LEVEL,
     PRECEDENCE,
     TABLE_DIRECT,
     TABLE_R,
-    INDENT_PER_LEVEL,
 )
-from decompile_cfg.parsers.treenode import SyntaxTree
-from decompile_cfg.semantics.helper import flatten_list, escape_string, strip_quotes
+from decompile_cfg.semantics.helper import escape_string, flatten_list, strip_quotes
 
 
 def escape_format(s):
@@ -39,8 +39,9 @@ EMPTY_DICT = SyntaxTree(
 
 FSTRING_CONVERSION_MAP = {1: "!s", 2: "!r", 3: "!a", "X": ":X"}
 
+
 #######################
-def customize_for_version37(self, version):
+def customize_for_version3_7(self):
     ########################
     # Python 3.7+ changes
     #######################
@@ -54,9 +55,10 @@ def customize_for_version37(self, version):
     PRECEDENCE["call_ex_kw4"]      =   1
     PRECEDENCE["call_kw"]          =   0
     PRECEDENCE["call_kw36"]        =   1
-    PRECEDENCE["formatted_value1"] =  38 # f"...". This has to be below "named_expr" to make
-                                         # f'{(x := 10)}' preserve parenthesis
-    PRECEDENCE["formatted_value2"] =  38 # See above
+    # f"...". This has to be below "named_expr" to make f'{(x := 10)}'
+    # preserve parenthesis
+    PRECEDENCE["formatted_value1"] =  38
+    PRECEDENCE["formatted_value2"] =  38  # See above
     PRECEDENCE["if_exp_37a"]       =  28
     PRECEDENCE["if_exp_37b"]       =  28
     PRECEDENCE["dict_unpack"]      =   0  # **{...}
@@ -64,15 +66,16 @@ def customize_for_version37(self, version):
     # fmt: on
     TABLE_DIRECT.update(
         {
-            "or_and1": (
-                "%c or (%c)",
-                (0, "or_parts_pjit"),
-                (1, "and_parts_pjif"),
+            "and_or_expr": (
+                "%c and %c or %c",
+                (0, "and_parts"),
+                (1, "expr"),
+                (2, "jitop_come_from_expr"),
             ),
             "and_not": ("%c and not %c", (0, "expr_pjif"), (1, "expr_pjit")),
             "and_cond": (
                 "%c and %c",
-                (0, ("and_parts_pjif", "testfalse")),
+                (0, ("and_parts", "testfalse")),
                 (1, ("expr_pjif", "expr")),
             ),
             "ann_assign": (
@@ -110,9 +113,9 @@ def customize_for_version37(self, version):
             ),
             "async_with_stmt": ("%|async with %c:\n%+%c%-", (0, "expr"), 3),
             "async_with_as_stmt": (
-                "%|async with %c as %c:\n%+%c%-",
+                "%|async with %c as %p:\n%+%c%-",
                 (0, "expr"),
-                (2, "store"),
+                (2, "store", PRECEDENCE["unpack"] - 1),
                 3,
             ),
             "async_forelse_stmt": (
@@ -132,30 +135,31 @@ def customize_for_version37(self, version):
             #   return await (await bar())
             # need parenthesis.
             # Note there are async dictionary expressions are like await expr's
-            # the below is just the default fersion
+            # the below is just the default version
             "await_expr": ("await %p", (0, PRECEDENCE["await_expr"] - 1)),
             "await_stmt": ("%|%c\n", 0),
+            "c_async_with_stmt": ("%|async with %c:\n%+%c%-", (0, "expr"), 3),
             "call_ex": ("%c(%p)", (0, "expr"), (1, 100)),
-            "compare_chained1a_37": (
+            "compare_chained_middlea_37": (
                 "%p %p",
                 (0, PRECEDENCE["compare"] - 1),
                 (1, PRECEDENCE["compare"] - 1),
             ),
-            "c_compare_chained1a_37": (
+            "c_compare_chained_middlea_37": (
                 "%p %p",
                 (0, PRECEDENCE["compare"] - 1),
                 (1, PRECEDENCE["compare"] - 1),
             ),
-            "compare_chained1_false_37": (
+            "compare_chained_middle_false_37": (
                 "%p%p",
                 (0, "chained_parts", PRECEDENCE["compare"] - 1),
                 (1, PRECEDENCE["compare"] - 1),
             ),
-            "compare_chained2_false_37": (
+            "compare_chained_right_false_37": (
                 (0, "chained_part", PRECEDENCE["compare"] - 1),
                 (1, PRECEDENCE["compare"] - 1),
             ),
-            "compare_chained1b_false_37": (
+            "compare_chained_middleb_false_37": (
                 "%p %p",
                 (0, PRECEDENCE["compare"] - 1),
                 (1, PRECEDENCE["compare"] - 1),
@@ -170,34 +174,47 @@ def customize_for_version37(self, version):
                 (1, "chained_parts"),
                 -2,  # Is often a transformed negated_testtrue
             ),
-            # This is eliminated in the transform phase, but
-            # we have it here to be logically complete and more robust
-            # if something goes wrong.
-            "negated_testtrue": (
-                "not %c",
-                (0, "testtrue"),
-            ),
-            "compare_chained1c_37": (
+            "compare_chained_middlec_37": (
                 "%p %p",
                 (0, PRECEDENCE["compare"] - 1),
                 (1, PRECEDENCE["compare"] - 1),
             ),
-            "compare_chained2a_37": (
+            "compare_chained_righta_37": (
                 '%[1]{pattr.replace("-", " ")} %p',
                 (0, PRECEDENCE["compare"] - 1),
             ),
-            "compare_chained2b_false_37": (
+            "c_compare_chained_righta_37": (
                 '%[1]{pattr.replace("-", " ")} %p',
                 (0, PRECEDENCE["compare"] - 1),
             ),
-            "compare_chained2a_false_37": (
+            "c_try_except36": ("%|try:\n%+%c%-%c\n\n", 1, 2),
+            "compare_chained_rightb_false_37": (
                 '%[1]{pattr.replace("-", " ")} %p',
                 (0, PRECEDENCE["compare"] - 1),
             ),
-            "compare_chained2c_37": (
+            "c_compare_chained_rightb_false_37": (
+                ' %[1]{pattr.replace("-", " ")} %p',
+                (0, PRECEDENCE["compare"] - 1),
+            ),
+            "compare_chained_righta_false_37": (
+                '%[1]{pattr.replace("-", " ")} %p',
+                (0, PRECEDENCE["compare"] - 1),
+            ),
+            "c_compare_chained_righta_false_37": (
+                ' %[1]{pattr.replace("-", " ")} %p',
+                (0, PRECEDENCE["compare"] - 1),
+            ),
+            "compare_chained_rightc_37": (
                 "%p %p",
                 (0, PRECEDENCE["compare"] - 1),
                 (1, PRECEDENCE["compare"] - 1),
+            ),
+            "c_try_except": ("%|try:\n%+%c%-%c\n\n", 1, (3, "c_except_handler")),
+            "if_exp_compare": (
+                "%p if %c else %c",
+                (1, "expr", 27),
+                (0, ("expr", "bool_op")),
+                -2,  # Must be from end since beginnings might not match
             ),
             "dict_unpack": ("{**%C}", (0, -1, ", **")),
             "except_return": ("%|except:\n%+%c%-", 3),
@@ -212,6 +229,11 @@ def customize_for_version37(self, version):
                 (1, "expr_pjif", 27),
                 (0, "expr_pjif", 27),
                 (3, "expr", 27),
+            ),
+            "if_not_stmtc": (
+                "%|if not %c:\n%+%c%-",
+                (0, "testexprc"),
+                (1, "ifstmts_jumpc"),
             ),
             "ifstmt_bool": (
                 "%|if %c:\n%+%c%-",
@@ -263,65 +285,61 @@ def customize_for_version37(self, version):
                 (2, "import_from_attr37"),
                 (3, "store"),
             ),
-            "import_one": ("%c", (0, "importlists"),),
+            "import_one": (
+                "%c",
+                (0, "importlists"),
+            ),
             "importattr37": ("%c", (0, "IMPORT_NAME_ATTR")),
             "import_from_attr37": (
                 "%c import %c",
                 (0, "IMPORT_NAME_ATTR"),
                 (1, "IMPORT_FROM"),
             ),
-            "or_and_not": (
-                "%c or %c",
-                (0, "expr_pjit"),
-                (1, "and_not"),
+            "list_afor": (
+                " async for %[1]{%c} in %c%[1]{%c}",
+                (1, "store"),
+                (0, "get_aiter"),
+                (3, "list_iter"),
             ),
-            "or_cond": (
-                "%c or %c",
-                (0, ("or_parts_pjit", "and", "not_and_not")),
-                (1, "expr_pjif"),
+            "list_if37": (" if %p%c", (0, 27), 1),
+            "list_if37_not": (" if not %p%c", (0, 27), 1),
+            # This is eliminated in the transform phase, but
+            # we have it here to be logically complete and more robust
+            # if something goes wrong.
+            "negated_testtrue": (
+                "not %c",
+                (0, "testtrue"),
             ),
             "not_and_not": (
                 "%c and not %c",
                 (0, "not"),
                 (1, "expr_pjif"),
             ),
-            "nor_cond": (
+            "or_and_not": (
                 "%c or %c",
-                (0, ("or_parts_pjit", "and")),
-                (1, "expr_pjif"),
+                (0, "expr_pjit"),
+                (1, "and_not"),
             ),
-            "or_cond1": (
-                "%c or %c",
-                (0, ("or_parts_pjit", "and")),
-                (-2, "expr_pjif"),
-            ),
-            "and_or_cond": (
-                "%c and %c or %c",
-                (0, ("and_parts_pjif", "or_parts_pjit")),
-                (1, "expr"),
-                (4, "expr_pjif"),
-            ),
-            "list_if37": (" if %p%c", (0, 27), 1),
-            "list_if37_not": (" if not %p%c", (0, 27), 1),
             "not": (
                 "not %p",
                 (0, "expr_pjit", PRECEDENCE["not"]),
             ),
             "not_or": (
                 "not %p or %c",
-                (0, "and_parts_pjif", PRECEDENCE["and"] - 1),
+                (0, "and_parts", PRECEDENCE["and"] - 1),
                 (1, "expr_pjif"),
             ),
             "nand": (
                 "not (%c and %c)",
-                (0, "and_parts_pjif"),
+                (0, "and_parts"),
                 (1, ("expr", "expr_pjit")),
             ),
-            "or_parts_pjit": (
-                "%P or %c",
-                (0, -1, "or ", PRECEDENCE["or"]),
-                (1, "expr_pjit"),
+            "c_nand": (
+                "not (%c and %c)",
+                (0, "and_parts"),
+                (1, "expr_pjitt"),
             ),
+            "store_async_iter_end": ("%c", (0, "store")),
             "testfalsec": (
                 "not %c",
                 (
@@ -329,7 +347,7 @@ def customize_for_version37(self, version):
                     (
                         "expr",
                         "c_compare_chained37_false",
-                        "c_compare_chained1b_false_37",
+                        "c_compare_chained_middleb_false_37",
                         "c_nand",
                     ),
                 ),
@@ -346,7 +364,6 @@ def customize_for_version37(self, version):
                 (1, "suite_stmts_opt"),
                 3,
             ),
-            "unmap_dict": ("{**%C}", (0, -1, ", **")),
             "unpack_list": ("*%c", (0, "list")),
             "yield_from": ("yield from %c", (0, "expr")),
         }
@@ -360,25 +377,166 @@ def customize_for_version37(self, version):
         }
     )
 
-    # FIXME: Can we to compress this into a single template?
-    def n_and_parts_pjif(node):
-        self.template_engine(("%c", (0, "expr_pjif")), node[0])
-        if len(node) != 1:
-            self.write(" ")
-            for n in node[1:]:
-                self.default(n)
+    def call36_tuple(node):
+        """
+        A tuple used in a call, these are like normal tuples but they
+        don't have the enclosing parenthesis.
+        """
+        assert node == "tuple"
+        # Note: don't iterate over last element which is a
+        # BUILD_TUPLE...
+        flat_elems = flatten_list(node[:-1])
+
+        self.indent_more(INDENT_PER_LEVEL)
+        sep = ""
+
+        for elem in flat_elems:
+            if elem in ("ROT_THREE", "EXTENDED_ARG"):
+                continue
+            assert elem == "expr"
+            line_number = self.line_number
+            value = self.traverse(elem)
+            if line_number != self.line_number:
+                sep += "\n" + self.indent + INDENT_PER_LEVEL[:-1]
+            self.write(sep, value)
+            sep = ", "
+
+        self.indent_less(INDENT_PER_LEVEL)
+        return len(flat_elems)
+
+    self.call36_tuple = call36_tuple
+
+    def call36_dict(node):
+        """
+        A dict used in a call_ex_kw2, which are a dictionary items expressed
+        in a call. This should format to:
+             a=1, b=2
+        In other words, no braces, no quotes around keys and ":" becomes
+        "=".
+
+        We will source-code use line breaks to guide us when to break.
+        """
+        p = self.prec
+        self.prec = 100
+
+        self.indent_more(INDENT_PER_LEVEL)
+        sep = INDENT_PER_LEVEL[:-1]
+        line_number = self.line_number
+
+        if node[0].kind.startswith("kvlist"):
+            # Python 3.5+ style key/value list in dict
+            kv_node = node[0]
+            ll = list(kv_node)
+            i = 0
+
+            length = len(ll)
+            # FIXME: Parser-speed improved grammars will have BUILD_MAP
+            # at the end. So in the future when everything is
+            # complete, we can do an "assert" instead of "if".
+            if kv_node[-1].kind.startswith("BUILD_MAP"):
+                length -= 1
+
+            # Respect line breaks from source
+            while i < length:
+                self.write(sep)
+                name = self.traverse(ll[i], indent="")
+                # Strip off beginning and trailing quotes in name
+                name = name[1:-1]
+                if i > 0:
+                    line_number = self.indent_if_source_nl(
+                        line_number, self.indent + INDENT_PER_LEVEL[:-1]
+                    )
+                line_number = self.line_number
+                self.write(name, "=")
+                value = self.traverse(
+                    ll[i + 1], indent=self.indent + (len(name) + 2) * " "
+                )
+                self.write(value)
+                sep = ", "
+                if line_number != self.line_number:
+                    sep += "\n" + self.indent + INDENT_PER_LEVEL[:-1]
+                    line_number = self.line_number
+                i += 2
                 pass
-        self.prune()
+        elif node[-1].kind.startswith("BUILD_CONST_KEY_MAP"):
+            keys_node = node[-2]
+            keys = keys_node.attr
+            # from trepan.api import debug; debug()
+            assert keys_node == "LOAD_CONST" and isinstance(keys, tuple)
+            for i in range(node[-1].attr):
+                self.write(sep)
+                self.write(keys[i], "=")
+                value = self.traverse(node[i], indent="")
+                self.write(value)
+                sep = ", "
+                if line_number != self.line_number:
+                    sep += "\n" + self.indent + INDENT_PER_LEVEL[:-1]
+                    line_number = self.line_number
+                    pass
+                pass
+        else:
+            self.write("**")
+            try:
+                if node == EMPTY_DICT:
+                    self.write("{}")
+                else:
+                    self.default(node)
+            except GenericASTTraversalPruningException:
+                pass
+
+        self.prec = p
+        self.indent_less(INDENT_PER_LEVEL)
         return
 
-    self.n_and_parts_pjif = n_and_parts_pjif
+    self.call36_dict = call36_dict
+
+    def gen_function_parens_adjust(mapping_key, node):
+        """If we can avoid the outer parenthesis
+        of a generator function, set the node key to
+        'call_generator' and the caller will do the default
+        action on that. Otherwise we do nothing.
+        """
+        if mapping_key.kind != "CALL_FUNCTION_1":
+            return
+
+        args_node = node[-2]
+        if args_node == "pos_arg":
+            assert args_node[0] == "expr"
+            n = args_node[0][0]
+            if n == "generator_exp":
+                node.kind = "call_generator"
+            pass
+        return
+
+    # FIXME: Can we to compress this into a single template?
+    def n_and_parts(node):
+        if len(node) == 1:
+            self.template_engine(("%c", (0, ("expr_pjif", "and_part", "expr"))), node)
+            self.prune()
+        elif len(node) == 2 and node[0] == "or_and_part" and len(node[0]) == 2:
+            # We have this when the "or" portion is just one item, so in effect
+            # we just have a compsit "and".
+            self.template_engine(
+                ("%c and %c and ", (0, "expr_pjit"), (1, "expr_jifop")), node[0]
+            )
+            self.n_expr(node[1])
+
+        else:
+            self.default(node)
+            pass
+        return
+
+    self.n_and_parts = n_and_parts
 
     def n_await_expr(node):
         dict_comp_async = node[0][0]
         if dict_comp_async == "dict_comp_async":
             compile_mode = self.compile_mode
             self.compile_mode = "dictcomp"
-            self.n_set_comp(dict_comp_async)
+            try:
+                self.n_set_comp(dict_comp_async)
+            except GenericASTTraversalPruningException:
+                pass
             self.compile_mode = compile_mode
         else:
             self.default(node)
@@ -386,19 +544,6 @@ def customize_for_version37(self, version):
         return
 
     self.n_await_expr = n_await_expr
-
-    # FIXME: we should be able to compress this into a single template
-    def n_or_parts_pjit(node):
-        self.template_engine(("%c", (0, "expr_pjit")), node[0])
-        if len(node) != 1:
-            self.write(" ")
-            for n in node[1:]:
-                self.default(n)
-                pass
-        self.prune()
-        return
-
-    self.n_or_parts_pjit = n_or_parts_pjit
 
     def n_assert_invert(node):
         testtrue = node[0]
@@ -410,17 +555,17 @@ def customize_for_version37(self, version):
 
     def n_async_call(node):
         self.f.write("async ")
-        node.kind == "call"
+        node.kind = "call"
         p = self.prec
         self.prec = 80
         self.template_engine(("%c(%P)", 0, (1, -4, ", ", 100)), node)
         self.prec = p
-        node.kind == "async_call"
+        node.kind = "async_call"
         self.prune()
 
     self.n_async_call = n_async_call
 
-    def n_attribute(node):
+    def n_attribute37(node):
         expr = node[0]
         assert expr == "expr"
         if expr[0] == "LOAD_CONST":
@@ -432,7 +577,7 @@ def customize_for_version37(self, version):
             node.kind = "attribute_w_parens"
         self.default(node)
 
-    self.n_attribute = n_attribute
+    self.n_attribute37 = n_attribute37
 
     def n_build_list_unpack(node):
         """
@@ -452,6 +597,8 @@ def customize_for_version37(self, version):
         if lastnodetype.startswith("BUILD_LIST"):
             self.write("[")
             endchar = "]"
+        else:
+            endchar = ""
 
         flat_elems = flatten_list(node)
 
@@ -518,221 +665,6 @@ def customize_for_version37(self, version):
 
     self.n_c_except_suite = n_c_except_suite
 
-    self.n_c_with = n_c_with
-
-    def gen_function_parens_adjust(mapping_key, node):
-        """If we can avoid the outer parenthesis
-        of a generator function, set the node key to
-        'call_generator' and the caller will do the default
-        action on that. Otherwise we do nothing.
-        """
-        if mapping_key.kind != "CALL_FUNCTION_1":
-            return
-
-        args_node = node[-2]
-        if args_node == "pos_arg":
-            assert args_node[0] == "expr"
-            n = args_node[0][0]
-            if n == "generator_exp":
-                node.kind = "call_generator"
-            pass
-        return
-
-    def n_call(node):
-        p = self.prec
-        self.prec = 100
-        mapping = self._get_mapping(node)
-        table = mapping[0]
-        key = node
-        for i in mapping[1:]:
-            key = key[i]
-            pass
-        opname = key.kind
-        if opname.startswith("CALL_FUNCTION_VAR_KW"):
-            # Python 3.5 changes the stack position of
-            # *args: kwargs come after *args whereas
-            # in earlier Pythons, *args is at the end
-            # which simplifies things from our
-            # perspective.  Python 3.6+ replaces
-            # CALL_FUNCTION_VAR_KW with
-            # CALL_FUNCTION_EX We will just swap the
-            # order to make it look like earlier
-            # Python 3.
-            entry = table[key.kind]
-            kwarg_pos = entry[2][1]
-            args_pos = kwarg_pos - 1
-            # Put last node[args_pos] after subsequent kwargs
-            while node[kwarg_pos] == "kwarg" and kwarg_pos < len(node):
-                # swap node[args_pos] with node[kwargs_pos]
-                node[kwarg_pos], node[args_pos] = node[args_pos], node[kwarg_pos]
-                args_pos = kwarg_pos
-                kwarg_pos += 1
-        elif opname.startswith("CALL_FUNCTION_VAR"):
-            # CALL_FUNCTION_VAR's top element of the stack contains
-            # the variable argument list, then comes
-            # annotation args, then keyword args.
-            # In the most least-top-most stack entry, but position 1
-            # in node order, the positional args.
-            argc = node[-1].attr
-            nargs = argc & 0xFF
-            kwargs = (argc >> 8) & 0xFF
-            # FIXME: handle annotation args
-            if nargs > 0:
-                template = ("%c(%P, ", 0, (1, nargs + 1, ", ", 100))
-            else:
-                template = ("%c(", 0)
-            self.template_engine(template, node)
-
-            args_node = node[-2]
-            if args_node in ("pos_arg", "arg", "expr"):
-                args_node = args_node[0]
-            if args_node == "build_list_unpack":
-                template = ("*%P)", (0, len(args_node) - 1, ", *", 100))
-                self.template_engine(template, args_node)
-            else:
-                if len(node) - nargs > 3:
-                    template = (
-                        "*%c, %P)",
-                        nargs + 1,
-                        (nargs + kwargs + 1, -1, ", ", 100),
-                    )
-                else:
-                    template = ("*%c)", nargs + 1)
-                self.template_engine(template, node)
-            self.prec = p
-            self.prune()
-        elif (
-            opname.startswith("CALL_FUNCTION_1")
-            and opname == "CALL_FUNCTION_1"
-            or not re.match(r"\d", opname[-1])
-        ):
-            template = "(%c)(%p)" if node[0][0] == "lambda_body" else "%c(%p)"
-            self.template_engine(
-                (template, (0, ("arg", "expr")), (1, PRECEDENCE["yield"] - 1)), node
-            )
-            self.prec = p
-            self.prune()
-        else:
-            gen_function_parens_adjust(key, node)
-
-        self.prec = p
-        self.default(node)
-
-    self.n_call = n_call
-
-    def call36_tuple(node):
-        """
-        A tuple used in a call, these are like normal tuples but they
-        don't have the enclosing parenthesis.
-        """
-        assert node == "tuple"
-        # Note: don't iterate over last element which is a
-        # BUILD_TUPLE...
-        flat_elems = flatten_list(node[:-1])
-
-        self.indent_more(INDENT_PER_LEVEL)
-        sep = ""
-
-        for elem in flat_elems:
-            if elem in ("ROT_THREE", "EXTENDED_ARG"):
-                continue
-            assert elem == "expr"
-            line_number = self.line_number
-            value = self.traverse(elem)
-            if line_number != self.line_number:
-                sep += "\n" + self.indent + INDENT_PER_LEVEL[:-1]
-            self.write(sep, value)
-            sep = ", "
-
-        self.indent_less(INDENT_PER_LEVEL)
-        return len(flat_elems)
-
-    self.call36_tuple = call36_tuple
-
-    def call36_dict(node):
-        """
-        A dict used in a call_ex_kw2, which are a dictionary items expressed
-        in a call. This should format to:
-             a=1, b=2
-        In other words, no braces, no quotes around keys and ":" becomes
-        "=".
-
-        We will source-code use line breaks to guide us when to break.
-        """
-        p = self.prec
-        self.prec = 100
-
-        self.indent_more(INDENT_PER_LEVEL)
-        sep = INDENT_PER_LEVEL[:-1]
-        line_number = self.line_number
-
-        if node[0].kind.startswith("kvlist"):
-            # Python 3.5+ style key/value list in dict
-            kv_node = node[0]
-            l = list(kv_node)
-            i = 0
-
-            length = len(l)
-            # FIXME: Parser-speed improved grammars will have BUILD_MAP
-            # at the end. So in the future when everything is
-            # complete, we can do an "assert" instead of "if".
-            if kv_node[-1].kind.startswith("BUILD_MAP"):
-                length -= 1
-
-            # Respect line breaks from source
-            while i < length:
-                self.write(sep)
-                name = self.traverse(l[i], indent="")
-                # Strip off beginning and trailing quotes in name
-                name = name[1:-1]
-                if i > 0:
-                    line_number = self.indent_if_source_nl(
-                        line_number, self.indent + INDENT_PER_LEVEL[:-1]
-                    )
-                line_number = self.line_number
-                self.write(name, "=")
-                value = self.traverse(
-                    l[i + 1], indent=self.indent + (len(name) + 2) * " "
-                )
-                self.write(value)
-                sep = ", "
-                if line_number != self.line_number:
-                    sep += "\n" + self.indent + INDENT_PER_LEVEL[:-1]
-                    line_number = self.line_number
-                i += 2
-                pass
-        elif node[-1].kind.startswith("BUILD_CONST_KEY_MAP"):
-            keys_node = node[-2]
-            keys = keys_node.attr
-            # from trepan.api import debug; debug()
-            assert keys_node == "LOAD_CONST" and isinstance(keys, tuple)
-            for i in range(node[-1].attr):
-                self.write(sep)
-                self.write(keys[i], "=")
-                value = self.traverse(node[i], indent="")
-                self.write(value)
-                sep = ", "
-                if line_number != self.line_number:
-                    sep += "\n" + self.indent + INDENT_PER_LEVEL[:-1]
-                    line_number = self.line_number
-                    pass
-                pass
-        else:
-            self.write("**")
-            try:
-                if node == EMPTY_DICT:
-                    self.write("{}")
-                else:
-                    self.default(node)
-            except GenericASTTraversalPruningException:
-                pass
-
-        self.prec = p
-        self.indent_less(INDENT_PER_LEVEL)
-        return
-
-    self.call36_dict = call36_dict
-
     def n_classdef36(node):
         # class definition ('class X(A,B,C):')
         cclass = self.currentclass
@@ -747,6 +679,9 @@ def customize_for_version37(self, version):
         if node == "classdefdeco2":
             if isinstance(node[1][1].attr, str):
                 class_name = node[1][1].attr
+                if self.is_pypy and class_name.find("<locals>") > 0:
+                    class_name = class_name.split(".")[-1]
+
             else:
                 class_name = node[1][2].attr
             build_class = node
@@ -783,23 +718,24 @@ def customize_for_version37(self, version):
         elif build_class[1][0] == "load_closure":
             # Python 3 with closures not functions
             load_closure = build_class[1]
-            if hasattr(load_closure[-3], "attr"):
-                # Python 3.3 classes with closures work like this.
-                # Note have to test before 3.2 case because
-                # index -2 also has an attr.
-                subclass_code = load_closure[-3].attr
-            elif hasattr(load_closure[-2], "attr"):
-                # Python 3.2 works like this
-                subclass_code = load_closure[-2].attr
-            else:
-                raise "Internal Error n_classdef: cannot find class body"
+            subclass_code = None
+            for i in range(-4, -1):
+                if load_closure[i] == "LOAD_CODE":
+                    subclass_code = load_closure[i].attr
+                    break
+            if subclass_code is None:
+                raise RuntimeError(
+                    "Internal Error n_classdef: cannot find " "class body"
+                )
             if hasattr(build_class[3], "__len__"):
                 if not subclass_info:
                     subclass_info = build_class[3]
             elif hasattr(build_class[2], "__len__"):
                 subclass_info = build_class[2]
             else:
-                raise "Internal Error n_classdef: cannot superclass name"
+                raise RuntimeError(
+                    "Internal Error n_classdef: cannot " "superclass name"
+                )
         elif node == "classdefdeco2":
             subclass_info = node
             subclass_code = build_class[1][0].attr
@@ -838,6 +774,19 @@ def customize_for_version37(self, version):
         self.prune()
 
     self.n_classdef36 = n_classdef36
+
+    def n_compare_chained(node):
+        if node[0] in (
+            "c_compare_chained37",
+            "c_compare_chained37_false",
+            "compare_chained37",
+            "compare_chained37_false",
+        ):
+            self.default(node[0])
+        else:
+            self.default(node)
+
+    self.n_compare_chained = self.n_c_compare_chained = n_compare_chained
 
     def n_importlist37(node):
         if len(node) == 1:
@@ -916,8 +865,8 @@ def customize_for_version37(self, version):
         relative_path_index = 0
         if node[relative_path_index].attr > 0:
             node[2].pattr = ("." * node[relative_path_index].attr) + node[2].pattr
-        if isinstance(node[1].pattr, tuple):
-            imports = node[1].pattr
+        if isinstance(node[1].attr, tuple):
+            imports = node[1].attr
             for pattr in imports:
                 node[1].pattr = pattr
                 self.default(node)
@@ -1167,7 +1116,9 @@ def customize_for_version37(self, version):
         self.preorder(node[0])
         self.write("(")
         args = node[1][0]
-        if args == "tuple":
+        if args == "tuple" or args == "expr" and args[0] == "tuple":
+            if args == "expr":
+                args = args[0]
             if self.call36_tuple(args) > 0:
                 self.write(", ")
                 pass
@@ -1184,7 +1135,9 @@ def customize_for_version37(self, version):
         if kwargs == "expr":
             kwargs = kwargs[0]
         call_function_ex = node[-1]
-        assert call_function_ex.kind.startswith("CALL_FUNCTION_EX")
+        assert call_function_ex == "CALL_FUNCTION_EX_KW" or (
+            self.version >= 3.6 and call_function_ex == "CALL_FUNCTION_EX"
+        )
         # FIXME: decide if the below test be on kwargs == 'dict'
         if (
             call_function_ex.attr & 1
@@ -1208,6 +1161,17 @@ def customize_for_version37(self, version):
         We remove starting and trailing parenthesis and ', ' if
         tuple has only one element.
         """
+        if (
+            node[0] == "expr"
+            and node[0][0] == "constant"
+            and node[0][0][0] == "LOAD_CONST"
+        ):
+            load_const = node[0][0][0]
+            const_value = load_const.attr
+            if isinstance(const_value, tuple):
+                if len(const_value) == 1:
+                    return const_value[0]
+
         value = self.traverse(node, indent="")
         if value.startswith("("):
             assert value.endswith(")")
@@ -1350,15 +1314,15 @@ def customize_for_version37(self, version):
             else:
                 # {{ and }} in Python source-code format strings mean
                 # { and } respectively. But only when *not* part of a
-                # formatted value. However in the LOAD_STR
+                # formatted value. However, in the LOAD_STR
                 # bytecode, the escaping of the braces has been
                 # removed. So we need to put back the braces escaping in
                 # reconstructing the source.
-                assert expr[0] == "constant" and expr[0][0] == "LOAD_STR"
+                assert expr[0] == "LOAD_STR"
                 value = value.replace("{", "{{").replace("}", "}}")
 
-                # Remove leading quotes
-                result += strip_quotes(value)
+            # Remove leading quotes
+            result += strip_quotes(value)
             pass
         self.in_format_string = old_in_format_string
         if self.in_format_string:
@@ -1371,29 +1335,12 @@ def customize_for_version37(self, version):
 
     self.n_joined_str = n_joined_str
 
-    # FIXME: The following adjusts I guess a bug in the parser.
-    # It might be as simple as renaming grammar symbol "testtrue" to "testtrue_or_false"
-    # and then keeping this as is with the name change.
-    # Fixing in the parsing by inspection is harder than doing it here.
-    def n_testtrue(node):
-        compare_chained37 = node[0]
-        if (
-            compare_chained37 == "compare_chained37"
-            and compare_chained37[1] == "compare_chained1b_37"
-        ):
-            compare_chained1b_37 = compare_chained37[1]
-            if (
-                len(compare_chained1b_37) > 2
-                and compare_chained1b_37[-2] == "JUMP_FORWARD"
-            ):
-                node.kind = "testfalse"
-                pass
-            pass
-        self.default(node)
+    def return_closure(node):
+        # Nothing should be output here
+        self.prune()
         return
 
-    self.n_testtrue = n_testtrue
-
+    self.n_return_closure = return_closure
     # def kwargs_only_36(node):
     #     keys = node[-1].attr
     #     num_kwargs = len(keys)
@@ -1410,23 +1357,17 @@ def customize_for_version37(self, version):
     def n_starred(node):
         node_len = len(node)
         assert node_len > 0
-
         pos_args = node[0]
-        if pos_args == "arg":
-            pos_args = pos_args[0]
         if pos_args == "expr":
             pos_args = pos_args[0]
         if pos_args == "tuple":
-            star_start = 1
             build_tuple = pos_args[0]
-            if build_tuple == "arg":
-                build_tuple = build_tuple[0]
-                star_start = 0
             if build_tuple.kind.startswith("BUILD_TUPLE"):
                 tuple_len = 0
             else:
-                tuple_len = len(node) - 2
-            template = "%P", (0, -1, ", ", 100)
+                tuple_len = len(node) - 1
+            star_start = 1
+            template = "%C", (0, -1, ", ")
             self.template_engine(template, pos_args)
             if tuple_len == 0:
                 self.write("*()")
@@ -1438,16 +1379,48 @@ def customize_for_version37(self, version):
         if node_len > 1:
             template = ("*%C", (star_start, -1, ", *"))
         else:
-            template = ("*%c", (star_start, ("arg", "expr")))
+            template = ("*%c", (star_start, "expr"))
 
         self.template_engine(template, node)
         self.prune()
 
     self.n_starred = n_starred
 
-    def return_closure(node):
-        # Nothing should be output here
+    def n_set_afor(node):
+        if len(node) == 2:
+            self.template_engine(
+                (" async for %[1]{%c} in %c", (1, "store"), (0, "get_aiter")), node
+            )
+        else:
+            self.template_engine(
+                " async for %[1]{%c} in %c%c",
+                (1, "store"),
+                (0, "get_aiter"),
+                (2, "set_iter"),
+            )
         self.prune()
+
+    self.n_set_afor = n_set_afor
+
+    # FIXME: The following adjusts I guess a bug in the parser.
+    # It might be as simple as renaming grammar symbol "testtrue" to "testtrue_or_false"
+    # and then keeping this as is with the name change.
+    # Fixing in the parsing by inspection is harder than doing it here.
+    def n_testtrue(node):
+        compare_chained37 = node[0]
+        if (
+            compare_chained37 == "compare_chained37"
+            and compare_chained37[1] == "compare_chained_middleb_37"
+        ):
+            compare_chained_middleb_37 = compare_chained37[1]
+            if (
+                len(compare_chained_middleb_37) > 2
+                and compare_chained_middleb_37[-2] == "JUMP_FORWARD"
+            ):
+                node.kind = "testfalse"
+                pass
+            pass
+        self.default(node)
         return
 
-    self.n_return_closure = return_closure
+    self.n_testtrue = n_testtrue

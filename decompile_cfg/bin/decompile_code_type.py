@@ -48,7 +48,7 @@ PATTERNS = ("*.pyc", "*.pyo")
     ),
 )
 @click.version_option(version=__version__)
-@click.option("--asm/--no-asm", "-a", "show_asm", default=False)
+@click.option("--asm", "-a", "show_asm", count=True)
 @click.option("--grammar/--no-grammar", "-g", default=False)
 @click.option("--tree/--no-tree", "-t", default=False)
 @click.option("--tree++/--no-tree++", "-T", "tree_plus", default=False)
@@ -62,13 +62,13 @@ PATTERNS = ("*.pyc", "*.pyo")
     required=False,
 )
 @click.argument("files", nargs=-1, type=click.Path(readable=True), required=True)
-def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
+def main(code_format, show_asm: int, grammar, tree, tree_plus, outfile, files):
     """Decompile all code objects of a certain format."""
 
     version_tuple = sys.version_info[0:2]
-    if not version_tuple in ((3, 8), (3, 9)):
+    if not ((3, 8) <= version_tuple <= (3, 10)):
         print(
-            f"Note: {program} can decompile only bytecode from Python 3.8 or 3.9"
+            f"Note: {program} can decompile only bytecode from up to Python 3.8"
             f"""\n\tYou have version: {version_tuple_to_str()}."""
         )
 
@@ -101,9 +101,14 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
         if os.path.isdir(outfile):
             outfile = None
 
-    # maybe a second -a will do before as well
-    asm = "after" if show_asm else None
+    # A second -a turns show_asm="after" into show_asm="before"
+    if show_asm > 0:
+        asm_opt = "both" if show_asm > 1 else "after"
+    else:
+        asm_opt = None
 
+    if tree_plus:
+        tree = True
     show_ast = {"before": tree, "after": tree_plus}
     show_grammar = {
         "rules": False,
@@ -133,7 +138,7 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
                             succeeded = decompile_fn(
                                 filepath,
                                 outfile,
-                                showasm=asm,
+                                showasm=asm_opt,
                                 showgrammar=show_grammar,
                                 showast=show_ast,
                             )
@@ -154,7 +159,7 @@ def main(code_format, show_asm, grammar, tree, tree_plus, outfile, files):
                     succeeded = decompile_fn(
                         filename,
                         outfile,
-                        showasm=asm,
+                        showasm=asm_opt,
                         showgrammar=show_grammar,
                         showast=show_ast,
                     )

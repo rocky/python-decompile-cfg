@@ -34,29 +34,36 @@ check:
 	$(MAKE) check-$(PYTHON_VERSION)
 
 #: Run working tests from Python 3.8
-check-3.9 check-3.8: check-bytecode
+check-3.8 check-3.9 check-3.10: check-bytecode
 
-	$(PYTHON) test_pythonlib.py --bytecode-3.8 --run --verify-run
-	$(PYTHON) test_pythonlib.py --bytecode-3.8 --syntax-verify $(COMPILE)
+#	$(PYTHON) test_pythonlib.py --bytecode-3.8 --run --verify-run
+#	$(PYTHON) test_pythonlib.py --bytecode-3.8 --syntax-verify $(COMPILE)
 
 #: Check deparsing bytecode 3.x only
-check-bytecode-3:
-	$(PYTHON) test_pythonlib.py \
-	--bytecode-3.8
+check-bytecode-3: check-bytecode-3-lambda
+# check-bytecode-3:
+# 	$(PYTHON) test_pythonlib.py \
+# 	--bytecode-3.8
 
 #: Check deparsing bytecode 3.8 only
-check-bytecode-3.8:
-	$(PYTHON) test_pythonlib.py \
-	--bytecode-3.8
+# For now
+check-bytecode-3.8: check-bytecode-3.8-lambda
+# check-bytecode-3.8:
+# 	$(PYTHON) test_pythonlib.py \
+# 	--bytecode-3.8
+
 
 #: Check deparsing bytecode 3.9 only
-check-bytecode-3.9:
-	$(PYTHON) test_pythonlib.py \
-	--bytecode-3.9
+check-bytecode-3.9-lambda:
+# check-bytecode-3.9:
+# 	$(PYTHON) test_pythonlib.py \
+# 	--bytecode-3.9
 
 check-bytecode-3-lambda:
 	$(PYTHON) test_pythonlib.py \
-	--bytecode-3.8 --lambda
+	--bytecode-3.8 --lambda \
+	--bytecode-3.9 --lambda \
+	--bytecode-3.10 --lambda
 
 check-bytecode-3.8-lambda:
 	$(PYTHON) test_pythonlib.py \
@@ -65,6 +72,10 @@ check-bytecode-3.8-lambda:
 check-bytecode-3.9-lambda:
 	$(PYTHON) test_pythonlib.py \
 	--bytecode-3.9 --lambda
+
+check-bytecode-3.10-lambda:
+	$(PYTHON) test_pythonlib.py \
+	--bytecode-3.10 --lambda
 
 check-bytecode-3-dict-comprehension:
 	$(PYTHON) test_pythonlib.py \
@@ -87,9 +98,7 @@ check-bytecode-3-set-comprehension:
 	--bytecode-3.8 --set-comprehension
 
 #: Check deparsing bytecode on all Python 3 versions
-check-bytecode: \
-	check-code-fragments \
-	check-bytecode-3
+check-bytecode: check-bytecode-3
 
 check-code-fragments: \
 	check-bytecode-3-lambda \

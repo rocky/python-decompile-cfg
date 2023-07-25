@@ -1,4 +1,4 @@
-#  Copyright (c) 2022 Rocky Bernstein
+#  Copyright (c) 2022-2023 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -61,6 +61,7 @@ class PythonBaseParser(GenericASTBuilder):
         #   stmts -> stmts stmt -> stmts stmt stmt ...
         # collect as stmts -> stmt stmt ...
         nt_list = [
+            "and_or_parts",
             "and_parts_pjif",
             "and_parts_jifop",
             "attributes",
@@ -69,8 +70,9 @@ class PythonBaseParser(GenericASTBuilder):
             "exprs",
             "kvlist",
             "kwargs",
+            "or_and_parts",
+            "or_parts",
             "lists",
-            "or_parts_pjit",
             "stmts",
         ]
         self.collect = frozenset(nt_list)
@@ -85,7 +87,13 @@ class PythonBaseParser(GenericASTBuilder):
         # FIXME: optional_nt is a misnomer. It's really about there being a
         # singleton reduction that we can simplify. It also happens to be optional
         # in its other derivation
-        self.optional_nt |= frozenset(("suite_stmts", "c_stmts_opt", "stmt", "sstmt"))
+        self.optional_nt |= frozenset((
+            "and_or_parts",
+            "or_and_parts",
+            "suite_stmts",
+            "c_stmts_opt",
+            "stmt",
+            "sstmt"))
 
         # Reduce singleton reductions in these nonterminals:
         # FIXME: would love to do sstmts, stmts and
@@ -201,7 +209,7 @@ class PythonBaseParser(GenericASTBuilder):
             if instructions[finish].linestart:
                 break
             pass
-        if start > 0:
+        if start >= 0:
             err_token = instructions[index]
             print("Instruction context:")
             for i in range(start, finish):
@@ -219,8 +227,6 @@ class PythonBaseParser(GenericASTBuilder):
         represented by the attr field of token"""
         # Low byte indicates number of positional paramters,
         # high byte number of keyword parameters
-        if token.attr is None:
-            from trepan.api import debug; debug()
         args_pos = token.attr & 0xFF
         args_kw = (token.attr >> 8) & 0xFF
         return args_pos, args_kw
@@ -308,10 +314,10 @@ class PythonParserExec(PythonBaseParser):
 
     # def p_exec(self, args):
     #     """
-    #     stmts ::= stmt+
+    #     stmts ::= stmt+ BB_START? RETURN_VALUE
     #     """
 
-    def __init__(self, debug_parser, start_symbol="stmts"):
+    def __init__(self, debug_parser, start_symbol="stmts_return_value"):
         super(PythonParserExec, self).__init__(
             debug_parser=debug_parser, start_symbol=start_symbol
         )
@@ -328,9 +334,8 @@ class PythonParserLambda(PythonBaseParser):
         # When called from inside another expression like a call
         # there might not be a dom_start. So we need dom_start_opt
         # to start this off.
-        lambda_start       ::= dom_start_opt
-                               return_expr_lambda
-                               dom_end_opt
+        lambda_start       ::= BB_START return_expr block_end
+        lambda_start       ::= BB_START expr_return BLOCK_END_JOIN_NO_ARG
         """
 
     # lambda_start is the highest level nonterminal. However

@@ -1,4 +1,4 @@
-#  Copyright (c) 2017-2022 by Rocky Bernstein
+#  Copyright (c) 2017-2023 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,14 +14,16 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """Constants and initial table values used in pysource.py and fragments.py"""
 
-import re, sys
+import re
+import sys
+
 from decompile_cfg.parsers.treenode import SyntaxTree
-from decompile_cfg.scanners.tok import Token, NoneToken
+from decompile_cfg.scanners.tok import NoneToken, Token
 
 minint = -sys.maxsize - 1
 maxint = sys.maxsize
 
-# Operator precidence See
+# Operator precedence See
 # https://docs.python.org/3/reference/expressions.html#operator-precedence
 # for a list. We keep the same top-to-botom order here as in the above links,
 # so we start with low precedence (high values) and go down in value.
@@ -34,27 +36,38 @@ maxint = sys.maxsize
 # various templates we use odd values. Avoiding equal-precedent comparisons
 # avoids ambiguity what to do when the precedence is equal.
 
-# The precidence of a key below applies the key, a node, and the its
-# *parent*. A node however sometimes sets the precidence for its
-# children. For example, "call" has precidence 2 so we don't get
+# The precedence of a key below applies the key, a node, and the its
+# *parent*. A node however sometimes sets the precedence for its
+# children. For example, "call" has precedence 2 so we don't get
 # additional the additional parenthesis of: ".. op (call())".  However
-# for call's children, it parameters, we set the the precidence high,
-# say to 100, to make sure we avoid additional prenthesis in
+# for call's children, it parameters, we set the the precedence high,
+# say to 100, to make sure we avoid additional parenthesis in
 # call((.. op ..)).
 
 NO_PARENTHESIS_EVER = 100
+PARENTHESIS_ALWAYS = -2
 
 # fmt: off
 PRECEDENCE = {
+    "dict":                   NO_PARENTHESIS_EVER,   # {expressions...}
+    "generator_exp":          NO_PARENTHESIS_EVER,   # (expressions...)
+    "list":                   NO_PARENTHESIS_EVER,   # [expressions...]
+    "return_expr":            NO_PARENTHESIS_EVER,
+
     "named_expr":             40,  # :=
-    "yield":                  38,  # Needs to be below named_expr
     "yield_from":             38,
     "tuple_list_starred":     38,  # *x, *y, *z - about at the level of yield?
+    "unpack":                 38,  # A guess. Used in "async with ... as ...
+                                   # This might also get used in tuple assignment?
     "dict_unpack":            38,  # **kwargs
     "list_unpack":            38,  # *args
 
-    "lambda_body":            30,  # lambda ... : lambda_body
+    "lambda_body":            32,  # lambda ... : lambda_body
 
+    "yield":                  30,  # Needs to be below named_expr and lambda_body
+
+
+    "compare_chained":        30,  # a <= b <= c
     "if_exp":                 28,  # IfExp ( a if x else b)
     "if_exp_lambda":          28,  # IfExp involving a lambda expression
     "if_exp_not_lambda":      28,  # negated IfExp involving a lambda expression
@@ -106,10 +119,8 @@ PRECEDENCE = {
     "store_subscript":        2,
     "subscript":              2,
 
-    "dict":                   0,   # {expressions...}
+    # Probably move some of this up
     "dict_comp":              0,
-    "generator_exp":          0,   # (expressions...)
-    "list":                   0,   # [expressions...]
     "list_comp":              0,
     "set_comp":               0,
     "set_comp_expr":          0,
@@ -229,25 +240,52 @@ TABLE_DIRECT = {
     "UNARY_NOT":                ( "not ", ),
     "UNARY_POSITIVE":           ( "+",),
 
-    "and":          	(
-        "%p and %p",
-        (0,  ("and_parts_jifop", "and_parts_jifops"), PRECEDENCE["and"]),
-        (2,  ("and", "expr"), PRECEDENCE["and"]),
-    ),
-    "and1":          	(
+    "and1": (
         "%c and %c",
-        (0,  "and_parts_pjif"),
-        (1,  ("expr",)),
+        (0, "expr_pjif"),
+        (1, "expr_jitop"),
     ),
-
-    "and2":          	( "%c", 3 ),
 
     "and_or": (
-        "%c and %c or %c",
-        (0, "and_parts_pjif"),
-        (1, "expr"),
-        (3, "expr"),
+        "%c or %p",
+        (0, ("expr_pjif", "and_or_part")),
+        (1, "expr", PRECEDENCE["or"]),
         ),
+
+    # Note: "and_or_parts" can has only one child in the innermost and.
+    # This is handled by n_and_or_parts
+    "and_or_parts": (
+        "%c and %c",
+        (0, ("expr_pjif", "and_or_part")),
+        (1, ("and_or_parts", "and_or_part")),
+        ),
+
+    "and_or_and": (
+        "%c and %c",
+        (0, "or"),
+        (2, "and"),
+        ),
+
+    "and_or_expr": (
+        "%c and %c or %c",
+        (0, "expr_pjif"),
+        (2, "expr_jitop"),
+        (-1, "expr"),
+        ),
+
+    "and_or_expr1": (
+        "%c and %c or %c",
+        (0, "expr_pjif"),
+        (1, "expr_jitop"),
+        (2, "and"),
+        ),
+
+    "and_parts":
+    (
+        "%p and %p",
+        (0,  ("expr_jifop",), PRECEDENCE["and"]),
+        (-1,  ("expr", "and_part"), PRECEDENCE["and"]),
+    ),
 
     "and_part_pjif": (
         "and %p",
@@ -347,9 +385,11 @@ TABLE_DIRECT = {
     # Note: Adding "if" is handled inside the
     # comprehension
     "comp_if_or": (
-        "%p or %p ",
-        (0, ("or_parts_pjit", "or_parts_pjit_true_loop", "or_parts_pjit_false_loop"), PRECEDENCE["or"] ),
-        (1, "expr", PRECEDENCE["or"] ),
+        "%p or %p",
+        (0, ("or_parts_pjit", "or_parts_pjit_true_loop", "or_parts_pjit_false_loop",
+             "expr"),
+         PRECEDENCE["or"] ),
+        (3, "expr", PRECEDENCE["or"] ),
         ),
 
     # ""if" folded inside comprehension
@@ -391,44 +431,62 @@ TABLE_DIRECT = {
 
     "comp_body":( "", ), # ignore when recursing
 
-    "compare_single":	    ( '%p %[-1]{pattr.replace("-", " ")} %p',
-                             (0, "expr", 19), (1, "expr", 19) ),
-    "compare_chained":(
+    "compare_chained": (
         "%p %p",
-        (0, "expr", 29),
+        (0, "expr", PRECEDENCE["compare"] - 1),
         (1, (
-            "compare_chained1",
-            "compare_chained1a_37",
-            "compare_chained1b_false",
+            "compare_chained_middle",
+            "compare_chained_middlea_37",
+            "compare_chained_middleb_false",
             "compare_chained37_false"
             ),
-         30)
-        ),
+         PRECEDENCE["compare"])
+     ),
 
     "compare_chained_comprehension": (
         ' %[3]{pattr.replace("-", " ")} %p %p',
-        (0, "expr", 29),
+        (0, "expr", PRECEDENCE["compare"] - 1),
         (5, 30)
         ),
 
 
-    "compare_chained1":	(
+    "compare_chained_return": (
+        "%p %p",
+        (0, "expr", PRECEDENCE["compare"] - 1),
+        (1, (
+            "compare_chained_middle_return",
+            ),
+         PRECEDENCE["compare"])
+      ),
+
+    "compare_chained_middle":	(
         '%[3]{pattr.replace("-", " ")} %p %p',
-        (0, 19),
-        (5, 19)
+        (0, PRECEDENCE["compare"] -1),
+        (-1, PRECEDENCE["compare"] -1),
         ),
 
-    "compare_chained2b_false":	(
+    "compare_chained_middle_return":	(
+        '%[3]{pattr.replace("-", " ")} %p %p',
+        (0, PRECEDENCE["compare"] -1),
+        (-1, PRECEDENCE["compare"] -1),
+        ),
+
+    "compare_chained_rightb_false":	(
         ' %[1]{pattr.replace("-", " ")} %p',
         (0, "expr", 19),
         ),
 
-    "compare_chained2":	(
+    "compare_chained_right":	(
         '%[1]{pattr.replace("-", " ")} %p',
-        (0, 19)
+        (0, PRECEDENCE["compare"] - 1)
         ),
 
-    "compare_chained2b_false_loop":	(
+    "compare_chained_right_return":	(
+        '%[1]{pattr.replace("-", " ")} %p',
+        (0, PRECEDENCE["compare"] - 1)
+        ),
+
+    "compare_chained_rightb_false_loop":	(
         ' %[1]{pattr.replace("-", " ")} %p',
         (0, 19)
         ),
@@ -437,13 +495,17 @@ TABLE_DIRECT = {
         "%c %c", 0, 1
     ),
 
-    "compare_chained2_comprehension":	(
+    "compare_chained_right_comprehension":	(
         '%[1]{pattr.replace("-", " ")} %p',
         (0, 19)
         ),
 
     "compare_in":	        ( "%p in %p",(0, "expr", 19), (1, "expr", 19) ),
     "compare_is":	        ( "%p is %p",(0, "expr", 19), (1, "expr", 19) ),
+
+    "compare_single":	    ( '%p %[-1]{pattr.replace("-", " ")} %p',
+                             (0, "expr", PRECEDENCE["compare"]-1),
+                             (1, "expr", PRECEDENCE["compare"]-1) ),
 
     "continue":	            ( "%|continue\n", ),
 
@@ -482,13 +544,21 @@ TABLE_DIRECT = {
         (3, maxint, "")
         ),
 
-    "expr_stmt": (
-        "%|%p\n",
-        # When a statment contains only a named_expr (:=)
-        # the named_expr should have parenthesis around it.
-        (0, "expr", PRECEDENCE["named_expr"] - 1)
-        ),
+    # The following is covered by n_expr_stmt which
+    # adjusts depending on whether expr is a named statement or not.
+    # "expr_stmt": (
+    #     "%|%p\n",
+    #     # When a statement contains only a named_expr (:=)
+    #     # the named_expr should have parenthesis around it.
+    #     (0, "expr", PRECEDENCE["named_expr"] - 1)
+    #     ),
 
+    "if_exp_compare": (
+        "%p if %c else %c",
+        (2, "expr", 27),
+        (0, ("expr", "bool_op", "compare")),
+        -1,  # Must be from end since beginnings might not match
+            ),
     # Note: Python 3.8+ changes this
     "for":              ( "%|for %c in %c:\n%+%c%-\n\n",
                           (3, "store"),
@@ -544,7 +614,7 @@ TABLE_DIRECT = {
         (4, "else_suite"),
      ),
 
-    # IfExp equivalents ..
+    # AST IfExp equivalents (if else) ..
 
     "if_exp_and": (
         "%p if %p and %p else %c",
@@ -578,7 +648,7 @@ TABLE_DIRECT = {
     # The arg 1 is dead-code
     "if_exp_dead_code": ( "%c if True else %c",
                           (0, "return_expr_lambda"),
-                          (1, "return_expr_lambda") ),
+                          (2, "return_expr_lambda") ),
 
     "if_exp_jump_false": (
         "%p if %c else %c",
@@ -593,13 +663,6 @@ TABLE_DIRECT = {
         (3, "expr", PRECEDENCE["if_exp"]),
         (0, "expr"),
         (-1, "expr"),
-    ),
-
-    "if_exp_lambda": (
-        "%c if %c else %c",
-        (3, "expr"),
-        (0, ("expr", "branch_op")),
-        (-1, "return_expr_lambda"),
     ),
 
     "if_exp_loop": (
@@ -632,12 +695,17 @@ TABLE_DIRECT = {
     ),
 
     # The arg2 is dead-code
-    "if_expr_true":     ( "%p if 1 else %c", (0, "expr", 27), 2 ),
-
-    "if_exp_true":      ( "%p if 1 else %c", (0, "expr", 27), 2 ),
+    "if_exp_true":      ( "%p if 1 else %c", (0, "expr", 27), 4 ),
     "if_exp_ret":       ( "%p if %p else %p", (2, 27), (0, 27), (-1, 27) ),
 
-    # end IfExp
+    "if_exp_return": (
+        "%c if %c else %c",
+        (1, "return_expr"),
+        (0, ("expr_pjif")),
+        (-1, "return_expr"),
+    ),
+
+    # end AST IfExp (if else)
 
     "ifelsestmt":	( "%|if %c:\n%+%c%-%|else:\n%+%c%-", 0, 1, 3 ),
     "ifelsestmtc":	( "%|if %c:\n%+%c%-%|else:\n%+%c%-", 0, 1, 3 ),
@@ -667,6 +735,56 @@ TABLE_DIRECT = {
     # A custom rule in n_function def distinguishes whether to call this or
     # function_def_async
     "mkfuncdeco0":  	        ( "%|def %c\n", (0, "mkfunc") ),
+
+    "or": (
+        "%c or %c",
+        (0, ("expr_jitop", "expr_pjit")),
+        (-1, ("expr", "expr_jifop") )
+        ),
+    "or1": (
+        "%c or %c",
+        (0, "or_parts_pjit"),
+        (1, "expr")
+        ),
+
+    "or3": (
+        "%c or %c",
+        (0,  "and1"),
+        (2,  ("and_or_expr")),
+    ),
+
+    # Single or part before an "and". It doesn't include the "and"
+    "or_and": (
+        "%c or (%c and %c)",
+        (0, "expr_pjit"),
+        (1, "expr_jifop"),
+        (-1, "expr"),
+    ),
+
+    "or_and_part": (
+        "%c or %p",
+        (0, ("expr_pjit")),
+        (1, ("expr_jifop", "or_and_parts"), PRECEDENCE["or"]),
+    ),
+
+    # Only when we have do not have a single retuction to or_and_part
+    "or_and_parts": (
+        "%c or %p",
+        (0, ("expr_pjit", "or_and_part")),
+        (1, ("expr_jifop", "or_and_parts"), PRECEDENCE["or"]),
+    ),
+
+    "or_ands": (
+        "%c and %p",
+        (0, ("expr_pjit", "or_and_part")),
+        (1, "expr", PRECEDENCE["and"]),
+    ),
+
+    "or_parts_pjit": (
+        "%P %p",
+        (0, -1, " or", PRECEDENCE["or"]),
+        (-1, ("expr_pjit", "or_part_pjit"), PRECEDENCE["or"]),
+    ),
 
     "pass":	            ( "%|pass\n", ),
 
@@ -731,24 +849,6 @@ TABLE_DIRECT = {
     "ifelsestmtr2":	( "%|if %c:\n%+%c%-%|else:\n%+%c%-\n\n", 0, 1, 3 ), # has COME_FROM
     "elifelsestmtr":	( "%|elif %c:\n%+%c%-%|else:\n%+%c%-\n\n", 0, 1, 2 ),
     "elifelsestmtr2":	( "%|elif %c:\n%+%c%-%|else:\n%+%c%-\n\n", 0, 1, 3 ), # has COME_FROM
-
-    "or":           	( "%c or %c",
-                         (0, "expr_jitop"),
-                         (2, "expr") ),
-    "or1":           	( "%c or %c",
-                         (0, "or_parts_pjit"),
-                         (1, "expr") ),
-    "or_and": (
-        "(%c or %c) and %c",
-        (0, "or_parts_pjit"),
-        (1, "expr"),
-        (3, "expr"),
-        ),
-
-    "or_part_pjit": (
-        "or %p",
-        (0, "expr_pjit", PRECEDENCE["or"]),
-        ),
 
     "raise_stmt0":	    ( "%|raise\n", ),
     "raise_stmt1":	    ( "%|raise %c\n", 0),

@@ -1,4 +1,4 @@
-#  Copyright (c) 2015-2022 by Rocky Bernstein
+#  Copyright (c) 2015-2023 by Rocky Bernstein
 #  Copyright (c) 2005 by Dan Pascu <dan@windowmaker.org>
 #  Copyright (c) 2000-2002 by hartmut Goebel <h.goebel@crazy-compilers.com>
 #  Copyright (c) 1999 John Aycock
@@ -131,8 +131,6 @@ Python.
 
 import sys
 
-IS_PYPY = "__pypy__" in sys.builtin_module_names
-
 from xdis import COMPILER_FLAG_BIT, iscode
 from xdis.version_info import PYTHON_VERSION_TRIPLE
 
@@ -170,10 +168,11 @@ from decompile_cfg.semantics.consts import (
 )
 
 
-from decompile_cfg.show import maybe_show_tree
 from decompile_cfg.util import better_repr
 
 from io import StringIO
+
+IS_PYPY = "__pypy__" in sys.builtin_module_names
 
 PARSER_DEFAULT_DEBUG = {
     "rules": False,
@@ -257,21 +256,26 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         # Initialize p_lambda on demand
         self.p_lambda = None
 
-        self.treeTransform = TreeTransform(version=self.version, show_ast=showast)
-        self.debug_parser = dict(debug_parser)
-        self.showast = showast
-        self.params = params
-        self.param_stack = []
+        self.treeTransform = TreeTransform(
+            version=self.version,
+            show_ast=showast,
+            str_with_template=self.str_with_template,
+        )
         self.ERROR = None
+        self.ast_errors = []
+        self.classes = []
+        self.currentclass = None
+        self.debug_parser = dict(debug_parser)
+
+        self.line_number = 1
+        self.linestarts = linestarts
+        self.mod_globs = set()
+        self.param_stack = []
+        self.params = params
+        self.pending_newlines = 0
         self.prec = 100
         self.return_none = False
-        self.mod_globs = set()
-        self.currentclass = None
-        self.classes = []
-        self.pending_newlines = 0
-        self.linestarts = linestarts
-        self.line_number = 1
-        self.ast_errors = []
+        self.showast = showast
         # FIXME: have p.insts update in a better way
         # modularity is broken here
         self.p.insts = scanner.insts
@@ -304,24 +308,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         customize_for_version(self, is_pypy, version)
         return
 
-    def maybe_show_tree(self, tree, phase):
-        if self.showast.get("before", False):
-            self.println(
-                """
----- end before transform
-"""
-            )
-        if self.showast.get("after", False):
-            self.println(
-                """
----- begin after transform
-"""
-                + " "
-            )
-        if self.showast.get(phase, False):
-            maybe_show_tree(self, tree)
-
-    def str_with_template(self, tree) -> str:
+    def str_with_template(self, tree):
         stream = sys.stdout
         stream.write(self.str_with_template1(tree, "", None))
         stream.write("\n")
@@ -357,7 +344,6 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         indent += "    "
         i = 0
         for node in tree:
-
             if hasattr(node, "__repr1__"):
                 if enumerate_children:
                     child = self.str_with_template1(node, indent, i)
@@ -698,8 +684,6 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                 if len(tup) == 3:
                     (index, nonterm_name, self.prec) = tup
                     if isinstance(tup[1], str):
-                        # if node[index] != nonterm_name:
-                        #     from trepan.api import debug; debug()
                         assert (
                             node[index] == nonterm_name
                         ), "at %s[%d], expected '%s' node; got '%s'" % (
@@ -709,9 +693,10 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                             node[index].kind,
                         )
                     else:
-                        assert (
-                            node[tup[0]] in tup[1]
-                        ), f"at {node.kind}[{tup[0]}], expected to be in '{tup[1]}' node; got '{node[tup[0]].kind}'"
+                        assert node[tup[0]] in tup[1], (
+                            f"at {node.kind}[{tup[0]}], expected to be in '{tup[1]}' "
+                            f"node; got '{node[tup[0]].kind}'"
+                        )
 
                 else:
                     assert len(tup) == 2
@@ -823,7 +808,6 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                 "CALL_FUNCTION_VAR_KW",
                 "CALL_FUNCTION_KW",
             ):
-
                 # FIXME: handle everything in customize.
                 # Right now, some of this is here, and some in that.
 
@@ -999,7 +983,6 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         noneInNames=False,
         is_top_level_module=False,
     ):
-
         # FIXME: DRY with fragments.py
 
         assert isinstance(tokens[0], Token)
@@ -1020,29 +1003,30 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                 parse_tree = python_parser.parse(p, tokens, customize, is_lambda)
                 self.customize(customize)
 
-            except (heads.ParserError, AssertionError) as e:
+            except AssertionError as e:
                 raise ParserError(e, tokens, self.p.debug["reduce"])
-            transform_tree = self.treeTransform.transform(parse_tree, code)
-            self.maybe_show_tree(parse_tree, phase="after")
+
+            transform_tree = self.treeTransform.transform(
+                parse_tree, code, self.println
+            )
+
             del parse_tree  # Save memory
             return transform_tree
 
-        # The bytecode for the end of the main routine has a
-        # "return None". However you can't issue a "return" statement in
-        # main. So as the old cigarette slogan goes: I'd rather switch (the token stream)
-        # than fight (with the grammar to not emit "return None").
+        # The bytecode for the end of the main routine has a "return
+        # None". However you can't issue a "return" statement in
+        # main. So as the old cigarette slogan goes: I'd rather switch
+        # (the token stream) than fight (with the grammar to not emit
+        # "return None").
 
         # FIXME: do we need to remove this here or can we consolidate
         # this with the below where we remove "return"
         # Also return DOM_START BB_START and BB_END DOM_END
         if self.hide_internal:
-            assert tokens[0] == "DOM_START"
-            assert len(tokens) >= 4
-            del tokens[0]
             assert tokens[0] == "BB_START"
             del tokens[0]
-            assert tokens[-1] == "DOM_END"
-            del tokens[-1]
+            if tokens[-1] == "BLOCK_END_JOIN_NO_ARG":
+                del tokens[-1]
             if tokens[-1] == "BB_END":
                 del tokens[-1]
 
@@ -1060,7 +1044,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         # Build a parse tree from a tokenized and massaged disassembly.
         try:
             # FIXME: have p.insts update in a better way
-            # modularity is broken here
+            # modularity is broken here.
             p_insts = self.p.insts
             self.p.insts = self.scanner.insts
             self.p.offset2inst_index = self.scanner.offset2inst_index
@@ -1071,15 +1055,13 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
 
             self.p.insts = p_insts
         except (heads.ParserError, AssertionError) as e:
-            # from trepan.api import debug; debug()
             raise ParserError(e, tokens, self.p.debug["reduce"])
 
         checker(parse_tree, False, self.ast_errors)
 
         self.customize(customize)
-        transform_tree = self.treeTransform.transform(parse_tree, code)
 
-        self.maybe_show_tree(parse_tree, phase="after")
+        transform_tree = self.treeTransform.transform(parse_tree, code, self.println)
 
         del parse_tree  # Save memory
 
@@ -1095,7 +1077,6 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
     @classmethod
     def _get_mapping(cls, node):
         return MAP.get(node, MAP_DIRECT)
-
 
     def pp_tuple(self, tup):
         """Pretty print a tuple"""
@@ -1189,7 +1170,7 @@ def code_deparse(
     elif compile_mode == "expr":
         expected_start = "expr_start"
     elif compile_mode == "exec":
-        expected_start = "stmts"
+        expected_start = "stmts_return_value"
     elif compile_mode == "single":
         expected_start = "single_start"
     else:
@@ -1255,11 +1236,13 @@ def deparse_code2str(
     compile_mode="exec",
     is_pypy=IS_PYPY,
     walker=SourceWalker,
-):
-    """Return the deparsed text for a Python code object. `out` is where any intermediate
-    output for assembly or tree output will be sent.
+) -> str:
     """
-    return code_deparse(
+    Return the deparsed text for a Python code object. `out` is where
+    any intermediate output for assembly or tree output will be sent.
+
+    """
+    tree = code_deparse(
         code,
         out,
         version,
@@ -1268,7 +1251,9 @@ def deparse_code2str(
         compile_mode=compile_mode,
         is_pypy=is_pypy,
         walker=walker,
-    ).text
+    )
+
+    return "# deparse failed" if tree is None else tree.text
 
 
 if __name__ == "__main__":

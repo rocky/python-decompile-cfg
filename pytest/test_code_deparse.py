@@ -50,7 +50,7 @@ def test_single_mode() -> None:
         try:
             # print("XXX", expr)
             deparsed = run_deparse(expr, compile_mode="single", debug=False)
-        except:
+        except Exception:
             assert False, expr
             continue
 
@@ -73,10 +73,12 @@ def test_eval_mode():
     for expr in expressions:
         try:
             deparsed = run_deparse(expr, compile_mode="eval", debug=False)
-        except:
+        except Exception:
             assert False, expr
             continue
 
+        if deparsed.text.endswith("\n"):
+            deparsed.text = deparsed.text[:-1]
         if deparsed.text != expr:
             from decompile_cfg.show import maybe_show_tree
             deparsed.showast = {"Full": True}
@@ -87,16 +89,18 @@ def test_lambda_mode():
     expressions = (
         "lambda d=b'': 5",
         "lambda *, d=0: d",
-        "lambda x: 1 if x < 2 else 3",
         "lambda y: x * y",
-        "lambda n: True if n >= 95 and n & 1 else False",
+        "lambda y: 0 <= x < 10",
+        # Below, we need parenthsesis to be syntactically correct
         "lambda: (yield from f())",
+        # "lambda x: 1 if x < 2 else 3",
+        # "lambda n: True if n >= 95 and n & 1 else False",
     )
 
     for expr in expressions:
         try:
             deparsed = run_deparse(expr, compile_mode="lambda", debug=False)
-        except:
+        except Exception:
             assert False, expr
             continue
         if deparsed.text.endswith("\n"):

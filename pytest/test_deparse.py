@@ -15,7 +15,7 @@ def return_stmt(x, y):
 def try_stmt():
     try:
         x = 1
-    except:
+    except Exception:
         pass
     return x
 

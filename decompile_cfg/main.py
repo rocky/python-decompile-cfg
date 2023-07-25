@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2022 Rocky Bernstein <rocky@gnu.org>
+# Copyright (C) 2018-2023 Rocky Bernstein <rocky@gnu.org>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,11 +13,15 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import ast, datetime, py_compile, os, sys
+import ast
+import datetime
+import os
+import py_compile
 import os.path as osp
 import subprocess
+import sys
 import tempfile
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, TextIO, Tuple
 from xdis import iscode, load_module
 from xdis.version_info import (
     IS_PYPY,
@@ -28,13 +32,12 @@ from xdis.version_info import (
 from decompile_cfg.disas import check_object_path
 from decompile_cfg.semantics import pysource
 from decompile_cfg.parsers.parse_heads import ParserError
+from decompile_cfg.semantics.fragments import code_deparse as code_deparse_fragments
+from decompile_cfg.semantics.linemap import deparse_code_with_map
+from decompile_cfg.semantics.pysource import PARSER_DEFAULT_DEBUG, code_deparse
 from decompile_cfg.version import __version__
 
 # from decompile_cfg.linenumbers import line_number_mapping
-
-from decompile_cfg.semantics.pysource import code_deparse, PARSER_DEFAULT_DEBUG
-from decompile_cfg.semantics.fragments import code_deparse as code_deparse_fragments
-from decompile_cfg.semantics.linemap import deparse_code_with_map
 
 def _get_outstream(outfile: str) -> Any:
     dir = osp.dirname(outfile)
@@ -62,7 +65,7 @@ def syntax_check(filename: str) -> bool:
 def decompile(
     co,
     bytecode_version: Tuple[int] = PYTHON_VERSION_TRIPLE,
-    out=sys.stdout,
+    out: Optional[TextIO] = sys.stdout,
     showasm=None,
     showast={},
     timestamp=None,
@@ -70,7 +73,7 @@ def decompile(
     source_encoding=None,
     code_objects={},
     source_size=None,
-    is_pypy=None,
+    is_pypy: bool = False,
     magic_int=None,
     mapstream=None,
     do_fragments=False,
@@ -120,13 +123,10 @@ def decompile(
     if source_size:
         write("# Size of source mod 2**32: %d bytes" % source_size)
 
-    # maybe a second -a will do before as well
-    asm = "after" if showasm else None
-
     grammar = dict(PARSER_DEFAULT_DEBUG)
     if showgrammar:
         grammar["reduce"] = True
-    debug_opts = {"asm": asm, "tree": showast, "grammar": grammar}
+    debug_opts = {"asm": showasm, "tree": showast, "grammar": grammar}
 
     try:
         if mapstream:
@@ -187,8 +187,8 @@ def compile_file(source_path: str) -> str:
 
 def decompile_file(
     filename: str,
-    outstream=None,
-    showasm=None,
+    outstream: Optional[TextIO] = None,
+    showasm: Optional[str] = None,
     showast={},
     showgrammar=False,
     source_encoding=None,
@@ -256,12 +256,11 @@ def main(
     compiled_files: list,
     source_files: list,
     outfile=None,
-    showasm=None,
+    showasm: Optional[str] = None,
     showast={},
-    do_verify=Optional[str],
+    do_verify: Optional[str] = None,
     showgrammar=False,
     source_encoding=None,
-    raise_on_error=False,
     do_linemaps=False,
     do_fragments=False,
 ) -> Tuple[int, int, int, int]:
@@ -277,7 +276,7 @@ def main(
     - stdout			out_base=None, outfile=None
     """
     tot_files = okay_files = failed_files = skipped = 0
-    verify_failed_files = 0 if do_verify is not None else None
+    verify_failed_files = 0
     current_outfile = outfile
     linemap_stream = None
 
@@ -431,7 +430,6 @@ def main(
                 okay_files += 1
                 if not current_outfile:
                     mess = "\n# okay decompiling"
-                    # mem_usage = __memUsage()
                     print(mess, infile)
         if current_outfile:
             sys.stdout.write(
@@ -465,23 +463,8 @@ def main(
 
 # ---- main ----
 
-if sys.platform.startswith("linux") and os.uname()[2][:2] in ["2.", "3.", "4."]:
-
-    def __memUsage():
-        mi = open("/proc/self/stat", "r")
-        mu = mi.readline().split()[22]
-        mi.close()
-        return int(mu) / 1000000
-
-
-else:
-
-    def __memUsage():
-        return ""
-
-
 def status_msg(
-    do_verify: bool,
+    do_verify: Optional[str],
     tot_files: int,
     okay_files: int,
     failed_files: int,

@@ -17,11 +17,11 @@
 Does some token massaging of xdis-disassembled instructions to make
 things easier for decompilation.
 
-This sets up opcodes Python's 3.9.
+This sets up opcodes Python's 3.10.
 """
 
 # bytecode verification, verify(), uses JUMP_OPs from here
-from xdis.opcodes import opcode_38 as opc
+from xdis.opcodes import opcode_310 as opc
 
 from decompile_cfg.scanners.scanner38 import Scanner38Base
 
@@ -29,9 +29,9 @@ from decompile_cfg.scanners.scanner38 import Scanner38Base
 JUMP_OPs = opc.JUMP_OPS
 
 
-class Scanner39(Scanner38Base):
+class Scanner310(Scanner38Base):
     def __init__(self, show_asm=None, debug=False, is_pypy=False):
-        Scanner38Base.__init__(self, (3, 9), show_asm, is_pypy)
+        Scanner38Base.__init__(self, (3, 10), show_asm, is_pypy)
         self.debug = debug
         return
 
@@ -49,15 +49,15 @@ class Scanner39(Scanner38Base):
 if __name__ == "__main__":
     from xdis.version_info import PYTHON_VERSION_TRIPLE, version_tuple_to_str
 
-    if PYTHON_VERSION_TRIPLE[:2] == (3, 9):
+    if PYTHON_VERSION_TRIPLE[:2] == (3, 10):
         import inspect
 
         co = inspect.currentframe().f_code  # type: ignore
-        tokens, customize = Scanner39().ingest(co)
+        tokens, customize = Scanner310().ingest(co)
         for t in tokens:
             print(t.format())
         pass
     else:
         print(
-            f"Need to be Python 3.9 to demo; I am version {version_tuple_to_str()}."
+            f"Need to be Python 3.10 to demo; I am version {version_tuple_to_str()}."
         )

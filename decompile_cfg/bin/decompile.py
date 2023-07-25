@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 # Mode: -*- python -*-
 #
-# Copyright (c) 2015-2017, 2019-2022 by Rocky Bernstein
+# Copyright (c) 2015-2017, 2019-2023 by Rocky Bernstein
 # Copyright (c) 2000-2002 by hartmut Goebel <h.goebel@crazy-compilers.com>
 #
 
-import click
 import os
 import sys
 
+import click
 from xdis.version_info import version_tuple_to_str
-
-case_sensitive = {"case_sensitive": False}
-program = "decompile_cfg"
 
 from decompile_cfg.main import main, status_msg
 from decompile_cfg.version import __version__
+
+case_sensitive = {"case_sensitive": False}
+program = "decompile_cfg"
 
 
 def usage():
@@ -24,7 +24,7 @@ def usage():
 
 
 @click.command()
-@click.option("--asm/--no-asm", "-a", "show_asm", default=False)
+@click.option("--asm", "-a", "show_asm", count=True)
 @click.option("--grammar/--no-grammar", "-g", "show_grammar", default=False)
 @click.option("--tree/--no-tree", "-t", default=False)
 @click.option("--tree++/--no-tree++", "-T", "tree_plus", default=False)
@@ -50,14 +50,16 @@ def usage():
 )
 @click.version_option(version=__version__)
 @click.argument("files", nargs=-1, type=click.Path(readable=True), required=True)
-def main_bin(show_asm, show_grammar, tree, tree_plus, verify, recurse_dirs, outfile, files):
+def main_bin(
+    show_asm: int, show_grammar, tree, tree_plus, verify, recurse_dirs, outfile, files
+):
     """
-    Python byecode decompiler for CPython 3.8..3.9 bytecode
+    Python byecode decompiler for CPython 3.8..3.10 bytecode
     """
     version_tuple = sys.version_info[0:2]
-    if not version_tuple in ((3, 8), (3, 9)):
+    if not ((3, 8) <= version_tuple <= (3, 10)):
         print(
-            f"Note: {program} can decompile only bytecode from Python 3.8 or 3.9"
+            f"Note: {program} can decompile only bytecode from Python 3.8 to 3.10"
             f"""\n\tYou have version: {version_tuple_to_str()}."""
         )
 
@@ -100,6 +102,12 @@ def main_bin(show_asm, show_grammar, tree, tree_plus, verify, recurse_dirs, outf
             out_base = outfile
             outfile = None
 
+    # A second -a turns show_asm="after" into show_asm="before"
+    if show_asm > 0:
+        asm_opt = "both" if show_asm > 1 else "after"
+    else:
+        asm_opt = None
+
     # if timestamp:
     #     print(time.strftime(timestampfmt))
 
@@ -110,7 +118,7 @@ def main_bin(show_asm, show_grammar, tree, tree_plus, verify, recurse_dirs, outf
         pyc_paths,
         source_paths,
         outfile,
-        showasm=show_asm,
+        showasm=asm_opt,
         showgrammar=show_grammar,
         showast=show_ast,
         do_verify=verify,
