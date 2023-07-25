@@ -315,13 +315,11 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                                    BB_END BLOCK_END_JOIN
 
 
-        # Something is funky in control-flow. Sometimes we have BLOCK_END_JOIN and
-        # sometimes not. Figure out why the random changes.
         compare_chained_return ::= expr
                                    compare_chained_middle_return
                                    BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
-                                   RETURN_VALUE BB_END BLOCK_END_JOIN
+                                   RETURN_VALUE BB_END
 
         compare_chained_return ::= expr
                                    compare_chained_middle_return
@@ -360,8 +358,8 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         compare_chained_right_return ::= expr COMPARE_OP RETURN_VALUE BB_END
 
-        compare_chained_righta_37 ::= expr COMPARE_OP block_end POP_JUMP_IF_TRUE JUMP_FORWARD
-                                 BB_END
+        compare_chained_righta_37 ::= expr COMPARE_OP block_end POP_JUMP_IF_TRUE
+                                      JUMP_FORWARD BB_END
 
 
         # When used in an "if" of a comprehension

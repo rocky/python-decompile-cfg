@@ -312,13 +312,16 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
                                    BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
 
-        # Something is funky in control-flow. Sometimes we have BLOCK_END_JOIN and
-        # sometimes not. Figure out why the random changes.
+        compare_chained_return ::= expr
+                                   compare_chained_middle_return
+                                   BB_START NOT_FALLEN_INTO_BLOCK
+                                   ROT_TWO POP_TOP RETURN_VALUE BB_END
+
         compare_chained_return ::= expr
                                    compare_chained_middle_return
                                    BLOCK_END_JOIN BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
-                                   RETURN_VALUE BB_END BLOCK_END_JOIN
+                                   RETURN_VALUE BB_END
 
         # FIXME: simplify the compare_chain1 recursion?
         compare_chained_middle       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
@@ -347,6 +350,9 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         compare_chained_right     ::= expr COMPARE_OP JUMP_FORWARD BB_END
 
         compare_chained_right_return ::= expr COMPARE_OP POP_TOP expr RETURN_VALUE
+                                         BB_END
+
+        compare_chained_right_return ::= expr COMPARE_OP RETURN_VALUE
                                          BB_END
 
         compare_chained_righta_37 ::= expr COMPARE_OP block_end POP_JUMP_IF_TRUE
