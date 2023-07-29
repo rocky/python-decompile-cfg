@@ -40,6 +40,8 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         # "and" is the final reduction that hooks into the higher level
         # levels of the grammar.
         and               ::= and_parts BLOCK_END_JOIN
+        expr_jifop_and    ::= expr_jifop BB_START and BLOCK_END_JOIN
+        expr_jifop_and    ::= expr_jifop BB_START expr_jifop_and BLOCK_END_JOIN
 
         # And "and_part" is an "expr" that is followed by a BB_END because there
         # is a jump to the instruction after that "expr"
@@ -909,6 +911,9 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         branch_op ::= compare
         branch_op ::= compare BB_START
+
+        branch_op ::= expr_jifop_and
+        branch_op ::= expr_jifop_and BB_START
 
         branch_op ::= or
         branch_op ::= or BB_START

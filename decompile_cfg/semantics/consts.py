@@ -544,6 +544,14 @@ TABLE_DIRECT = {
         (3, maxint, "")
         ),
 
+    "expr_jifop_and":
+    (
+        "%p and %p",
+        (0,  ("expr_jifop",), PRECEDENCE["and"]),
+        (-1,  ("and", "expr_jifop_and"), PRECEDENCE["and"]),
+    ),
+
+
     # The following is covered by n_expr_stmt which
     # adjusts depending on whether expr is a named statement or not.
     # "expr_stmt": (
