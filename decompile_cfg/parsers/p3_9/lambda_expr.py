@@ -1149,7 +1149,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         if_exp_and_return   ::= expr_pjif BB_START
                                 expr_pjif BB_START
                                 return_expr
-                                BLOCK_END_JOIN BB_START
+                                BB_START
                                 NOT_FALLEN_INTO_BLOCK
                                 return_expr
 
@@ -1167,7 +1167,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         if_exp_return      ::= expr_pjif
                                BB_START
                                return_expr
-                               BLOCK_END_JOIN BB_START
+                               BB_START
                                NOT_FALLEN_INTO_BLOCK
                                return_expr
 
