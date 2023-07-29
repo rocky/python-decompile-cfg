@@ -589,7 +589,7 @@ class NonterminalActions:
             self.comprehension_walk_newer(
                 node, iter_index=iter_index, collection_node=node[collection_node_index]
             )
-            # self.comprehension_walk(node, iter_index=5, code_index=code_index)
+            # self.comprehension_walk(node, iter_index=5)
         self.write(")")
         self.prune()
 

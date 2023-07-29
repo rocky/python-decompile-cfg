@@ -138,12 +138,7 @@ class ComprehensionMixin:
             self.preorder(if_condition)
         self.prec = p
 
-    def comprehension_walk(
-        self,
-        node,
-        iter_index: Optional[int],
-        code_index: int = -5,
-    ):
+    def comprehension_walk(self, node, iter_index: Optional[int]):
         p: int = self.prec
         self.prec = PRECEDENCE["lambda_body"] - 1
 
@@ -538,7 +533,12 @@ class ComprehensionMixin:
                 collection_node = node[collection_node_index]
             if collection_node_index is None:
                 for i, child in enumerate(node):
-                    if child.kind in ("expr", "expr_get_aiter", "get_aiter", "get_iter"):
+                    if child.kind in (
+                        "expr",
+                        "expr_get_aiter",
+                        "get_aiter",
+                        "get_iter",
+                    ):
                         collection_node_index = i
                         break
                 assert collection_node_index is not None
@@ -604,7 +604,7 @@ class ComprehensionMixin:
                 elif not (
                     list_iter_inner == "set_iter"
                     and list_iter_inner[0] == "set_comp_body"
-                    ):
+                ):
                     self.preorder(list_iter_inner)
                     if if_node_parent == list_iter_inner[0]:
                         self.prec = p
@@ -634,20 +634,29 @@ class ComprehensionMixin:
 
         for if_node in if_nodes:
             self.write(" if ")
-            if if_node in (
-                "comp_if_not_and",
-                "comp_if_not_or",
-                "comp_if_or",
-                "comp_if_or2",
-                "comp_if_or_not",
-            ) or if_not_hack:
+            if (
+                if_node
+                in (
+                    "comp_if_not_and",
+                    "comp_if_not_or",
+                    "comp_if_or",
+                    "comp_if_or2",
+                    "comp_if_or_not",
+                )
+                or if_not_hack
+            ):
                 if if_not_hack:
                     self.write("not ")
                 self.preorder(if_node)
             else:
                 # FIXME: go over these to add more of this in the template,
                 # not here.
-                if if_node in ("comp_if_not", "list_if37_not", "list_if_not", "list_if_or_not"):
+                if if_node in (
+                    "comp_if_not",
+                    "list_if37_not",
+                    "list_if_not",
+                    "list_if_or_not",
+                ):
                     self.write("not ")
                     pass
                 self.prec = PRECEDENCE["lambda_body"] - 1
@@ -696,7 +705,15 @@ class ComprehensionMixin:
         # and other singleton derivations
 
         while len(tree) == 1 or (
-            tree in ("stmt", "stmts_return_value", "sstmt", "return", "return_expr", "return_expr_lambda")
+            tree
+            in (
+                "stmt",
+                "stmts_return_value",
+                "sstmt",
+                "return",
+                "return_expr",
+                "return_expr_lambda",
+            )
         ):
             if tree[0] == "BUILD_SET_0":
                 break

@@ -628,7 +628,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
         self.indent_less()
         self.prune()  # stop recursing
 
-    def comprehension_walk(self, node, iter_index, code_index=-5):
+    def comprehension_walk(self, node, iter_index):
         p = self.prec
         self.prec = 27
 
@@ -909,9 +909,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
             is_lambda = self.is_lambda
             self.closure_walk(node, collection_index=4)
             self.is_lambda = is_lambda
-        else:
-            code_index = -6
-        self.comprehension_walk(node, iter_index=4, code_index=code_index)
+        self.comprehension_walk(node, iter_index=4)
         self.write(")")
         self.set_pos_info(node, start, len(self.f.getvalue()))
         self.prune()
