@@ -1,4 +1,4 @@
-#  Copyright (c) 2015-2016, 2818-2022 by Rocky Bernstein
+#  Copyright (c) 2015-2016, 2818-2023 by Rocky Bernstein
 #  Copyright (c) 2005 by Dan Pascu <dan@windowmaker.org>
 #  Copyright (c) 2000-2002 by hartmut Goebel <h.goebel@crazy-compilers.com>
 #  Copyright (c) 1999 John Aycock
@@ -44,7 +44,14 @@ from py_compile import PyCompileError
 
 
 def disco_deparse(
-    version: Optional[tuple], co, codename_map: dict, out, is_pypy, debug_opts
+    version: Optional[tuple],
+    co,
+    codename_map: dict,
+    out,
+    is_pypy,
+    debug_opts,
+    start_offset: int = 0,
+    stop_offset: int = -1,
 ) -> None:
     """
     diassembles and deparses a given code block 'co'
@@ -63,7 +70,14 @@ def disco_deparse(
     queue = deque([co])
     disco_deparse_loop(
         version,
-        scanner.ingest, codename_map, queue, real_out, is_pypy, debug_opts
+        scanner.ingest,
+        codename_map,
+        queue,
+        real_out,
+        is_pypy,
+        debug_opts,
+        start_offset=start_offset,
+        stop_offset=stop_offset,
     )
 
 
@@ -75,7 +89,9 @@ def disco_deparse_loop(
     queue,
     real_out,
     is_pypy,
-    debug_opts
+    debug_opts,
+    start_offset: int = 0,
+    stop_offset: int = -1,
 ):
 
     while len(queue) > 0:
@@ -94,13 +110,15 @@ def disco_deparse_loop(
                 version=version,
                 debug_opts=debug_opts,
                 is_pypy=is_pypy,
-                compile_mode=codename_map[co.co_name]
+                compile_mode=codename_map[co.co_name],
+                start_offset=start_offset,
+                stop_offset=stop_offset,
             )
             skip_token_scan = True
 
         # FIXME: disasm doesn't need to be done twice
         # if we pick out from the first disassembly.
-        tokens, customize = disasm(co, show_asm=None)
+        tokens, _ = disasm(co, show_asm=None)
         if skip_token_scan:
             continue
         for t in tokens:
@@ -119,6 +137,8 @@ def decompile_code_type(
     showasm=None,
     showast: dict=TREE_DEFAULT_DEBUG,
     showgrammar: dict=PARSER_DEFAULT_DEBUG,
+    start_offset=0,
+    stop_offset=-1,
 ) -> bool:
     """
     decompile all of the lambda functions in a python byte-code file (.pyc)
@@ -132,9 +152,7 @@ def decompile_code_type(
         print(f"Skipping {filename}:\n{e}")
         return None
 
-    (version, timestamp, magic_int, co, is_pypy, source_size, sip_hash) = load_module(
-        filename
-    )
+    (version, _, _, co, is_pypy, _, _) = load_module(filename)
 
     # maybe a second -a will do before as well
     # asm = "after" if showasm else None
@@ -143,7 +161,13 @@ def decompile_code_type(
     if isinstance(co, list):
         for bytecode in co:
             disco_deparse(
-                version, bytecode, codename_map, is_pypy, debug_opts
+                version,
+                bytecode,
+                codename_map,
+                is_pypy,
+                debug_opts,
+                start_offset=start_offset,
+                stop_offset=stop_offset,
             )
     else:
         disco_deparse(
@@ -158,6 +182,8 @@ def decompile_dict_comprehensions(
     showasm=None,
     showast=TREE_DEFAULT_DEBUG,
     showgrammar=PARSER_DEFAULT_DEBUG,
+    start_offset: int = 0,
+    stop_offset: int = -1,
 ) -> Optional[bool]:
     """
     decompile all of the dictionary-comprehension functions in a python byte-code file (.pyc)
@@ -176,9 +202,12 @@ def decompile_all_fragments(
     showasm=None,
     showast=TREE_DEFAULT_DEBUG,
     showgrammar=PARSER_DEFAULT_DEBUG,
+    start_offset: int = 0,
+    stop_offset: int = -1,
 ) -> Optional[bool]:
     """
-    decompile all of comprehensions, generators, and lambda in a python byte-code file (.pyc)
+    decompile all of comprehensions, generators, and lambda in a python byte-code
+    file (.pyc).
 
     If given a Python source file (".py") file, we'll
     decompile all dict_comprehensions of the corresponding compiled object.
@@ -191,7 +220,9 @@ def decompile_all_fragments(
             "<listcomp>": "listcomp",
             "<setcomp>": "setcomp"
             },
-        outstream, showasm, showast, showgrammar
+        outstream, showasm, showast, showgrammar,
+        start_offset=start_offset,
+        stop_offset=stop_offset,
     )
 
 
@@ -201,6 +232,8 @@ def decompile_generators(
     showasm=None,
     showast=TREE_DEFAULT_DEBUG,
     showgrammar=PARSER_DEFAULT_DEBUG,
+    start_offset: int = 0,
+    stop_offset: int = -1,
 ) -> Optional[bool]:
     """
     decompile all of the generator functions in a python byte-code file (.pyc)
@@ -209,7 +242,14 @@ def decompile_generators(
     decompile all dict_comprehensions of the corresponding compiled object.
     """
     return decompile_code_type(
-        filename, {"<genexpr>": "genexpr"}, outstream, showasm, showast, showgrammar
+        filename,
+        {"<genexpr>": "genexpr"},
+        outstream,
+        showasm,
+        showast,
+        showgrammar,
+        start_offset,
+        stop_offset,
     )
 
 
@@ -219,6 +259,8 @@ def decompile_lambda_fns(
     showasm=None,
     showgrammar: dict=PARSER_DEFAULT_DEBUG,
     showast: dict=TREE_DEFAULT_DEBUG,
+    start_offset=0,
+    stop_offset=-1,
 ) -> Optional[bool]:
     """
     decompile all of the lambda functions in a python byte-code file (.pyc)
@@ -227,7 +269,10 @@ def decompile_lambda_fns(
     decompile all lambdas of the corresponding compiled object.
     """
     return decompile_code_type(
-        filename, {"<lambda>": "lambda"}, outstream, showasm, showast, showgrammar
+        filename, {"<lambda>": "lambda"}, outstream, showasm, showast, showgrammar,
+        start_offset=start_offset,
+        stop_offset=stop_offset,
+
     )
 
 
@@ -237,6 +282,8 @@ def decompile_list_comprehensions(
     showasm=None,
     showast: dict=TREE_DEFAULT_DEBUG,
     showgrammar: dict=PARSER_DEFAULT_DEBUG,
+    start_offset=0,
+    stop_offset=-1,
 ) -> Optional[bool]:
     """
     decompile all of the lambda functions in a python byte-code file (.pyc)
@@ -245,7 +292,9 @@ def decompile_list_comprehensions(
     decompile all list_comprehensions of the corresponding compiled object.
     """
     return decompile_code_type(
-        filename, {"<listcomp>": "listcomp"}, outstream, showasm, showast, showgrammar
+        filename, {"<listcomp>": "listcomp"}, outstream, showasm, showast, showgrammar,
+        start_offset=start_offset,
+        stop_offset=stop_offset,
     )
 
 
@@ -256,6 +305,8 @@ def decompile_set_comprehensions(
     showasm=None,
     showast=TREE_DEFAULT_DEBUG,
     showgrammar=PARSER_DEFAULT_DEBUG,
+    start_offset: int = 0,
+    stop_offset: int = -1,
 ) -> Optional[bool]:
     """
     decompile all of the lambda functions in a python byte-code file (.pyc)
@@ -264,7 +315,14 @@ def decompile_set_comprehensions(
     decompile all list_comprehensions of the corresponding compiled object.
     """
     return decompile_code_type(
-        filename, {"<setcomp>": "setcomp"}, outstream, showasm, showast, showgrammar
+        filename,
+        {"<setcomp>": "setcomp"},
+        outstream,
+        showasm,
+        showast,
+        showgrammar,
+        start_offset=start_offset,
+        stop_offset=stop_offset,
     )
 
 

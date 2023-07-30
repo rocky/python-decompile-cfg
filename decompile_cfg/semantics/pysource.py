@@ -1113,6 +1113,8 @@ def code_deparse(
     compile_mode="exec",
     is_pypy=IS_PYPY,
     walker=SourceWalker,
+    start_offset: int = 0,
+    stop_offset: int = -1,
 ):
     """
     ingests and deparses a given code block 'co'. If version is None,
@@ -1120,6 +1122,9 @@ def code_deparse(
     """
 
     assert iscode(co)
+
+    if out is None:
+        out = sys.stdout
 
     if version is None:
         version = PYTHON_VERSION_TRIPLE
@@ -1130,6 +1135,21 @@ def code_deparse(
     tokens, customize = scanner.ingest(
         co, code_objects=code_objects, show_asm=debug_opts["asm"]
     )
+
+    if start_offset > 0:
+        for i, t in enumerate(tokens):
+            # If t.offset is a string, we want to skip this.
+            if isinstance(t.offset, int) and t.offset >= start_offset:
+                tokens = tokens[i:]
+                break
+
+    if stop_offset > -1:
+        for i, t in enumerate(tokens):
+            # In contrast to the test for start_offset If t.offset is
+            # a string, we want to extract the integer offset value.
+            if t.off2int() >= stop_offset:
+                tokens = tokens[:i]
+                break
 
     debug_parser = debug_opts.get("grammar", dict(PARSER_DEFAULT_DEBUG))
 
@@ -1236,6 +1256,8 @@ def deparse_code2str(
     compile_mode="exec",
     is_pypy=IS_PYPY,
     walker=SourceWalker,
+    start_offset: int = 0,
+    stop_offset: int = -1,
 ) -> str:
     """
     Return the deparsed text for a Python code object. `out` is where
@@ -1251,6 +1273,8 @@ def deparse_code2str(
         compile_mode=compile_mode,
         is_pypy=is_pypy,
         walker=walker,
+        start_offset=start_offset,
+        stop_offset=stop_offset,
     )
 
     return "# deparse failed" if tree is None else tree.text

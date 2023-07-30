@@ -49,9 +49,30 @@ def usage():
     required=False,
 )
 @click.version_option(version=__version__)
+@click.option(
+    "--start-offset",
+    "start_offset",
+    default=0,
+    help="start decomplation at offset; default is 0 or the starting offset.",
+)
+@click.option(
+    "--stop-offset",
+    "stop_offset",
+    default=-1,
+    help="stop decomplation when seeing an offset greater or equal to this; default is "
+    "-1 which indicates no stopping point.",
+)
 @click.argument("files", nargs=-1, type=click.Path(readable=True), required=True)
 def main_bin(
-    show_asm: int, show_grammar, tree, tree_plus, verify, recurse_dirs, outfile, files
+    show_asm: int,
+    show_grammar,
+    tree,
+    tree_plus,
+    verify,
+    recurse_dirs,
+    start_offset: int,
+    stop_offset: int,
+    outfile, files
 ):
     """
     Python byecode decompiler for CPython 3.8..3.10 bytecode
@@ -122,6 +143,8 @@ def main_bin(
         showgrammar=show_grammar,
         showast=show_ast,
         do_verify=verify,
+        start_offset=start_offset,
+        stop_offset=stop_offset,
     )
     try:
         if len(pyc_paths) > 1:

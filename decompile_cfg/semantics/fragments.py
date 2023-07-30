@@ -72,12 +72,10 @@ from decompile_cfg.semantics import pysource
 from decompile_cfg.scanner import Token, Code, get_scanner
 from decompile_cfg.semantics.check_tree import checker
 
-from decompile_cfg.show import maybe_show_asm
-
 from decompile_cfg.parsers.treenode import SyntaxTree
 
 from decompile_cfg.semantics.helper import is_lambda_mode
-from decompile_cfg.semantics.pysource import ParserError, StringIO
+from decompile_cfg.semantics.pysource import PARSER_DEFAULT_DEBUG, TREE_DEFAULT_DEBUG, ParserError, StringIO
 
 from decompile_cfg.semantics.consts import (
     INDENT_PER_LEVEL,
@@ -92,14 +90,12 @@ from decompile_cfg.semantics.consts import (
 from decompile_cfg.semantics.customize import customize_for_version
 from decompile_cfg.semantics.make_function36 import make_function36
 
-from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 from spark_parser.ast import GenericASTTraversalPruningException
 
 from xdis import iscode
 from xdis.version_info import IS_PYPY, PYTHON_VERSION_TRIPLE
 
 from collections import namedtuple
-from typing import Optional
 
 NodeInfo = namedtuple("NodeInfo", "node start finish")
 ExtractInfo = namedtuple(
@@ -160,12 +156,13 @@ class FragmentsWalker(pysource.SourceWalker, object):
 
     def __init__(
         self,
-        version,
+        version: tuple,
         scanner,
-        showast=False,
+        showast=TREE_DEFAULT_DEBUG,
         debug_parser=PARSER_DEFAULT_DEBUG,
         compile_mode="exec",
-        is_pypy=False,
+        is_pypy=IS_PYPY,
+        linestarts={},
         tolerate_errors=True,
     ):
         pysource.SourceWalker.__init__(
@@ -177,6 +174,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
             debug_parser=debug_parser,
             compile_mode=compile_mode,
             is_pypy=is_pypy,
+            linestarts=linestarts,
             tolerate_errors=tolerate_errors,
         )
 
@@ -1088,13 +1086,17 @@ class FragmentsWalker(pysource.SourceWalker, object):
                     # Python 3.2 works like this
                     subclass = load_closure[-2].attr
                 else:
-                    raise "Internal Error n_classdef: cannot find class body"
+                    raise RuntimeError(
+                        "Internal Error n_classdef: cannot find class" "body"
+                    )
                 if hasattr(buildclass[3], "__len__"):
                     subclass_info = buildclass[3]
                 elif hasattr(buildclass[2], "__len__"):
                     subclass_info = buildclass[2]
                 else:
-                    raise "Internal Error n_classdef: cannot superclass name"
+                    raise RuntimeError(
+                        "Internal Error n_classdef: cannot superclass" " name"
+                    )
             else:
                 subclass = buildclass[1][0].attr
                 subclass_info = node[0]
@@ -1930,7 +1932,7 @@ def deparse_code(
     showgrammar=False,
     code_objects={},
     compile_mode="exec",
-    is_pypy=None,
+    is_pypy=IS_PYPY,
     walker=FragmentsWalker,
 ):
     debug_opts = {"asm": showasm, "ast": showast, "grammar": showgrammar}
@@ -1948,13 +1950,15 @@ def deparse_code(
 
 def code_deparse(
     co,
-    out=StringIO(),
+    out,
     version=None,
     debug_opts=DEFAULT_DEBUG_OPTS,
     code_objects={},
     compile_mode="exec",
-    is_pypy: Optional[bool] = None,
+    is_pypy=IS_PYPY,
     walker=FragmentsWalker,
+    start_offset: int = 0,
+    stop_offset: int = -1,
 ):
     """
     Convert the code object co into a python source fragment.
@@ -1979,34 +1983,41 @@ def code_deparse(
 
     if version is None:
         version = PYTHON_VERSION_TRIPLE
-    if is_pypy is None:
-        is_pypy = IS_PYPY
 
     # store final output stream for case of error
-    scanner = get_scanner(version, is_pypy=is_pypy)
+    scanner = get_scanner(version, is_pypy=is_pypy, show_asm=debug_opts["asm"])
 
-    show_asm = debug_opts.get("asm", None)
-    tokens, customize = scanner.ingest(co, code_objects=code_objects, show_asm=show_asm)
+    tokens, customize = scanner.ingest(
+        co, code_objects=code_objects, show_asm=debug_opts["asm"]
+    )
 
-    tokens, customize = scanner.ingest(co)
-    maybe_show_asm(show_asm, tokens)
+    if start_offset > 0:
+        for i, t in enumerate(tokens):
+            # If t.offset is a string, we want to skip this.
+            if isinstance(t.offset, int) and t.offset >= start_offset:
+                tokens = tokens[i:]
+                break
+
+    if stop_offset > -1:
+        for i, t in enumerate(tokens):
+            # In contrast to the test for start_offset If t.offset is
+            # a string, we want to extract the integer offset value.
+            if t.off2int() >= stop_offset:
+                tokens = tokens[:i]
+                break
 
     debug_parser = dict(PARSER_DEFAULT_DEBUG)
-    show_grammar = debug_opts.get("grammar", None)
-    if show_grammar:
-        debug_parser["reduce"] = show_grammar
-        debug_parser["errorstack"] = True
 
-    # Build Syntax Tree from tokenized and massaged disassembly.
-    # deparsed = pysource.FragmentsWalker(out, scanner, showast=showast)
-    show_ast = debug_opts.get("ast", None)
+    #  Build Syntax Tree from disassembly.
+    linestarts = dict(scanner.opc.findlinestarts(co))
     deparsed = walker(
         version,
         scanner,
-        showast=show_ast,
+        showast=debug_opts.get("tree", TREE_DEFAULT_DEBUG),
         debug_parser=debug_parser,
         compile_mode=compile_mode,
         is_pypy=is_pypy,
+        linestarts=linestarts,
     )
 
     is_top_level_module = co.co_name == "<module>"
@@ -2127,7 +2138,7 @@ def deparse_code_around_offset(
     out=StringIO(),
     showasm=False,
     showast=False,
-    showgrammar=False,
+    showgrammar=PARSER_DEFAULT_DEBUG,
     is_pypy=False,
 ):
     debug_opts = {"asm": showasm, "ast": showast, "grammar": showgrammar}
@@ -2175,8 +2186,9 @@ def deparsed_find(tup, deparsed, code):
 
 if __name__ == "__main__":
 
-    def deparse_test(co, is_pypy=IS_PYPY):
-        deparsed = code_deparse(co, is_pypy=IS_PYPY)
+    def deparse_test(co):
+        import sys
+        deparsed = code_deparse(co, sys.stdout, is_pypy=IS_PYPY)
         print("deparsed source")
         print(deparsed.text, "\n")
         print("------------------------")
@@ -2204,7 +2216,7 @@ if __name__ == "__main__":
             pass
         return
 
-    def deparse_test_around(offset, name, co, is_pypy=IS_PYPY):
+    def deparse_test_around(offset, name, co):
         deparsed = code_deparse_around_offset(name, offset, co)
         print("deparsed source")
         print(deparsed.text, "\n")
