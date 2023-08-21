@@ -91,6 +91,8 @@ def is_docstring(node, version: str, co_consts) -> bool:
     if `node` matches that. Note that in the '==' comparision,
     line number checking is disabled.
     """
+    if node == "stmts":
+        node = node[0]
     return node == ASSIGN_DOC_STRING(co_consts[0], "LOAD_STR")
 
 
@@ -636,7 +638,7 @@ class TreeTransform(GenericASTTraversal, object):
             # Disambiguate a string (expression) which appears as a "call_stmt" at
             # the beginning of a function versus a docstring. Seems pretty academic,
             # but this is Python.
-            call_stmt = ast[0][0]
+            call_stmt = self.ast[0][0]
             if is_not_docstring(call_stmt):
                 call_stmt.kind = "string_at_beginning"
                 call_stmt.transformed_by = "transform"
@@ -645,8 +647,9 @@ class TreeTransform(GenericASTTraversal, object):
             pass
         try:
             for i in range(n):
-                if is_docstring(self.ast[i], code.co_consts):
-                    load_const = self.ast[i].first_child()
+                node = self.ast[i][0] if self.ast[i] == "stmts" else self.ast[i]
+                if is_docstring(node, self.version, code.co_consts):
+                    load_const = node.first_child()
                     docstring_ast = SyntaxTree(
                         "docstring",
                         [
@@ -660,7 +663,7 @@ class TreeTransform(GenericASTTraversal, object):
                         ],
                         transformed_by="transform",
                     )
-                    del self.ast[i]
+                    del node
                     self.ast.insert(0, docstring_ast)
                     break
 

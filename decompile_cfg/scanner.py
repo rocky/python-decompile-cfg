@@ -81,7 +81,6 @@ class Scanner(object):
             exec(f"""from xdis.opcodes import {v_str}""")
             exec("self.opc = %s" % v_str)
         else:
-            from trepan.api import debug; debug()
             raise TypeError(
                 "%s is not a Python version I know about"
                 % version_tuple_to_str(version)
