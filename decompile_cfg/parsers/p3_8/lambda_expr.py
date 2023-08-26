@@ -110,7 +110,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         # This is wrong - we should not need this and use only the above.
         # there is something in control-flow that is intermittent.
-        or               ::= expr_jitop
+        or              ::= expr_jitop
                             BB_START
                             expr
 

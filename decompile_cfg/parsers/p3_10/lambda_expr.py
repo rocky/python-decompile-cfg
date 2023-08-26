@@ -34,9 +34,7 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
     Python 3.9 lambda grammar rules
     """
     def p_branch_ops(self, args):
-        """
-
-        # "and" is the final reduction that hooks into the higher level
+        """# "and" is the final reduction that hooks into the higher level
         # levels of the grammar.
         and               ::= and_parts BLOCK_END_JOIN
         expr_jifop_and    ::= expr_jifop BB_START and BLOCK_END_JOIN
@@ -65,6 +63,10 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
 
         and_or          ::= and_or_parts BB_START expr BLOCK_END_JOIN
 
+        # This is wrong - we should not need this and use only the above.
+        # there is something in control-flow that is intermittent.
+        and_or          ::= and_or_parts BB_START expr
+
         # "and_or_parts" is the "and" portion of "and_or" before the "or".
         and_or_part     ::= and1
 
@@ -83,7 +85,7 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         # and_part_pjif are the right-hand side of an "and" without the leading expr
         and_part_pjif   ::= expr_pjif
 
-        # This is less than ide because we lose track of the proper number of
+        # This is less than ideal because we lose track of the proper number of
         # BLOCK_END_JOINs that should apear at the target jumps.
         # To regain this, we need to count these in reduction rule. Sigh.
         # and_parts_pjif  ::= and_part_pjif+
@@ -97,6 +99,11 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
                             BB_START
                             expr
                             BLOCK_END_JOIN
+
+        # there is something in control-flow that is intermittent.
+        or              ::= expr_jitop
+                             BB_START
+                             expr
 
         # The inner-most "or" or "or" that contains an "and" can have a BB_END before
         # the JOIN

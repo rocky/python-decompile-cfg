@@ -513,14 +513,13 @@ def customize_for_version3_7(self):
         if len(node) == 1:
             self.template_engine(("%c", (0, ("expr_pjif", "and_part", "expr"))), node)
             self.prune()
-        elif len(node) == 2 and node[0] == "or_and_part" and len(node[0]) == 2:
-            # We have this when the "or" portion is just one item, so in effect
-            # we just have a compsit "and".
-            self.template_engine(
-                ("%c and %c and ", (0, "expr_pjit"), (1, "expr_jifop")), node[0]
-            )
-            self.n_expr(node[1])
-
+        # elif len(node) == 2 and node[0] == "or_and_part" and len(node[0]) == 2:
+        #     # We have this when the "or" portion is just one item, so in effect
+        #     # we just have a compsite "and".
+        #     self.template_engine(
+        #         ("%c and %c and ", (0, "expr_pjit"), (1, "expr_jifop")), node[0]
+        #     )
+        #     self.n_expr(node[1])
         else:
             self.default(node)
             pass
