@@ -353,7 +353,8 @@ def customize_for_version3_8(self):
             and opname == "CALL_FUNCTION_1"
             or not re.match(r"\d", opname[-1])
         ):
-            template = "(%c)(%p)" if node[0][0] == "lambda_body" else "%c(%p)"
+            n0 = node[0][0] if node[0] == "arg" else node[0]
+            template = "(\n%+%|%c%-\n)(%p)" if n0[0] == "lambda_body" else "%c(%p)"
             self.template_engine(
                 (template, (0, ("expr", "arg")), (1, PRECEDENCE["yield"] - 1)), node
             )
