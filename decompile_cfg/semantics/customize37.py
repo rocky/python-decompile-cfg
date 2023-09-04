@@ -884,7 +884,7 @@ def customize_for_version3_7(self):
     self.n_importlist37 = n_importlist37
 
     def n_call_kw36(node):
-        self.template_engine(("%p(", (0, 100)), node)
+        self.template_engine(("%p(\n%+%|", (0, 100)), node)
         keys = node[-2].attr
         num_kwargs = len(keys)
         num_posargs = len(node) - (num_kwargs + 2)
@@ -915,7 +915,7 @@ def customize_for_version3_7(self):
                 sep = ", "
             i += 1
             j += 1
-        self.write(")")
+        self.template_engine(("%-\n)", ()), node)
         self.prune()
         return
 

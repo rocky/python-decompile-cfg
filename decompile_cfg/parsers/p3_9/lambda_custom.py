@@ -507,6 +507,7 @@ class Python3_9LambdaCustom(Python3_9BaseParser):
                         "CALL_FUNCTION",
                         "CALL_FUNCTION_EX",
                         "CALL_FUNCTION_EX_KW",
+                        "CALL_FUNCTION_KW",
                         "CALL_FUNCTION_VAR",
                         "CALL_FUNCTION_VAR_KW",
                     )
@@ -561,7 +562,7 @@ class Python3_9LambdaCustom(Python3_9BaseParser):
 
                 # Don't add to custom_ops_processed for CALL_FUNCTION_EX_KW, since
                 # the the call_ex_... rules above cover this.
-                if opname not in ("CALL_FUNCTION_EX_KW", "CALL_FUNCTION_KW"):
+                if opname not in ("CALL_FUNCTION_EX_KW"):
                     self.custom_classfunc_rule_lambda(opname, token, customize, tokens[i + 1])
 
 

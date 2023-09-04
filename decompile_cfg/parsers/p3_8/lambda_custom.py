@@ -146,7 +146,8 @@ class Python3_8LambdaCustom(Python3_8BaseParser):
                 pass
 
             else:
-                # FIXME: Is this correct still? Note: 3.5+ have subclassed this method; so we don't handle
+                # FIXME: Is this correct still? Note: 3.5+ have
+                # subclassed this method; so we don't handle
                 # 'CALL_FUNCTION_VAR'.
                 token.kind = self.call_fn_name(token)
 
