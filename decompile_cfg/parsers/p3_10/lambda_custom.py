@@ -26,6 +26,7 @@ from decompile_cfg.parsers.reduce_check.list_if_not_check import list_if_not_see
 from decompile_cfg.parsers.reduce_check.or_check import or_ok
 from spark_parser.spark import rule2str
 
+
 class Python3_10LambdaCustom(Python3_10BaseParser):
     def __init__(self):
         self.new_rules = set()
@@ -175,8 +176,6 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                 pass
 
             else:
-                # FIXME: Is this correct still? Note: 3.5+ have subclassed this method; so we don't handle
-                # 'CALL_FUNCTION_VAR'.
                 token.kind = self.call_fn_name(token)
 
                 rule = (
@@ -190,7 +189,6 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                 self.add_unique_rule(rule, token.kind, uniq_param, customize)
 
     def customize_grammar_rules_lambda3_10(self, tokens, customize):
-
         self.customize_reduce_checks_lambda3_10()
 
         is_pypy = False
@@ -306,7 +304,9 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                     thirty32s = (collection_size // 32) % 32
                     if thirty32s > 0:
                         rule = "expr32 ::=%s" % (" expr" * 32)
-                        self.add_unique_rule(rule, opname_base, collection_size, customize)
+                        self.add_unique_rule(
+                            rule, opname_base, collection_size, customize
+                        )
                         pass
                     if thousands > 0:
                         self.add_unique_rule(
@@ -370,7 +370,6 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                     rule = "build_map_unpack_with_call ::= %s%s" % ("expr " * v, opname)
                     self.addRule(rule, nop_func)
 
-
             elif opname_base in (
                 "BUILD_SET",
                 "BUILD_TUPLE",
@@ -399,7 +398,10 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                             is_LOAD_CLOSURE = False
                             break
                     if is_LOAD_CLOSURE:
-                        rule = "load_closure ::= %s%s" % (("LOAD_CLOSURE " * collection_size), opname)
+                        rule = "load_closure ::= %s%s" % (
+                            ("LOAD_CLOSURE " * collection_size),
+                            opname,
+                        )
                         self.add_unique_rule(rule, opname, token.attr, customize)
                 if not is_LOAD_CLOSURE or collection_size == 0:
                     # We do this complicated test to speed up parsing of
@@ -408,7 +410,9 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                     thirty32s = (collection_size // 32) % 32
                     if thirty32s > 0:
                         rule = "arg32 ::=%s" % (" arg" * 32)
-                        self.add_unique_rule(rule, opname_base, collection_size, customize)
+                        self.add_unique_rule(
+                            rule, opname_base, collection_size, customize
+                        )
                         pass
                     if thousands > 0:
                         self.add_unique_rule(
@@ -440,9 +444,9 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                         customize,
                     )
                 else:
-                    assert token.attr == 3, (
-                        f"BUILD_SLICE value must be 2 or 3; is {token.attr}"
-                    )
+                    assert (
+                        token.attr == 3
+                    ), f"BUILD_SLICE value must be 2 or 3; is {token.attr}"
                     self.add_unique_rules(
                         [
                             "expr ::= slice3",
@@ -504,23 +508,23 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                 self.addRule(rule, nop_func)
 
             elif opname in frozenset(
-                    (
-                        "CALL_FUNCTION",
-                        "CALL_FUNCTION_EX",
-                        "CALL_FUNCTION_EX_KW",
-                        "CALL_FUNCTION_KW",
-                        "CALL_FUNCTION_VAR",
-                        "CALL_FUNCTION_VAR_KW",
-                    )
-            ):
-
-                self.addRule(
-                    """expr        ::= call_ex_3_10
-                       call_ex_3_10  ::= arg arg arg
-                                       CALL_FUNCTION_EX_KW
-                     """,
-                    nop_func,
+                (
+                    "CALL_FUNCTION",
+                    "CALL_FUNCTION_EX",
+                    "CALL_FUNCTION_EX_KW",
+                    "CALL_FUNCTION_KW",
+                    "CALL_FUNCTION_VAR",
+                    "CALL_FUNCTION_VAR_KW",
                 )
+            ):
+                if opname == "CALL_FUNCTION_EX_KW":
+                    self.addRule(
+                        """expr        ::= call_ex_3_10
+                           call_ex_3_10  ::= arg arg arg
+                                           CALL_FUNCTION_EX_KW
+                         """,
+                        nop_func,
+                    )
                 if "BUILD_MAP_UNPACK_WITH" in self.seen_op_basenames:
                     self.addRule(
                         """expr        ::= call_ex_kw
@@ -557,15 +561,17 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                 if opname == "CALL_FUNCTION" and token.attr == 1:
                     rule = """
                      expr         ::= dict_comp
-                     dict_comp    ::= LOAD_DICTCOMP LOAD_STR MAKE_FUNCTION_0 get_iter CALL_FUNCTION_1
+                     dict_comp    ::= LOAD_DICTCOMP LOAD_STR MAKE_FUNCTION_0 get_iter
+                                      CALL_FUNCTION_1
                     """
                     self.addRule(rule, nop_func)
 
                 # Don't add to custom_ops_processed for CALL_FUNCTION_EX_KW, since
                 # the the call_ex_... rules above cover this.
-                if opname not in ("CALL_FUNCTION_EX_KW"):
-                    self.custom_classfunc_rule_lambda(opname, token, customize, tokens[i + 1])
-
+                if opname not in ("CALL_FUNCTION_EX_KW",):
+                    self.custom_classfunc_rule_lambda(
+                        opname, token, customize, tokens[i + 1]
+                    )
 
             elif opname_base == "CALL_METHOD":
                 # PyPy and Python 3.7+ only - DRY with parse2
@@ -806,9 +812,7 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
 
             elif opname == "LOAD_DICTCOMP":
                 if has_get_iter_call_function1:
-                    rule_pat = (
-                        "dict_comp ::= LOAD_DICTCOMP %sMAKE_FUNCTION_0 get_iter CALL_FUNCTION_1"
-                    )
+                    rule_pat = "dict_comp ::= LOAD_DICTCOMP %sMAKE_FUNCTION_0 get_iter CALL_FUNCTION_1"
                     self.add_make_function_rule(rule_pat, opname, token.attr, customize)
                     pass
                 custom_ops_processed.add(opname)
@@ -842,9 +846,7 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                 # Should this be generalized and put under MAKE_FUNCTION?
                 if has_get_iter_call_function1:
                     self.addRule("expr ::= set_comp", nop_func)
-                    rule_pat = (
-                        "set_comp ::= LOAD_SETCOMP %sMAKE_FUNCTION_0 get_iter CALL_FUNCTION_1"
-                    )
+                    rule_pat = "set_comp ::= LOAD_SETCOMP %sMAKE_FUNCTION_0 get_iter CALL_FUNCTION_1"
                     self.add_make_function_rule(rule_pat, opname, token.attr, customize)
                     pass
                 custom_ops_processed.add(opname)
@@ -952,8 +954,10 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                 stack_count = args_pos + args_kw + annotate_args
 
                 if closure:
-
-                    if opname == "MAKE_FUNCTION_CLOSURE" and "CALL_FUNCTION" in self.seen_ops:
+                    if (
+                        opname == "MAKE_FUNCTION_CLOSURE"
+                        and "CALL_FUNCTION" in self.seen_ops
+                    ):
                         for get_iter in ("GET_ITER", "GET_AITER"):
                             if get_iter not in self.seen_ops:
                                 continue
@@ -974,9 +978,11 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                                 self.addRule(rule, nop_func)
 
                     if "LOAD_LAMBDA" in self.seen_ops:
-
                         if args_pos:
-                            if opname == "MAKE_FUNCTION_CLOSURE_POS" and "BUILD_TUPLE_2" in self.seen_ops:
+                            if (
+                                opname == "MAKE_FUNCTION_CLOSURE_POS"
+                                and "BUILD_TUPLE_2" in self.seen_ops
+                            ):
                                 # FIXME: replace LOAD_CLOSURE LOAD_CLOSURE BUILD_TUPLE_2 with a rule?
 
                                 # This was seen in line 447 of Python 3.8
@@ -1001,7 +1007,9 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                                     "BUILD_TUPLE_2 LOAD_LAMBDA LOAD_STR ",
                                     opname,
                                 )
-                                self.add_unique_rule(rule, opname, token.attr, customize)
+                                self.add_unique_rule(
+                                    rule, opname, token.attr, customize
+                                )
 
                             # FIXME: replace LOAD_CLOSURE BUILD_TUPLE_1 with a rule?
                             rule = """
@@ -1041,12 +1049,11 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                 )
                 self.add_unique_rule(rule, opname, token.attr, customize)
 
-
                 # This might be obsolete
                 if has_get_iter_call_function1:
                     rule_pat = (
-                        "generator_exp ::= %sload_genexpr %%s%s get_iter CALL_FUNCTION_1" %
-                        ("expr " * args_pos, opname)
+                        "generator_exp ::= %sload_genexpr %%s%s get_iter CALL_FUNCTION_1"
+                        % ("expr " * args_pos, opname)
                     )
                     self.add_make_function_rule(rule_pat, opname, token.attr, customize)
                     rule_pat = """
@@ -1070,8 +1077,8 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                             rule_pat, opname, token.attr, customize
                         )
                         rule_pat = (
-                            "list_comp ::= %sLOAD_LISTCOMP %%s%s get_iter CALL_FUNCTION_1" %
-                            ("expr " * args_pos, opname)
+                            "list_comp ::= %sLOAD_LISTCOMP %%s%s get_iter CALL_FUNCTION_1"
+                            % ("expr " * args_pos, opname)
                         )
                         self.add_make_function_rule(
                             rule_pat, opname, token.attr, customize
@@ -1095,8 +1102,8 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
 
                 if has_get_iter_call_function1:
                     rule_pat = (
-                        "generator_exp ::= %sload_genexpr %%s%s get_iter CALL_FUNCTION_1" %
-                        ("expr " * args_pos, opname)
+                        "generator_exp ::= %sload_genexpr %%s%s get_iter CALL_FUNCTION_1"
+                        % ("expr " * args_pos, opname)
                     )
                     self.add_make_function_rule(rule_pat, opname, token.attr, customize)
 
@@ -1107,8 +1114,8 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                         #   and have GET_ITER CALL_FUNCTION_1
                         # Todo: For Pypy we need to modify this slightly
                         rule_pat = (
-                            "list_comp ::= %sLOAD_LISTCOMP %%s%s get_iter CALL_FUNCTION_1" %
-                            ("expr " * args_pos, opname)
+                            "list_comp ::= %sLOAD_LISTCOMP %%s%s get_iter CALL_FUNCTION_1"
+                            % ("expr " * args_pos, opname)
                         )
                         self.add_make_function_rule(
                             rule_pat, opname, token.attr, customize
