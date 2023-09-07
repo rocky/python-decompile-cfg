@@ -526,10 +526,11 @@ class ComprehensionMixin:
 
             # For listcomp, setcomp, etc., the collection is .0 and that's the best we
             # can do. So don't try to find the collection node.
+            collection_build_index = 1 if self.version >= (3, 10) else 0
             if not self.compile_mode.endswith("comp"):
                 collection_node_index = None
-            elif node[0].kind.startswith("BUILD_"):
-                collection_node_index = 1
+            elif node[collection_build_index].kind.startswith("BUILD_"):
+                collection_node_index = collection_build_index + 1
                 collection_node = node[collection_node_index]
             if collection_node_index is None:
                 for i, child in enumerate(node):
