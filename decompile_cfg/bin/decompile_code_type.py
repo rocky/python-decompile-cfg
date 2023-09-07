@@ -48,7 +48,8 @@ PATTERNS = ("*.pyc", "*.pyo")
     ),
 )
 @click.version_option(version=__version__)
-@click.option("--asm", "-a", "show_asm", count=True)
+@click.option("--asm/--no-asm", "-a", default=False)
+@click.option("--asm++/--no-asm++", "-A", "asm_plus", default=False)
 @click.option("--grammar/--no-grammar", "-g", default=False)
 @click.option("--tree/--no-tree", "-t", default=False)
 @click.option("--tree++/--no-tree++", "-T", "tree_plus", default=False)
@@ -78,7 +79,8 @@ PATTERNS = ("*.pyc", "*.pyo")
 @click.argument("files", nargs=-1, type=click.Path(readable=True), required=True)
 def main(
     code_format,
-    show_asm: int,
+    asm: bool,
+    asm_plus: bool,
     grammar,
     tree,
     tree_plus,
@@ -125,9 +127,9 @@ def main(
         if os.path.isdir(outfile):
             outfile = None
 
-    # A second -a turns show_asm="after" into show_asm="before"
-    if show_asm > 0:
-        asm_opt = "both" if show_asm > 1 else "after"
+    # Handle assembly options.
+    if asm_plus or asm:
+        asm_opt = "both"  if asm_plus else "after"
     else:
         asm_opt = None
 

@@ -24,8 +24,8 @@ def usage():
 
 
 @click.command()
-@click.option("--asm++/--no-asm++", "-A", "asm_plus", default=False)
 @click.option("--asm/--no-asm", "-a", default=False)
+@click.option("--asm++/--no-asm++", "-A", "asm_plus", default=False)
 @click.option("--grammar/--no-grammar", "-g", "show_grammar", default=False)
 @click.option("--tree/--no-tree", "-t", default=False)
 @click.option("--tree++/--no-tree++", "-T", "tree_plus", default=False)
@@ -125,7 +125,7 @@ def main_bin(
             out_base = outfile
             outfile = None
 
-    # A second -a turns show_asm="after" into show_asm="before"
+    # Handle assembly options.
     if asm_plus or asm:
         asm_opt = "both"  if asm_plus else "after"
     else:
