@@ -25,10 +25,6 @@ from decompile_cfg.scanners.tok import NoneToken, Token
 from decompile_cfg.semantics.consts import RETURN_NONE, ASSIGN_DOC_STRING
 
 
-REMOVED_NODES = (
-    "block_join_end_final",
-)
-
 # Eventually we won't need STRIPPED_NODES because all semantic
 # actions will have bene converted to the new form. So here, we will
 # do everything by default.
@@ -42,8 +38,6 @@ STRIPPED_NODES = (
     "and1",
     "async_for_loop",
     "async_iter",
-    "bb_end_start",
-    "bb_start_opt",
     "block_join_end_final",
     "block_start",
     "branch_op",
@@ -84,6 +78,12 @@ STRIPPED_NODES = (
     "with",
 )
 
+# Whereever we see these nodes, they will be removed.
+DELETED_NODES = (
+    "bb_end_start",
+    "bb_start_opt",
+    "block_join_end_final",
+)
 
 def is_docstring(node, version: str, co_consts) -> bool:
     """
@@ -155,8 +155,11 @@ class TreeTransform(GenericASTTraversal, object):
         if node.kind in STRIPPED_NODES:
             return self.strip_pseudo_ops(node)
 
+        j = 0
         for i, kid in enumerate(node):
-            node[i] = self.preorder(kid)
+            if kid.kind not in DELETED_NODES:
+                node[j] = self.preorder(kid)
+                j += 1
         return node
 
     def n_await_expr(self, node: SyntaxTree) -> SyntaxTree:
