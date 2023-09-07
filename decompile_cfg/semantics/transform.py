@@ -38,6 +38,7 @@ STRIPPED_NODES = (
     "and1",
     "async_for_loop",
     "async_iter",
+    "bb_end_start",
     "block_join_end_final",
     "block_start",
     "branch_op",
@@ -82,6 +83,7 @@ STRIPPED_NODES = (
 DELETED_NODES = (
     "bb_end_start",
     "bb_start_opt",
+    "block_end_joins",
     "block_join_end_final",
 )
 
