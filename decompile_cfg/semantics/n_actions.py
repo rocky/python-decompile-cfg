@@ -903,8 +903,7 @@ class NonterminalActions:
 
     def n_set_comp(self, node: SyntaxTree):
         self.write("{")
-        build_node_index = 1 if self.version >= (3, 10) else 0
-        if node[build_node_index] in ["LOAD_SETCOMP", "LOAD_DICTCOMP"]:
+        if node[0] in ["LOAD_SETCOMP", "LOAD_DICTCOMP"]:
             self.comprehension_walk_newer(node, -1, 0)
         elif node[0].kind == "load_closure":
             # Token GET_ITER forms or nonterminal "get_iter" forms
@@ -925,7 +924,9 @@ class NonterminalActions:
     # a comprehension.
     def n_set_comp_async(self, node: SyntaxTree):
         self.write("{")
-        build_node_index = 1 if self.version >= (3, 10) else 0
+        build_node_index = 0
+        if node[build_node_index] == "GEN_START":
+            build_node_index += 1
         if node[build_node_index] in ["BUILD_SET_0", "BUILD_MAP_0"]:
             self.comprehension_walk_newer(node[build_node_index], 3, 0, collection_node=node[build_node_index])
         if node[build_node_index] in ["LOAD_SETCOMP", "LOAD_DICTCOMP"]:

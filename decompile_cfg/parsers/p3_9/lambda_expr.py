@@ -537,6 +537,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                               JUMP_FOR
                               POP_JUMP_IF_FALSE_LOOP
                               BB_END BLOCK_END_JOIN
+                              BLOCK_END_JOIN
                               BB_START comp_body
 
         comp_if_or        ::= expr
@@ -546,6 +547,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                               JUMP_FOR
                               POP_JUMP_IF_FALSE_LOOP
                               BB_END BLOCK_END_JOIN
+                              BLOCK_END_JOIN
                               BB_START comp_body BLOCK_END_JOIN
 
         comp_if_chained ::= list_if_compare

@@ -327,13 +327,15 @@ class ComprehensionMixin:
             #   dict_comp_async ::= LOAD_DICTCOMP LOAD_STR MAKE_FUNCTION_0 expr ...
             #   set_comp_async  ::= LOAD_SETCOMP LOAD_STR MAKE_FUNCTION_0 expr ...
             # and:
-            #  dict_comp_async  ::= BUILD_MAP_0 LOAD_ARG genexpr_func_async
-            #  set_comp_async   ::= BUILD_SET_0 LOAG_ARG genexpr_func_async
-            if tree[0].kind in ("BUILD_MAP_0", "BUILD_SET_0"):
+            #  dict_comp_async  ::= [GEN_START] BUILD_MAP_0 LOAD_ARG genexpr_func_async
+            #  set_comp_async   ::= [GEN_START] BUILD_SET_0 LOAG_ARG genexpr_func_async
+            build_index = 1 if tree[0] == "GEN_START" else 0
+            if tree[build_index].kind in ("BUILD_MAP_0", "BUILD_SET_0"):
                 if genexpr_func_async == "genexpr_func_async":
-                    store = genexpr_func_async[3]
+                    store_index = 3 if genexpr_func_async[3].kind.startswith("store") else 4
+                    store = genexpr_func_async[store_index]
                     assert store.kind.startswith("store")
-                    n = genexpr_func_async[4]
+                    n = genexpr_func_async[store_index + 1]
                 else:
                     set_afor2 = genexpr_func_async
                     assert set_afor2 == "set_afor2"

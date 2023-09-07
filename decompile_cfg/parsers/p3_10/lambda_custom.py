@@ -846,7 +846,8 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                 # Should this be generalized and put under MAKE_FUNCTION?
                 if has_get_iter_call_function1:
                     self.addRule("expr ::= set_comp", nop_func)
-                    rule_pat = "set_comp ::= LOAD_SETCOMP %sMAKE_FUNCTION_0 get_iter CALL_FUNCTION_1"
+                    rule_pat = """set_comp ::= LOAD_SETCOMP %sMAKE_FUNCTION_0 get_iter
+                                               CALL_FUNCTION_1"""
                     self.add_make_function_rule(rule_pat, opname, token.attr, customize)
                     pass
                 custom_ops_processed.add(opname)
