@@ -35,7 +35,9 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
     Python 3.9 lambda grammar rules
     """
     def p_branch_ops(self, args):
-        """# "and" is the final reduction that hooks into the higher level
+        """
+
+        # "and" is the final reduction that hooks into the higher level
         # levels of the grammar.
         and               ::= and_parts BLOCK_END_JOIN
         expr_jifop_and    ::= expr_jifop BB_START and BLOCK_END_JOIN
@@ -52,6 +54,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         and_parts         ::= and_part
         and_parts         ::= and_parts BB_START expr BB_END
+
         and_parts         ::= or_and_part BB_START expr BB_END
 
         # This is wrong - we should not need this and use only the above.
@@ -137,7 +140,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         # and_or is (a and ...) or y
 
-        # Note: I don't know why, but we can't replace "expr jitop expr"
+        # Note: I don't know why, but  we can't replace "expr jitop expr"
         # with "or"
         and_or              ::= and_parts_pjif
                                 BB_START
@@ -530,25 +533,32 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         comp_if         ::= expr_pjif_loop BB_START
                             comp_iter BLOCK_END_JOIN
 
-        comp_if_or        ::= expr
-                              POP_JUMP_IF_TRUE
-                              bb_end_start_opt
-                              expr
-                              JUMP_FOR
-                              POP_JUMP_IF_FALSE_LOOP
-                              BB_END BLOCK_END_JOIN
-                              BLOCK_END_JOIN
-                              BB_START comp_body
+        comp_or_part    ::= expr_pjit BB_START
+        comp_or         ::= comp_or_part expr_pjit
+        comp_or         ::= comp_or BB_START expr
 
-        comp_if_or        ::= expr
-                              POP_JUMP_IF_TRUE
-                              bb_end_start_opt
-                              expr
-                              JUMP_FOR
-                              POP_JUMP_IF_FALSE_LOOP
-                              BB_END BLOCK_END_JOIN
-                              BLOCK_END_JOIN
-                              BB_START comp_body BLOCK_END_JOIN
+        comp_if_or3     ::= comp_or
+                            JUMP_FOR
+                            POP_JUMP_IF_FALSE_LOOP
+                            BB_END BLOCK_END_JOIN
+                            BLOCK_END_JOIN
+                            BB_START comp_body
+                            JUMP_FOR JUMP_ABSOLUTE
+                            BB_END
+                            BLOCK_END_JOIN
+                            BLOCK_END_JOIN
+
+        comp_if_or      ::= expr_pjit
+                            BB_START
+                            expr
+                            JUMP_FOR
+                            POP_JUMP_IF_FALSE_LOOP
+                            BB_END BLOCK_END_JOIN
+                            BB_START comp_body
+                            JUMP_FOR JUMP_ABSOLUTE
+                            BB_END
+                            BLOCK_END_JOIN
+                            BLOCK_END_JOIN
 
         comp_if_chained ::= list_if_compare
                             bb_end_start
@@ -562,16 +572,16 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         # "if" of the comprehension. Note thet specific position of
         # POP_JUMP_IF_xxx_LOOP stays the same.
         comp_if_or      ::= or_parts_pjit
-                            expr POP_JUMP_IF_FALSE_LOOP
+                            expr JUMP_FOR POP_JUMP_IF_FALSE_LOOP
                             bb_end_start
                             comp_iter
         comp_if_or      ::= or_parts_pjit_true_loop
-                            expr POP_JUMP_IF_FALSE_LOOP
+                            expr JUMP_FOR POP_JUMP_IF_FALSE_LOOP
                             bb_end_start
                             comp_iter
 
         comp_if_or      ::= or_parts_pjit_false_loop
-                            expr POP_JUMP_IF_FALSE_LOOP
+                            expr JUMP_FOR POP_JUMP_IF_FALSE_LOOP
                             bb_end_start
                             comp_iter
 
@@ -579,7 +589,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         comp_if_or2     ::= compare compare_chained37_false comp_iter
 
         comp_if_or_not  ::= or_parts_pjit
-                            expr POP_JUMP_IF_TRUE_LOOP
+                            expr JUMP_FOR POP_JUMP_IF_TRUE_LOOP
                             bb_end_start
                             comp_iter
 
@@ -607,15 +617,13 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         comp_if         ::= expr_pjift bb_end_start comp_iter
 
         comp_if_not_and ::= expr_pjif
-                            expr POP_JUMP_IF_TRUE_LOOP
+                            expr JUMP_FOR POP_JUMP_IF_TRUE_LOOP
                             block_end
                             comp_iter
         comp_if_not_or  ::= expr_pjif
-                            expr POP_JUMP_IF_FALSE_LOOP
+                            expr JUMP_FOR POP_JUMP_IF_FALSE_LOOP
                             bb_end_start_opt
                             comp_iter
-
-        comp_for      ::= expr gen_comp_body JUMP_LOOP bb_doms_end_start
 
         # "comp_iter" is a comprehension iteration which
         # contains ultimately a comprehension body.
@@ -624,11 +632,12 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         # comprehension interations may be comp_if's
         # which is a comprehension together with some condition.
 
-        comp_iter     ::= comp_if
+        comp_iter     ::= comp_if BLOCK_END_JOIN
         comp_iter     ::= comp_if_chained
         comp_iter     ::= comp_if_or for_jump_unconditional
                           BLOCK_END_JOIN BLOCK_END_JOIN
         comp_iter     ::= comp_if_or2
+        comp_iter     ::= comp_if_or3
         comp_iter     ::= comp_if_or_not
         comp_iter     ::= comp_if_not
         comp_iter     ::= comp_if_not_and
@@ -644,15 +653,13 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         comp_iter     ::= comp_if_not_and
         comp_iter     ::= comp_if_not_or
 
-        comp_iter     ::= comp_for JUMP_ABSOLUTE BB_END BLOCK_END_JOIN
+        comp_iter      ::= comp_for JUMP_ABSOLUTE BB_END BLOCK_END_JOIN
+        comp_for       ::= expr gen_comp_body for_jump_unconditional block_end
 
-        comp_iter_outer ::= comp_iter BLOCK_END_JOIN
-
-        expr_or_arg     ::= expr
         expr_or_arg     ::= LOAD_ARG
+        expr_or_arg     ::= expr
 
         for_loop        ::= BREAK_FOR LOOP FOR_ITER BB_END
-
         for_iter        ::= bb_end_start_opt
                             for_loop
 

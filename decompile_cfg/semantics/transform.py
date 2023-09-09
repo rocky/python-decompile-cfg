@@ -47,6 +47,8 @@ STRIPPED_NODES = (
     "comp_iter",
     "comp_iter_outer",
     "comp_for",
+    "comp_or",
+    "comp_or_part",
     "compare_chained",
     "compare_chained_return",
     "compare_chained_middle",

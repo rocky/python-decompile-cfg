@@ -525,26 +525,32 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         comp_if         ::= expr_pjif_loop BB_START
                             comp_iter BLOCK_END_JOIN
 
-        comp_if_or        ::= expr_pjit
-                              BB_START
-                              expr
-                              JUMP_FOR
-                              POP_JUMP_IF_FALSE_LOOP
-                              BB_END BLOCK_END_JOIN
-                              BLOCK_END_JOIN
-                              BB_START comp_body
+        comp_or_part    ::= expr_pjit BB_START
+        comp_or         ::= comp_or_part expr_pjit
+        comp_or         ::= comp_or BB_START expr
 
-        comp_if_or        ::= expr_pjit
-                              BB_START
-                              expr
-                              JUMP_FOR
-                              POP_JUMP_IF_FALSE_LOOP
-                              BB_END BLOCK_END_JOIN
-                              BB_START comp_body
-                              JUMP_FOR JUMP_ABSOLUTE
-                              BB_END
-                              BLOCK_END_JOIN
-                              BLOCK_END_JOIN
+        comp_if_or3     ::= comp_or
+                            JUMP_FOR
+                            POP_JUMP_IF_FALSE_LOOP
+                            BB_END BLOCK_END_JOIN
+                            BLOCK_END_JOIN
+                            BB_START comp_body
+                            JUMP_FOR JUMP_ABSOLUTE
+                            BB_END
+                            BLOCK_END_JOIN
+                            BLOCK_END_JOIN
+
+        comp_if_or      ::= expr_pjit
+                            BB_START
+                            expr
+                            JUMP_FOR
+                            POP_JUMP_IF_FALSE_LOOP
+                            BB_END BLOCK_END_JOIN
+                            BB_START comp_body
+                            JUMP_FOR JUMP_ABSOLUTE
+                            BB_END
+                            BLOCK_END_JOIN
+                            BLOCK_END_JOIN
 
         comp_if_chained ::= list_if_compare
                             bb_end_start
@@ -623,6 +629,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         comp_iter     ::= comp_if_or for_jump_unconditional
                           BLOCK_END_JOIN BLOCK_END_JOIN
         comp_iter     ::= comp_if_or2
+        comp_iter     ::= comp_if_or3
         comp_iter     ::= comp_if_or_not
         comp_iter     ::= comp_if_not
         comp_iter     ::= comp_if_not_and

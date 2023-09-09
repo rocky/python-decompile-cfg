@@ -693,6 +693,10 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                             node[index].kind,
                         )
                     else:
+                        try:
+                            node[tup[0]] in tup[1]
+                        except:
+                            from trepan.api import debug; debug()
                         assert node[tup[0]] in tup[1], (
                             f"at {node.kind}[{tup[0]}], expected to be in '{tup[1]}' "
                             f"node; got '{node[tup[0]].kind}'"

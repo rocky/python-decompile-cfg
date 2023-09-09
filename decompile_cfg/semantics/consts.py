@@ -399,6 +399,12 @@ TABLE_DIRECT = {
         (1, "compare_chained37_false", PRECEDENCE["or"] ),
         ),
 
+    "comp_or": (
+        "%p or %p",
+        (0, ("comp_or", "comp_or_part"), PRECEDENCE["or"] ),
+        (-1, ("expr", "expr_pjit"), PRECEDENCE["or"] ),
+        ),
+
     # Note: Adding "if" is handled inside the
     # comprehension
     "comp_if_or_not": (

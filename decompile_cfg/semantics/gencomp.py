@@ -117,7 +117,12 @@ class ComprehensionMixin:
                         if_condition = n[1]
                         n = n[2]
                 pass
-            elif n.kind in ("comp_if_or", "comp_if_or2", "comp_if_or_not"):
+            elif n.kind in (
+                "comp_if_or",
+                "comp_if_or2",
+                "comp_if_or3",
+                "comp_if_or_not",
+            ):
                 write_if = True
                 if_condition = n
                 n = n[-1]
@@ -332,7 +337,9 @@ class ComprehensionMixin:
             build_index = 1 if tree[0] == "GEN_START" else 0
             if tree[build_index].kind in ("BUILD_MAP_0", "BUILD_SET_0"):
                 if genexpr_func_async == "genexpr_func_async":
-                    store_index = 3 if genexpr_func_async[3].kind.startswith("store") else 4
+                    store_index = (
+                        3 if genexpr_func_async[3].kind.startswith("store") else 4
+                    )
                     store = genexpr_func_async[store_index]
                     assert store.kind.startswith("store")
                     n = genexpr_func_async[store_index + 1]
@@ -458,6 +465,7 @@ class ComprehensionMixin:
                 "comp_if_not_and",
                 "comp_if_or",
                 "comp_if_or2",
+                "comp_if_or3",
                 "comp_if_or_not",
                 "comp_if_not_or",
             ):
