@@ -516,14 +516,19 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         # FIXME: Maybe we can refactor this grammar to
         # reduce redundancy?
 
-        comp_if         ::= expr_pjif BB_START
-                            comp_iter BLOCK_END_JOIN
+        # START HERE:
+        # comp_if ::= comp_expr BB_START comp_iter BLOCK_END_JOIN
+        # comp_expr ::= comp_and | comp_or | expr
 
-        comp_if         ::= expr_pjiff BB_START
+        comp_if         ::= expr_pjif BB_START
                             comp_iter BLOCK_END_JOIN
 
         comp_if         ::= expr_pjif_loop BB_START
                             comp_iter BLOCK_END_JOIN
+
+        comp_and_part   ::= expr for_jump_pop_iff BB_START
+        comp_and_part   ::= comp_and_part comp_and_part
+        comp_and        ::= comp_and_part expr
 
         comp_or_part    ::= expr_pjit BB_START
         comp_or         ::= comp_or_part expr_pjit
@@ -539,6 +544,18 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                             BB_END
                             BLOCK_END_JOIN
                             BLOCK_END_JOIN
+
+        comp_if_and     ::= comp_and
+                            JUMP_FOR
+                            POP_JUMP_IF_FALSE_LOOP
+                            BB_END
+                            BB_START
+                            comp_body
+                            JUMP_FOR JUMP_ABSOLUTE
+                            BB_END
+                            BLOCK_END_JOIN
+                            BLOCK_END_JOIN
+
 
         comp_if_or      ::= expr_pjit
                             BB_START
@@ -628,6 +645,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         comp_iter     ::= comp_if_chained
         comp_iter     ::= comp_if_or for_jump_unconditional
                           BLOCK_END_JOIN BLOCK_END_JOIN
+        comp_iter     ::= comp_if_and
         comp_iter     ::= comp_if_or2
         comp_iter     ::= comp_if_or3
         comp_iter     ::= comp_if_or_not

@@ -43,6 +43,7 @@ STRIPPED_NODES = (
     "block_start",
     "branch_op",
     "comp_if",
+    "comp_if_and",
     "comp_if_or",
     "comp_iter",
     "comp_iter_outer",

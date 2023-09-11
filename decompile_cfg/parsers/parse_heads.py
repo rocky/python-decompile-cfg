@@ -62,17 +62,18 @@ class PythonBaseParser(GenericASTBuilder):
         # collect as stmts -> stmt stmt ...
         nt_list = [
             "and_or_parts",
-            "and_parts_pjif",
             "and_parts_jifop",
+            "and_parts_pjif",
             "attributes",
+            "comp_and_parts",
             "dicts_unmap",
             "doms_end",
             "exprs",
             "kvlist",
             "kwargs",
+            "lists",
             "or_and_parts",
             "or_parts",
-            "lists",
             "stmts",
         ]
         self.collect = frozenset(nt_list)
