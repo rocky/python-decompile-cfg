@@ -145,7 +145,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         and_or              ::= and_parts_pjif
                                 BB_START
                                 expr_jitop
-                                BLOCK_END_JOIN BLOCK_END_JOIN BB_START
+                                block_end_joins BB_START
                                 expr
                                 block_end_join
 
@@ -459,8 +459,6 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         # Not ideal since we lose track of the counts.
         block_end_joins     ::= BLOCK_END_JOIN+
 
-        block_end_start    ::= BB_END BLOCK_END_JOIN block_start
-
         block_start        ::= BB_START
 
         dom_end_opt        ::= dom_end?
@@ -527,26 +525,39 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         comp_if         ::= expr_pjif BB_START
                             comp_iter BLOCK_END_JOIN
 
+        # handles "async for", as in:  {i async for i in (10, 20) if i > 10}
         comp_if         ::= expr_pjiff BB_START
                             comp_iter BLOCK_END_JOIN
 
         comp_if         ::= expr_pjif_loop BB_START
                             comp_iter BLOCK_END_JOIN
 
+        comp_and_part   ::= expr for_jump_pop_iff BB_START
+        comp_and_part   ::= comp_and_part comp_and_part
+        comp_and        ::= comp_and_part expr
+
         comp_or_part    ::= expr_pjit BB_START
         comp_or         ::= comp_or_part expr_pjit
         comp_or         ::= comp_or BB_START expr
 
+        comp_if_end     ::= JUMP_FOR JUMP_ABSOLUTE BB_END
+                            BLOCK_END_JOIN
+                            BLOCK_END_JOIN
+
         comp_if_or3     ::= comp_or
-                            JUMP_FOR
-                            POP_JUMP_IF_FALSE_LOOP
-                            BB_END BLOCK_END_JOIN
+                            for_jump_pop_iff
+                            BLOCK_END_JOIN
                             BLOCK_END_JOIN
                             BB_START comp_body
-                            JUMP_FOR JUMP_ABSOLUTE
+                            comp_if_end
+
+        comp_if_and     ::= comp_and
+                            JUMP_FOR
+                            POP_JUMP_IF_FALSE_LOOP
                             BB_END
-                            BLOCK_END_JOIN
-                            BLOCK_END_JOIN
+                            BB_START
+                            comp_body
+                            comp_if_end
 
         comp_if_or      ::= expr_pjit
                             BB_START
@@ -555,10 +566,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                             POP_JUMP_IF_FALSE_LOOP
                             BB_END BLOCK_END_JOIN
                             BB_START comp_body
-                            JUMP_FOR JUMP_ABSOLUTE
-                            BB_END
-                            BLOCK_END_JOIN
-                            BLOCK_END_JOIN
+                            comp_if_end
 
         comp_if_chained ::= list_if_compare
                             bb_end_start
@@ -636,6 +644,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         comp_iter     ::= comp_if_chained
         comp_iter     ::= comp_if_or for_jump_unconditional
                           BLOCK_END_JOIN BLOCK_END_JOIN
+        comp_iter     ::= comp_if_and
         comp_iter     ::= comp_if_or2
         comp_iter     ::= comp_if_or3
         comp_iter     ::= comp_if_or_not
@@ -802,6 +811,12 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                             bb_doms_end_start
                             list_iter
 
+        list_if_chained ::= list_if_compare
+                            bb_end_start
+                            POP_TOP for_jump_unconditional
+                            bb_doms_end_start
+                            list_iter
+
         list_if_compare ::= expr compare_chained_comprehension
         list_if_compare ::= expr compare_chained
 
@@ -947,6 +962,9 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         branch_op ::= or3
         branch_op ::= or3 BB_START
 
+        branch_op ::= or_expr_jitop
+        branch_op ::= or_expr_jitop BB_START
+
         branch_op ::= if_exp block_end
         branch_op ::= if_exp_and block_end
         branch_op ::= if_exp_compare bb_doms_end_opt
@@ -1028,7 +1046,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         """
 
     # Conditional jumps with dominator information included
-    def p_jump_conditional (self, args):
+    def p_jump_conditional(self, args):
         """
         for_jump_pop_iff   ::= JUMP_FOR POP_JUMP_IF_FALSE_LOOP BB_END
         for_jump_pop_ift   ::= JUMP_FOR POP_JUMP_IF_TRUE_LOOP BB_END
@@ -1172,7 +1190,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         if_exp_and_return   ::= expr_pjif BB_START
                                 expr_pjif BB_START
                                 return_expr
-                                BB_START
+                                BLOCK_END_JOIN BB_START
                                 NOT_FALLEN_INTO_BLOCK
                                 return_expr
 
@@ -1187,12 +1205,12 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         # AST IfExp (if else) with return on both branches such as
         # inside a lambda.
 
-        if_exp_return      ::= expr_pjif
-                               BB_START
-                               return_expr
-                               BB_START
-                               NOT_FALLEN_INTO_BLOCK
-                               return_expr
+        if_exp_return       ::= expr_pjif
+                                BB_START
+                                return_expr
+                                BB_START
+                                NOT_FALLEN_INTO_BLOCK
+                                return_expr
 
         # Note these two if_exp_lambda are distinct and cannot be generalized combined
         # into once. Otherwise we would need to disabmiguate

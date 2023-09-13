@@ -95,7 +95,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                             BB_START
                             expr_jitop
 
-
         # and_part_pjif are the right-hand side of an "and" without the leading expr
         and_part_pjif   ::= expr_pjif
 
@@ -351,6 +350,9 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         compare_chained_middle_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
                                     BB_START compare_chained_right_return
 
+        compare_chained_middle_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                    BB_START compare_chained_right_return BLOCK_END_JOIN
+
         compare_chained_middle       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
                                    BB_START compare_chained_right BLOCK_END_JOIN
 
@@ -366,8 +368,8 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         compare_chained_right_return ::= expr COMPARE_OP RETURN_VALUE BB_END
 
-        compare_chained_righta_37 ::= expr COMPARE_OP block_end POP_JUMP_IF_TRUE JUMP_FORWARD
-                                 BB_END
+        compare_chained_righta_37 ::= expr COMPARE_OP block_end POP_JUMP_IF_TRUE
+                                      JUMP_FORWARD BB_END
 
 
         # When used in an "if" of a comprehension
@@ -516,10 +518,11 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         # FIXME: Maybe we can refactor this grammar to
         # reduce redundancy?
 
-        # START HERE:
-        # comp_if ::= comp_expr BB_START comp_iter BLOCK_END_JOIN
-
         comp_if         ::= expr_pjif BB_START
+                            comp_iter BLOCK_END_JOIN
+
+        # handles "async for", as in:  {i async for i in (10, 20) if i > 10}
+        comp_if         ::= expr_pjiff BB_START
                             comp_iter BLOCK_END_JOIN
 
         comp_if         ::= expr_pjif_loop BB_START
@@ -533,16 +536,16 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         comp_or         ::= comp_or_part expr_pjit
         comp_or         ::= comp_or BB_START expr
 
+        comp_if_end     ::= JUMP_FOR JUMP_ABSOLUTE BB_END
+                            BLOCK_END_JOIN
+                            BLOCK_END_JOIN
+
         comp_if_or3     ::= comp_or
-                            JUMP_FOR
-                            POP_JUMP_IF_FALSE_LOOP
-                            BB_END BLOCK_END_JOIN
+                            for_jump_pop_iff
+                            BLOCK_END_JOIN
                             BLOCK_END_JOIN
                             BB_START comp_body
-                            JUMP_FOR JUMP_ABSOLUTE
-                            BB_END
-                            BLOCK_END_JOIN
-                            BLOCK_END_JOIN
+                            comp_if_end
 
         comp_if_and     ::= comp_and
                             JUMP_FOR
@@ -550,11 +553,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                             BB_END
                             BB_START
                             comp_body
-                            JUMP_FOR JUMP_ABSOLUTE
-                            BB_END
-                            BLOCK_END_JOIN
-                            BLOCK_END_JOIN
-
+                            comp_if_end
 
         comp_if_or      ::= expr_pjit
                             BB_START
@@ -563,10 +562,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                             POP_JUMP_IF_FALSE_LOOP
                             BB_END BLOCK_END_JOIN
                             BB_START comp_body
-                            JUMP_FOR JUMP_ABSOLUTE
-                            BB_END
-                            BLOCK_END_JOIN
-                            BLOCK_END_JOIN
+                            comp_if_end
 
         comp_if_chained ::= list_if_compare
                             bb_end_start

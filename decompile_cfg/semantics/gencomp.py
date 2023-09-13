@@ -118,6 +118,8 @@ class ComprehensionMixin:
                         n = n[2]
                 pass
             elif n.kind in (
+                "comp_if_and",
+                "comp_if_and_transformed",
                 "comp_if_or",
                 "comp_if_or2",
                 "comp_if_or3",
@@ -462,6 +464,8 @@ class ComprehensionMixin:
                 assert n == "list_iter"
             elif n in (
                 "comp_if",
+                "comp_if_and",
+                "comp_if_and_transformed",
                 "comp_if_not_and",
                 "comp_if_or",
                 "comp_if_or2",

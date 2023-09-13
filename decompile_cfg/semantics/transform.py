@@ -177,6 +177,21 @@ class TreeTransform(GenericASTTraversal, object):
             return expr[0]
         return node
 
+    # def n_comp_if(self, node: SyntaxTree) -> SyntaxTree:
+    #     """Here: if expr if expr -> if expr and expr"""
+
+    #     comp_iter = node[2]
+    #     if comp_iter == "comp_iter":
+    #         comp_if_and = comp_iter[0]
+    #         if comp_if_and == "comp_if_and":
+    #             node = copy(node)
+    #             node.kind = "comp_if_and_transformed"
+    #             node[0].kind = "comp_and_part_transformed"
+    #             node[0].transformed_by = "n_comp_if"
+    #             node[1] = node[2]
+    #             node.transformed_by = "n_comp_if"
+    #     return node
+
     def n_mkfunc(self, node: SyntaxTree) -> SyntaxTree:
         """If the function has a docstring (this is found in the code
         constants), pull that out and make it part of the syntax

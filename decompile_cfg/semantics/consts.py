@@ -399,6 +399,17 @@ TABLE_DIRECT = {
         (1, "compare_chained37_false", PRECEDENCE["or"] ),
         ),
 
+    "comp_and": (
+        "%p and %p",
+        (0, ("comp_and", "comp_and_part"), PRECEDENCE["and"] ),
+        (-1, ("expr", "expr_pjit"), PRECEDENCE["and"] ),
+        ),
+
+    "comp_and_part_transformed": (
+        "%p and",
+        (0, "expr", PRECEDENCE["and"] ),
+        ),
+
     "comp_or": (
         "%p or %p",
         (0, ("comp_or", "comp_or_part"), PRECEDENCE["or"] ),
