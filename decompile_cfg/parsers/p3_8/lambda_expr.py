@@ -518,7 +518,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         # START HERE:
         # comp_if ::= comp_expr BB_START comp_iter BLOCK_END_JOIN
-        # comp_expr ::= comp_and | comp_or | expr
 
         comp_if         ::= expr_pjif BB_START
                             comp_iter BLOCK_END_JOIN
