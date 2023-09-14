@@ -779,6 +779,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         set_iter        ::= set_comp_body
 
         set_comp        ::= BUILD_SET_0 set_iter
+        set_comp        ::= BUILD_SET_0 set_iter BLOCK_END_JOIN
 
         # A leading "expr" is used when we have nested list comprehensions. E.g.
         #   ... for dir in dirs for filename in files
@@ -789,9 +790,10 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                             bb_doms_end_start_opt
 
         set_for        ::= expr_or_arg
-                           for_iter
-                           store set_iter
+                           BB_END BB_START for_loop
+                           BB_START store set_iter
                            for_jump_unconditional
+                           BLOCK_END_JOIN
 
 
         list_if         ::= branch_op list_if_end list_iter
@@ -1069,6 +1071,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
     def p_jump_unconditional(self, args):
         """
         for_jump_unconditional ::= JUMP_LOOP JUMP_ABSOLUTE BB_END
+        for_loop_unconditional ::= JUMP_LOOP JUMP_ABSOLUTE BB_END
         for_jump_unconditional ::= JUMP_FOR JUMP_ABSOLUTE BB_END
 
         jf_bb_end_start        ::= JUMP_FORWARD bb_end_start
@@ -1134,6 +1137,11 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                     list_comp_func
                                     RETURN_VALUE
                                     bb_doms_end
+
+        return_expr             ::= set_comp
+                                    BB_START
+                                    RETURN_VALUE
+                                    block_join_end_final
 
         return_expr             ::= set_comp_func
                                     BB_START

@@ -67,7 +67,6 @@ class ComprehensionMixin:
             assert tree == "set_for", tree.kind
             store = tree[2]
             iter_index = 3
-            collection_index = 4
         else:
             store = tree[4]
             iter_index = 5
@@ -310,10 +309,14 @@ class ComprehensionMixin:
 
         if tree.kind == "genexpr_func_async":
             genexpr_func_async = tree
+        elif tree.kind == "set_iter":
+            # Not sure if this is correct
+            node = tree = tree[0]
         elif tree.kind != "genexpr_func":
             # Not sure if this is still correct
             genexpr_func_async = tree[1]
 
+        collection_node_index = None
         if node == "list_comp_async":
             # We have two different kinds of grammar rules:
             #   list_comp_async ::= LOAD_LISTCOMP LOAD_STR MAKE_FUNCTION_0 expr ...
@@ -373,6 +376,8 @@ class ComprehensionMixin:
         elif node == "list_comp" and tree[0] == "expr":
             tree = tree[0][0]
             n = tree[iter_index]
+        elif node == "set_comp" and tree[1] == "set_iter":
+            n = tree[1]
         else:
             n = tree[iter_index]
 
@@ -406,7 +411,7 @@ class ComprehensionMixin:
             if n.kind == "return_expr_lambda":
                 self.prune()
 
-            assert n.kind in ("list_iter", "comp_iter", "set_iter_async"), n
+            assert n.kind in ("list_iter", "comp_iter", "set_iter", "set_iter_async"), n
 
         # FIXME: I'm not totally sure this is right.
 
@@ -450,12 +455,16 @@ class ComprehensionMixin:
 
             if n in ("comp_for", "list_for", "set_for"):
                 collection_node = n
-                if n[2] == "store" and not store:
-                    store = n[2]
-                    if not comp_store:
-                        comp_store = store
+                if not store:
+                    for child in n:
+                        if child == "store":
+                            store = child
+                            if not comp_store:
+                                comp_store = store
+                                pass
+                            pass
+                        pass
                 n = n[3]
-                assert n.kind in ("comp_iter", "list_iter", "set_iter")
             elif n in ("list_if_chained",):
                 #  list_if_chained ::= list_if_compare ... list_iter
                 if_nodes.append(n[0])
@@ -587,7 +596,7 @@ class ComprehensionMixin:
             self.preorder(collection_node)
         elif node == "list_comp_async":
             self.preorder(node[collection_node_index])
-        elif is_lambda_mode(self.compile_mode):
+        elif is_lambda_mode(self.compile_mode) and collection_node_index is None:
             if node in ("list_comp_async",):
                 self.preorder(node[1])
             elif collection_node is None:
@@ -597,6 +606,8 @@ class ComprehensionMixin:
                 self.preorder(collection_node)
         else:
             if not collection_node:
+                if node[3] == "set_iter":
+                    self.preorder(tree[0])
                 collection_node = node[collection_node_index]
             self.preorder(collection_node)
 
