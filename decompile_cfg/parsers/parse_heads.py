@@ -98,12 +98,23 @@ class PythonBaseParser(GenericASTBuilder):
             )
         )
 
-        # Reduce singleton reductions in these nonterminals:
+        # Reduce singleton reductions in these nonterminals.
+        # If "b" is listed below and a -> b -> ...
+        # Then we replace with a -> ...
+        # However if we have a -> b c etc -> ...
+        # the "b" remains.
+
         # FIXME: would love to do sstmts, stmts and
         # so on but that would require major changes to the
         # semantic actions
         self.singleton = frozenset(
-            ("block_end_final", "str", "store", "for_loop_unconditional", "inplace_op")
+            (
+                "block_end_final",
+                "str",
+                "store",
+                "for_loop_unconditional",
+                "inplace_op",
+            )
         )
         # Instructions filled in from scanner
         self.insts = []
