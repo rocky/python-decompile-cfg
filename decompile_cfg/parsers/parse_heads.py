@@ -48,7 +48,6 @@ class ParserError(Exception):
 
 class PythonBaseParser(GenericASTBuilder):
     def __init__(self, start_symbol, debug_parser, is_lambda=False):
-
         # Note: order of debug_parser, and start_symbol is reverse from above.
         # This is because (at least at one time), start_symbol can be defaulted
         # in the setup, while debug_parser could have been but wasn't.
@@ -88,19 +87,24 @@ class PythonBaseParser(GenericASTBuilder):
         # FIXME: optional_nt is a misnomer. It's really about there being a
         # singleton reduction that we can simplify. It also happens to be optional
         # in its other derivation
-        self.optional_nt |= frozenset((
-            "and_or_parts",
-            "or_and_parts",
-            "suite_stmts",
-            "c_stmts_opt",
-            "stmt",
-            "sstmt"))
+        self.optional_nt |= frozenset(
+            (
+                "and_or_parts",
+                "or_and_parts",
+                "suite_stmts",
+                "c_stmts_opt",
+                "stmt",
+                "sstmt",
+            )
+        )
 
         # Reduce singleton reductions in these nonterminals:
         # FIXME: would love to do sstmts, stmts and
         # so on but that would require major changes to the
         # semantic actions
-        self.singleton = frozenset(("str", "store", "inplace_op"))
+        self.singleton = frozenset(
+            ("block_end_final", "str", "store", "for_loop_unconditional", "inplace_op")
+        )
         # Instructions filled in from scanner
         self.insts = []
 
@@ -323,7 +327,9 @@ class PythonParserExec(PythonBaseParser):
             debug_parser=debug_parser, start_symbol=start_symbol
         )
 
+
 PythonParserEval = PythonParserExpr
+
 
 class PythonParserLambda(PythonBaseParser):
     """
@@ -348,6 +354,7 @@ class PythonParserLambda(PythonBaseParser):
             start_symbol=start_symbol,
         )
 
+
 class PythonParserSingle(PythonBaseParser):
     """
     This corresponds to the compile-mode == "single"
@@ -363,12 +370,13 @@ class PythonParserSingle(PythonBaseParser):
         single_start ::= dom_start
                          stmt
                          dom_end_opt
-         """
+        """
 
     def __init__(self, debug_parser, start_symbol="single_start"):
         super(PythonParserSingle, self).__init__(
             start_symbol=start_symbol, debug_parser=debug_parser
-    )
+        )
+
     pass
 
 

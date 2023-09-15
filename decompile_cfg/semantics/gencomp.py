@@ -312,6 +312,8 @@ class ComprehensionMixin:
         elif tree.kind == "set_iter":
             # Not sure if this is correct
             node = tree = tree[0]
+        elif tree.kind == "set_comp":
+            pass
         elif tree.kind != "genexpr_func":
             # Not sure if this is still correct
             genexpr_func_async = tree[1]
@@ -454,7 +456,7 @@ class ComprehensionMixin:
                 n = n[0]
 
             if n in ("comp_for", "list_for", "set_for"):
-                collection_node = n
+                collection_node = n[0]
                 if not store:
                     for child in n:
                         if child == "store":
@@ -615,13 +617,13 @@ class ComprehensionMixin:
         # includes their corresponding "if" conditions.
         if tree in ("list_comp", "set_comp"):
             list_iter = tree[1]
-            assert list_iter in ("list_iter", "set_iter")
+            assert list_iter in ("list_iter", "set_iter", "set_for")
             list_for = list_iter[0]
             if list_for in ("list_for", "set_for"):
                 # In the grammar we have:
-                #    list_for ::= _  for_iter store list_iter ...
+                #    list_for ::= _  for_iter expr_or_arg store list_iter ...
                 # or
-                #    set_for ::= _   set_iter store set_iter ...
+                #    set_for ::= _   set_iter expr_or_arg store set_iter ...
                 list_iter_inner = list_for[3]
                 assert list_iter_inner in ("list_iter", "set_iter")
                 # If we have set_comp_body, we've done this above.

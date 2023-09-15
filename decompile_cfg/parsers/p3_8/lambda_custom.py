@@ -722,9 +722,8 @@ class Python3_8LambdaCustom(Python3_8BaseParser):
                                              async_iter
                                              store
                                              set_iter
-                                             JUMP_LOOP
-                                             JUMP_ABSOLUTE
-                                             BB_END BLOCK_END_JOIN
+                                             for_loop_unconditional
+                                             BLOCK_END_JOIN
                                              BB_START
                                              END_ASYNC_FOR
 

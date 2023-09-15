@@ -914,7 +914,7 @@ class NonterminalActions:
             self.closure_walk(node, collection_index=collection_index)
         else:
             if node[1] == "set_iter":
-                self.comprehension_walk_newer(node, 2, 0)
+                self.comprehension_walk_newer(node, 1)
             else:
                 assert node[-2].kind.lower() in ("get_iter", "get_aiter")
                 self.comprehension_walk(node, iter_index=-2)

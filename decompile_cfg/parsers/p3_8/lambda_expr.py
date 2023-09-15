@@ -439,8 +439,12 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         dom_start_opt      ::= dom_start?
         dom_end            ::= BB_END DOM_END
-        bb_end_start       ::= BB_END block_start
+
+        # bb_end_start can appear before loops and
+        # after jumps
+        bb_end_start       ::= BB_END BB_START
         bb_end_start_opt   ::= bb_end_start?
+
         bb_doms_end        ::= BB_END doms_end
         bb_doms_end_opt    ::= bb_doms_end?
 
@@ -454,8 +458,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         # FIXME: remove this
         # Not ideal since we lose track of the counts.
         block_end_joins     ::= BLOCK_END_JOIN+
-
-        block_start        ::= BB_START
 
         dom_end_opt        ::= dom_end?
         doms_end           ::= DOM_END+
@@ -664,8 +666,14 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         expr_or_arg     ::= LOAD_ARG
         expr_or_arg     ::= expr
 
-        for_loop        ::= BREAK_FOR LOOP FOR_ITER BB_END
-        for_iter        ::= bb_end_start_opt
+        # Used in async for loops
+        async_for_loop  ::= bb_end_start BREAK_LOOP LOOP SETUP_FINALLY BB_END
+
+
+        # Used in for loops (not async)
+        for_loop        ::= BB_START BREAK_FOR LOOP FOR_ITER BB_END
+
+        for_iter        ::= BB_END
                             for_loop
 
         # Can occur when no trailing "if"
@@ -692,7 +700,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                             BLOCK_END_JOIN
 
         generator_exp   ::= expr_or_arg
-                            bb_end_start
+                            BB_END
                             for_loop
                             bb_end_start
                             store
@@ -700,7 +708,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                             for_jump_unconditional
                             block_end
 
-        get_for_iter   ::= GET_ITER BB_END BB_START for_iter
+        get_for_iter   ::= GET_ITER bb_end_start for_iter
 
         # Our "continue" heuristic -  in two successive JUMP_LOOPS, the first
         # one may be a continue - sometimes classifies a JUMP_LOOP
@@ -790,7 +798,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                             bb_doms_end_start_opt
 
         set_for        ::= expr_or_arg
-                           BB_END BB_START for_loop
+                           BB_END for_loop
                            BB_START store set_iter
                            for_jump_unconditional
                            BLOCK_END_JOIN
@@ -993,7 +1001,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         # end.
         genexpr_func      ::= LOAD_ARG
                               block_end
-                              BB_START
                               for_loop
                               BB_START
                               store
@@ -1004,7 +1011,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         # end.
         genexpr_func      ::= LOAD_ARG
                               block_end
-                              BB_START
                               for_loop
                               BB_START
                               store
@@ -1070,7 +1076,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
     # Unconditional jumps
     def p_jump_unconditional(self, args):
         """
-        for_jump_unconditional ::= JUMP_LOOP JUMP_ABSOLUTE BB_END
+        for_jump_unconditional ::= for_loop_unconditional
         for_loop_unconditional ::= JUMP_LOOP JUMP_ABSOLUTE BB_END
         for_jump_unconditional ::= JUMP_FOR JUMP_ABSOLUTE BB_END
 
