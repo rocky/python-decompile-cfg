@@ -47,7 +47,7 @@ class ParserError(Exception):
 
 
 class PythonBaseParser(GenericASTBuilder):
-    def __init__(self, start_symbol, debug_parser, is_lambda=False):
+    def __init__(self, start_symbol, debug_parser: dict, is_lambda=False):
         # Note: order of debug_parser, and start_symbol is reverse from above.
         # This is because (at least at one time), start_symbol can be defaulted
         # in the setup, while debug_parser could have been but wasn't.
@@ -60,6 +60,7 @@ class PythonBaseParser(GenericASTBuilder):
         #   stmts -> stmts stmt -> stmts stmt stmt ...
         # collect as stmts -> stmt stmt ...
         nt_list = [
+            "_stmts",
             "and_or_parts",
             "and_parts_jifop",
             "and_parts_pjif",
@@ -68,6 +69,9 @@ class PythonBaseParser(GenericASTBuilder):
             "dicts_unmap",
             "doms_end",
             "exprs",
+            "except_stmts",
+            "importlist",
+            "importlist37",
             "kvlist",
             "kwargs",
             "lists",
@@ -318,7 +322,7 @@ class PythonParserExpr(PythonBaseParser):
         return_value_opt ::= RETURN_VALUE?
         """
 
-    def __init__(self, debug_parser, start_symbol="expr_start"):
+    def __init__(self, debug_parser: dict, start_symbol="expr_start"):
         super(PythonParserExpr, self).__init__(start_symbol, debug_parser)
 
 
@@ -333,7 +337,7 @@ class PythonParserExec(PythonBaseParser):
     #     stmts ::= stmt+ BB_START? RETURN_VALUE
     #     """
 
-    def __init__(self, debug_parser, start_symbol="stmts_return_value"):
+    def __init__(self, debug_parser: dict, start_symbol="stmts_return_value"):
         super(PythonParserExec, self).__init__(
             debug_parser=debug_parser, start_symbol=start_symbol
         )
@@ -359,7 +363,7 @@ class PythonParserLambda(PythonBaseParser):
     # lambda_start is the highest level nonterminal. However
     # we can pass in other nonterminals like "expr" for a different
     # parse.
-    def __init__(self, debug_parser, start_symbol="lambda_start"):
+    def __init__(self, debug_parser: dict, start_symbol="lambda_start"):
         super(PythonParserLambda, self).__init__(
             debug_parser=debug_parser,
             start_symbol=start_symbol,
@@ -383,7 +387,7 @@ class PythonParserSingle(PythonBaseParser):
                          dom_end_opt
         """
 
-    def __init__(self, debug_parser, start_symbol="single_start"):
+    def __init__(self, debug_parser: dict, start_symbol="single_start"):
         super(PythonParserSingle, self).__init__(
             start_symbol=start_symbol, debug_parser=debug_parser
         )
@@ -391,76 +395,27 @@ class PythonParserSingle(PythonBaseParser):
     pass
 
 
-class PythonParser(PythonBaseParser):
-    def __init__(self, compile_mode, debug_parser):
-        # FIXME: go over.
-        if compile_mode == "single":
-            PythonParserSingle.__init__(self, debug_parser=debug_parser)
-        elif compile_mode == "lambda":
-            PythonParserLambda.__init__(self, debug_parser=debug_parser)
-        elif compile_mode == "eval":
-            PythonParserEval.__init__(self, debug_parser=debug_parser)
-        elif compile_mode == "exec":
-            PythonParserExec.__init__(self, debug_parser=debug_parser)
-        elif compile_mode == "eval_expr":
-            PythonParserEval.__init__(self, debug_parser=debug_parser)
+def get_python_parser(compile_mode, debug_parser: dict):
+    """
+    Return a PythonParser object suited for ``compile_mode``.
+    This parser is created with debug level specified in
+    ``debug_parser``.
+    """
+    if compile_mode == "single":
+        return PythonParserSingle(debug_parser=debug_parser)
+    elif compile_mode == "lambda":
+        return PythonParserLambda(debug_parser=debug_parser)
+    elif compile_mode == "eval":
+        return PythonParserEval(debug_parser=debug_parser)
+    elif compile_mode == "exec":
+        return PythonParserExec(debug_parser=debug_parser)
+    elif compile_mode == "eval_expr":
+        return PythonParserEval(debug_parser=debug_parser)
 
-        else:
-            raise BaseException(
-                f'compile_mode should be either "exec", "single", "lambda", or "eval_expr"; got {compile_mode}'
+    else:
+        raise BaseException(
+            (
+                'compile_mode should be either "exec", "single", "lambda", or'
+                f' "eval_expr"; got {compile_mode}'
             )
-
-        # FIXME: customize per python parser version
-
-        # These are the non-terminals we should collect into a list.
-        # For example instead of:
-        #   stmts -> stmts stmt -> stmts stmt stmt ...
-        # collect as stmts -> stmt stmt ...
-        nt_list = [
-            "_stmts",
-            "and_parts_pjif",
-            "and_parts_jifop",
-            "attributes",
-            "except_stmts",
-            "exprlist",
-            "importlist",
-            "kvlist",
-            "kwargs",
-            "or_parts_pjit",
-            # FIXME:
-            # If we add c_stmts, we can miss adding a c_stmt,
-            # test_float.py test_set_format() is an example.
-            # Investigate
-            # "c_stmts",
-            "stmts",
-            # Python 3.7+
-            "importlist37",
-        ]
-        self.collect = frozenset(nt_list)
-
-        # For these items we need to keep the 1st epslion reduction since
-        # the nonterminal name is used in a semantic action.
-        self.keep_epsilon = frozenset(("kvlist_n", "kvlist"))
-
-        # ??? Do we need a debug option to skip eliding singleton reductions?
-        # Time will tell if it if useful in debugging
-
-        # FIXME: optional_nt is a misnomer. It's really about there being a
-        # singleton reduction that we can simplify. It also happens to be optional
-        # in its other derivation
-        self.optional_nt |= frozenset(("suite_stmts", "c_stmts_opt", "stmt", "sstmt"))
-
-        # Reduce singleton reductions in these nonterminals:
-        # FIXME: would love to do expr, sstmts, stmts and
-        # so on but that would require major changes to the
-        # semantic actions
-        self.singleton = frozenset(
-            ("str", "store", "_stmts", "suite_stmts_opt", "inplace_op")
         )
-        # Instructions filled in from scanner
-        self.insts = []
-
-        # true if we are parsing inside a lambda expression.
-        # because a lambda expression are wrtten on a single line, certain line-oriented
-        # statements behave differently
-        self.is_lambda = False
