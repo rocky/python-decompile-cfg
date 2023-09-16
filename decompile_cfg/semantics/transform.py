@@ -82,6 +82,7 @@ STRIPPED_NODES = (
     "return_expr",
     "set_comp_func",
     "set_for",
+    "set_afor2",
     "stmts_return_value",
     "with",
 )

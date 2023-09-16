@@ -617,8 +617,13 @@ class Python3_9LambdaCustom(Python3_9BaseParser):
 
             elif opname == "GET_AITER":
                 self.add_unique_doc_rules("get_aiter ::= expr GET_AITER", customize)
-
-                if not {"MAKE_FUNCTION_0", "MAKE_FUNCTION_CLOSURE"} in self.seen_ops:
+                if (
+                    not {
+                        "MAKE_FUNCTION_0",
+                        "MAKE_FUNCTION_CLOSURE",
+                    }
+                    in self.seen_ops
+                ):
                     self.addRule(
                         """
                         dict_comp_async      ::= LOAD_DICTCOMP
@@ -674,12 +679,14 @@ class Python3_9LambdaCustom(Python3_9BaseParser):
                     expr                 ::= set_comp_async
 
                     func_async_middle   ::= POP_BLOCK JUMP_FORWARD COME_FROM_EXCEPT
-                                            DUP_TOP LOAD_GLOBAL COMPARE_OP POP_JUMP_IF_TRUE
+                                            DUP_TOP LOAD_GLOBAL COMPARE_OP
+                                            POP_JUMP_IF_TRUE
                                             END_FINALLY bb_end_start
 
-                    # async_iter         ::= block_end SETUP_EXCEPT GET_ANEXT LOAD_CONST YIELD_FROM
+                    # async_iter         ::= block_end SETUP_EXCEPT GET_ANEXT LOAD_CONST
+                    #                        YIELD_FROM
 
-                    get_aiter            ::= expr GET_AITER
+                    get_aiter            ::= expr GET_AITER BB_END
 
                     list_afor            ::= get_aiter list_afor2
 
@@ -687,7 +694,9 @@ class Python3_9LambdaCustom(Python3_9BaseParser):
                     list_iter            ::= list_afor
 
 
-                    set_afor             ::= get_aiter set_afor2
+                    set_afor             ::= get_aiter
+                                             BB_START
+                                             set_afor2
                     set_iter             ::= set_afor
 
                     set_comp_async       ::= BUILD_SET_0 LOAD_ARG
@@ -706,15 +715,14 @@ class Python3_9LambdaCustom(Python3_9BaseParser):
                     expr                 ::= list_comp_async
                     expr                 ::= set_comp_async
 
-                    async_for_loop       ::= BREAK_LOOP LOOP SETUP_FINALLY BB_END
+                    async_for_loop       ::= SETUP_FINALLY BB_END
 
-                    dict_comp_async      ::= BUILD_MAP_0 genexpr_func_async
-
-                    async_iter           ::= block_end
-                                             async_for_loop
+                    async_iter           ::= async_for_loop
                                              BB_START
                                              GET_ANEXT LOAD_CONST
                                              YIELD_FROM POP_BLOCK
+
+                    dict_comp_async      ::= BUILD_MAP_0 genexpr_func_async
 
                     genexpr_func_async   ::= BUILD_SET_0
                                              LOAD_ARG async_iter
@@ -732,10 +740,21 @@ class Python3_9LambdaCustom(Python3_9BaseParser):
 
                     list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
 
-                    set_afor2            ::= async_iter
+                    return_expr_lambda   ::= genexpr_func_async
+                                             LOAD_CONST RETURN_VALUE
+                                             bb_doms_end_opt
+
+                    return_expr_lambda   ::= BUILD_SET_0 genexpr_func_async
+                                             RETURN_VALUE
+                                             bb_doms_end_opt
+
+                    set_afor2            ::= BREAK_LOOP LOOP
+                                             async_iter
                                              store
                                              set_iter
-                                             BLOCK_END_JOIN BB_START
+                                             for_loop_unconditional
+                                             BLOCK_END_JOIN
+                                             BB_START
                                              END_ASYNC_FOR
 
                     set_afor2            ::= expr_or_arg
@@ -749,13 +768,6 @@ class Python3_9LambdaCustom(Python3_9BaseParser):
                                              BLOCK_END_JOIN BB_START
                                              END_ASYNC_FOR
 
-                    return_expr_lambda   ::= genexpr_func_async
-                                             LOAD_CONST RETURN_VALUE
-                                             bb_doms_end_opt
-
-                    return_expr_lambda   ::= BUILD_SET_0 genexpr_func_async
-                                             RETURN_VALUE
-                                             bb_doms_end_opt
                    """,
                     nop_func,
                 )
@@ -1226,8 +1238,9 @@ class Python3_9LambdaCustom(Python3_9BaseParser):
         try:
             if fn:
                 return not fn(self, lhs, n, rule, ast, tokens, first, last)
-        except:
-            import sys, traceback
+        except Exception:
+            import sys
+            import traceback
 
             print(
                 f"Exception in {fn.__name__} {sys.exc_info()[1]}\n"

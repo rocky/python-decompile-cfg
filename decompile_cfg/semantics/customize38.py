@@ -27,7 +27,6 @@ from decompile_cfg.semantics.helper import escape_string, strip_quotes
 
 
 def customize_for_version3_8(self):
-
     # FIXME: pytest doesn't add proper keys in testing. Reinstate after we have fixed pytest.
     # for lhs in 'for forelsestmt forelselaststmt '
     #             'forelselaststmtc tryfinally38'.split():
@@ -53,10 +52,7 @@ def customize_for_version3_8(self):
                 (3, "for_block"),
                 (6, "else_suite"),
             ),
-            "async_with_stmt38": (
-                "%|async with %c:\n%+%c%-\n",
-                (0, "expr"),
-                7),
+            "async_with_stmt38": ("%|async with %c:\n%+%c%-\n", (0, "expr"), 7),
             "async_with_as_stmt38": (
                 "%|async with %c as %c:\n%+%|%c%-",
                 (0, "expr"),
@@ -138,10 +134,15 @@ def customize_for_version3_8(self):
             "pop_return": ("%|return %c\n", (1, "return_expr")),
             "popb_return": ("%|return %c\n", (0, "return_expr")),
             "pop_ex_return": ("%|return %c\n", (0, "return_expr")),
+            "set_afor": (
+                " async for %[2]{%c} in %c",
+                (1, "store"),
+                (0, "get_aiter"),
+            ),
             "set_for": (
                 " for %c in %c",
                 (2, "store"),
-                (0, "expr_or_arg"),
+                (0, "LOAD_ARG"),
             ),
             "whilestmt38": (
                 "%|while %c:\n%+%c%-\n\n",
@@ -367,6 +368,7 @@ def customize_for_version3_8(self):
         self.default(node)
 
     self.n_call = n_call
+
     def n_call_ex_kw2(node):
         """Handle CALL_FUNCTION_EX 2  (have KW) but with
         BUILD_{MAP,TUPLE}_UNPACK_WITH_CALL"""
@@ -411,7 +413,7 @@ def customize_for_version3_8(self):
                 fmt = "%%c(%s, %%p)," % str_value
             self.template_engine(
                 (fmt, (0, "expr"), (2, "build_map_unpack_with_call", 100)), node
-                )
+            )
         else:
             self.write(value)
             self.write(", ")
@@ -451,22 +453,6 @@ def customize_for_version3_8(self):
         self.prune()
 
     self.n_list_afor = n_list_afor
-
-    def n_set_afor(node):
-        if len(node) == 2:
-            self.template_engine(
-                (" async for %[1]{%c} in %c", (1, "store"), (0, "get_aiter")), node
-            )
-        else:
-            self.template_engine(
-                " async for %[1]{%c} in %c%c",
-                (1, "store"),
-                (0, "get_aiter"),
-                (2, "set_iter"),
-            )
-        self.prune()
-
-    self.n_set_afor = n_set_afor
 
     # def n_set_comp(node):
     #     self.write("{")

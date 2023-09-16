@@ -686,14 +686,14 @@ class Python3_8LambdaCustom(Python3_8BaseParser):
                     expr                 ::= list_comp_async
                     expr                 ::= set_comp_async
 
-                    dict_comp_async      ::= BUILD_MAP_0 genexpr_func_async
-
                     async_for_loop       ::= SETUP_FINALLY BB_END
 
                     async_iter           ::= async_for_loop
                                              BB_START
                                              GET_ANEXT LOAD_CONST
                                              YIELD_FROM POP_BLOCK
+
+                    dict_comp_async      ::= BUILD_MAP_0 genexpr_func_async
 
                     genexpr_func_async   ::= BUILD_SET_0
                                              LOAD_ARG async_iter
@@ -718,6 +718,7 @@ class Python3_8LambdaCustom(Python3_8BaseParser):
                     return_expr_lambda   ::= BUILD_SET_0 genexpr_func_async
                                              RETURN_VALUE
                                              bb_doms_end_opt
+
                     set_afor2            ::= BREAK_LOOP LOOP
                                              async_iter
                                              store

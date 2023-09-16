@@ -904,7 +904,8 @@ class NonterminalActions:
     def n_set_comp(self, node: SyntaxTree):
         self.write("{")
         if node[0] in ["LOAD_SETCOMP", "LOAD_DICTCOMP"]:
-            self.comprehension_walk_newer(node, -1, 0)
+            iter_index = -2 if node[-2] == "get_iter" else -1
+            self.comprehension_walk_newer(node, iter_index, 0)
         elif node[0].kind == "load_closure":
             # Token GET_ITER forms or nonterminal "get_iter" forms
             assert node[-2].kind.lower() in ("get_iter", "get_aiter")

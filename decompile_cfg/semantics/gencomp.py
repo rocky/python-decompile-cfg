@@ -378,8 +378,11 @@ class ComprehensionMixin:
         elif node == "list_comp" and tree[0] == "expr":
             tree = tree[0][0]
             n = tree[iter_index]
-        elif node == "set_comp" and tree[1] == "set_iter":
-            n = tree[1]
+        elif (
+            node == "set_comp"
+            and tree[2 if self.version >= (3, 10) else 1] == "set_iter"
+        ):
+            n = tree[2 if self.version >= (3, 10) else 1]
         else:
             n = tree[iter_index]
 
@@ -432,6 +435,7 @@ class ComprehensionMixin:
                 store = tree[store_index]
 
         if_not_hack = False
+        is_async = False
 
         # Iterate to find the inner-most comprehension body.
         # We'll come back to the list iteration below.
@@ -448,10 +452,12 @@ class ComprehensionMixin:
             # iterate one nesting deeper
             if n in ("list_afor", "set_afor"):
                 n = n[1]
+                is_async = True
             elif n in ("list_afor2", "set_afor2", "set_iter_async"):
                 if n[1] == "store":
                     store = n[1]
                 n = n[2] if n[2] in ("list_iter", "set_iter") else n[1]
+                is_async = True
             else:
                 n = n[0]
 
@@ -464,7 +470,7 @@ class ComprehensionMixin:
                             if not comp_store:
                                 comp_store = store
                                 pass
-                            pass
+                            break
                         pass
                 n = n[3]
             elif n in ("list_if_chained",):
@@ -536,7 +542,7 @@ class ComprehensionMixin:
         # Another approach might be to be able to pass in the source name
         # for the dummy argument.
 
-        if node not in ("list_afor", "set_afor"):
+        if not is_async:
             self.preorder(n[0])
 
         if node.kind in (
@@ -569,7 +575,7 @@ class ComprehensionMixin:
                         break
                 assert collection_node_index is not None
 
-        elif len(node) >= 3 and node[3] == "get_iter":
+        elif len(node) > 3 and node[3] == "get_iter":
             collection_node_index = 3
             collection_node = node[3][0]
             assert collection_node == "expr"
@@ -616,7 +622,7 @@ class ComprehensionMixin:
         # Here is where we handle nested list iterations which
         # includes their corresponding "if" conditions.
         if tree in ("list_comp", "set_comp"):
-            list_iter = tree[1]
+            list_iter = tree[2 if self.version >= (3, 10) else 1]
             assert list_iter in ("list_iter", "set_iter", "set_for")
             list_for = list_iter[0]
             if list_for in ("list_for", "set_for"):

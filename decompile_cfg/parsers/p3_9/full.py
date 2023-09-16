@@ -108,12 +108,11 @@ class Python3_9ParserFull(Python3_9LambdaParser, Python3_9FullCustom):
         """
         # The start symbol is a statement followed by a an optional RETURN VALUE
 
-        # FIXME: some of the weirdness below is due to eng token removal in
+        # FIXME: some of the weirdness below is due to end token removal in
         # pysource.py in trying to "hide" instructions. When that is removed
         # the below might be simplified.
 
         stmts_return_value ::= stmts RETURN_VALUE block_end
-        stmts_return_value ::= stmts BB_START RETURN_VALUE
         stmts_return_value ::= stmts BB_START RETURN_VALUE
         stmts_return_value ::= stmts
 
@@ -227,9 +226,10 @@ class Python3_9ParserFull(Python3_9LambdaParser, Python3_9FullCustom):
 
         stmt   ::= return
 
-        return ::= return_expr RETURN_VALUE bb_doms_end_opt
+        return ::= return_expr
 
-        # "returns" nonterminal is a sequence of statements that ends in a RETURN statement.
+        # "returns" nonterminal is a sequence of statements that ends in a RETURN
+        # statement.
         # In later Python versions with jump optimization, this can cause JUMPs
         # that would normally appear to be omitted.
 
@@ -365,11 +365,11 @@ class Python3_9ParserFull(Python3_9LambdaParser, Python3_9FullCustom):
         # rules with and without ELSE.
 
         if_and_elsestmt ::= testfalse testfalse
-                            stmts_opt jf_bb_end_start else_suite block_break
+                            stmts_opt jf_bb_end_start else_suite block_end
         ifelsestmt      ::= testexpr
-                            stmts_opt jf_bb_end_start else_suite block_break
+                            stmts_opt jf_bb_end_start else_suite block_end
         ifelsestmt      ::= branch_op
-                            stmts_opt jf_bb_end_start else_suite block_break
+                            stmts_opt jf_bb_end_start else_suite block_end
 
         ifelsestmtc ::= testexpr
                         stmts_opt jump_forward_else
@@ -390,13 +390,13 @@ class Python3_9ParserFull(Python3_9LambdaParser, Python3_9FullCustom):
         # of "ifstmt".
         ifstmt        ::= testexpr ifstmts_jump
 
-        ifstmt_branch ::= or_and_not stmts block_break
-        ifstmt_branch ::= or_and1 stmts block_break
-        ifstmt_branch ::= not_and_not stmts block_break
+        ifstmt_branch ::= or_and_not stmts block_end
+        ifstmt_branch ::= or_and1 stmts block_end
+        ifstmt_branch ::= not_and_not stmts block_end
 
         ifstmts_jump ::= return_if_stmts
-        ifstmts_jump ::= stmts_opt block_break
-        ifstmts_jump ::= block_break stmts block_break
+        ifstmts_jump ::= stmts_opt block_end
+        ifstmts_jump ::= block_end stmts block_end
 
         # Python 3.4+ optimizes the trailing two JUMPS away
         ifstmts_jump ::= stmts_opt JUMP_FORWARD JUMP_FORWARD _come_froms
@@ -417,7 +417,7 @@ class Python3_9ParserFull(Python3_9LambdaParser, Python3_9FullCustom):
 
         come_from_loops ::= COME_FROM_LOOP*
 
-        for_block   ::= block_break stmts_opt come_from_loops JUMP_LOOP
+        for_block   ::= block_end stmts_opt come_from_loops JUMP_LOOP
         for_block   ::= stmts
 
         for_block   ::= stmts_opt COME_FROM_LOOP JUMP_BACK
@@ -429,19 +429,16 @@ class Python3_9ParserFull(Python3_9LambdaParser, Python3_9FullCustom):
         forelsestmt ::= SETUP_LOOP expr get_for_iter store
                         for_block POP_BLOCK else_suite _come_froms
 
-        forelsestmt ::= setup_loop expr get_for_iter store for_block
-                        POP_BLOCK else_suitec
-        forelsestmt ::= setup_loop expr get_for_iter store for_block
-                        POP_BLOCK else_suite
+        forelsestmt ::= setup_loop expr get_for_iter store for_block POP_BLOCK else_suitec
+        forelsestmt ::= setup_loop expr get_for_iter store for_block POP_BLOCK else_suite
                         COME_FROM_LOOP
 
 
         forelselaststmt ::= SETUP_LOOP expr get_for_iter store
                 for_block POP_BLOCK else_suitec _come_froms
 
-        forelselaststmt  ::= setup_loop expr get_for_iter store for_block
-                             POP_BLOCK else_suitec
-                             COME_FROM_LOOP
+        forelselaststmt  ::= setup_loop expr get_for_iter store for_block POP_BLOCK else_suitec
+                              COME_FROM_LOOP
 
         forelselaststmtc ::= SETUP_LOOP expr get_for_iter store
                 for_block POP_BLOCK else_suitec _come_froms
@@ -1015,7 +1012,7 @@ class Python3_9ParserFull(Python3_9LambdaParser, Python3_9FullCustom):
         return_closure     ::= LOAD_CLOSURE RETURN_VALUE RETURN_LAST
 
         stmt               ::= whileTruestmt
-        ifelsestmt         ::= testexpr stmts_opt JUMP_FORWARD else_suite block_break
+        ifelsestmt         ::= testexpr stmts_opt JUMP_FORWARD else_suite block_end
 
         ifstmtc            ::= testexpr ifstmts_jumpc
         ifstmtc            ::= testexprc ifstmts_jumpc _come_froms
@@ -1086,9 +1083,9 @@ class Python3_9ParserFull(Python3_9LambdaParser, Python3_9FullCustom):
 
     def p_for3_9full(self, args):
         """
-        for3_9              ::= expr get_for_iter store for_block JUMP_LOOP block_break
-        for3_9              ::= expr get_for_iter store for_block JUMP_LOOP block_break POP_BLOCK
-        for3_9              ::= expr get_for_iter store for_block block_break
+        for3_9              ::= expr get_for_iter store for_block JUMP_LOOP block_end
+        for3_9              ::= expr get_for_iter store for_block JUMP_LOOP block_end POP_BLOCK
+        for3_9              ::= expr get_for_iter store for_block block_end
 
         forelsestmt3_9      ::= expr get_for_iter store for_block POP_BLOCK else_suite
         forelsestmt3_9      ::= expr get_for_iter store for_block JUMP_LOOP _come_froms else_suite
@@ -1144,8 +1141,7 @@ class Python3_9ParserFull(Python3_9LambdaParser, Python3_9FullCustom):
 
         except_stmt        ::= except_cond1a except_suite come_from_opt
 
-        get_for_iter       ::= GET_ITER block_break FOR_ITER
-        get_for_iter       ::= GET_ITER FOR_ITER
+        get_for_iter       ::= GET_ITER BREAK_FOR for_iter
 
         c_stmt             ::= c_forelsestmt3_9
         c_stmt             ::= pop_tops return
@@ -1300,7 +1296,7 @@ if __name__ == "__main__":
     # Check grammar
     from decompile_cfg.parsers.dump import dump_and_check
 
-    p = Python3_9ParserFull(start_symbol="stmts")
+    p = Python3_8ParserFull(start_symbol="stmts_return_value")
     modified_tokens = set(
         """JUMP_LOOP CONTINUE
            LOAD_GENEXPR LOAD_ASSERT LOAD_SETCOMP LOAD_DICTCOMP LOAD_CLASSNAME

@@ -1467,22 +1467,6 @@ def customize_for_version3_7(self):
 
     self.n_starred = n_starred
 
-    def n_set_afor(node):
-        if len(node) == 2:
-            self.template_engine(
-                (" async for %[1]{%c} in %c", (1, "store"), (0, "get_aiter")), node
-            )
-        else:
-            self.template_engine(
-                " async for %[1]{%c} in %c%c",
-                (1, "store"),
-                (0, "get_aiter"),
-                (2, "set_iter"),
-            )
-        self.prune()
-
-    self.n_set_afor = n_set_afor
-
     # FIXME: The following adjusts I guess a bug in the parser.
     # It might be as simple as renaming grammar symbol "testtrue" to "testtrue_or_false"
     # and then keeping this as is with the name change.
