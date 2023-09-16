@@ -724,14 +724,14 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         # FIXME: the BLOCK_END_JOIN may need to be part of something else
         set_comp_func ::= BUILD_SET_0
-                          expr_or_arg
+                          LOAD_ARG
                           for_iter
                           BB_START
                           store
                           comp_iter
 
         set_comp_func ::= BUILD_SET_0
-                          expr_or_arg
+                          LOAD_ARG
                           for_iter
                           BB_START
                           store
@@ -740,7 +740,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         # FIXME: the BLOCK_END_JOIN may need to be part of something else
         set_comp_func ::= BUILD_SET_0
-                          expr_or_arg
+                          LOAD_ARG
                           for_iter
                           store
                           BB_START comp_iter
@@ -752,7 +752,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         dict_comp_body ::= expr expr MAP_ADD
 
         dict_comp_func ::= BUILD_MAP_0
-                          expr_or_arg
+                          LOAD_ARG
                           bb_end_start_opt
                           for_iter
                           store
@@ -771,7 +771,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         list_comp      ::= BUILD_LIST_0 list_iter
         list_comp_func ::= BUILD_LIST_0
-                           expr_or_arg
+                           LOAD_ARG
                            bb_end_start_opt
                            for_iter store comp_iter
                            for_jump_unconditional
