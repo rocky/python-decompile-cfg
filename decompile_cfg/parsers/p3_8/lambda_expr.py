@@ -708,7 +708,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                             for_jump_unconditional
                             block_end
 
-        get_for_iter   ::= GET_ITER bb_end_start for_iter
+        get_for_iter   ::= GET_ITER for_iter
 
         # Our "continue" heuristic -  in two successive JUMP_LOOPS, the first
         # one may be a continue - sometimes classifies a JUMP_LOOP
