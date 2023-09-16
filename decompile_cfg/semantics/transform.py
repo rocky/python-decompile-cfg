@@ -43,6 +43,7 @@ STRIPPED_NODES = (
     "block_start",
     "branch_op",
     "comp_if",
+    "comp_if_and",
     "comp_if_or",
     "comp_iter",
     "comp_iter_outer",
@@ -60,7 +61,9 @@ STRIPPED_NODES = (
     "expr_pjif",
     "expr_pjit",
     "for_jump_pop_iff",
+    "for_loop_unconditional",
     "for_jump_unconditional",
+    "for_iter",
     "for_loop",
     "gen_comp_body",
     "genexpr_func",
@@ -69,6 +72,7 @@ STRIPPED_NODES = (
     "if_exp_and_return",
     "jifop",
     "jitop",
+    "list_for",
     "or",
     "or_and_part",
     "or_and_parts",
@@ -77,6 +81,7 @@ STRIPPED_NODES = (
     "pjump_iff_loop",
     "return_expr",
     "set_comp_func",
+    "set_for",
     "stmts_return_value",
     "with",
 )
@@ -175,6 +180,21 @@ class TreeTransform(GenericASTTraversal, object):
             expr[0].transformed_by = "n_await_expr"
             return expr[0]
         return node
+
+    # def n_comp_if(self, node: SyntaxTree) -> SyntaxTree:
+    #     """Here: if expr if expr -> if expr and expr"""
+
+    #     comp_iter = node[2]
+    #     if comp_iter == "comp_iter":
+    #         comp_if_and = comp_iter[0]
+    #         if comp_if_and == "comp_if_and":
+    #             node = copy(node)
+    #             node.kind = "comp_if_and_transformed"
+    #             node[0].kind = "comp_and_part_transformed"
+    #             node[0].transformed_by = "n_comp_if"
+    #             node[1] = node[2]
+    #             node.transformed_by = "n_comp_if"
+    #     return node
 
     def n_mkfunc(self, node: SyntaxTree) -> SyntaxTree:
         """If the function has a docstring (this is found in the code

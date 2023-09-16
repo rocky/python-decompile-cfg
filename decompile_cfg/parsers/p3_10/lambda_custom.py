@@ -727,8 +727,7 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                     list_afor2           ::= async_iter
                                              store
                                              list_iter
-                                             JUMP_LOOP
-                                             JUMP_ABSOLUTE
+                                             jump_loop_absolute
                                              block_end
                                              END_ASYNC_FOR
 

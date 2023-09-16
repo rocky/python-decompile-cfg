@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 """ Trivial helper program to bytecompile and run an uncompile
 """
-import os, sys, py_compile
+import os
+import py_compile
+import sys
+
 import click
 from xdis.version_info import version_tuple_to_str
 

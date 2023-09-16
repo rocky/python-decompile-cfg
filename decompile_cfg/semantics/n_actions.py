@@ -908,9 +908,16 @@ class NonterminalActions:
         elif node[0].kind == "load_closure":
             # Token GET_ITER forms or nonterminal "get_iter" forms
             assert node[-2].kind.lower() in ("get_iter", "get_aiter")
-            self.closure_walk(node, collection_index=-2)
+            collection_index = -2
+            if node[collection_index] == "GET_ITER":
+                collection_index -= 1
+            self.closure_walk(node, collection_index=collection_index)
         else:
-            self.comprehension_walk_newer(node, 2, 0)
+            if node[1] == "set_iter":
+                self.comprehension_walk_newer(node, 1)
+            else:
+                assert node[-2].kind.lower() in ("get_iter", "get_aiter")
+                self.comprehension_walk(node, iter_index=-2)
         self.write("}")
         self.prune()
 
