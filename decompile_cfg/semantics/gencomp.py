@@ -383,8 +383,13 @@ class ComprehensionMixin:
             and tree[2 if self.version >= (3, 10) else 1] == "set_iter"
         ):
             n = tree[2 if self.version >= (3, 10) else 1]
+        elif (
+            tree == "dict_comp_func"
+            and tree[-1] == "comp_iter"
+        ):
+            n = tree[-1]
         else:
-            n = tree[iter_index]
+            n = node[iter_index]
 
         if tree in (
             "dict_comp_func",

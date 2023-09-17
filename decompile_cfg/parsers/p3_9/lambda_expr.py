@@ -752,15 +752,11 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         dict_comp_body ::= expr expr MAP_ADD
 
         dict_comp_func ::= BUILD_MAP_0
-                          LOAD_ARG
-                          bb_end_start_opt
-                          for_iter
-                          store
-                          comp_iter
-                          JUMP_LOOP
-                          bb_doms_end_start
-                          RETURN_VALUE
-                          bb_doms_end
+                           LOAD_ARG
+                           for_iter
+                           BB_START
+                           store
+                           comp_iter
         """
 
     def p_comprehension_list(self, args):
@@ -1005,16 +1001,6 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         constant ::= LOAD_CONST
         constant ::= LOAD_STR
-
-        # We have this form when "comp_iter" does not contain
-        # a "comp_if" ("if" condition on a comprehension) at the
-        # end.
-        genexpr_func      ::= LOAD_ARG
-                              block_end
-                              for_loop
-                              BB_START
-                              store
-                              comp_iter
 
         # We have this form when "comp_iter" contains
         # a "comp_if" ("if" condition on a comprehension) at the
