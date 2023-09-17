@@ -490,8 +490,9 @@ class Python3_8FullCustom(Python3_8LambdaCustom, PythonBaseParser):
 
                     stmt                  ::= async_for_stmt3_8
                     stmt                  ::= async_forelse_stmt3_8
-                    stmt                  ::= generator_exp_async
+                    stmt                  ::= collection_func_async
                     stmt                  ::= genexpr_func_async
+                    stmt                  ::= generator_exp_async
                     """,
                     nop_func,
                 )
@@ -499,7 +500,7 @@ class Python3_8FullCustom(Python3_8LambdaCustom, PythonBaseParser):
             elif opname == "GET_ANEXT":
                 self.addRule(
                     """
-                    stmt ::= BUILD_SET_0 genexpr_func_async
+                    stmt ::= build_empty_collection genexpr_func_async
                              RETURN_VALUE
                              bb_doms_end_opt
                    """,

@@ -568,6 +568,16 @@ class NonterminalActions:
         self.template_engine(template, node)
         self.prune()
 
+    def n_gen_comp_func(self, node: SyntaxTree):
+        self.write("(")
+        # 3.10 introducte GEN_START at the beginning
+        collection_node_index = 1 if self.version >= (3, 10) else 0
+        self.comprehension_walk_newer(
+            node, iter_index=4, collection_node=node[collection_node_index]
+        )
+        self.write(")")
+        self.prune()
+
     def n_generator_exp(self, node: SyntaxTree):
         self.write("(")
         if node[0].kind in ("load_closure", "load_genexpr"):
@@ -601,16 +611,23 @@ class NonterminalActions:
     # a top-level module. In doing so we can
     # now encounter this outside of the embedding of
     # a comprehension.
-    def n_genexpr_func_async(self, node: SyntaxTree):
-        open_delim, close_delim = (
-            ("{", "}")
-            if node[0].kind in ("BUILD_SET_0", "BUILD_DICT_0")
-            else ("(", ")")
+    def n_collection_func_async(self, node: SyntaxTree):
+        self.write("{")
+        iter_index = 4 if self.version >= (3, 10) else 3
+        self.comprehension_walk_newer(
+            node[1], iter_index=iter_index, collection_node=node[1][0]
         )
-        self.write(open_delim)
+        self.write("}")
+        self.prune()
+
+    def n_genexpr_func_async(self, node: SyntaxTree):
+        from trepan.api import debug
+
+        debug()
+        self.write("(")
         iter_index = 5 if self.version >= (3, 10) else 4
         self.comprehension_walk_newer(node, iter_index=iter_index, collection_node=node)
-        self.write(close_delim)
+        self.write(")")
         self.prune()
 
     def n_ifelsestmtr(self, node: SyntaxTree):
@@ -936,7 +953,9 @@ class NonterminalActions:
         if node[build_node_index] == "GEN_START":
             build_node_index += 1
         if node[build_node_index] in ["BUILD_SET_0", "BUILD_MAP_0"]:
-            self.comprehension_walk_newer(node[build_node_index], 3, 0, collection_node=node[build_node_index])
+            self.comprehension_walk_newer(
+                node[build_node_index], 3, 0, collection_node=node[build_node_index]
+            )
         if node[build_node_index] in ["LOAD_SETCOMP", "LOAD_DICTCOMP"]:
             get_aiter = node[3]
             assert get_aiter == "get_aiter", node.kind

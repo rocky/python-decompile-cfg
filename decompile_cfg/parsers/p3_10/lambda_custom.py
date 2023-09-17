@@ -684,9 +684,6 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                                             POP_JUMP_IF_TRUE
                                             END_FINALLY bb_end_start
 
-                    # async_iter         ::= block_end SETUP_EXCEPT GET_ANEXT LOAD_CONST
-                    #                        YIELD_FROM
-
                     get_aiter            ::= expr GET_AITER BB_END
 
                     list_afor            ::= get_aiter list_afor2
@@ -711,63 +708,68 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
             elif opname == "GET_ANEXT":
                 self.addRule(
                     """
-                    expr                 ::= dict_comp_async
-                    expr                 ::= genexpr_func_async
-                    expr                 ::= list_comp_async
-                    expr                 ::= set_comp_async
+                    expr                   ::= collection_func_async
+                    expr                   ::= dict_comp_async
+                    expr                   ::= genexpr_func_async
+                    expr                   ::= list_comp_async
+                    expr                   ::= set_comp_async
 
-                    async_for_loop       ::= SETUP_FINALLY BB_END
+                    async_for_loop         ::= SETUP_FINALLY BB_END
 
-                    async_iter           ::= async_for_loop
-                                             BB_START
-                                             GET_ANEXT LOAD_CONST
-                                             YIELD_FROM POP_BLOCK
+                    async_iter             ::= async_for_loop
+                                               BB_START
+                                               GET_ANEXT LOAD_CONST
+                                               YIELD_FROM POP_BLOCK
 
-                    dict_comp_async      ::= BUILD_MAP_0 genexpr_func_async
+                    build_empty_collection ::= BUILD_SET_0
+                    build_empty_collection ::= BUILD_MAP_0
 
-                    genexpr_func_async   ::= GEN_START BUILD_SET_0
-                                             LOAD_ARG async_iter
-                                             store
-                                             comp_iter
-                                             BB_START
-                                             END_ASYNC_FOR
+                    dict_comp_async        ::= BUILD_MAP_0 genexpr_func_async
 
-                    list_afor2           ::= async_iter
-                                             store
-                                             list_iter
-                                             jump_loop_absolute
+                    genexpr_func_async     ::= GEN_START BUILD_SET_0
+                                               LOAD_ARG async_iter
+                                               store
+                                               comp_iter
+                                               BB_START
+                                               END_ASYNC_FOR
+
+                    list_afor2             ::= async_iter
+                                               store
+                                               list_iter
+                                               jump_loop_absolute
                                              block_end
                                              END_ASYNC_FOR
 
-                    list_comp_async      ::= BUILD_LIST_0 LOAD_ARG list_afor2
+                    list_comp_async       ::= BUILD_LIST_0 LOAD_ARG list_afor2
 
-                    return_expr_lambda   ::= genexpr_func_async
-                                             LOAD_CONST RETURN_VALUE
-                                             bb_doms_end_opt
+                    return_expr_lambda    ::= build_empty_colletion
+                                              collection_func_async
+                                              LOAD_CONST RETURN_VALUE
+                                              bb_doms_end_opt
 
-                    return_expr_lambda   ::= BUILD_SET_0 genexpr_func_async
-                                             RETURN_VALUE
-                                             bb_doms_end_opt
+                    return_expr_lambda    ::= BUILD_SET_0 genexpr_func_async
+                                              RETURN_VALUE
+                                              bb_doms_end_opt
 
-                    set_afor2            ::= BREAK_LOOP LOOP
-                                             async_iter
-                                             store
-                                             set_iter
-                                             for_loop_unconditional
-                                             BLOCK_END_JOIN
-                                             BB_START
-                                             END_ASYNC_FOR
+                    set_afor2             ::= BREAK_LOOP LOOP
+                                              async_iter
+                                              store
+                                              set_iter
+                                              for_loop_unconditional
+                                              BLOCK_END_JOIN
+                                              BB_START
+                                              END_ASYNC_FOR
 
-                    set_afor2            ::= expr_or_arg
-                                             set_iter_async
+                    set_afor2             ::= expr_or_arg
+                                              set_iter_async
 
-                    set_comp_async       ::= BUILD_SET_0 set_afor2
+                    set_comp_async        ::= BUILD_SET_0 set_afor2
 
-                    set_iter_async       ::= async_iter
-                                             store
-                                             set_iter
-                                             BLOCK_END_JOIN BB_START
-                                             END_ASYNC_FOR
+                    set_iter_async        ::= async_iter
+                                              store
+                                              set_iter
+                                              BLOCK_END_JOIN BB_START
+                                              END_ASYNC_FOR
 
                    """,
                     nop_func,

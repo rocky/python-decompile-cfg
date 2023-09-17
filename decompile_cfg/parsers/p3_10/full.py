@@ -118,10 +118,15 @@ class Python3_10ParserFull(Python3_10LambdaParser, Python3_10FullCustom):
 
         # The junk after stmts is to append an implied "return None" when no "return"
         # is explicitly given
-        stmts_return_value ::= stmts LOAD_CONST RETURN_VALUE BB_END BLOCK_END_JOIN_NO_ARG
+        stmts_return_value ::= stmts BB_START LOAD_CONST RETURN_VALUE
+                               BB_END BLOCK_END_JOIN_NO_ARG
 
         stmts_return_value ::= stmts BB_START LOAD_CONST RETURN_VALUE
                                BB_END BLOCK_END_JOIN
+
+        # FIXME: Something is wonky here. This is related to
+        # semantic action code removing LOAD_CONST RETURN_VALUE
+        stmts_return_value ::= stmts BB_START
 
         pass ::=
 
@@ -166,6 +171,7 @@ class Python3_10ParserFull(Python3_10LambdaParser, Python3_10FullCustom):
         stmt ::= forelsestmt
         stmt ::= forelsestmt3_10
 
+        stmt ::= gen_comp_func
         stmt ::= generator_exp
         stmt ::= genexpr_func
 

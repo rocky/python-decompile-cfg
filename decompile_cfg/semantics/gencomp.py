@@ -41,7 +41,16 @@ class ComprehensionMixin:
     """
 
     def closure_walk(self, node, collection_index: int):
-        """Dictionary and Set comprehensions using closures."""
+        """Dictionary Set comprehensions and generators using closures.
+
+        If ``collection_node_index`` is not empty, it is the node that contains the
+        collection that we are iterating over, e.g.  a set, dict,
+        tuple. If are decompiling only comprehension bodies such
+        as via: decompile-code -F {set-comprehension | dict-comprehension | ...},
+        then collection node will be empty, and we'll pick up output ".0"
+        from the parameter passed to the code function.
+
+        """
         p: int = self.prec
 
         code_index = 0 if node[0] == "load_genexpr" else 1
@@ -54,7 +63,7 @@ class ComprehensionMixin:
             store = tree[2]
             iter_index = 3
             collection_index = 3
-        elif tree in ("genexpr_func", "dict_comp_func", "set_comp_func"):
+        elif tree in ("genexpr_func", "dict_comp_func", "gen_comp_func", "set_comp_func"):
             if self.version >= (3, 10):
                 # 3.10+ adds a GEN_START
                 store = tree[4]
@@ -263,7 +272,21 @@ class ComprehensionMixin:
     ):
         """Non-closure-based comprehensions.
 
-        Note: there are also other comprehensions.
+        Note: there are closure-based comprehensions.
+
+        If ``collection_node`` is not empty, it is the node that contains the
+        collection that we are iterating over, e.g.  a set, dict,
+        tuple. If are decompiling only comprehension bodies such
+        as via: decompile-code -F {set-comprehension | dict-comprehension | ...},
+        then collection node will be empty, and we'll pick up output ".0"
+        from the parameter passed to the code function.
+
+        ``code_index`` is the index inside ``node`` to look for function
+        further bodies. This occurs in nested comprehensions like
+        ... for i in for j in ..
+
+        iter_index is where the node index where to expext to find an iteration
+        code. Below the variable "n" is used to trace nested iterations.
         """
 
         # FIXME: DRY with listcomp_closure3
@@ -271,6 +294,7 @@ class ComprehensionMixin:
         p = self.prec
         self.prec = PRECEDENCE["lambda_body"] - 1
 
+        tree = None
         # FIXME? Nonterminals in grammar maybe should be split out better?
         # Maybe test on self.compile_mode?
         if (
@@ -297,24 +321,31 @@ class ComprehensionMixin:
             and node[2].kind.startswith("LOAD")
             and iscode(node[2].attr)
         ):
+            # There is iteration code, so parse that.
             tree = self.get_comprehension_function(node, 2)
         else:
+            # There is no iteration code; everything you
+            # need to know about the comprehension appears
+            # inside the tokens starting at ``node``.
             tree = node
 
         # Pick out important parts of the comprehension:
-        # * the variable we iterate over: "store"
-        # * the results we accumulate: "n"
+        # * the iteration variable used: "store"
+        # * "n" contains the a node index has iteration conditions
 
         store = None
 
-        if tree.kind == "genexpr_func_async":
+        if tree == "collection_func_async":
+            tree = tree[1]
+        if tree == "genexpr_func_async":
             genexpr_func_async = tree
-        elif tree.kind == "set_iter":
+            n = tree[3]
+        elif tree == "set_iter":
             # Not sure if this is correct
             node = tree = tree[0]
-        elif tree.kind == "set_comp":
+        elif tree == "set_comp":
             pass
-        elif tree.kind != "genexpr_func":
+        elif tree != "genexpr_func":
             # Not sure if this is still correct
             genexpr_func_async = tree[1]
 
@@ -342,7 +373,7 @@ class ComprehensionMixin:
             #  dict_comp_async  ::= [GEN_START] BUILD_MAP_0 LOAD_ARG genexpr_func_async
             #  set_comp_async   ::= [GEN_START] BUILD_SET_0 LOAG_ARG genexpr_func_async
             build_index = 1 if tree[0] == "GEN_START" else 0
-            if tree[build_index].kind in ("BUILD_MAP_0", "BUILD_SET_0"):
+            if tree[build_index].kind == "build_empty_collection":
                 if genexpr_func_async == "genexpr_func_async":
                     store_index = (
                         3 if genexpr_func_async[3].kind.startswith("store") else 4
@@ -393,6 +424,7 @@ class ComprehensionMixin:
 
         if tree in (
             "dict_comp_func",
+            "gen_comp_func",
             "genexpr_func_async",
             "generator_exp",
             "list_comp",
@@ -404,9 +436,12 @@ class ComprehensionMixin:
             for k in tree:
                 if k.kind in ("comp_iter", "list_iter", "set_iter", "await_expr"):
                     n = k
+                    # Store always comes *after* break so if we see iterate code
+                    # we are done
+                    break
                 elif k == "store":
                     store = k
-                    break
+                    pass
                 pass
             pass
         elif tree.kind in ("list_comp_async", "dict_comp_async", "set_afor2"):
@@ -568,7 +603,7 @@ class ComprehensionMixin:
             elif node[collection_build_index].kind.startswith("BUILD_"):
                 collection_node_index = collection_build_index + 1
                 collection_node = node[collection_node_index]
-            if collection_node_index is None:
+            if collection_node is None and collection_node_index is None:
                 for i, child in enumerate(node):
                     if child.kind in (
                         "expr",

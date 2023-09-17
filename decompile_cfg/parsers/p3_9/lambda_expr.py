@@ -682,11 +682,8 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         # Can occur when no trailing "if"
         gen_comp_body   ::= expr
-                            BB_START
                             YIELD_VALUE
                             BB_END
-                            BLOCK_END_JOIN
-                            BLOCK_END_JOIN
                             BB_START
                             POP_TOP
 
@@ -703,7 +700,13 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                             BB_END
                             BLOCK_END_JOIN
 
-        generator_exp   ::= expr_or_arg
+        gen_comp_func ::= LOAD_ARG
+                          for_iter
+                          BB_START
+                          store
+                          comp_iter
+
+        generator_exp   ::= LOAD_ARG
                             BB_END
                             for_loop
                             bb_end_start
@@ -722,7 +725,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         list_comp_body ::= LOAD_FAST LIST_APPEND
 
-        # FIXME: the BLOCK_END_JOIN may need to be part of something else
+        # We can rewrite this as BUILD_SET_0 gen_comp_func
         set_comp_func ::= BUILD_SET_0
                           LOAD_ARG
                           for_iter
@@ -730,6 +733,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                           store
                           comp_iter
 
+        # FIXME: the BLOCK_END_JOIN may need to be part of something else
         set_comp_func ::= BUILD_SET_0
                           LOAD_ARG
                           for_iter
@@ -738,12 +742,12 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                           comp_iter
                           BLOCK_END_JOIN
 
-        # FIXME: the BLOCK_END_JOIN may need to be part of something else
         set_comp_func ::= BUILD_SET_0
                           LOAD_ARG
                           for_iter
                           store
-                          BB_START comp_iter
+                          BB_START
+                          comp_iter
 
         """
 
@@ -1141,6 +1145,11 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                                     list_comp_func
                                     RETURN_VALUE
                                     bb_doms_end
+
+        return_expr             ::= gen_comp_func
+                                    BB_START
+                                    LOAD_CONST
+                                    RETURN_VALUE
 
         return_expr             ::= set_comp
                                     BB_START
