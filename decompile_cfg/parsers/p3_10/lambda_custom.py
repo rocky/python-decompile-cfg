@@ -22,6 +22,7 @@ from decompile_cfg.parsers.reduce_check.and_check import and_ok
 from decompile_cfg.parsers.reduce_check.and_parts_check import and_parts_ok
 from decompile_cfg.parsers.reduce_check.if_exp_check import if_exp_ok
 from decompile_cfg.parsers.reduce_check.comp_if_check import comp_if_ok
+from decompile_cfg.parsers.reduce_check.gen_comp_check import gen_comp_ok
 from decompile_cfg.parsers.reduce_check.list_if_not_check import list_if_not_seems_ok
 from decompile_cfg.parsers.reduce_check.or_check import or_ok
 from spark_parser.spark import rule2str
@@ -1221,6 +1222,7 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
             "if_exp": if_exp_ok,
             "comp_if": comp_if_ok,
             "comp_if_not": comp_if_ok,
+            "gen_comp_func": gen_comp_ok,
             "list_if_not": list_if_not_seems_ok,
             "or1": or_ok,
         }
@@ -1230,6 +1232,7 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
         self.check_reduce["if_exp"] = "AST"
         self.check_reduce["comp_if"] = "AST"
         self.check_reduce["comp_if_not"] = "AST"
+        self.check_reduce["gen_comp_func"] = "tokens"
         self.check_reduce["list_if_not"] = "AST"
         self.check_reduce["or_parts_pjit"] = "AST"
         self.check_reduce["or1"] = "AST"

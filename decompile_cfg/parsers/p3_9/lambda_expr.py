@@ -700,11 +700,11 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                             BB_END
                             BLOCK_END_JOIN
 
-        gen_comp_func ::= LOAD_ARG
-                          for_iter
-                          BB_START
-                          store
-                          comp_iter
+        gen_comp_func   ::= LOAD_ARG
+                            for_iter
+                            BB_START
+                            store
+                            comp_iter
 
         generator_exp   ::= LOAD_ARG
                             BB_END

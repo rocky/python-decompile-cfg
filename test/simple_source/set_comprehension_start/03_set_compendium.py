@@ -4,20 +4,42 @@
 
 #fmt; off
 
-
-{ e
-  for e
-  in
-  __file__
+x = {"abc", "def", "ghi"}
+{
+ e
+ for e
+ in
+ x
 }
 
-{ e
-  for e
-  in
-  __file__
-  if
-  __name__
+{
+ e
+ for e
+ in
+ x
+ if e == "abc"
 }
+
+{
+ e
+ for e
+ in
+ x
+ if
+ e.startswith("a") or e.startswith("d")
+}
+
+{
+ e
+ for e
+ in
+ x
+ if (
+     e.startswith("a")
+     or e.startswith("d")
+     or e.startswith("g")
+ )
+ }
 
 async def run_set(foo):
     return {
@@ -26,23 +48,6 @@ async def run_set(foo):
         for i
         in foo
         }
-
-{ e
-  for e
-  in
-  __file__
-  if
-  __name__ or __file__
-}
-
-{ e
-  for e
-  in
-  __file__
-  if
-  __name__ or (__file__ or max(__file__, __name__))
-}
-
 
 # Line 1860 of Python 3.8.12 test/test_coroutines.py
 async def run_dict():
