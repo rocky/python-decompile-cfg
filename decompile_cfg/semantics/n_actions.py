@@ -621,12 +621,16 @@ class NonterminalActions:
         self.prune()
 
     def n_genexpr_func_async(self, node: SyntaxTree):
-        from trepan.api import debug
-
-        debug()
         self.write("(")
-        iter_index = 5 if self.version >= (3, 10) else 4
-        self.comprehension_walk_newer(node, iter_index=iter_index, collection_node=node)
+        if self.version >= (3, 10):
+            iter_index = 5
+            collection_node = node[2]
+        else:
+            iter_index = 4
+            collection_node = node
+        self.comprehension_walk_newer(
+            node, iter_index=iter_index, collection_node=collection_node
+        )
         self.write(")")
         self.prune()
 

@@ -725,9 +725,11 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                     build_empty_collection ::= BUILD_SET_0
                     build_empty_collection ::= BUILD_MAP_0
 
-                    dict_comp_async        ::= BUILD_MAP_0 genexpr_func_async
+                    collection_func_async ::= build_empty_collection
+                                              genexpr_func_async
 
-                    genexpr_func_async     ::= GEN_START BUILD_SET_0
+                    genexpr_func_async     ::= GEN_START
+                                               build_empty_collection
                                                LOAD_ARG async_iter
                                                store
                                                comp_iter

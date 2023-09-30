@@ -339,7 +339,8 @@ class ComprehensionMixin:
             tree = tree[1]
         if tree == "genexpr_func_async":
             genexpr_func_async = tree
-            n = tree[3]
+            iter_index = 5 if self.version >= (3, 10) else 3
+            n = tree[iter_index]
         elif tree == "set_iter":
             # Not sure if this is correct
             node = tree = tree[0]
