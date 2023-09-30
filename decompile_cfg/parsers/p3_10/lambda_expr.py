@@ -87,6 +87,12 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
                             expr_jitop
                             BLOCK_END_JOIN
 
+        # This is wrong - we should not need this and use only the above.
+        # there is something in control-flow that is intermittent.
+        and1            ::= expr_pjif
+                            BB_START
+                            expr_jitop
+
         # and_part_pjif are the right-hand side of an "and" without the leading expr
         and_part_pjif   ::= expr_pjif
 
@@ -105,17 +111,11 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
                             expr
                             BLOCK_END_JOIN
 
+        # This is wrong - we should not need this and use only the above.
         # there is something in control-flow that is intermittent.
-        or              ::= expr_jitop
-                             BB_START
-                             expr
-
-        # The inner-most "or" or "or" that contains an "and" can have a BB_END before
-        # the JOIN
         or              ::= expr_jitop
                             BB_START
                             expr
-                            block_end_join
 
         or              ::= expr_pjit
                             BB_START
@@ -321,21 +321,25 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         compare_chained        ::= expr compare_chained_middlea_37
         compare_chained        ::= expr compare_chained_middleb_false
 
-        compare_chained_return ::= expr
+        # "and" with a compare_chained_return
+        and_compare_chained_return ::= and_parts
                                    compare_chained_middle_return
-                                   BB_START NOT_FALLEN_INTO_BLOCK
+                                   BLOCK_END_JOIN BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
+                                   BB_END BLOCK_END_JOIN
+
 
         compare_chained_return ::= expr
                                    compare_chained_middle_return
                                    BB_START NOT_FALLEN_INTO_BLOCK
-                                   ROT_TWO POP_TOP RETURN_VALUE BB_END
+                                   ROT_TWO POP_TOP
+                                   RETURN_VALUE BB_END
 
         compare_chained_return ::= expr
                                    compare_chained_middle_return
                                    BLOCK_END_JOIN BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
-                                   RETURN_VALUE BB_END
+                                   RETURN_VALUE BB_END BLOCK_END_JOIN
 
         # FIXME: simplify the compare_chain1 recursion?
         compare_chained_middle       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
@@ -350,6 +354,9 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         compare_chained_middle_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
                                     BB_START compare_chained_right_return
 
+        compare_chained_middle_return ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+                                    BB_START compare_chained_right_return BLOCK_END_JOIN
+
         compare_chained_middle       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
                                    BB_START compare_chained_right BLOCK_END_JOIN
 
@@ -363,11 +370,7 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
 
         compare_chained_right     ::= expr COMPARE_OP JUMP_FORWARD BB_END
 
-        compare_chained_right_return ::= expr COMPARE_OP POP_TOP expr RETURN_VALUE
-                                         BB_END
-
-        compare_chained_right_return ::= expr COMPARE_OP RETURN_VALUE
-                                         BB_END
+        compare_chained_right_return ::= expr COMPARE_OP RETURN_VALUE BB_END
 
         compare_chained_righta_37 ::= expr COMPARE_OP block_end POP_JUMP_IF_TRUE
                                       JUMP_FORWARD BB_END
@@ -395,7 +398,7 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         compare_chained37_false        ::= expr
                                            compare_chained
 
-        compare_chained_middleb_false        ::= chained_parts
+        compare_chained_middleb_false  ::= chained_parts
                                            bb_end_start
                                            compare_chained_rightb_false
                                            POP_TOP jump
@@ -621,7 +624,13 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         # the following was noticed with an "or True".
         # We probably need to reduc check "comp_if"
         # versus "comp_if_not".
-        comp_if         ::= expr_pjift bb_end_start comp_iter
+        comp_if         ::= expr_pjift bb_end_start
+                            comp_iter
+
+        # the NOP addition seems to be a 3.10+ addition.
+        comp_if         ::= expr_pjift bb_end_start
+                            NOP BB_END BLOCK_END_JOIN BB_START
+                            comp_iter
 
         comp_if_not_and ::= expr_pjif
                             expr JUMP_FOR POP_JUMP_IF_TRUE_LOOP
@@ -1018,7 +1027,7 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
                               for_jump_unconditional
                               BLOCK_END_JOIN
 
-        return_expr               ::= if_exp_and_return
+        return_expr       ::= if_exp_and_return
 
         # named_expr is also known as the "walrus op" :=
         named_expr        ::= expr DUP_TOP store

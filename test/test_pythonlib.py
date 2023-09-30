@@ -109,6 +109,8 @@ def do_tests(src_dir, obj_patterns, target_dir, opts):
         src_dir += "/code-fragment/lambda"
     elif opts["compile_type"] == "dict-comprehension":
         src_dir += "/code-fragment/dict-comprehension"
+    elif opts["compile_type"] == "generator":
+        src_dir += "/code-fragment/generator"
     elif opts["compile_type"] == "list-comprehension":
         src_dir += "/code-fragment/list-comprehension"
     elif opts["compile_type"] == "set-comprehension":

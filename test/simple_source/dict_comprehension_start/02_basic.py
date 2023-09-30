@@ -23,21 +23,21 @@
   __name__
 }
 
-# { e: 7
-#   for e
-#   in
-#   ("abc", "def")
-#   if
-#   __name__ or ("abc", "def")
-# }
+{ e: 7
+  for e
+  in
+  ("abc", "def")
+  if
+  __name__ or ("abc", "def")
+}
 
-# { e: 8
-#   for e
-#   in
-#   ("abc", "def")
-#   if
-#   __name__ or ("abc", "def") or max(("abc", "def"), __name__)
-# }
+{ e: 8
+  for e
+  in
+  ("abc", "def")
+  if
+  __name__ or ("abc", "def") or max(("abc", "def"), __name__)
+}
 
 async def run_dict2(foo):
     return {

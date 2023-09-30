@@ -40,18 +40,48 @@ check-3.8 check-3.9 check-3.10: check-bytecode
 #	$(PYTHON) test_pythonlib.py --bytecode-3.8 --syntax-verify $(COMPILE)
 
 #: Check deparsing bytecode 3.x only
-check-bytecode-3: check-bytecode-3-lambda
+check-bytecode-3: \
+   check-bytecode-3.8 \
+   check-bytecode-3.9 \
+   check-bytecode-3.10
 # check-bytecode-3:
 # 	$(PYTHON) test_pythonlib.py \
 # 	--bytecode-3.8
 
-#: Check deparsing bytecode 3.8 only
-# For now
-check-bytecode-3.8: check-bytecode-3.8-lambda
-# check-bytecode-3.8:
-# 	$(PYTHON) test_pythonlib.py \
-# 	--bytecode-3.8
+#: Check deparsing 3.8 bytecode
+check-bytecode-3.8: \
+    check-bytecode-3.8-lambda \
+    check-bytecode-3.8-generator \
+    check-bytecode-3.8-set-comprehension \
+    check-bytecode-3.8-dict-comprehension
 
+#: Check deparsing 3.9 bytecode
+check-bytecode-3.9: \
+    check-bytecode-3.9-lambda \
+    check-bytecode-3.9-generator \
+    check-bytecode-3.9-set-comprehension \
+    check-bytecode-3.9-dict-comprehension
+
+#: Check deparsing 3.10 bytecode
+check-bytecode-3.10: \
+    check-bytecode-3.10-lambda \
+    check-bytecode-3.10-generator \
+    check-bytecode-3.10-set-comprehension \
+    check-bytecode-3.10-dict-comprehension
+
+# check-bytecode-3.10:
+# 	$(PYTHON) test_pythonlib.py \
+# 	--bytecode-3.10
+
+
+check-bytecode-3.8-dict-comprehension:
+	$(PYTHON) test_pythonlib.py --bytecode-3.8 --dict-comprehension
+
+check-bytecode-3.9-dict-comprehension:
+	$(PYTHON) test_pythonlib.py --bytecode-3.9 --dict-comprehension
+
+check-bytecode-3.10-dict-comprehension:
+	$(PYTHON) test_pythonlib.py --bytecode-3.10 --dict-comprehension
 
 #: Check deparsing bytecode 3.9 only
 check-bytecode-3.9-lambda:
@@ -66,24 +96,47 @@ check-bytecode-3-lambda:
 	--bytecode-3.10 --lambda
 
 check-bytecode-3.8-lambda:
-	$(PYTHON) test_pythonlib.py \
-	--bytecode-3.8 --lambda
+	$(PYTHON) test_pythonlib.py --bytecode-3.8 --lambda
 
 check-bytecode-3.9-lambda:
-	$(PYTHON) test_pythonlib.py \
-	--bytecode-3.9 --lambda
+	$(PYTHON) test_pythonlib.py --bytecode-3.9 --lambda
 
 check-bytecode-3.10-lambda:
 	$(PYTHON) test_pythonlib.py \
 	--bytecode-3.10 --lambda
 
-check-bytecode-3-dict-comprehension:
-	$(PYTHON) test_pythonlib.py \
-	--bytecode-3.8 --dict-comprehension
-
 check-bytecode-3-generator:
 	$(PYTHON) test_pythonlib.py \
-	--bytecode-3.8 --generator
+	--bytecode-3.8 --generator \
+	--bytecode-3.9 --generator \
+	--bytecode-3.10 --lambda
+
+check-bytecode-3.8-generator:
+	$(PYTHON) test_pythonlib.py --bytecode-3.8 --generator
+
+check-bytecode-3.9-generator:
+	$(PYTHON) test_pythonlib.py --bytecode-3.9 --generator
+
+check-bytecode-3.10-generator:
+	$(PYTHON) test_pythonlib.py --bytecode-3.10 --generator
+
+check-bytecode-3.8-set-comprehension:
+	$(PYTHON) test_pythonlib.py \
+	--bytecode-3.8 --set-comprehension
+
+check-bytecode-3.9-set-comprehension:
+	$(PYTHON) test_pythonlib.py \
+	--bytecode-3.9 --set-comprehension
+
+check-bytecode-3.10-set-comprehension:
+	$(PYTHON) test_pythonlib.py \
+	--bytecode-3.10 --set-comprehension
+
+check-bytecode-3-dict-comprehension:
+	$(PYTHON) test_pythonlib.py \
+	--bytecode-3.8 --dict-comprehension \
+	--bytecode-3.9 --dict-comprehension \
+	--bytecode-3.10 --dict-comprehension
 
 check-bytecode-3-list-comprehension:
 	$(PYTHON) test_pythonlib.py \

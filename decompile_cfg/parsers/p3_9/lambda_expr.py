@@ -624,7 +624,8 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         # the following was noticed with an "or True".
         # We probably need to reduc check "comp_if"
         # versus "comp_if_not".
-        comp_if         ::= expr_pjift bb_end_start comp_iter
+        comp_if         ::= expr_pjift bb_end_start
+                            comp_iter
 
         comp_if_not_and ::= expr_pjif
                             expr JUMP_FOR POP_JUMP_IF_TRUE_LOOP
