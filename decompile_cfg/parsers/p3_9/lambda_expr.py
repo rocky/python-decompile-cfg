@@ -1127,24 +1127,19 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                                     bb_doms_end
 
         # FIXME: generalize this
-        return_expr_lambda      ::= dom_start_opt
-                                    dict_comp_func
+        return_expr             ::= dict_comp_func
                                     RETURN_VALUE
-                                    bb_doms_end
+                                    BB_END
+                                    BLOCK_END_JOIN_NO_ARG
 
-        return_expr_lambda      ::= dom_start_opt
-                                    dict_comp_func
-
-        return_expr_lambda      ::= dom_start_opt
-                                    generator_exp
-                                    LOAD_CONST
+        return_expr             ::= dict_comp_func
+                                    BB_START
                                     RETURN_VALUE
-                                    bb_doms_end
+                                    block_join_end_final
 
-        return_expr_lambda      ::= dom_start_opt
-                                    list_comp_func
-                                    RETURN_VALUE
-                                    bb_doms_end
+        return_expr             ::= dict_comp_func
+                                    BLOCK_END_JOIN
+                                    BB_START RETURN_VALUE BB_END
 
         return_expr             ::= gen_comp_func
                                     BB_START
