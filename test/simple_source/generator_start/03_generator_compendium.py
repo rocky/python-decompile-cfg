@@ -10,6 +10,11 @@
  range(10)
  )
 
+tuple(j
+       for j
+       in t
+       if i != j)
+
 # # 3.8.12 weakrefset.py
 # (e
 #  for s

@@ -31,6 +31,7 @@
   __name__ or ("abc", "def")
 }
 
+# 3.10 notices or("abc", "def") is True
 { e: 8
   for e
   in

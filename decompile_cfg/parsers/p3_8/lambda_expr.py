@@ -527,6 +527,11 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         comp_if         ::= expr_pjiff BB_START
                             comp_iter BLOCK_END_JOIN
 
+        # There can be no BLOCK_END_JOIN in a genxpr_func.
+        # Here the return is implicit via a StopIterationException
+        comp_if         ::= expr_pjiff BB_START
+                            comp_iter
+
         comp_if         ::= expr_pjif_loop BB_START
                             comp_iter BLOCK_END_JOIN
 
@@ -1011,7 +1016,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                               POP_TOP
                               for_jump_unconditional
                               BLOCK_END_JOIN
-
 
         # named_expr is also known as the "walrus op" :=
         named_expr        ::= expr DUP_TOP store

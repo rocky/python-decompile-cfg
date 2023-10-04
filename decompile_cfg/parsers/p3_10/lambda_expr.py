@@ -531,6 +531,11 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         comp_if         ::= expr_pjiff BB_START
                             comp_iter BLOCK_END_JOIN
 
+        # There can be no BLOCK_END_JOIN in a genxpr_func.
+        # Here the return is implicit via a StopIterationException
+        comp_if         ::= expr_pjiff BB_START
+                            comp_iter
+
         comp_if         ::= expr_pjif_loop BB_START
                             comp_iter BLOCK_END_JOIN
 

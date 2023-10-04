@@ -21,7 +21,7 @@ import re
 # Python 3.8 changes
 #######################
 
-from decompile_cfg.semantics.consts import PRECEDENCE, TABLE_DIRECT
+from decompile_cfg.semantics.consts import NO_PARENTHESIS_EVER, PRECEDENCE, TABLE_DIRECT
 from decompile_cfg.semantics.customize37 import FSTRING_CONVERSION_MAP
 from decompile_cfg.semantics.helper import escape_string, strip_quotes
 
@@ -335,7 +335,7 @@ def customize_for_version3_8(self):
             if args_node in ("pos_arg", "expr"):
                 args_node = args_node[0]
             if args_node == "build_list_unpack":
-                template = ("*%P)", (0, len(args_node) - 1, ", *", 100))
+                template = ("*%P)", (0, len(args_node) - 1, ", *", NO_PARENTHESIS_EVER))
                 self.template_engine(template, args_node)
             else:
                 if len(node) - nargs > 3:
@@ -355,10 +355,19 @@ def customize_for_version3_8(self):
             or not re.match(r"\d", opname[-1])
         ):
             n0 = node[0][0] if node[0] == "arg" else node[0]
-            template = "(\n%+%|%c%-\n)(%p)" if n0[0] == "lambda_body" else "%c(%p)"
-            self.template_engine(
-                (template, (0, ("expr", "arg")), (1, PRECEDENCE["yield"] - 1)), node
-            )
+            if n0[0] == "lambda_body":
+                self.template_engine(
+                    (
+                        "(\n%+%|%c%-\n)(%p)",
+                        (0, ("expr", "arg")),
+                        (1, PRECEDENCE["yield"] - 1),
+                    ),
+                    node,
+                )
+            else:
+                self.template_engine(
+                    ("%c(%p)", (0, ("expr", "arg")), (1, NO_PARENTHESIS_EVER)), node
+                )
             self.prec = p
             self.prune()
         else:
