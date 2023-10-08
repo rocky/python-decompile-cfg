@@ -763,6 +763,16 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                            BB_START
                            store
                            comp_iter
+
+        dict_comp_func ::= BUILD_MAP_0
+                           LOAD_ARG
+                           for_iter
+                           BB_START
+                           store
+                           comp_iter
+                           BLOCK_END_JOIN
+
+
         """
 
     def p_comprehension_list(self, args):

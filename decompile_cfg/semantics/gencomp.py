@@ -63,7 +63,12 @@ class ComprehensionMixin:
             store = tree[2]
             iter_index = 3
             collection_index = 3
-        elif tree in ("genexpr_func", "dict_comp_func", "gen_comp_func", "set_comp_func"):
+        elif tree in (
+            "genexpr_func",
+            "dict_comp_func",
+            "gen_comp_func",
+            "set_comp_func",
+        ):
             if self.version >= (3, 10):
                 # 3.10+ adds a GEN_START
                 store = tree[4]
@@ -415,10 +420,7 @@ class ComprehensionMixin:
             and tree[2 if self.version >= (3, 10) else 1] == "set_iter"
         ):
             n = tree[2 if self.version >= (3, 10) else 1]
-        elif (
-            tree == "dict_comp_func"
-            and tree[-1] == "comp_iter"
-        ):
+        elif tree == "dict_comp_func" and tree[-1] == "comp_iter":
             n = tree[-1]
         else:
             n = node[iter_index]
@@ -457,7 +459,12 @@ class ComprehensionMixin:
             if n.kind == "return_expr_lambda":
                 self.prune()
 
-            assert n.kind in ("list_iter", "comp_iter", "set_iter", "set_iter_async"), n
+            assert n.kind in (
+                "list_iter",
+                "comp_iter",
+                "set_iter",
+                "set_iter_async",
+            ), n
 
         # FIXME: I'm not totally sure this is right.
 

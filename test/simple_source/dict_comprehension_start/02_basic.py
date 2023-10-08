@@ -49,16 +49,16 @@ async def run_dict2(foo):
         in foo
         }
 
-# # From Python 3.8 sre_compile.py line 62
-# {i:
-#  tuple(j
-#        for j
-#        in t
-#        if i != j)
-#  for t
-#  in __file__
-#  for i
-#  in t}
+# From Python 3.8 sre_compile.py line 62
+{i:
+ tuple(j
+       for j
+       in t
+       if i != j)
+ for t
+ in __file__
+ for i
+ in t}
 
 
 # # line 36 of from Python 3.8 spacy/tests/regression/test_issue4190.py

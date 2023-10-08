@@ -12,13 +12,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from decompile_cfg.scanners.tok import Token
-
 def gen_comp_ok(
     self, lhs: str, n: int, rule, tree, tokens: list, first: int, last: int
 ) -> bool:
     """
-    Returns True if we can't gen_comp_func is valid.
+    Returns True if gen_comp_func is valid.
 
     Basically ensures that the instruction before is not a "BUILD_xxx_0"
     """
