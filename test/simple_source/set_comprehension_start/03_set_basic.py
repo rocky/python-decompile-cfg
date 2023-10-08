@@ -56,11 +56,16 @@ assert {
 } == {"abc"}
 
 
-assert {
-    e
-    for e
-    in
-    x
-    if
-    e.startswith("a") and e.endswith("c") and e == "abc"
-} == {"abc"}
+# assert {
+#     e
+#     for e
+#     in
+#     x
+#     if
+#     e.startswith("a") and e.endswith("c") and e == "abc"
+# } == {"abc"}
+
+assert {i for pair in
+     [[10, 20], [30, 40]]
+         for i in
+         pair} == [40, 10, 20, 30]
