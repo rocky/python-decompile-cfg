@@ -393,7 +393,12 @@ class Python3_8ParserFull(Python3_8LambdaParser, Python3_8FullCustom):
         # These rules need reduce checks on dominator information.
         # In particular, testexpr has to jump to to the end
         # of "ifstmt".
-        ifstmt        ::= testexpr ifstmts_jump
+        ifstmt        ::= testexpr BB_START ifstmts_jump
+
+        # The following can happen if the end of the ifstmt raises an
+        # exception or issues a return
+        ifstmt        ::= testexpr BB_START ifstmts_jump
+                          BB_START NOT_FALLEN_INTO_BLOCK
 
         ifstmt_branch ::= or_and_not stmts block_end
         ifstmt_branch ::= or_and1 stmts block_end

@@ -70,6 +70,7 @@ STRIPPED_NODES = (
     "genexpr_func_async",
     "if_exp_return",
     "if_exp_and_return",
+    "ifstmt",
     "jifop",
     "jitop",
     "list_for",
@@ -94,6 +95,7 @@ DELETED_NODES = (
     "block_end_joins",
     "block_join_end_final",
 )
+
 
 def is_docstring(node, version: str, co_consts) -> bool:
     """
@@ -340,7 +342,7 @@ class TreeTransform(GenericASTTraversal, object):
             return node
 
         if node.kind in ("ifstmt", "ifstmtc"):
-            ifstmts_jump = node[1]
+            ifstmts_jump = node[2]
 
             if ifstmts_jump == "ifstmts_jumpc" and ifstmts_jump[0] == "ifstmts_jump":
                 ifstmts_jump = ifstmts_jump[0]
@@ -647,6 +649,17 @@ class TreeTransform(GenericASTTraversal, object):
                 prev = ann_assign
                 pass
             node.data = new_stmts
+
+        # # The below needs to be coordinated with pysource.py
+        # # build_ast removing tokens.
+        # last_node = node[-1]
+        # if last_node == "return":
+        #     return_expr = last_node[0]
+        #     if return_expr == "return_expr" and return_expr.first_child().attr is None:
+        #         new_node = copy(node)
+        #         new_node.transformed_by = ("n_stmts",)
+        #         del new_node[-1]
+        #         return new_node
         return node
 
     def traverse(self, node: SyntaxTree) -> SyntaxTree:

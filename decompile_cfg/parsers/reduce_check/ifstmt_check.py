@@ -29,14 +29,18 @@ def ifstmt_ok(
         testexpr = tree[0]
         assert testexpr == "testexpr"
 
-        testexpr_end = testexpr.last_child()
-
-        if not isinstance(testexpr_end, Token):
-            # No branch at end, so not an "ifstmt"
-            return False
+        last_child = testexpr.last_child()
 
         # Check that the branch at the end of the "then" goes to "endif"
-        then_endif_offset = testexpr_end.attr
+        i = self.offset2inst_index[last_child.offset]
+        inst = self.insts[i]
+
+        if inst.opname == "BB_END":
+            inst = self.insts[i-1]
+
+        if inst.optype != "jabs":
+            return False
+        then_endif_offset = inst.argval
 
         # print(f"XXX then jump: {then_endif_offset}, tokens[last] offset: {tokens[last].offset}")
         if then_endif_offset != tokens[last].offset:
