@@ -160,7 +160,7 @@ from decompile_cfg.semantics.consts import (
     MAP_DIRECT,
     NAME_MODULE,
     NONE,
-    PASS,
+    PASS_RETURN_VALUE,
     PRECEDENCE,
     TAB,
     TABLE_R,
@@ -1043,7 +1043,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                         if is_top_level_module or load_const.pattr is None:
                             del tokens[-2:]
             if len(tokens) == 0:
-                return PASS
+                return PASS_RETURN_VALUE
 
         # Build a parse tree from a tokenized and massaged disassembly.
         try:

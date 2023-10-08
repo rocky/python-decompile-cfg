@@ -84,7 +84,7 @@ from decompile_cfg.semantics.consts import (
     TABLE_DIRECT,
     escape,
     MAP,
-    PASS,
+    PASS_RETURN_VALUE,
 )
 
 from decompile_cfg.semantics.customize import customize_for_version
@@ -1232,7 +1232,7 @@ class FragmentsWalker(pysource.SourceWalker, object):
                 else:
                     tokens.append(Token("RETURN_LAST"))
         if len(tokens) == 0:
-            return PASS
+            return PASS_RETURN_VALUE
 
         # Build parse tree from tokenized and massaged disassembly.
         try:

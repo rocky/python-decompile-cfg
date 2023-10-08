@@ -177,6 +177,12 @@ PASS = SyntaxTree("stmts",
                  [ SyntaxTree("stmt",
                        [ SyntaxTree("pass", [])])])])
 
+# When we need a complete body.
+PASS_RETURN_VALUE = SyntaxTree("stmts_return_value",
+           [ SyntaxTree("sstmt",
+                 [ SyntaxTree("stmt",
+                       [ SyntaxTree("pass", [])])])])
+
 # God intended \t, but Python has decided to use 4 spaces.
 # If you want real tabs, use Go.
 # TAB = "\t"

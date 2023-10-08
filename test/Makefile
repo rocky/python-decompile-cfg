@@ -53,7 +53,8 @@ check-bytecode-3.8: \
     check-bytecode-3.8-lambda \
     check-bytecode-3.8-generator \
     check-bytecode-3.8-set-comprehension \
-    check-bytecode-3.8-dict-comprehension
+    check-bytecode-3.8-dict-comprehension \
+    check-bytecode-3.8-run
 
 #: Check deparsing 3.9 bytecode
 check-bytecode-3.9: \
@@ -132,17 +133,7 @@ check-bytecode-3.10-set-comprehension:
 	$(PYTHON) test_pythonlib.py \
 	--bytecode-3.10 --set-comprehension
 
-check-bytecode-3-dict-comprehension:
-	$(PYTHON) test_pythonlib.py \
-	--bytecode-3.8 --dict-comprehension \
-	--bytecode-3.9 --dict-comprehension \
-	--bytecode-3.10 --dict-comprehension
-
-check-bytecode-3-list-comprehension:
-	$(PYTHON) test_pythonlib.py \
-	--bytecode-3.8 --list-comprehension
-
-check-bytecode-3-run:
+check-bytecode-3.8-run:
 	$(PYTHON) test_pythonlib.py \
 	--bytecode-3.8 --run --verify-run
 
