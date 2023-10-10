@@ -471,7 +471,7 @@ class Python3_9FullCustom(Python3_9LambdaCustom, PythonBaseParser):
                     """
                     stmt        ::= raise_stmt1
                     last_stmt  ::= raise_stmt1
-                    raise_stmt1 ::= expr RAISE_VARARGS_1
+                    raise_stmt1 ::= expr LOAD_ASSERTION_ERROR RAISE_VARARGS_1
                     """,
                     nop_func,
                 )

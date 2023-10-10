@@ -400,6 +400,13 @@ class Python3_8ParserFull(Python3_8LambdaParser, Python3_8FullCustom):
         ifstmt        ::= testexpr BB_START ifstmts_jump
                           BB_START NOT_FALLEN_INTO_BLOCK
 
+        # The additional BLOCK_END_JOIN is inserted when
+        # the assert is right before the implicit
+        # "return None" at the end of a function.
+        ifstmt        ::= testexpr BB_START ifstmts_jump
+                          BLOCK_END_JOIN
+                          BB_START NOT_FALLEN_INTO_BLOCK
+
         ifstmt_branch ::= or_and_not stmts block_end
         ifstmt_branch ::= or_and1 stmts block_end
         ifstmt_branch ::= not_and_not stmts block_end
@@ -767,12 +774,24 @@ class Python3_8ParserFull(Python3_8LambdaParser, Python3_8FullCustom):
 
         assert  ::= expr
                     POP_JUMP_IF_TRUE
+                    bb_end_start
                     LOAD_ASSERT
+                    RAISE_VARARGS_1
+                    bb_end_start
+
+        # This happens right before the implicit
+        # "return None" at the end of a function
+        assert  ::= expr
+                    POP_JUMP_IF_TRUE
+                    bb_end_start
+                    LOAD_ASSERT
+                    BB_END BLOCK_END_JOIN BB_START
                     RAISE_VARARGS_1
                     bb_end_start
 
         assert2 ::= expr
                     POP_JUMP_IF_TRUE
+                    bb_end_start
                     LOAD_ASSERT
                     expr
                     CALL_FUNCTION_1
