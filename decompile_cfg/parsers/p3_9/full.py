@@ -396,14 +396,22 @@ class Python3_9ParserFull(Python3_9LambdaParser, Python3_9FullCustom):
         # of "ifstmt".
         ifstmt        ::= testexpr BB_START ifstmts_jump
 
+        # This is probably the most common kind of if statement -
+        # there is no "return" or assert before the the "endif"
+        ifstmt        ::= testexpr BB_START ifstmts_jump
+                          BLOCK_END_JOIN
+                          BB_START
+
         # The following can happen if the end of the ifstmt raises an
         # exception or issues a return
         ifstmt        ::= testexpr BB_START ifstmts_jump
                           BB_START NOT_FALLEN_INTO_BLOCK
 
-        # The additional BLOCK_END_JOIN is inserted when
-        # the assert is right before the implicit
-        # "return None" at the end of a function.
+        # Possibly not needed any more. This might have
+        # been caused by a bug in control flow.
+        # # The additional BLOCK_END_JOIN is inserted when
+        # # the assert is right before the implicit
+        # # "return None" at the end of a function.
         ifstmt        ::= testexpr BB_START ifstmts_jump
                           BLOCK_END_JOIN
                           BB_START NOT_FALLEN_INTO_BLOCK
