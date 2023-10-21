@@ -39,6 +39,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         # "and" is the final reduction that hooks into the higher level
         # levels of the grammar.
+        and               ::= and_parts
         and               ::= and_parts BLOCK_END_JOIN
         expr_jifop_and    ::= expr_jifop BB_START and BLOCK_END_JOIN
         expr_jifop_and    ::= expr_jifop BB_START expr_jifop_and BLOCK_END_JOIN
