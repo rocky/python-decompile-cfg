@@ -30,17 +30,18 @@ want to run on earlier Python versions.
 """
 
 import sys
-from typing import Optional
 from collections import deque
+from py_compile import PyCompileError
+from typing import Optional
 
 from xdis import check_object_path, iscode, load_module
+
 from decompile_cfg.scanner import get_scanner
 from decompile_cfg.semantics.pysource import (
-    code_deparse,
     PARSER_DEFAULT_DEBUG,
     TREE_DEFAULT_DEBUG,
+    code_deparse,
 )
-from py_compile import PyCompileError
 
 
 def disco_deparse(
@@ -84,8 +85,7 @@ def disco_deparse(
 def disco_deparse_loop(
     version: Optional[tuple],
     disasm,
-    codename_map:
-    dict,
+    codename_map: dict,
     queue,
     real_out,
     is_pypy,
@@ -93,7 +93,6 @@ def disco_deparse_loop(
     start_offset: int = 0,
     stop_offset: int = -1,
 ):
-
     while len(queue) > 0:
         co = queue.popleft()
         skip_token_scan = False
@@ -135,8 +134,8 @@ def decompile_code_type(
     codename_map: dict,
     outstream=None,
     showasm=None,
-    showast: dict=TREE_DEFAULT_DEBUG,
-    showgrammar: dict=PARSER_DEFAULT_DEBUG,
+    showast: dict = TREE_DEFAULT_DEBUG,
+    showgrammar: dict = PARSER_DEFAULT_DEBUG,
     start_offset=0,
     stop_offset=-1,
 ) -> bool:
@@ -170,9 +169,7 @@ def decompile_code_type(
                 stop_offset=stop_offset,
             )
     else:
-        disco_deparse(
-            version, co, codename_map, outstream, is_pypy, debug_opts
-        )
+        disco_deparse(version, co, codename_map, outstream, is_pypy, debug_opts)
     return True
 
 
@@ -192,7 +189,7 @@ def decompile_dict_comprehensions(
     decompile all dict_comprehensions of the corresponding compiled object.
     """
     return decompile_code_type(
-        filename, {"<dictcomp>":  "dictcomp"}, outstream, showasm, showast, showgrammar
+        filename, {"<dictcomp>": "dictcomp"}, outstream, showasm, showast, showgrammar
     )
 
 
@@ -213,14 +210,18 @@ def decompile_all_fragments(
     decompile all dict_comprehensions of the corresponding compiled object.
     """
     return decompile_code_type(
-        filename, {
+        filename,
+        {
             "<dictcomp>": "dictcomp",
             "<genexpr>": "genexpr",
             "<lambda>": "lambda",
             "<listcomp>": "listcomp",
-            "<setcomp>": "setcomp"
-            },
-        outstream, showasm, showast, showgrammar,
+            "<setcomp>": "setcomp",
+        },
+        outstream,
+        showasm,
+        showast,
+        showgrammar,
         start_offset=start_offset,
         stop_offset=stop_offset,
     )
@@ -257,8 +258,8 @@ def decompile_lambda_fns(
     filename: str,
     outstream=None,
     showasm=None,
-    showgrammar: dict=PARSER_DEFAULT_DEBUG,
-    showast: dict=TREE_DEFAULT_DEBUG,
+    showgrammar: dict = PARSER_DEFAULT_DEBUG,
+    showast: dict = TREE_DEFAULT_DEBUG,
     start_offset=0,
     stop_offset=-1,
 ) -> Optional[bool]:
@@ -269,10 +270,14 @@ def decompile_lambda_fns(
     decompile all lambdas of the corresponding compiled object.
     """
     return decompile_code_type(
-        filename, {"<lambda>": "lambda"}, outstream, showasm, showast, showgrammar,
+        filename,
+        {"<lambda>": "lambda"},
+        outstream,
+        showasm,
+        showast,
+        showgrammar,
         start_offset=start_offset,
         stop_offset=stop_offset,
-
     )
 
 
@@ -280,8 +285,8 @@ def decompile_list_comprehensions(
     filename: str,
     outstream=None,
     showasm=None,
-    showast: dict=TREE_DEFAULT_DEBUG,
-    showgrammar: dict=PARSER_DEFAULT_DEBUG,
+    showast: dict = TREE_DEFAULT_DEBUG,
+    showgrammar: dict = PARSER_DEFAULT_DEBUG,
     start_offset=0,
     stop_offset=-1,
 ) -> Optional[bool]:
@@ -292,7 +297,12 @@ def decompile_list_comprehensions(
     decompile all list_comprehensions of the corresponding compiled object.
     """
     return decompile_code_type(
-        filename, {"<listcomp>": "listcomp"}, outstream, showasm, showast, showgrammar,
+        filename,
+        {"<listcomp>": "listcomp"},
+        outstream,
+        showasm,
+        showast,
+        showgrammar,
         start_offset=start_offset,
         stop_offset=stop_offset,
     )
