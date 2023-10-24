@@ -16,8 +16,6 @@ def test_grammar():
         # p.dump_grammar()
         p.check_grammar()
 
-@pytest.mark.skipif(PYTHON_VERSION_TRIPLE >= (3, 10),
-                    reason="Decompiler not finished yet for 3.10")
 def test_lambda_expr():
     x = lambda x, y: ("0" <= x <= "9")  # noqa
     # x = lambda x, y: (  # noqa

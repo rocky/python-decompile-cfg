@@ -232,8 +232,8 @@ class Scanner38Base(Scanner):
             dfs_forest(cfg.pdom_tree, True)
             build_dom_set(cfg.pdom_tree, True)
             if show_asm in ("both", "before"):
-                dot_path = "/tmp/flow-pdom-%s.dot" % name
-                png_path = "/tmp/flow-pdom-%s.png" % name
+                dot_path = f"/tmp/flow-pdom-{name}-{version}.dot"
+                png_path = f"/tmp/flow-pdom-{name}-{version}.png"
                 open(dot_path, "w").write(cfg.pdom_tree.to_dot())
                 print("%s written" % dot_path)
                 os.system("dot -Tpng %s > %s" % (dot_path, png_path))

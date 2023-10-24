@@ -1126,6 +1126,7 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
 
         return_expr               ::= expr RETURN_VALUE
         return_expr               ::= expr RETURN_VALUE BB_END
+        return_expr               ::= expr_return
 
         # This is wrong and control_flow may need fixing.
         block_end_joins           ::= BLOCK_END_JOIN+
