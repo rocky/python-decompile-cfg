@@ -315,10 +315,10 @@ class PythonParserExpr(PythonBaseParser):
 
     def p_start_rule_expr(self, args):
         """
-        expr_start       ::= dom_start
+        expr_start       ::= BB_START
                              expr
                              return_value_opt
-                             dom_end_opt
+                             BB_END
         return_value_opt ::= RETURN_VALUE?
         """
 

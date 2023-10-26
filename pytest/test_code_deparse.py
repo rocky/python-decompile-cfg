@@ -1,4 +1,7 @@
 import pytest
+
+from xdis.version_info import PYTHON_VERSION_TRIPLE
+
 from decompile_cfg import code_deparse
 from decompile_cfg.semantics.pysource import DEFAULT_DEBUG_OPTS
 
@@ -18,7 +21,7 @@ def run_deparse(expr: str, compile_mode: str, debug=False) -> object:
 
         print(dis.dis(code))
         debug_opts["grammar"]["reduce"] = True
-        # debug_opts["grammar"]["rules"] = True
+        debug_opts["grammar"]["rules"] = True
         debug_opts["asm"] = "both"
         debug_opts["tree"] = {"after": True, "before": True}
 
@@ -53,7 +56,7 @@ def test_single_mode() -> None:
 
     for expr in expressions:
         try:
-            print("expr:", expr)
+            print("single expr:", expr)
             deparsed = run_deparse(expr, compile_mode="single", debug=False)
         except Exception:
             assert False, expr
@@ -65,18 +68,23 @@ def test_single_mode() -> None:
             maybe_show_tree(deparsed, deparsed.ast)
         assert deparsed.text == expr + "\n" if deparsed.text.endswith("\n") else expr
 
-@pytest.mark.skip(reason="Decompiler not finished yet for 3.8")
 def test_eval_mode():
-    expressions = (
+    expressions = [
         "1",
         "j % 4",
-        "k == 1 or k == 2",
-        "i and (j or k)",
-        "i and j or k",
-    )
+    ]
+
+    # FIXME:
+    if PYTHON_VERSION_TRIPLE < (3, 10):
+        expressions += [
+            "k == 1 or k == 2",
+            "i and (j or k)",
+            "i and j or k",
+        ]
 
     for expr in expressions:
         try:
+            print("expr:", expr)
             deparsed = run_deparse(expr, compile_mode="eval", debug=False)
         except Exception:
             assert False, expr
