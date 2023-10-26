@@ -379,12 +379,9 @@ class PythonParserSingle(PythonBaseParser):
     def p_start_rule_single(self, args):
         """
         # The start or goal symbol
-        single_start ::= dom_start
-                         expr PRINT_EXPR
-                         dom_end_opt
-        single_start ::= dom_start
-                         stmt
-                         dom_end_opt
+        # FIXME: why no BB-start/end? Is there are bug in control-flow for <string>?
+        single_start ::= expr PRINT_EXPR
+        single_start ::= stmt
         """
 
     def __init__(self, debug_parser: dict, start_symbol="single_start"):

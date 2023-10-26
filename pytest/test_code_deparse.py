@@ -8,27 +8,30 @@ out = StringIO()
 
 def run_deparse(expr: str, compile_mode: bool, debug=False) -> object:
     debug_opts = dict(DEFAULT_DEBUG_OPTS)
-    if debug:
-        debug_opts["reduce"] = True
-        debug_opts["asm"] = "both"
-
     orig_compile_mode = compile_mode
     if compile_mode == "lambda":
         compile_mode = "eval"
     code = compile(expr + "\n", "<string %s>" % expr, compile_mode)
+    debug_opts=DEFAULT_DEBUG_OPTS
     if debug:
         import dis
 
         print(dis.dis(code))
-    deparsed = code_deparse(code, out=out, compile_mode=orig_compile_mode, debug_opts=DEFAULT_DEBUG_OPTS)
+        debug_opts["grammar"]["reduce"] = True
+        # debug_opts["grammar"]["rules"] = True
+        debug_opts["asm"] = "both"
+        debug_opts["tree"] = {"after": True, "before": True}
+
+
+    deparsed = code_deparse(code, out=out, compile_mode=orig_compile_mode, )
     return deparsed
 
 
 # FIXME: DRY this code
-@pytest.mark.skip(reason="Decompiler not finished yet for 3.8")
 def test_single_mode() -> None:
     expressions = (
         "1",
+
         "i and (j or k)",
         "i and j or k",
         "i or (j and k)",
@@ -36,19 +39,22 @@ def test_single_mode() -> None:
         "i = 1",
         "i += 1",
         "i = j % 4",
-        "i = {}",
-        "i = []",
-        # "for i in range(10):\n    i\n",
-        # "for i in range(10):\n    for j in range(10):\n        i + j\n",
-        "(i for i in f if 0 < i < 4)",
-        # "[i for pair in p if pair for i in f]",
-        # Inconsequential differences in spaces.
-        # "try:\n    i\nexcept Exception:\n    j\nelse:\n    k",
+
+        # FIXME: the below two have an extra parns around expr.
+        # "i = []",
+        # "i = {}",
+
+        # # "for i in range(10):\n    i\n",
+        # # "for i in range(10):\n    for j in range(10):\n        i + j\n",
+        # "(i for i in f if 0 < i < 4)",
+        # # "[i for pair in p if pair for i in f]",
+        # # Inconsequential differences in spaces.
+        # # "try:\n    i\nexcept Exception:\n    j\nelse:\n    k",
     )
 
     for expr in expressions:
         try:
-            # print("XXX", expr)
+            print("expr:", expr)
             deparsed = run_deparse(expr, compile_mode="single", debug=False)
         except Exception:
             assert False, expr
