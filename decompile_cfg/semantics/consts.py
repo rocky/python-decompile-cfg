@@ -49,12 +49,14 @@ PARENTHESIS_ALWAYS = -2
 
 # fmt: off
 PRECEDENCE = {
-    "dict":                   NO_PARENTHESIS_EVER,   # {expressions...}
-    "generator_exp":          NO_PARENTHESIS_EVER,   # (expressions...)
-    "list":                   NO_PARENTHESIS_EVER,   # [expressions...]
     "return_expr":            NO_PARENTHESIS_EVER,
 
-    "named_expr":             40,  # :=
+    "named_expr":             42,  # :=
+
+    "dict":                   40,   # {expressions...}
+    "generator_exp":          40,   # (expressions...)
+    "list":                   40,   # [expressions...]
+
     "yield_from":             38,
     "tuple_list_starred":     38,  # *x, *y, *z - about at the level of yield?
     "unpack":                 38,  # A guess. Used in "async with ... as ...
@@ -301,7 +303,7 @@ TABLE_DIRECT = {
     "assign": (
         "%|%c = %p\n",
         -1,
-        (0, ("expr", "branch_op"), PRECEDENCE["tuple_list_starred"] + 1)
+        (0, ("expr", "branch_op"), PRECEDENCE["list"] + 1)
         ),
 
     "attribute": (

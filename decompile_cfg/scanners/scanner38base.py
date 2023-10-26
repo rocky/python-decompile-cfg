@@ -101,12 +101,13 @@ class Scanner38Base(Scanner):
             self.opc.DELETE_SUBSCR,
             self.opc.RETURN_VALUE,
             self.opc.RAISE_VARARGS,
-            self.opc.PRINT_EXPR,
             self.opc.JUMP_ABSOLUTE,
             # These are phony for 3.8+
             self.opc.BREAK_LOOP,
             self.opc.CONTINUE_LOOP,
         ]
+        if hasattr(self.opc, "PRINT_EXPR"):
+            statement_opcodes.append(self.opc.PRINT_EXPR)
 
         self.statement_opcodes = frozenset(statement_opcodes) | self.setup_ops_no_loop
 
@@ -212,8 +213,9 @@ class Scanner38Base(Scanner):
                 name = name[:-1]
         try:
             version = version_tuple_to_str(self.opc.version_tuple, end=2)
-            dot_path = f"/tmp/flow-{name}-{version}.dot"
-            png_path = f"/tmp/flow-{name}-{version}.png"
+            path_safe = name.translate(name.maketrans(" <>", "_[]"))
+            dot_path = f"/tmp/flow-{path_safe}-{version}.dot"
+            png_path = f"/tmp/flow-{path_safe}-{version}.png"
             if show_asm in ("both", "before", "after"):
                 open(dot_path, "w").write(cfg.graph.to_dot(False))
                 print("%s written" % dot_path)
@@ -232,8 +234,9 @@ class Scanner38Base(Scanner):
             dfs_forest(cfg.pdom_tree, True)
             build_dom_set(cfg.pdom_tree, True)
             if show_asm in ("both", "before"):
-                dot_path = f"/tmp/flow-pdom-{name}-{version}.dot"
-                png_path = f"/tmp/flow-pdom-{name}-{version}.png"
+                path_safe = name.translate(name.maketrans(" <>", "_[]"))
+                dot_path = f"/tmp/flow-pdom-{path_safe}-{version}.dot"
+                png_path = f"/tmp/flow-pdom-{path_safe}-{version}.png"
                 open(dot_path, "w").write(cfg.pdom_tree.to_dot())
                 print("%s written" % dot_path)
                 os.system("dot -Tpng %s > %s" % (dot_path, png_path))

@@ -6,7 +6,7 @@ from io import StringIO
 
 out = StringIO()
 
-def run_deparse(expr: str, compile_mode: bool, debug=False) -> object:
+def run_deparse(expr: str, compile_mode: str, debug=False) -> object:
     debug_opts = dict(DEFAULT_DEBUG_OPTS)
     orig_compile_mode = compile_mode
     if compile_mode == "lambda":
@@ -40,9 +40,8 @@ def test_single_mode() -> None:
         "i += 1",
         "i = j % 4",
 
-        # FIXME: the below two have an extra parns around expr.
-        # "i = []",
-        # "i = {}",
+        "i = []",
+        "i = {}",
 
         # # "for i in range(10):\n    i\n",
         # # "for i in range(10):\n    for j in range(10):\n        i + j\n",
