@@ -46,6 +46,7 @@ def test_single_mode() -> None:
         "i = []",
         "i = {}",
 
+        # FIXME:
         # # "for i in range(10):\n    i\n",
         # # "for i in range(10):\n    for j in range(10):\n        i + j\n",
         # "(i for i in f if 0 < i < 4)",
@@ -72,12 +73,12 @@ def test_eval_mode():
     expressions = [
         "1",
         "j % 4",
+        "k == 1 or k == 2",
     ]
 
     # FIXME:
     if PYTHON_VERSION_TRIPLE < (3, 10):
         expressions += [
-            "k == 1 or k == 2",
             "i and (j or k)",
             "i and j or k",
         ]
@@ -98,7 +99,6 @@ def test_eval_mode():
             maybe_show_tree(deparsed, deparsed.ast)
         assert deparsed.text == expr
 
-@pytest.mark.skip(reason="Needs going over")
 def test_lambda_mode():
     expressions = (
         "lambda d=b'': 5",

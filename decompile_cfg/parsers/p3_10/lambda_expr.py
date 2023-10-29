@@ -1128,6 +1128,12 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         return_expr               ::= expr RETURN_VALUE BB_END
         return_expr               ::= expr_return
 
+        # This is used in eval/expr variations. Perhaps it should be
+        # in another file.
+        return_expr_eval ::= branch_op RETURN_VALUE BB_END
+                             BB_START NOT_FALLEN_INTO_BLOCK
+                             RETURN_VALUE
+
         # This is wrong and control_flow may need fixing.
         block_end_joins           ::= BLOCK_END_JOIN+
         return_expr               ::= expr RETURN_VALUE BB_END block_end_joins
