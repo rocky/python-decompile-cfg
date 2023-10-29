@@ -157,6 +157,7 @@ class Python3_10ParserFull(Python3_10LambdaParser, Python3_10FullCustom):
         expr_stmt ::= branch_op dom_start POP_TOP
         call_stmt ::= call
 
+        #################
         # This section is in 3.10+ only.
         expr_stmt        ::= return_expr_stmt
 
@@ -168,14 +169,16 @@ class Python3_10ParserFull(Python3_10LambdaParser, Python3_10FullCustom):
 
         pop_return_expr  ::= POP_TOP LOAD_CONST RETURN_VALUE BB_END
 
+        # No BB_END at end. Should we rename this?
         expr_jifop_and ::= expr_jifop BB_START expr_jifop_and
+
         and_parts_return ::= expr_jifop BB_START expr BB_START NOT_FALLEN_INTO_BLOCK
                             POP_TOP
         and              ::= and_parts_return
 
-        branch_op ::= or_return BB_START NOT_FALLEN_INTO_BLOCK pop_return_expr
+        expr ::= branch_op_return
+        branch_op_return ::= or_return BB_START NOT_FALLEN_INTO_BLOCK pop_return_expr
         or_return ::= or pop_return_expr
-
 
         #################
 

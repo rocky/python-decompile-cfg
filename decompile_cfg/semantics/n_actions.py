@@ -533,7 +533,7 @@ class NonterminalActions:
         #     hasattr(self, 'current_line_number')):
         #     self.source_linemap[self.current_line_number] = n.linestart
 
-        if first_child == "branch_op":
+        if first_child.kind in ("branch_op", "branch_op_return"):
             n = n[0]
 
         if n.kind != "expr":

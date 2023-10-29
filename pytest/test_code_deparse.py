@@ -71,8 +71,8 @@ def test_single_mode() -> None:
 
 def test_eval_mode():
     expressions = [
-        # "1",
-        # "j % 4",
+        "1",
+        "j % 4",
         "k == 1 or k == 2",
     ]
 

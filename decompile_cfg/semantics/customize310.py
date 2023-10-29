@@ -32,7 +32,21 @@ def customize_for_version3_10(self):
     # the below is just the default version
     TABLE_DIRECT.update(
         {
+            "and_parts_return":
+            (
+                "%p and %p",
+                (0,  ("expr_jifop", "or_and_part"), PRECEDENCE["and"]),
+                (1,  ("expr", "and_part"), PRECEDENCE["and"]),
+            ),
             "await_expr": ("await %p", (1, PRECEDENCE["await_expr"] - 1)),
+            "branch_op_return": (
+                "%c",
+                (0, ("branch_op", "or_return")),
+            ),
+            "or_return": (
+                "%c",
+                (0, "or"),
+            ),
             "yield_from": ("yield from %c", (1, "expr")),
         }
     )
