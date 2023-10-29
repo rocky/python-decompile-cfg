@@ -1009,7 +1009,8 @@ class Python3_8ParserFull(Python3_8LambdaParser, Python3_8FullCustom):
         # Note: lambda_expr.py has jump_or_break ::= jump
         jump_or_break      ::= BREAK_LOOP
 
-        return_expr ::= expr
+        # This messes up call arguments:
+        # return_expr ::= expr
 
         # FIXME: simplify this
         return_expr_or_cond ::= if_exp_ret

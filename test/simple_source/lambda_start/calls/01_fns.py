@@ -19,21 +19,21 @@ lambda s=b'': s
 lambda f, *args: f(args)
 lambda func, *args, **kw: func(args, *args, **kw)
 
-# lambda func, *args, **kw: func(**kw)
+lambda func, *args, **kw: func(**kw)
 
-# lambda no_apply, *args, **kwargs: no_apply(*args, **kwargs)
-# lambda no_apply, *args, **kwargs: no_apply(1, *args, **kwargs)
-# lambda no_apply, *args, **kwargs: no_apply(1, 2, *args, **kwargs)
-# lambda no_apply, *args, **kwargs: no_apply(x = 11, *args, **kwargs)
-# lambda no_apply, *args, **kwargs: no_apply(34, x = 11, *args, **kwargs)
-# lambda no_apply, *args, **kwargs: no_apply(42, 34, x = 11, *args, **kwargs)
-# lambda func, *args, **kw: func(*args, **kw)
-# lambda self, *args, **kw: func(self, *args, **kw)
+lambda no_apply, *args, **kwargs: no_apply(*args, **kwargs)
+lambda no_apply2, *args, **kwargs: no_apply2(1, *args, **kwargs)
+lambda no_apply3, *args, **kwargs: no_apply3(1, 2, *args, **kwargs)
+lambda no_apply4, *args, **kwargs: no_apply4(x = 11, *args, **kwargs)
+lambda no_apply5, *args, **kwargs: no_apply5(34, x = 11, *args, **kwargs)
+lambda no_apply6, *args, **kwargs: no_apply6(42, 34, x = 11, *args, **kwargs)
+lambda func, *args, **kw: func(*args, **kw)
+lambda self, *args, **kw: func(self, *args, **kw)
 
 
-# lambda func, *args, **kw: func(*args,
-#                                **kw)
+lambda func, *args, **kw: func(*args,
+                                **kw)
 
-# lambda self, *args, **kw: func(self,
-#                                *args,
-#                                **kw)
+lambda self, *args, **kw: func(self,
+                               *args,
+                               **kw)
