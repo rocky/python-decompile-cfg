@@ -323,6 +323,9 @@ class PythonParserExpr(PythonBaseParser):
                              return_expr_eval
                              BB_END
                              BLOCK_END_JOIN_NO_ARG
+        expr_start       ::= BB_START
+                             return_expr_eval
+                             BLOCK_END_JOIN_NO_ARG
         return_value_opt ::= RETURN_VALUE?
 
         """

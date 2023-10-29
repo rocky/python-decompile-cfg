@@ -72,6 +72,7 @@ def test_single_mode() -> None:
 def test_eval_mode():
     expressions = [
         "1",
+        "i and j or k",
         "j % 4",
         "k == 1 or k == 2",
     ]
@@ -80,7 +81,6 @@ def test_eval_mode():
     if PYTHON_VERSION_TRIPLE < (3, 10):
         expressions += [
             "i and (j or k)",
-            "i and j or k",
         ]
 
     for expr in expressions:
