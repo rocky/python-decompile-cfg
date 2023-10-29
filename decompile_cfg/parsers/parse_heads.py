@@ -319,7 +319,12 @@ class PythonParserExpr(PythonBaseParser):
                              expr
                              return_value_opt
                              BB_END
+        expr_start       ::= BB_START
+                             return_expr_eval
+                             BB_END
+                             BLOCK_END_JOIN_NO_ARG
         return_value_opt ::= RETURN_VALUE?
+
         """
 
     def __init__(self, debug_parser: dict, start_symbol="expr_start"):

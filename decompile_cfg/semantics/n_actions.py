@@ -563,7 +563,8 @@ class NonterminalActions:
         else:
             template = (
                 "%|%p\n",
-                (0, ("expr", "expr_return"), PRECEDENCE["named_expr"] - 1),
+                (0, ("expr", "expr_return", "return_expr_stmt"),
+                 PRECEDENCE["named_expr"] - 1),
             )
         self.template_engine(template, node)
         self.prune()
