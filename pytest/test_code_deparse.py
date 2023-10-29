@@ -99,7 +99,6 @@ def test_eval_mode():
             maybe_show_tree(deparsed, deparsed.ast)
         assert deparsed.text == expr
 
-@pytest.mark.skip(reason="Needs going over")
 def test_lambda_mode():
     expressions = (
         "lambda d=b'': 5",
