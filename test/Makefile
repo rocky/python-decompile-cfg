@@ -51,10 +51,10 @@ check-bytecode-3: \
 #: Check deparsing 3.8 bytecode
 check-bytecode-3.8: \
     check-bytecode-3.8-lambda \
+    check-bytecode-3.8-run
     # check-bytecode-3.8-generator \
     # check-bytecode-3.8-set-comprehension \
     # check-bytecode-3.8-dict-comprehension \
-    # check-bytecode-3.8-run
 
 #: Check deparsing 3.9 bytecode
 check-bytecode-3.9: \

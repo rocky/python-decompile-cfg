@@ -740,12 +740,21 @@ class NonterminalActions:
                 endchar = ")"
                 pass
 
+        elif lastnodetype == 'list_unpack':
+            # FIXME: not quite right.
+            self.write("[")
+            endchar = "]"
+            if lastnode[-1].attr == 1:
+                flat_elems = lastnode[1]
+            else:
+                raise TypeError(
+                    "Internal Error: not implemented yet"
+                )
         elif lastnodetype.startswith("ROT_TWO"):
             self.write("(")
             endchar = ")"
 
         else:
-            # from trepan.api import debug; debug()
             raise TypeError(
                 "Internal Error: n_build_list expects list, tuple, set, or unpack"
             )
@@ -755,7 +764,7 @@ class NonterminalActions:
         for elem in flat_elems:
             if elem in ("ROT_THREE", "EXTENDED_ARG"):
                 continue
-            assert elem in ("expr", "arg", "list", "lists", "branch_op")
+            assert elem in ("expr", "arg", "list", "lists", "branch_op", "constant")
             line_number = self.line_number
             value = self.traverse(elem)
             if line_number != self.line_number:
