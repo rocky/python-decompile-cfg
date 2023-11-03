@@ -364,10 +364,12 @@ class TreeTransform(GenericASTTraversal, object):
             if testtrue_or_false == "testexpr":
                 testtrue_or_false = testtrue_or_false[0]
 
+            raise_stmt_1st_child = raise_stmt.first_child()
             if (
                 raise_stmt == "raise_stmt1"
                 and 1 <= len(testtrue_or_false) <= 2
-                and raise_stmt.first_child().pattr == "AssertionError"
+                and (raise_stmt_1st_child.pattr == "AssertionError" or
+                     raise_stmt_1st_child == "LOAD_ASSERTION_ERROR")
             ):
                 if testtrue_or_false in ("testtrue", "testtruec"):
                     # Skip over the testtrue because because it would
@@ -393,7 +395,7 @@ class TreeTransform(GenericASTTraversal, object):
 
                 expr = raise_stmt[0]
                 RAISE_VARARGS_1 = raise_stmt[1]
-                call = expr[0]
+                call = expr[0] if expr != "LOAD_ASSERTION_ERROR" else expr
                 if call == "call":
                     # ifstmt
                     #     0. testexpr
@@ -460,7 +462,7 @@ class TreeTransform(GenericASTTraversal, object):
                         assert jump_cond.kind.startswith("POP_JUMP_IF_")
                         kind = "assertnot"
 
-                    LOAD_ASSERT = expr[0]
+                    LOAD_ASSERT = call
                     node = SyntaxTree(
                         kind,
                         [assert_expr, jump_cond, LOAD_ASSERT, RAISE_VARARGS_1],
@@ -706,6 +708,10 @@ class TreeTransform(GenericASTTraversal, object):
                         ],
                         transformed_by="transform",
                     )
+                    if self.ast[i] == "stmts":
+                        del self.ast[i][0]
+                    else:
+                        del self.ast[i]
                     del node
                     self.ast.insert(0, docstring_ast)
                     break

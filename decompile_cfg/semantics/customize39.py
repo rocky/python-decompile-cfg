@@ -24,7 +24,6 @@ from decompile_cfg.semantics.consts import PRECEDENCE, TABLE_DIRECT
 
 
 def customize_for_version3_9(self):
-
     # fmt: off
     PRECEDENCE["call_ex_3_9"] = 1
     PRECEDENCE["and2"]       = PRECEDENCE["and"]
@@ -104,7 +103,14 @@ def customize_for_version3_9(self):
 
         seen_arg = False
         first_child = node[1].first_child()
-        star_args = None if first_child == "BUILD_TUPLE_0" else node[1]
+        if self.version < (3, 10):
+            star_args = None if first_child == "BUILD_TUPLE_0" else node[1]
+        else:
+            star_args = (
+                None
+                if first_child == "LOAD_CONST" and first_child.attr == tuple()
+                else node[1]
+            )
 
         star_star_kwargs = None
 
