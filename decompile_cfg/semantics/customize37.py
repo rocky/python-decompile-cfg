@@ -1455,6 +1455,13 @@ def customize_for_version3_7(self):
                 # That's it
                 self.prune()
             self.write(", ")
+        elif pos_args == "tuple_list_starred":
+            # 3.9+ does this. Here we don't need to
+            # do anything but recurse.
+            self.n_tuple_list_starred(pos_args)
+            self.prune()
+
+            pass
         else:
             star_start = 0
         if node_len > 1:

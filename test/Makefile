@@ -59,6 +59,7 @@ check-bytecode-3.8: \
 #: Check deparsing 3.9 bytecode
 check-bytecode-3.9: \
     check-bytecode-3.9-lambda \
+    check-bytecode-3.9-run \
     # check-bytecode-3.9-generator \
     # check-bytecode-3.9-set-comprehension \
     # check-bytecode-3.9-dict-comprehension
@@ -66,6 +67,7 @@ check-bytecode-3.9: \
 #: Check deparsing 3.10 bytecode
 check-bytecode-3.10: \
     check-bytecode-3.10-lambda \
+    check-bytecode-3.10-run \
     # check-bytecode-3.10-generator \
     # check-bytecode-3.10-set-comprehension \
     # check-bytecode-3.10-dict-comprehension
@@ -135,6 +137,14 @@ check-bytecode-3.10-set-comprehension:
 check-bytecode-3.8-run:
 	$(PYTHON) test_pythonlib.py \
 	--bytecode-3.8 --run --verify-run
+
+check-bytecode-3.9-run:
+	$(PYTHON) test_pythonlib.py \
+	--bytecode-3.9 --run --verify-run
+
+check-bytecode-3.10-run:
+	$(PYTHON) test_pythonlib.py \
+	--bytecode-3.10 --run --verify-run
 
 check-bytecode-3-set-comprehension:
 	$(PYTHON) test_pythonlib.py \
