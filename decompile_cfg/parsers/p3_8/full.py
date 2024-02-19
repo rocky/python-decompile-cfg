@@ -135,6 +135,9 @@ class Python3_8ParserFull(Python3_8LambdaParser, Python3_8FullCustom):
         stmts_opt ::= pass
 
         stmts  ::= stmt+
+        stmts  ::= stmt BB_START stmts
+        stmts  ::= stmt BB_START NOT_FALLEN_INTO_BLOCK stmts
+
         stmts  ::= stmts last_stmt
         _stmts ::= stmts
 
@@ -1055,8 +1058,6 @@ class Python3_8ParserFull(Python3_8LambdaParser, Python3_8FullCustom):
         ifstmts_jumpc             ::= c_stmts
         ifstmts_jumpc             ::= c_stmts JUMP_LOOP
 
-        ifstmts_jump              ::= stmts come_froms
-        ifstmts_jump              ::= COME_FROM stmts come_froms
 
 
         # The following can happen when the jump offset is large and

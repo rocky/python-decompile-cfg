@@ -35,6 +35,14 @@ def ifstmt_ok(
         i = self.offset2inst_index[last_child.offset]
         inst = self.insts[i]
 
+        last_inst = tokens[last]
+        last_offset = last_inst.offset
+        if last_inst == "BB_END":
+            # We make use of the fact that in 3.6+
+            # "bytecode" is "wordcode "or all instructions
+            # are two bytes.
+            last_offset += 2
+
         if inst.opname == "BB_END":
             inst = self.insts[i-1]
 
@@ -43,7 +51,7 @@ def ifstmt_ok(
         then_endif_offset = inst.argval
 
         # print(f"XXX then jump: {then_endif_offset}, tokens[last] offset: {tokens[last].offset}")
-        if then_endif_offset != tokens[last].offset:
+        if then_endif_offset != last_offset:
             # print("XXX", first, last, rule)
             # for t in range(first, last): print(tokens[t])
             # print("="*40)
