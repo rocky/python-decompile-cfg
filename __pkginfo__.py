@@ -46,7 +46,7 @@ entry_points = {
     "console_scripts": [
         "decompile-cfg=decompile_cfg.bin.decompile:main_bin",
         "decompile-cfg-code=decompile_cfg.bin.decompile_code_type:main",
-        "disassemble-cfg=decompile_cfg.bin.disassemble:main",
+        "decompile-cfg-tokens=decompile_cfg.bin.decompile_cfg_tokens:main",
     ]
 }
 ftp_url = None
