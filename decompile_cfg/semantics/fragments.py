@@ -1053,64 +1053,52 @@ class FragmentsWalker(pysource.SourceWalker, object):
         # class definition ('class X(A,B,C):')
         cclass = self.currentclass
 
-        if self.version >= (3, 1):
-            if node == "classdefdeco2":
-                currentclass = node[1][2].pattr
-                buildclass = node
-            else:
-                currentclass = node[1][0].pattr
-                buildclass = node[0]
-
-            if buildclass[0] == "LOAD_BUILD_CLASS":
-                start = len(self.f.getvalue())
-                self.set_pos_info(buildclass[0], start, start + len("class") + 2)
-
-            assert "mkfunc" == buildclass[1]
-            mkfunc = buildclass[1]
-            if mkfunc[0] == "kwargs":
-                for n in mkfunc:
-                    if hasattr(n, "attr") and iscode(n.attr):
-                        subclass = n.attr
-                        break
-                    pass
-                subclass_info = node if node == "classdefdeco2" else node[0]
-            elif buildclass[1][0] == "load_closure":
-                # Python 3 with closures not functions
-                load_closure = buildclass[1]
-                if hasattr(load_closure[-3], "attr"):
-                    # Python 3.3 classes with closures work like this.
-                    # Note have to test before 3.2 case because
-                    # index -2 also has an attr.
-                    subclass = load_closure[-3].attr
-                elif hasattr(load_closure[-2], "attr"):
-                    # Python 3.2 works like this
-                    subclass = load_closure[-2].attr
-                else:
-                    raise RuntimeError(
-                        "Internal Error n_classdef: cannot find class" "body"
-                    )
-                if hasattr(buildclass[3], "__len__"):
-                    subclass_info = buildclass[3]
-                elif hasattr(buildclass[2], "__len__"):
-                    subclass_info = buildclass[2]
-                else:
-                    raise RuntimeError(
-                        "Internal Error n_classdef: cannot superclass" " name"
-                    )
-            else:
-                subclass = buildclass[1][0].attr
-                subclass_info = node[0]
+        if node == "classdefdeco2":
+            currentclass = node[1][2].pattr
+            buildclass = node
         else:
-            buildclass = node if (node == "classdefdeco2") else node[0]
-            build_list = buildclass[1][0]
-            if hasattr(buildclass[-3][0], "attr"):
-                subclass = buildclass[-3][0].attr
-                currentclass = buildclass[0].pattr
-            elif hasattr(node[0][0], "pattr"):
-                subclass = buildclass[-3][1].attr
-                currentclass = node[0][0].pattr
+            currentclass = node[1][0].pattr
+            buildclass = node[0]
+
+        if buildclass[0] == "LOAD_BUILD_CLASS":
+            start = len(self.f.getvalue())
+            self.set_pos_info(buildclass[0], start, start + len("class") + 2)
+
+        assert "mkfunc" == buildclass[1]
+        mkfunc = buildclass[1]
+        if mkfunc[0] == "kwargs":
+            for n in mkfunc:
+                if hasattr(n, "attr") and iscode(n.attr):
+                    subclass = n.attr
+                    break
+                pass
+            subclass_info = node if node == "classdefdeco2" else node[0]
+        elif buildclass[1][0] == "load_closure":
+            # Python 3 with closures not functions
+            load_closure = buildclass[1]
+            if hasattr(load_closure[-3], "attr"):
+                # Python 3.3 classes with closures work like this.
+                # Note have to test before 3.2 case because
+                # index -2 also has an attr.
+                subclass = load_closure[-3].attr
+            elif hasattr(load_closure[-2], "attr"):
+                # Python 3.2 works like this
+                subclass = load_closure[-2].attr
             else:
-                raise "Internal Error n_classdef: cannot find class name"
+                raise RuntimeError(
+                    "Internal Error n_classdef: cannot find class" "body"
+                )
+            if hasattr(buildclass[3], "__len__"):
+                subclass_info = buildclass[3]
+            elif hasattr(buildclass[2], "__len__"):
+                subclass_info = buildclass[2]
+            else:
+                raise RuntimeError(
+                    "Internal Error n_classdef: cannot superclass" " name"
+                )
+        else:
+            subclass = buildclass[1][0].attr
+            subclass_info = node[0]
 
         if node == "classdefdeco2":
             self.write("\n")
