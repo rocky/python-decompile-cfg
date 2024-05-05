@@ -15,6 +15,7 @@
 """Isolate Python 3.7 version-specific semantic actions here.
 """
 
+import re
 from spark_parser.ast import GenericASTTraversalPruningException
 from xdis import co_flags_is_async, iscode
 
@@ -808,15 +809,9 @@ def customize_for_version3_7(self):
                 raise RuntimeError(
                     "Internal Error n_classdef: cannot find " "class body"
                 )
-            if hasattr(build_class[3], "__len__"):
-                if not subclass_info:
-                    subclass_info = build_class[3]
-            elif hasattr(build_class[2], "__len__"):
-                subclass_info = build_class[2]
-            else:
-                raise RuntimeError(
-                    "Internal Error n_classdef: cannot " "superclass name"
-                )
+
+            subclass_info = build_class
+
         elif node == "classdefdeco2":
             subclass_info = node
             subclass_code = build_class[1][0].attr
