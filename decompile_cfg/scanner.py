@@ -1,4 +1,4 @@
-#  Copyright (c) 2016, 2018-2022 by Rocky Bernstein
+#  Copyright (c) 2016, 2018-2022, 2024 by Rocky Bernstein
 #  Copyright (c) 2005 by Dan Pascu <dan@windowmaker.org>
 #  Copyright (c) 2000-2002 by hartmut Goebel <h.goebel@crazy-compilers.com>
 #  Copyright (c) 1999 John Aycock
@@ -507,10 +507,6 @@ class Scanner(object):
     def setTokenClass(self, tokenClass) -> Token:
         self.Token = tokenClass
         return self.Token
-
-
-def parse_fn_counts(argc):
-    return ((argc & 0xFF), (argc >> 8) & 0xFF, (argc >> 16) & 0x7FFF)
 
 
 def get_scanner(version, is_pypy=False, show_asm=None):
