@@ -117,7 +117,7 @@ def disco_deparse_loop(
 
         # FIXME: disasm doesn't need to be done twice
         # if we pick out from the first disassembly.
-        tokens, _ = disasm(co, show_asm=None)
+        tokens, _ = disasm(co, show_asm=debug_opts.get("asm"))
         if skip_token_scan:
             continue
         for t in tokens:

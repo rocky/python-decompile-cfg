@@ -1,6 +1,4 @@
-#  Copyright (c) 2015-2022 by Rocky Bernstein
-#  Copyright (c) 2005 by Dan Pascu <dan@windowmaker.org>
-#  Copyright (c) 2000-2002 by hartmut Goebel <h.goebel@crazy-compilers.com>
+#  Copyright (c) 2015-2022, 2024 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -29,7 +27,6 @@ For example:
 Finally we save token information.
 """
 
-import os
 import os.path as osp
 import sys
 from typing import Tuple
@@ -40,8 +37,10 @@ from control_flow.augment_disasm import augment_instructions
 from control_flow.bb import basic_blocks
 from control_flow.cfg import ControlFlowGraph
 from control_flow.dominators import DominatorTree, build_dom_set, dfs_forest
+from control_flow.graph import write_dot
 from xdis import iscode
 from xdis.bytecode import _get_const_info
+from xdis.disasm import code_uniquify
 from xdis.version_info import version_tuple_to_str
 
 from decompile_cfg.scanner import Scanner, Token
@@ -175,10 +174,10 @@ class Scanner38Base(Scanner):
         # self.varargs_ops = frozenset(self.opc.hasvargs)
         return
 
-    def ingest(self, co, classname=None, code_objects={}, show_asm=None):
+    def ingest(self, co, classname=None, code_objects={}, show_asm=None) -> Tuple[list, dict]:
         """
         Pick out tokens from an decompile_cfg code object, and transform them,
-        returning a list of decompyle-ng Token's.
+        returning a list of decompile-cfg Token's.
 
         The transformations are made to assist the deparsing grammar.
         Specificially:
@@ -192,6 +191,12 @@ class Scanner38Base(Scanner):
         cause specific rules for the specific number of arguments they take.
 
         """
+        # list of tokens/instructions
+        tokens = []
+
+        # "customize" is in the process of going away here
+        customize = {}
+
         def tokens_append(j, token):
             tokens.append(token)
             self.offset2tok_index[token.offset] = j
@@ -200,50 +205,76 @@ class Scanner38Base(Scanner):
             return j
 
         bb_mgr = basic_blocks(co, self.offset2inst_index, version_tuple=self.version)
-        if show_asm in ("both", "before"):
-            for bb in bb_mgr.bb_list:
-                print("\t", bb)
+
+
+
         cfg = ControlFlowGraph(bb_mgr)
+        name = co.co_name
+
+        version = version_tuple_to_str(self.opc.version_tuple, end=2)
+
         name = co.co_name
         if name == "<module>":
             name = osp.basename(co.co_filename)
-        elif name.startswith("<"):
+            if name.endswith(".py"):
+                name = name[:-len(".py")]
+            # if re.match(r"^\d", name):
+            #     name = f"XX{name}"
+        elif name == "<lambda>":
+            name = code_uniquify(name[1:-1], co)
+        if name.startswith("<"):
             name = name[1:]
             if name.endswith(">"):
                 name = name[:-1]
-        try:
-            version = version_tuple_to_str(self.opc.version_tuple, end=2)
-            path_safe = name.translate(name.maketrans(" <>", "_[]"))
-            dot_path = f"/tmp/flow-{path_safe}-{version}.dot"
-            png_path = f"/tmp/flow-{path_safe}-{version}.png"
-            if show_asm in ("both", "before", "after"):
-                open(dot_path, "w").write(cfg.graph.to_dot(False))
-                print("%s written" % dot_path)
-                os.system("dot -Tpng %s > %s" % (dot_path, png_path))
-            dt = DominatorTree(cfg)
-            cfg.dom_tree = dt.tree(False)
-            dfs_forest(cfg.dom_tree, False)
-            build_dom_set(cfg.dom_tree, False)
-            if show_asm in ("both", "before", "after"):
-                open(dot_path, "w").write(cfg.dom_tree.to_dot())
-                print("%s written" % dot_path)
-                os.system("dot -Tpng %s > %s" % (dot_path, png_path))
+        safe_name = name.translate(name.maketrans(" <>", "_[]"))
 
-            # FIXME? Do we need reverse dominators?
-            cfg.pdom_tree = dt.tree(True)
-            dfs_forest(cfg.pdom_tree, True)
-            build_dom_set(cfg.pdom_tree, True)
-            if show_asm in ("both", "before"):
-                path_safe = name.translate(name.maketrans(" <>", "_[]"))
-                dot_path = f"/tmp/flow-pdom-{path_safe}-{version}.dot"
-                png_path = f"/tmp/flow-pdom-{path_safe}-{version}.png"
-                open(dot_path, "w").write(cfg.pdom_tree.to_dot())
-                print("%s written" % dot_path)
-                os.system("dot -Tpng %s > %s" % (dot_path, png_path))
+        if show_asm in ("both", "control-flow"):
+            write_dot(
+                safe_name,
+                f"/tmp/flow-{version}-",
+                cfg.graph,
+                write_png=True,
+                exit_node=cfg.exit_node,
+                )
+
+        try:
+            dt = DominatorTree(cfg)
+
+            cfg.dom_tree = dt.build_dom_tree()
+            dfs_forest(cfg.dom_tree)
+            cfg.graph.max_nesting = cfg.max_nesting_depth = cfg.dom_tree.max_nesting
+            build_dom_set(cfg.dom_tree, True)
+
+            if show_asm in ("both", "dominators"):
+                write_dot(
+                    safe_name,
+                    f"/tmp/flow-dom-{version}-",
+                    cfg.dom_tree,
+                    write_png=True,
+                    exit_node=cfg.exit_node,
+                )
+
+                write_dot(
+                    safe_name,
+                    f"/tmp/flow+dom-{version}-",
+                    cfg.graph,
+                    write_png=True,
+                    is_dominator_format=True,
+                    exit_node=cfg.exit_node,
+                )
+
+            assert cfg.graph
+
+            # FIXME
+            # compute "join" edges
 
             self.insts = augment_instructions(
                 co, cfg, self.opc, self.offset2inst_index, bb_mgr
             )
+
+            if show_asm in ("both", "before", "after"):
+                for inst in self.insts:
+                    print(inst.disassemble(self.opc))
 
         except Exception:
             import traceback
@@ -251,14 +282,25 @@ class Scanner38Base(Scanner):
             traceback.print_exc()
             print("Unexpected error:", sys.exc_info()[0])
             print("%s had an error" % name)
-            return ""
+            return tokens, customize
 
         if not show_asm:
             show_asm = self.show_asm
 
-        bytecode = self.build_instructions(co)
 
+        if self.is_pypy:
+            customize["PyPy"] = 0
+
+        # Scan for assertions. Later we will
+        # turn 'LOAD_GLOBAL' to 'LOAD_ASSERT'.
+        # 'LOAD_ASSERT' is used in assert statements.
+        self.load_asserts = set()
+
+        self.offset2tok_index = {}
+
+        bytecode = self.build_instructions(co)
         if show_asm in ("both", "before"):
+
             print("\n# ---- before tokenization:")
             bytecode.disassemble_bytes(
                 co.co_code,
@@ -273,21 +315,9 @@ class Scanner38Base(Scanner):
                 first_line_number = co.co_firstlineno
             )
 
-        # "customize" is in the process of going away here
-        customize = {}
 
-        if self.is_pypy:
-            customize["PyPy"] = 0
-
-        # Scan for assertions. Later we will
-        # turn 'LOAD_GLOBAL' to 'LOAD_ASSERT'.
-        # 'LOAD_ASSERT' is used in assert statements.
-        self.load_asserts = set()
-
-        # list of tokens/instructions
-        tokens = []
-        self.offset2tok_index = {}
-
+            for bb in bb_mgr.bb_list:
+                print("\t", bb)
         n = len(self.insts)
         for i, inst in enumerate(self.insts):
             # We need to detect the difference between:
