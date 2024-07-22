@@ -214,49 +214,47 @@ class Scanner38Base(Scanner):
         version = version_tuple_to_str(self.opc.version_tuple, end=2)
 
         name = co.co_name
-        if name == "<module>":
-            name = osp.basename(co.co_filename)
-            if name.endswith(".py"):
-                name = name[:-len(".py")]
-            # if re.match(r"^\d", name):
-            #     name = f"XX{name}"
-        elif name == "<lambda>":
+        file_part = osp.basename(co.co_filename)
+        if file_part.endswith(".py"):
+            file_part = file_part[:-len(".py")]
+        if name == "<lambda>":
             name = code_uniquify(name[1:-1], co)
         if name.startswith("<"):
             name = name[1:]
-            if name.endswith(">"):
-                name = name[:-1]
+        if name.endswith(">"):
+            name = name[:-1]
         safe_name = name.translate(name.maketrans(" <>", "_[]"))
 
         if show_asm in ("both", "control-flow"):
             write_dot(
                 safe_name,
-                f"/tmp/flow-{version}-",
+                f"/tmp/{file_part}-{name}-flow-{version}-",
                 cfg.graph,
                 write_png=True,
                 exit_node=cfg.exit_node,
                 )
 
         try:
-            dt = DominatorTree(cfg)
-
-            cfg.dom_tree = dt.build_dom_tree()
-            dfs_forest(cfg.dom_tree)
-            cfg.graph.max_nesting = cfg.max_nesting_depth = cfg.dom_tree.max_nesting
-            build_dom_set(cfg.dom_tree, True)
+            # DRY with code in build_control_flow.py
+            cfg.dom_tree = DominatorTree(cfg, False)
+            assert cfg.dom_tree is not None
+            cfg.dom_forest = cfg.dom_tree.build_dom_tree()
+            dfs_forest(cfg.dom_forest)
+            cfg.graph.max_nesting = cfg.max_nesting_depth = cfg.dom_forest.max_nesting
+            build_dom_set(cfg.dom_forest, True)
 
             if show_asm in ("both", "dominators"):
                 write_dot(
                     safe_name,
-                    f"/tmp/flow-dom-{version}-",
-                    cfg.dom_tree,
+                    f"/tmp/{file_part}-flow-dom-{version}-",
+                    cfg.dom_forest,
                     write_png=True,
                     exit_node=cfg.exit_node,
                 )
 
                 write_dot(
                     safe_name,
-                    f"/tmp/flow+dom-{version}-",
+                    f"/tmp/{file_part}-flow+dom-{version}-",
                     cfg.graph,
                     write_png=True,
                     is_dominator_format=True,

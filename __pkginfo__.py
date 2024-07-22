@@ -25,7 +25,7 @@ import os.path as osp
 
 # Things that change more often go here.
 copyright = """
-Copyright (C) 2021-2023 Rocky Bernstein <rb@dustyfeet.com>.
+Copyright (C) 2021-2024 Rocky Bernstein <rb@dustyfeet.com>.
 """
 
 classifiers = [
@@ -54,7 +54,7 @@ install_requires = [
     "click",
     "control_flow >= 0.9",
     "spark-parser >= 1.8.9, < 1.9.0",
-    "xdis >= 6.0.3,<6.2.0",
+    "xdis >= 6.1.1,<6.2.0",
 ]
 
 license = "GPL3"

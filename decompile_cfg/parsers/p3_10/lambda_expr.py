@@ -41,8 +41,8 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         # levels of the grammar.
         and               ::= and_parts
         and               ::= and_parts BLOCK_END_JOIN
-        expr_jifop_and    ::= expr_jifop BB_START and BLOCK_END_JOIN
-        expr_jifop_and    ::= expr_jifop BB_START expr_jifop_and BLOCK_END_JOIN
+        expr_jifop_and    ::= expr_jifop BB_START and
+        expr_jifop_and    ::= expr_jifop BB_START expr_jifop_and
 
         # And "and_part" is an "expr" that is followed by a BB_END because there
         # is a jump to the instruction after that "expr"
