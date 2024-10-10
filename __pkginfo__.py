@@ -53,7 +53,7 @@ ftp_url = None
 install_requires = [
     "click",
     "control_flow >= 0.9",
-    "spark-parser >= 1.8.9, < 1.9.0",
+    "spark-parser >= 1.8.9, < 1.9.1",
     "xdis >= 6.0.3,<6.2.0",
 ]
 
