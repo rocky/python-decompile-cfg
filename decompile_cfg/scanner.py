@@ -21,8 +21,10 @@ scanner/ingestion module. From here we call various version-specific
 scanners, e.g. for Python 3.8
 """
 
+from abc import ABC
 import xdis
-from typing import Optional
+from types import ModuleType
+from typing import Optional, Union
 from array import array
 from collections import namedtuple
 from xdis.version_info import IS_PYPY, version_tuple_to_str
@@ -53,7 +55,7 @@ def long(num):
     return num
 
 
-class Code(object):
+class Code:
     """
     Class for representing code-objects.
 
@@ -62,28 +64,34 @@ class Code(object):
     """
 
     def __init__(self, co, scanner, classname=None, show_asm=None):
+        # Full initialization is given below, but for linters
+        # well set up some initial values.
+        self.co_code = None  # Really either bytes for >= 3.0 and string in < 3.0
+
         for i in dir(co):
             if i.startswith("co_"):
                 setattr(self, i, getattr(co, i))
         self._tokens, self._customize = scanner.ingest(co, classname, show_asm=show_asm)
 
 
-class Scanner(object):
+class Scanner(ABC):
     def __init__(self, version: tuple, show_asm=None, is_pypy=False):
         self.version = version
         self.show_asm = show_asm
         self.is_pypy = is_pypy
+
+        # Temporary initialization.
+        self.opc = ModuleType("uninitialized")
 
         if version[:2] in PYTHON_VERSIONS:
             v_str = f"""opcode_{version_tuple_to_str(version, start=0, end=2, delimiter="")}"""
             if is_pypy:
                 v_str += "pypy"
             exec(f"""from xdis.opcodes import {v_str}""")
-            exec("self.opc = %s" % v_str)
+            exec(f"self.opc = {v_str}")
         else:
             raise TypeError(
-                "%s is not a Python version I know about"
-                % version_tuple_to_str(version)
+                f"{version_tuple_to_str(version)} is not a Python version I know about"
             )
 
         self.opname = self.opc.opname
@@ -106,6 +114,12 @@ class Scanner(object):
         self.offset2inst_index = {}
         for i, inst in enumerate(self.insts):
             self.offset2inst_index[inst.offset] = i
+            offset = inst.offset
+            inst_size = inst.inst_size
+            while inst_size > 0:
+                self.offset2inst_index[offset] = i
+                offset += 2
+                inst_size -= 2
 
         return bytecode
 
@@ -116,11 +130,10 @@ class Scanner(object):
 
         # Offset: lineno pairs, only for offsets which start line.
         # Locally we use list for more convenient iteration using indices
-        if self.version > (1, 4):
-            linestarts = list(self.opc.findlinestarts(code_obj))
-        else:
-            linestarts = [[0, 1]]
+        linestarts = list(self.opc.findlinestarts(code_obj))
         self.linestarts = dict(linestarts)
+        if not self.linestarts:
+            return []
 
         # 'List-map' which shows line number of current op and offset of
         # first op on following line, given offset of op as index
@@ -174,17 +187,28 @@ class Scanner(object):
             return False
         return offset < self.get_target(offset)
 
+    def ingest(self, co, classname=None, code_objects={}, show_asm=None):
+        """
+        Code to tokenize disassembly. Subclasses must implement this.
+        """
+        raise NotImplementedError("This method should have been implemented")
+
     def prev_offset(self, offset: int) -> int:
         return self.insts[self.offset2inst_index[offset] - 1].offset
 
     def get_inst(self, offset: int):
-        # Instructions can get moved as a result of EXTENDED_ARGS removal.
-        # So if "offset" is not in self.offset2inst_index, then
-        # we assume that it was an instruction moved back.
-        # We check that assumption though by looking at
-        # self.code's opcode.
-        # Sadly instructions can get moved _forward too.
-        # So we have to check which direction we are going
+        """
+        Returns the instruction from ``self.insts`` that has at offset
+        ``offset``.
+
+        Instructions can get moved as a result of ``EXTENDED_ARGS`` removal.
+        So if ``offset`` is not in self.offset2inst_index, then
+        we assume that it was an instruction moved back.
+        We check that assumption though by looking at
+        self.code's opcode.
+        Sadly instructions can get moved forward too.
+        So we have to check which direction we are going.
+        """
         offset_increment = instruction_size(self.opc.EXTENDED_ARG, self.opc)
         if offset not in self.offset2inst_index:
             if self.code[offset] != self.opc.EXTENDED_ARG:
@@ -205,7 +229,7 @@ class Scanner(object):
 
                 inst = self.insts[self.offset2inst_index[next_offset]]
 
-            assert inst.has_extended_arg == True
+            assert inst.has_extended_arg is True
             return inst
 
         return self.insts[self.offset2inst_index[offset]]
@@ -340,7 +364,7 @@ class Scanner(object):
         """
         try:
             None in instr
-        except:
+        except Exception:
             instr = [instr]
 
         first = self.offset2inst_index[start]
@@ -358,7 +382,7 @@ class Scanner(object):
                         pass
                     pass
                 pass
-            if inst.offset >= end:
+            if isinstance(inst.offset, int) and inst.offset >= end:
                 break
             pass
 
@@ -392,7 +416,6 @@ class Scanner(object):
         result = []
         extended_arg = 0
         for offset in self.op_range(start, end):
-
             op = code[offset]
 
             if op == self.opc.EXTENDED_ARG:
@@ -439,6 +462,7 @@ class Scanner(object):
         new_instructions = []
         last_was_extarg = False
         n = len(instructions)
+        starts_line = False
         for i, inst in enumerate(instructions):
             if (
                 inst.opname == "EXTENDED_ARG"
@@ -451,7 +475,6 @@ class Scanner(object):
                 offset = inst.offset
                 continue
             if last_was_extarg:
-
                 # j = self.stmts.index(inst.offset)
                 # self.lines[j] = offset
 
@@ -504,13 +527,12 @@ class Scanner(object):
             target = parent["end"]
         return target
 
-    def setTokenClass(self, tokenClass) -> Token:
-        self.Token = tokenClass
+    def setTokenClass(self, token_class: Token) -> Token:
+        self.Token = token_class
         return self.Token
 
 
-def get_scanner(version, is_pypy=False, show_asm=None):
-
+def get_scanner(version: Union[str, tuple], is_pypy=False, show_asm=None) -> Scanner:
     # If version is a string, turn that into the corresponding float.
     if isinstance(version, str):
         if version not in canonic_python_version:
@@ -529,35 +551,36 @@ def get_scanner(version, is_pypy=False, show_asm=None):
             import importlib
 
             if is_pypy:
-                scan = importlib.import_module("decompile_cfg.scanners.pypy%s" % v_str)
+                scan = importlib.import_module(f"decompile_cfg.scanners.pypy{v_str}")
             else:
-                scan = importlib.import_module("decompile_cfg.scanners.scanner%s" % v_str)
+                scan = importlib.import_module(f"decompile_cfg.scanners.scanner{v_str}")
             if False:
                 print(scan)  # Avoid unused scan
         except ImportError:
             if is_pypy:
                 exec(
-                    "import decompile_cfg.scanners.pypy%s as scan" % v_str,
+                    f"import decompile_cfg.scanners.pypy{v_str} as scan",
                     locals(),
                     globals(),
                 )
             else:
                 exec(
-                    "import decompile_cfg.scanners.scanner%s as scan" % v_str,
+                    f"import decompyle3.scanners.scanner{v_str} as scan",
                     locals(),
                     globals(),
                 )
         if is_pypy:
             scanner = eval(
-                "scan.ScannerPyPy%s(show_asm=show_asm)" % v_str, locals(), globals()
+                f"scan.ScannerPyPy{v_str}(show_asm=show_asm)", locals(), globals()
             )
         else:
             scanner = eval(
-                "scan.Scanner%s(show_asm=show_asm)" % v_str, locals(), globals()
+                f"scan.Scanner{v_str}(show_asm=show_asm)", locals(), globals()
             )
     else:
         raise RuntimeError(
-            f"Unsupported Python version, {version_tuple_to_str(version)}, for decompilation"
+            "Unsupported Python version, "
+            f"{version_tuple_to_str(version)}, for decompilation"
         )
     return scanner
 
@@ -565,8 +588,8 @@ def get_scanner(version, is_pypy=False, show_asm=None):
 if __name__ == "__main__":
     import inspect
 
-    co = inspect.currentframe().f_code
+    my_co = inspect.currentframe().f_code
     from xdis.version_info import PYTHON_VERSION_TRIPLE
 
     scanner = get_scanner(PYTHON_VERSION_TRIPLE, IS_PYPY, True)
-    tokens, customize = scanner.ingest(co, {}, show_asm="after")
+    tokens, customize = scanner.ingest(my_co, {}, show_asm="after")

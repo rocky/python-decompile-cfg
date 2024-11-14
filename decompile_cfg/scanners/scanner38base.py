@@ -36,10 +36,7 @@ from typing import Tuple
 
 # Get all the opcodes into globals
 import xdis.opcodes.opcode_38 as op3
-from control_flow.augment_disasm import augment_instructions
-from control_flow.bb import basic_blocks
-from control_flow.cfg import ControlFlowGraph
-from control_flow.dominators import DominatorTree, build_dom_set, dfs_forest
+from control_flow.build_control_flow import build_and_analyze_control_flow
 from xdis import iscode
 from xdis.bytecode import _get_const_info
 from xdis.version_info import version_tuple_to_str
@@ -199,59 +196,29 @@ class Scanner38Base(Scanner):
             assert j == len(tokens)
             return j
 
-        bb_mgr = basic_blocks(co, self.offset2inst_index, version_tuple=self.version)
-        if show_asm in ("both", "before"):
-            for bb in bb_mgr.bb_list:
-                print("\t", bb)
-        cfg = ControlFlowGraph(bb_mgr)
+        graph_options = "all"
+
+        co_path = co.co_filename
+        if osp.exists(co_path):
+            stat = os.stat(co_path)
+            timestamp = stat.st_mtime
+        else:
+            timestamp = None
+
         name = co.co_name
         if name == "<module>":
             name = osp.basename(co.co_filename)
-        elif name.startswith("<"):
+        if name.startswith("<"):
             name = name[1:]
-            if name.endswith(">"):
-                name = name[:-1]
-        try:
-            version = version_tuple_to_str(self.opc.version_tuple, end=2)
-            path_safe = name.translate(name.maketrans(" <>", "_[]"))
-            dot_path = f"/tmp/flow-{path_safe}-{version}.dot"
-            png_path = f"/tmp/flow-{path_safe}-{version}.png"
-            if show_asm in ("both", "before", "after"):
-                open(dot_path, "w").write(cfg.graph.to_dot(False))
-                print("%s written" % dot_path)
-                os.system("dot -Tpng %s > %s" % (dot_path, png_path))
-            dt = DominatorTree(cfg)
-            cfg.dom_tree = dt.tree(False)
-            dfs_forest(cfg.dom_tree, False)
-            build_dom_set(cfg.dom_tree, False)
-            if show_asm in ("both", "before", "after"):
-                open(dot_path, "w").write(cfg.dom_tree.to_dot())
-                print("%s written" % dot_path)
-                os.system("dot -Tpng %s > %s" % (dot_path, png_path))
-
-            # FIXME? Do we need reverse dominators?
-            cfg.pdom_tree = dt.tree(True)
-            dfs_forest(cfg.pdom_tree, True)
-            build_dom_set(cfg.pdom_tree, True)
-            if show_asm in ("both", "before"):
-                path_safe = name.translate(name.maketrans(" <>", "_[]"))
-                dot_path = f"/tmp/flow-pdom-{path_safe}-{version}.dot"
-                png_path = f"/tmp/flow-pdom-{path_safe}-{version}.png"
-                open(dot_path, "w").write(cfg.pdom_tree.to_dot())
-                print("%s written" % dot_path)
-                os.system("dot -Tpng %s > %s" % (dot_path, png_path))
-
-            self.insts = augment_instructions(
-                co, cfg, self.opc, self.offset2inst_index, bb_mgr
+        if name.endswith(">"):
+           name = name[:-1]
+        cfg, self.insts = build_and_analyze_control_flow(
+            co,
+            graph_options=graph_options,
+            code_version_tuple=(3, 8),
+            func_or_code_timestamp=timestamp,
+            func_or_code_name=name,
             )
-
-        except Exception:
-            import traceback
-
-            traceback.print_exc()
-            print("Unexpected error:", sys.exc_info()[0])
-            print("%s had an error" % name)
-            return ""
 
         if not show_asm:
             show_asm = self.show_asm
@@ -266,7 +233,7 @@ class Scanner38Base(Scanner):
                 names=co.co_names,
                 constants=co.co_consts,
                 cells=bytecode._cell_names,
-                linestarts=bytecode._linestarts,
+                line_starts=bytecode._linestarts,
                 asm_format="extended",
                 filename = co.co_filename,
                 show_source=True,
