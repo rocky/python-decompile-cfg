@@ -130,6 +130,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         # and_or is (a and ...) or y
 
+        # An and_or followed by an expr
         and_or_expr         ::= and_parts
                                 BB_START
                                 expr_jitop
@@ -799,8 +800,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         branch_op ::= and
         branch_op ::= and BB_START
 
-        branch_op ::= and_or_expr
-
         branch_op ::= and_or_expr1
         branch_op ::= and_or_expr1 BB_START
 
@@ -840,6 +839,9 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         # The right-hand side of a branch op
         branch_op_part ::= or_parts_pjit block_end
+
+        # A branch op followed by an expr
+        branch_op_expr ::= and_or_expr
 
         # FIXME: the below is to work around test_grammar expecting a "call" to be
         # on the LHS because it is also somewhere on in a rule.
@@ -983,8 +985,8 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                     RETURN_VALUE
                                     block_join_end_final
 
-        return_expr_lambda      ::= expr RETURN_VALUE BB_END
-        return_expr_lambda      ::= branch_op BB_START RETURN_VALUE BB_END
+        return_expr             ::= expr RETURN_VALUE BB_END
+        return_expr             ::= branch_op_expr BB_START RETURN_VALUE BB_END
 
         return_expr_lambda      ::= if_exp_binop_lambda
         return_expr_lambda      ::= if_exp_dead_code

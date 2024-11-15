@@ -174,7 +174,7 @@ def decompile(
         raise pysource.SourceWalkerError(str(e))
 
 
-def compile_file(source_path: str) -> str:
+def compile_file(source_path: str, compile_mode="exec") -> str:
     if source_path.endswith(".py"):
         basename = source_path[:-3]
     else:
@@ -186,7 +186,7 @@ def compile_file(source_path: str) -> str:
         bytecode_path = "%s-%s.pyc" % (basename, version_tuple_to_str())
 
     print("compiling %s to %s" % (source_path, bytecode_path))
-    py_compile.compile(source_path, bytecode_path, "exec")
+    py_compile.compile(source_path, bytecode_path, compile_mode)
     return bytecode_path
 
 
@@ -199,6 +199,7 @@ def decompile_file(
     source_encoding=None,
     mapstream=None,
     do_fragments=False,
+    compile_mode="exec",
     start_offset=0,
     stop_offset=-1,
 ) -> Any:
@@ -251,7 +252,7 @@ def decompile_file(
                 magic_int=magic_int,
                 mapstream=mapstream,
                 do_fragments=do_fragments,
-                compile_mode="exec",
+                compile_mode=compile_mode,
                 start_offset=start_offset,
                 stop_offset=stop_offset,
             )

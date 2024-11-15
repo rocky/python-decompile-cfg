@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # Mode: -*- python -*-
 #
-# Copyright (c) 2015-2016, 2018, 2020-2022 by Rocky Bernstein <rb@dustyfeet.com>
+# Copyright (c) 2015-2016, 2018, 2020-2022, 2024
+# by Rocky Bernstein <rb@dustyfeet.com>
 #
 import click
 import os
@@ -15,6 +16,7 @@ from decompile_cfg.code_fns import (
     decompile_lambda_fns,
     decompile_list_comprehensions,
     decompile_set_comprehensions,
+    decompile_single,
 )
 from decompile_cfg.main import decompile_file
 from decompile_cfg.version import __version__
@@ -39,6 +41,7 @@ PATTERNS = ("*.pyc", "*.pyo")
             "code-fragments",
             "dict-comprehension",
             "exec",
+            "single",
             "generator",
             "lambda",
             "list-comprehension",
@@ -114,6 +117,8 @@ def main(
         decompile_fn = decompile_list_comprehensions
     elif code_format == "set-comprehension":
         decompile_fn = decompile_set_comprehensions
+    elif code_format == "single":
+        decompile_fn = decompile_single
     elif code_format == "exec":
         decompile_fn = decompile_file
     else:
