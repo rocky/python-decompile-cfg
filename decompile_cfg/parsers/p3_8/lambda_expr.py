@@ -57,6 +57,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         and_parts         ::= and_part
         and_parts         ::= and_parts BB_START and_part
+        and_parts         ::= expr_jifop BB_START and_parts
 
         and_parts         ::= or_and_part BB_START expr BB_END
 

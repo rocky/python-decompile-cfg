@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2023 Rocky Bernstein <rocky@gnu.org>
+# Copyright (C) 2018-2024 Rocky Bernstein <rocky@gnu.org>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -192,7 +192,14 @@ def decompile_file(
     outstream: Optional[TextIO] = None,
     showasm: Optional[str] = None,
     showast={},
-    showgrammar=False,
+    grammar= {
+        "rules": False,
+        "transition": False,
+        "reduce": False,
+        "errorstack": "full",
+        "context": True,
+        "dups": False,
+    },
     source_encoding=None,
     mapstream=None,
     do_fragments=False,
@@ -222,7 +229,7 @@ def decompile_file(
                     showasm,
                     showast,
                     timestamp,
-                    showgrammar,
+                    grammar,
                     source_encoding,
                     code_objects=code_objects,
                     is_pypy=is_pypy,
@@ -241,7 +248,7 @@ def decompile_file(
                 showasm,
                 showast,
                 timestamp,
-                showgrammar,
+                grammar,
                 source_encoding,
                 code_objects=code_objects,
                 source_size=source_size,
@@ -291,6 +298,15 @@ def main(
     current_outfile = outfile
     linemap_stream = None
 
+    grammar = {
+        "rules": False,
+        "transition": False,
+        "reduce": showgrammar,
+        "errorstack": "full",
+        "context": True,
+        "dups": False,
+    }
+
     for source_path in source_files:
         compiled_files.append(compile_file(source_path))
 
@@ -338,10 +354,11 @@ def main(
                 outstream,
                 showasm,
                 showast,
-                showgrammar,
+                grammar,
                 source_encoding,
                 linemap_stream,
                 do_fragments,
+                "exec",  # compile_mode,
                 start_offset,
                 stop_offset,
             )
