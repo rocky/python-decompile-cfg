@@ -1163,9 +1163,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                     block_join_end_final
 
         return_expr_lambda      ::= expr RETURN_VALUE_LAMBDA BB_END
-                                    BB_START NOT_FALLEN_INTO_BLOCK
-                                    LOAD_CONST RETURN_VALUE_LAMBDA
-                                    BB_END
 
         return_expr_lambda      ::= if_exp_binop_lambda
         return_expr_lambda      ::= if_exp_dead_code
@@ -1217,7 +1214,11 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                 NOT_FALLEN_INTO_BLOCK
                                 return_expr
 
-        if_else_lambda_return ::= branch_op BB_START return_expr_lambda
+        if_else_lambda_return ::= branch_op
+                                  BB_START return_expr_lambda
+                                  BB_START NOT_FALLEN_INTO_BLOCK
+                                  return_expr_lambda
+
 
         # Something is weird about the bb_end_start
         # in our parser in that if we replace it with say

@@ -123,12 +123,11 @@ def customize_for_version3_8(self):
                 (3, "for_block"),
                 -2,
             ),
-            "if_exp_and_return": (
-                "%c if %p and %p else %c\n",
-                (2, "return_expr"),
-                (0, "expr_pjif", PRECEDENCE["if_exp"]),
-                (1, "expr_pjif", PRECEDENCE["and"]),
-                (3, "return_expr"),
+            "if_else_lambda_return": (
+                "%c if %c else %c\n",
+                (2, "return_expr_lambda"),
+                (0, "branch_op"),
+                (1, "return_expr_lambda"),
             ),
             "ifpoplaststmtc": ("%|if %c:\n%+%c%-", (0, "testexpr"), (2, "c_stmts")),
             "pop_return": ("%|return %c\n", (1, "return_expr")),
