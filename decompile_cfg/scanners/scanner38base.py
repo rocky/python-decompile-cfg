@@ -472,9 +472,10 @@ class Scanner38Base(Scanner):
             pass
 
         if is_lambda:
-            for t in tokens:
-                if t.kind == "RETURN_VALUE":
-                    t.kind = "RETURN_VALUE_LAMBDA"
+            pass
+            # for t in tokens:
+            #     if t.kind == "RETURN_VALUE":
+            #         t.kind = "RETURN_VALUE_LAMBDA"
 
         if show_asm in ("both", "after"):
             print("\n# ---- after tokenization:")

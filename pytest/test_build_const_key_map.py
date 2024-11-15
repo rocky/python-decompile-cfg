@@ -1,6 +1,5 @@
 import pytest
 
-# decompyle3
 from validate import validate_decompile
 
 TESTS = (

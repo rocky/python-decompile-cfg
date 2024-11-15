@@ -15,7 +15,7 @@ def test_grammar():
         p.check_grammar()
 
 def test_lambda_expr():
-    x = lambda x, y: ("0" <= x <= "9")  # noqa
+    x = lambda x: ("0" <= x <= "9")  # noqa
     # x = lambda x, y: (  # noqa
     #     "0" <= x <= "9" and "a" <= y <= "f"
     # )

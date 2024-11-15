@@ -156,7 +156,9 @@ class Python3_8ParserFull(Python3_8LambdaParser, Python3_8FullCustom):
         else_suite ::= returns
 
 
-        expr_stmt ::= expr bb_start_opt POP_TOP
+        expr_stmt ::= expr POP_TOP
+        expr_stmt ::= branch_op POP_TOP
+
         expr_stmt ::= expr_return bb_start_opt POP_TOP
         expr_stmt ::= branch_op dom_start POP_TOP
         call_stmt ::= call
