@@ -85,7 +85,6 @@ def test_single_mode() -> None:
         assert deparsed.text == expr + "\n" if deparsed.text.endswith("\n") else expr
 
 
-@pytest.mark.skip(reason="Please start here")
 def test_eval_mode():
     expressions = [
         "1",

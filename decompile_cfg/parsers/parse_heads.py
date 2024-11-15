@@ -321,9 +321,10 @@ class PythonParserExpr(PythonBaseParser):
                              BB_END
         expr_start       ::= BB_START
                              branch_op_expr
-                             BB_START POP_TOP
-                             LOAD_CONST RETURN_VALUE
-                             BB_END
+                             BB_START RETURN_VALUE BB_END
+        expr_start       ::= BB_START
+                             branch_op BB_END
+                             BB_START RETURN_VALUE BB_END
         expr_start       ::= BB_START
                              return_expr_eval
                              BB_END
