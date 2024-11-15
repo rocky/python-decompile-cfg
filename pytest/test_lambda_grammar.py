@@ -1,5 +1,3 @@
-import pytest
-from xdis.version_info import PYTHON_VERSION_TRIPLE
 from decompile_cfg.main import decompile
 from decompile_cfg.parsers.p3_8.lambda_expr import Python3_8LambdaParser
 from decompile_cfg.parsers.p3_9.lambda_expr import Python3_9LambdaParser

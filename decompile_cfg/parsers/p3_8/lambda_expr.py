@@ -49,14 +49,14 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         # And "and_part" is an "expr" that is followed by a BB_END because there
         # is a jump to the instruction after that "expr"
 
-        and_part          ::= expr BB_END
+        and_part          ::= expr POP_JUMP_IF_FALSE BB_END
 
         # "and_parts" is basically an "and". Each nesting of "and_parts" adds a
         # BLOCK_END_JOIN.
         # And by doing such, we are proper keeping track and nesting.
 
         and_parts         ::= and_part
-        and_parts         ::= and_parts BB_START expr BB_END
+        and_parts         ::= and_parts BB_START and_part
 
         and_parts         ::= or_and_part BB_START expr BB_END
 
@@ -1111,6 +1111,8 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         return_expr               ::= expr RETURN_VALUE
         return_expr               ::= expr RETURN_VALUE BB_END
         return_expr               ::= expr_return
+        return_expr               ::= if_exp_lambda
+        return_expr               ::= if_else_lambda_return
 
         # This is wrong and control_flow may need fixing.
         block_end_joins           ::= BLOCK_END_JOIN+
@@ -1118,20 +1120,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         return_expr               ::= if_exp_and_return
         return_expr               ::= expr return_value
         return_expr               ::= if_exp_return
-
-        # return_expr_lambda      ::= dom_start
-        #                             expr
-        #                             dom_start_opt
-        #                             return_value
-        #                             bb_doms_end
-
-        # We need a block_end because there can be a jump
-        # in a conditional to just before the RETURN_VALUE
-        return_expr_lambda      ::= dom_start_opt
-                                    expr
-                                    block_end
-                                    return_value
-                                    bb_doms_end
 
         # FIXME: generalize this
         return_expr             ::= dict_comp_func
@@ -1174,9 +1162,15 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                     RETURN_VALUE
                                     block_join_end_final
 
+        return_expr_lambda      ::= expr RETURN_VALUE_LAMBDA BB_END
+                                    BB_START NOT_FALLEN_INTO_BLOCK
+                                    LOAD_CONST RETURN_VALUE_LAMBDA
+                                    BB_END
+
         return_expr_lambda      ::= if_exp_binop_lambda
         return_expr_lambda      ::= if_exp_dead_code
         return_expr_lambda      ::= if_exp_lambda
+        return_expr_lambda      ::= if_else_lambda_return
         return_expr_lambda      ::= if_exp_not_lambda
 
         # return_expr_lambda with a binary operator before the return
@@ -1223,19 +1217,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                 NOT_FALLEN_INTO_BLOCK
                                 return_expr
 
-        # Note these two if_exp_lambda are distinct and cannot be generalized combined
-        # into once. Otherwise we would need to disabmiguate
-        #    lambda n: True if n >= 95 and n & 1 else False
-        # from:
-        #    lambda n: (n & 1) and True if n >= 95 else False
-        if_exp_lambda      ::= branch_op
-                               POP_JUMP_IF_FALSE
-                               bb_end_start_opt
-                               expr
-                               return_value
-                               bb_doms_end_start
-                               NOT_FALLEN_INTO_BLOCK
-                               return_expr_lambda
+        if_else_lambda_return ::= branch_op BB_START return_expr_lambda
 
         # Something is weird about the bb_end_start
         # in our parser in that if we replace it with say

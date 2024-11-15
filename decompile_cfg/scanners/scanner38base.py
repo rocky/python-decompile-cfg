@@ -172,7 +172,7 @@ class Scanner38Base(Scanner):
         # self.varargs_ops = frozenset(self.opc.hasvargs)
         return
 
-    def ingest(self, co, classname=None, code_objects={}, show_asm=None):
+    def ingest(self, co, classname=None, code_objects={}, show_asm=None, is_lambda=False):
         """
         Pick out tokens from an decompile_cfg code object, and transform them,
         returning a list of decompyle-ng Token's.
@@ -196,7 +196,7 @@ class Scanner38Base(Scanner):
             assert j == len(tokens)
             return j
 
-        graph_options = "all"
+        graph_options = "all" if show_asm is not None else None
 
         co_path = co.co_filename
         if osp.exists(co_path):
@@ -212,6 +212,7 @@ class Scanner38Base(Scanner):
             name = name[1:]
         if name.endswith(">"):
            name = name[:-1]
+
         cfg, self.insts = build_and_analyze_control_flow(
             co,
             graph_options=graph_options,
@@ -469,6 +470,11 @@ class Scanner38Base(Scanner):
                 ),
             )
             pass
+
+        if is_lambda:
+            for t in tokens:
+                if t.kind == "RETURN_VALUE":
+                    t.kind = "RETURN_VALUE_LAMBDA"
 
         if show_asm in ("both", "after"):
             print("\n# ---- after tokenization:")

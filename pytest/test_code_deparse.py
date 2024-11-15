@@ -9,13 +9,26 @@ from io import StringIO
 
 out = StringIO()
 
+
 def run_deparse(expr: str, compile_mode: str, debug=False) -> object:
     debug_opts = dict(DEFAULT_DEBUG_OPTS)
     orig_compile_mode = compile_mode
     if compile_mode == "lambda":
         compile_mode = "eval"
-    code = compile(expr + "\n", "<string %s>" % expr, compile_mode)
-    debug_opts=DEFAULT_DEBUG_OPTS
+    name = f"string-{expr}"
+    name = name.translate(
+        {
+            ord("("): "L",
+            ord(")"): "R",
+            ord(" "): "S",
+            ord("%"): "P",
+            ord("["): "B",
+            ord("]"): "b",
+        }
+    )
+
+    code = compile(expr + "\n", f"{name}", compile_mode)
+    debug_opts = DEFAULT_DEBUG_OPTS
     if debug:
         import dis
 
@@ -25,8 +38,11 @@ def run_deparse(expr: str, compile_mode: str, debug=False) -> object:
         debug_opts["asm"] = "both"
         debug_opts["tree"] = {"after": True, "before": True}
 
-
-    deparsed = code_deparse(code, out=out, compile_mode=orig_compile_mode, )
+    deparsed = code_deparse(
+        code,
+        out=out,
+        compile_mode=orig_compile_mode,
+    )
     return deparsed
 
 
@@ -34,7 +50,6 @@ def run_deparse(expr: str, compile_mode: str, debug=False) -> object:
 def test_single_mode() -> None:
     expressions = (
         "1",
-
         "i and (j or k)",
         "i and j or k",
         "i or (j and k)",
@@ -42,10 +57,8 @@ def test_single_mode() -> None:
         "i = 1",
         "i += 1",
         "i = j % 4",
-
         "i = []",
         "i = {}",
-
         # FIXME:
         # # "for i in range(10):\n    i\n",
         # # "for i in range(10):\n    for j in range(10):\n        i + j\n",
@@ -65,9 +78,11 @@ def test_single_mode() -> None:
 
         if deparsed.text != (expr + "\n"):
             from decompile_cfg.show import maybe_show_tree
+
             deparsed.showast = {"Full": True}
             maybe_show_tree(deparsed, deparsed.ast)
         assert deparsed.text == expr + "\n" if deparsed.text.endswith("\n") else expr
+
 
 def test_eval_mode():
     expressions = [
@@ -95,9 +110,11 @@ def test_eval_mode():
             deparsed.text = deparsed.text[:-1]
         if deparsed.text != expr:
             from decompile_cfg.show import maybe_show_tree
+
             deparsed.showast = {"Full": True}
             maybe_show_tree(deparsed, deparsed.ast)
         assert deparsed.text == expr
+
 
 def test_lambda_mode():
     expressions = (
@@ -121,6 +138,7 @@ def test_lambda_mode():
             deparsed.text = deparsed.text[:-1]
         if deparsed.text != expr:
             from decompile_cfg.show import maybe_show_tree
+
             deparsed.showast = {"Full": True}
             maybe_show_tree(deparsed, deparsed.ast)
         assert deparsed.text == expr

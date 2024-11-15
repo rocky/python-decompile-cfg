@@ -37,7 +37,7 @@ class Scanner38(Scanner38Base):
 
     pass
 
-    def ingest(self, bytecode, classname=None, code_objects={}, show_asm=None) -> tuple:
+    def ingest(self, bytecode, classname=None, code_objects={}, show_asm=None, is_lambda=False) -> tuple:
         """
         Create "tokens" the bytecode of an Python code object. Largely these
         are the opcode name, but in some cases that has been modified to make parsing
@@ -61,7 +61,7 @@ class Scanner38(Scanner38Base):
         )
         try:
             tokens, customize = Scanner38Base.ingest(
-                self, bytecode, classname, code_objects, show_asm
+                self, bytecode, classname, code_objects, show_asm, is_lambda
             )
         except:
             # raise uncomment if you don't want to debug
