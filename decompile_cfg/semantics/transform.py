@@ -63,6 +63,7 @@ STRIPPED_NODES = (
     "expr_jifop_and",
     "expr_pjif",
     "expr_pjit",
+    "expr_start",
     "for_jump_pop_iff",
     "for_loop_unconditional",
     "for_jump_unconditional",

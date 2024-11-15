@@ -11,6 +11,7 @@ import sys
 from xdis.version_info import version_tuple_to_str
 from decompile_cfg.code_fns import (
     decompile_all_fragments,
+    decompile_eval,
     decompile_dict_comprehensions,
     decompile_generators,
     decompile_lambda_fns,
@@ -41,6 +42,7 @@ PATTERNS = ("*.pyc", "*.pyo")
             "code-fragments",
             "dict-comprehension",
             "exec",
+            "eval",
             "single",
             "generator",
             "lambda",
@@ -107,20 +109,22 @@ def main(
 
     if code_format == "code-fragments":
         decompile_fn = decompile_all_fragments
+    elif code_format == "exec":
+        decompile_fn = decompile_file
+    elif code_format == "eval":
+        decompile_fn = decompile_eval
     elif code_format == "generator":
         decompile_fn = decompile_generators
-    elif code_format == "lambda":
-        decompile_fn = decompile_lambda_fns
     elif code_format == "dict-comprehension":
         decompile_fn = decompile_dict_comprehensions
+    elif code_format == "lambda":
+        decompile_fn = decompile_lambda_fns
     elif code_format == "list-comprehension":
         decompile_fn = decompile_list_comprehensions
     elif code_format == "set-comprehension":
         decompile_fn = decompile_set_comprehensions
     elif code_format == "single":
         decompile_fn = decompile_single
-    elif code_format == "exec":
-        decompile_fn = decompile_file
     else:
         print(f"Unexpected code_format {code_format}")
         return 1

@@ -145,6 +145,6 @@ def test_lambda_mode():
 
 
 if __name__ == "__main__":
-    # test_eval_mode()
-    test_lambda_mode()
+    test_eval_mode()
+    # test_lambda_mode()
     # test_single_mode()

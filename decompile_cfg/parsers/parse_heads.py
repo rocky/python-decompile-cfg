@@ -320,6 +320,11 @@ class PythonParserExpr(PythonBaseParser):
                              return_value_opt
                              BB_END
         expr_start       ::= BB_START
+                             branch_op_expr
+                             BB_START POP_TOP
+                             LOAD_CONST RETURN_VALUE
+                             BB_END
+        expr_start       ::= BB_START
                              return_expr_eval
                              BB_END
                              BLOCK_END_JOIN_NO_ARG

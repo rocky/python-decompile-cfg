@@ -577,6 +577,12 @@ TABLE_DIRECT = {
     ),
 
 
+    "expr_start":
+    (
+        "%c", 0
+    ),
+
+
     # The following is covered by n_expr_stmt which
     # adjusts depending on whether expr is a named statement or not.
     # "expr_stmt": (

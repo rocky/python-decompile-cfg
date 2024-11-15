@@ -228,6 +228,29 @@ def decompile_all_fragments(
     )
 
 
+def decompile_eval(
+    filename: str,
+    outstream=None,
+    showasm=None,
+    showast: dict = TREE_DEFAULT_DEBUG,
+    showgrammar: dict = PARSER_DEFAULT_DEBUG,
+    start_offset=0,
+    stop_offset=-1,
+) -> Optional[bool]:
+    """
+    decompile file using "eval" compilation mode
+    """
+    return decompile_file(
+        filename,
+        outstream,
+        showasm,
+        showast,
+        showgrammar,
+        start_offset=start_offset,
+        stop_offset=stop_offset,
+        compile_mode="eval",
+    )
+
 def decompile_generators(
     filename: str,
     outstream=None,
@@ -346,10 +369,7 @@ def decompile_single(
     stop_offset=-1,
 ) -> Optional[bool]:
     """
-    decompile all of the lambda functions in a python byte-code file (.pyc)
-
-    If given a Python source file (".py") file, we'll
-    decompile all list_comprehensions of the corresponding compiled object.
+    decompile file using "single" compilation mode
     """
     return decompile_file(
         filename,
