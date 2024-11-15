@@ -1173,7 +1173,7 @@ def code_deparse(
     )
 
     is_top_level_module = co.co_name == "<module>"
-    if compile_mode == "eval":
+    if compile_mode in ("eval", "single"):
         deparsed.hide_internal = False
     deparsed.compile_mode = compile_mode
     deparsed.ast = deparsed.build_ast(

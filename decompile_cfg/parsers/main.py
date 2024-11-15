@@ -91,7 +91,7 @@ def get_python_parser(
     version = version[:2]
     if version == (3, 8):
 
-        if compile_mode in ("exec"):
+        if compile_mode == "exec":
             p = Python3_8ParserExec(debug_parser=debug_parser)
         elif compile_mode == "single":
             p = Python3_8ParserSingle(debug_parser=debug_parser)
@@ -106,7 +106,7 @@ def get_python_parser(
 
     elif version == (3, 9):
 
-        if compile_mode in ("exec"):
+        if compile_mode == "exec":
             p = Python3_9ParserExec(debug_parser=debug_parser)
         elif compile_mode == "single":
             p = Python3_9ParserSingle(debug_parser=debug_parser)
@@ -121,7 +121,7 @@ def get_python_parser(
 
     elif version == (3, 10):
 
-        if compile_mode in ("exec"):
+        if compile_mode == "exec":
             p = Python3_10ParserExec(debug_parser=debug_parser)
         elif compile_mode == "single":
             p = Python3_10ParserSingle(debug_parser=debug_parser)

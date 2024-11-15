@@ -69,7 +69,7 @@ def decompile(
     showasm=None,
     showast={},
     timestamp=None,
-    showgrammar=False,
+    grammar=dict(PARSER_DEFAULT_DEBUG),
     source_encoding=None,
     code_objects={},
     source_size=None,
@@ -125,9 +125,6 @@ def decompile(
     if source_size:
         write("# Size of source mod 2**32: %d bytes" % source_size)
 
-    grammar = dict(PARSER_DEFAULT_DEBUG)
-    if showgrammar:
-        grammar["reduce"] = True
     debug_opts = {"asm": showasm, "tree": showast, "grammar": grammar}
 
     try:
@@ -141,7 +138,7 @@ def decompile(
                 out,
                 showasm,
                 showast,
-                showgrammar,
+                grammar,
                 code_objects=code_objects,
                 is_pypy=is_pypy,
             )

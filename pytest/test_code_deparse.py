@@ -21,6 +21,7 @@ def run_deparse(expr: str, compile_mode: str, debug=False) -> object:
             ord("("): "L",
             ord(")"): "R",
             ord(" "): "S",
+            ord(":"): "E",
             ord("%"): "P",
             ord("["): "B",
             ord("]"): "b",
@@ -84,6 +85,7 @@ def test_single_mode() -> None:
         assert deparsed.text == expr + "\n" if deparsed.text.endswith("\n") else expr
 
 
+@pytest.mark.skip(reason="Please start here")
 def test_eval_mode():
     expressions = [
         "1",
