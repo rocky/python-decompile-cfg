@@ -39,6 +39,12 @@ def customize_for_version3_8(self):
                 (0, "and_parts"),
                 (1, "compare_chained_middle_return"),
             ),
+            "and_or_expr": (
+                "%c and %c or %c",
+                (0, "and_parts"),
+                (1, "expr_jitop"),
+                (2, "expr"),
+            ),
             "async_for_stmt38": (
                 "%|async for %c in %c:\n%+%c%-%-\n\n",
                 (2, "store"),

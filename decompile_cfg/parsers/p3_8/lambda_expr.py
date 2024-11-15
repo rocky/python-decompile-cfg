@@ -69,11 +69,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         # "and_parts" is that "expr_pjif" is used instead of "expr_jifop".
         # Notice the similarity with "and".
 
-        and_or          ::= and_or_parts BB_START expr BLOCK_END_JOIN
-
-        # This is wrong - we should not need this and use only the above.
-        # there is something in control-flow that is intermittent.
-        and_or          ::= and_or_parts BB_START expr
+        #  and_or          ::= and_or_parts BB_START expr BB_END
 
         # "and_or_parts" is the "and" portion of "and_or" before the "or".
         and_or_part     ::= and1
@@ -148,12 +144,12 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                 expr
                                 block_end_join
 
-        and_or_expr         ::= expr_pjif
+        and_or_expr         ::= and_parts
                                 BB_START
                                 expr_jitop
-                                BLOCK_END_JOIN BB_START
-                                expr
-                                block_end_join
+                                BB_START expr BB_END
+
+
 
         ## In cases where we have some sort of logic optimization the
         ## "or" using "expr_jitop" can get converted to "or" using "expr_pjit"
@@ -915,6 +911,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         expr_return ::= compare_return
         expr_return ::= and_compare_chained_return
+        expr_return ::= return_expr_lambda
 
         # In calls, we use "arg" rather than "expr" so we can
         # bound expressions with conditional branches.
@@ -959,7 +956,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         branch_op ::= and_or_and BB_START
 
         branch_op ::= and_or_expr
-        branch_op ::= and_or_expr BB_START
 
         branch_op ::= and_or_expr1
         branch_op ::= and_or_expr1 BB_START
@@ -1064,6 +1060,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         jitop              ::= JUMP_IF_TRUE_OR_POP BB_END
 
         and_or_expr        ::= expr_jitop BLOCK_END_JOIN BB_START and_or_expr BLOCK_END_JOIN
+
         and_or_expr1       ::= expr_pjif BB_START expr_jitop BLOCK_END_JOIN BB_START and
                                BLOCK_END_JOIN
 
@@ -1163,6 +1160,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                     block_join_end_final
 
         return_expr_lambda      ::= expr RETURN_VALUE_LAMBDA BB_END
+        return_expr_lambda      ::= branch_op BB_START RETURN_VALUE_LAMBDA BB_END
 
         return_expr_lambda      ::= if_exp_binop_lambda
         return_expr_lambda      ::= if_exp_dead_code

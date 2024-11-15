@@ -31,6 +31,7 @@ from decompile_cfg.semantics.consts import RETURN_NONE, ASSIGN_DOC_STRING
 STRIPPED_NODES = (
     "and_compare_chained_return",
     "and_or",
+    "and_or_expr",
     "and_or_expr1",
     "and_or_parts",
     "and_part",
@@ -83,6 +84,7 @@ STRIPPED_NODES = (
     "or_parts_pjit",
     "pjump_iff_loop",
     "return_expr",
+    "return_expr_lambda",
     "set_comp_func",
     "set_for",
     "set_afor2",
