@@ -120,8 +120,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         or_part_pjit         ::= expr_pjit
         or_parts_pjit        ::= expr_pjit BB_START or_part_pjit
 
-        or_part_pjit         ::= expr_pjit
-
 
         or_part_pjit_true_loop  ::= expr_pjit_loop
         or_parts_pjit_true_loop ::= or_part_pjit_true_loop+
