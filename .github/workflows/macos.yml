@@ -1,4 +1,4 @@
-name: decompile-cfg (osx)
+name: decompile-cfg (macos)
 
 on:
   push:
