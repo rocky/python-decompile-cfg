@@ -153,9 +153,11 @@ class Python3_9ParserFull(Python3_9LambdaParser, Python3_9FullCustom):
         else_suite ::= returns
 
 
-        expr_stmt ::= expr bb_start_opt POP_TOP
+        expr_stmt ::= expr POP_TOP
+        expr_stmt ::= branch_op POP_TOP
+
         expr_stmt ::= expr_return bb_start_opt POP_TOP
-        expr_stmt ::= branch_op dom_start POP_TOP
+        expr_stmt ::= branch_op_expr BB_START POP_TOP
         call_stmt ::= call
 
         stmt ::= break

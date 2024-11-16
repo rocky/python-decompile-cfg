@@ -172,7 +172,7 @@ class Scanner38Base(Scanner):
         # self.varargs_ops = frozenset(self.opc.hasvargs)
         return
 
-    def ingest(self, co, classname=None, code_objects={}, show_asm=None, is_lambda=False):
+    def ingest(self, co, classname=None, code_objects={}, show_asm=None):
         """
         Pick out tokens from an decompile_cfg code object, and transform them,
         returning a list of decompyle-ng Token's.
@@ -470,12 +470,6 @@ class Scanner38Base(Scanner):
                 ),
             )
             pass
-
-        if is_lambda:
-            pass
-            # for t in tokens:
-            #     if t.kind == "RETURN_VALUE":
-            #         t.kind = "RETURN_VALUE_LAMBDA"
 
         if show_asm in ("both", "after"):
             print("\n# ---- after tokenization:")

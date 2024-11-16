@@ -1139,7 +1139,7 @@ def code_deparse(
 
     is_lambda=is_lambda_mode(compile_mode)
     tokens, customize = scanner.ingest(
-        co, code_objects=code_objects, show_asm=debug_opts["asm"], is_lambda=is_lambda
+        co, code_objects=code_objects, show_asm=debug_opts["asm"]
     )
 
     if start_offset > 0:
