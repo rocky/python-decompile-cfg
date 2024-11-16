@@ -295,6 +295,7 @@ class Python3_10LambdaCustom(Python3_10BaseParser):
                 collection_size = token.attr
                 if collection_size == 0:
                     rule_str = """
+                       expr        ::= BUILD_LIST_0
                        list        ::= BUILD_LIST_0
                        list_unpack ::= BUILD_LIST_0 expr LIST_EXTEND
                        list        ::= list_unpack
