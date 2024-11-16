@@ -282,6 +282,7 @@ def main(
     start_offset: int = 0,
     stop_offset: int = -1,
     stop_on_first_error: bool = False,
+    compile_mode = "exec",
 ) -> Tuple[int, int, int, int]:
     """
     in_base	base directory for input files
@@ -359,7 +360,7 @@ def main(
                 source_encoding,
                 linemap_stream,
                 do_fragments,
-                "exec",  # compile_mode,
+                compile_mode,
                 start_offset,
                 stop_offset,
             )

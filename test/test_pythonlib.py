@@ -31,6 +31,7 @@ Step 2: Run the test:
 
 import getopt
 import os
+import os.path as osp
 import py_compile
 import shutil
 import sys
@@ -38,7 +39,8 @@ import tempfile
 import time
 
 from xdis.version_info import PYTHON_VERSION_TRIPLE
-from decompile_cfg.main import main
+from decompile_cfg.main import main as main_for_exec
+from decompile_cfg.bin.decompile_code_type import decompile_format_type
 from fnmatch import fnmatch
 
 
@@ -135,8 +137,7 @@ def do_tests(src_dir, obj_patterns, target_dir, opts):
         compiled_version = opts["compiled_version"]
         if compiled_version and PYTHON_VERSION_TRIPLE != compiled_version:
             print(
-                "Not compiling: desired Python version is %s but we are running %s"
-                % (compiled_version, PYTHON_VERSION_TRIPLE),
+                f"Not compiling: desired Python version is {compiled_version} but we are running {PYTHON_VERSION_TRIPLE}",
                 file=sys.stderr,
             )
         else:
@@ -176,21 +177,49 @@ def do_tests(src_dir, obj_patterns, target_dir, opts):
     print(time.ctime())
     print("Source directory: ", src_dir)
     print("Output directory: ", target_dir)
+    code_format = opts["compile_type"]
+    compile_mode = (
+        code_format if code_format in ("eval", "exec", "single") else "exec"
+    )
     try:
-        _, _, failed_files, failed_verify = main(
-            src_dir,
-            target_dir,
-            files,
-            [],
-            do_verify=opts["do_verify"],
-            stop_on_first_error=opts["stop_on_first_error"],
-        )
-        if failed_files != 0:
-            sys.exit(2)
-        elif failed_verify:
-            parent_dir = os.path.dirname(target_dir)
-            print(f"Verify failed, keeping {parent_dir}")
-            sys.exit(3)
+        if code_format == "exec":
+            _, _, failed_files, failed_verify = main_for_exec(
+                src_dir,
+                target_dir,
+                files,
+                [],
+                do_verify=opts["do_verify"],
+                stop_on_first_error=opts["stop_on_first_error"],
+                compile_mode=compile_mode,
+                )
+            if failed_files != 0:
+                sys.exit(2)
+            elif failed_verify:
+                parent_dir = os.path.dirname(target_dir)
+                print(f"Verify failed, keeping {parent_dir}")
+                sys.exit(3)
+            pass
+        else:
+            full_files = [osp.join(src_dir, file) for file in files]
+            _, _, failed_files, failed_verify = decompile_format_type(
+                code_format,
+                asm = False,
+                asm_plus = False,
+                grammar = False,
+                tree = False,
+                tree_plus = False,
+                outfile = None,
+                start_offset = 0,
+                stop_offset = -1,
+                files = full_files,
+                )
+            if failed_files != 0:
+                sys.exit(2)
+            elif failed_verify:
+                parent_dir = os.path.dirname(target_dir)
+                print(f"Verify failed, keeping {parent_dir}")
+                sys.exit(3)
+            pass
 
     except (KeyboardInterrupt, OSError):
         print()

@@ -32,61 +32,11 @@ program, ext = os.path.splitext(os.path.basename(__file__))
 PATTERNS = ("*.pyc", "*.pyo")
 
 
-@click.command()
-@click.option(
-    "--format",
-    "-F",
-    "code_format",
-    type=click.Choice(
-        [
-            "code-fragments",
-            "dict-comprehension",
-            "exec",
-            "eval",
-            "single",
-            "generator",
-            "lambda",
-            "list-comprehension",
-            "set-comprehension",
-        ],
-        **case_sensitive,
-    ),
-)
-@click.version_option(version=__version__)
-@click.option("--asm/--no-asm", "-a", default=False)
-@click.option("--asm++/--no-asm++", "-A", "asm_plus", default=False)
-@click.option("--grammar/--no-grammar", "-g", default=False)
-@click.option("--tree/--no-tree", "-t", default=False)
-@click.option("--tree++/--no-tree++", "-T", "tree_plus", default=False)
-@click.option(
-    "--output",
-    "-o",
-    "outfile",
-    type=click.Path(
-        exists=True, file_okay=True, dir_okay=True, writable=True, resolve_path=True
-    ),
-    required=False,
-)
-@click.option(
-    "--start-offset",
-    "start_offset",
-    default=0,
-    help="start decomplation at offset; default is 0 or the starting offset.",
-)
-@click.version_option(version=__version__)
-@click.option(
-    "--stop-offset",
-    "stop_offset",
-    default=-1,
-    help="stop decomplation when seeing an offset greater or equal to this; default is "
-    "-1 which indicates no stopping point.",
-)
-@click.argument("files", nargs=-1, type=click.Path(readable=True), required=True)
-def main(
+def decompile_format_type(
     code_format,
     asm: bool,
     asm_plus: bool,
-    grammar,
+    grammar: dict,
     tree,
     tree_plus,
     outfile,
@@ -138,7 +88,7 @@ def main(
 
     # Handle assembly options.
     if asm_plus or asm:
-        asm_opt = "both"  if asm_plus else "after"
+        asm_opt = "both" if asm_plus else "after"
     else:
         asm_opt = None
 
@@ -221,6 +171,84 @@ def main(
             total += 1
         pass
     print(f"total: {total}, success: {success}, skipped: {skipped}")
+    return
+
+
+@click.command()
+@click.option(
+    "--format",
+    "-F",
+    "code_format",
+    type=click.Choice(
+        [
+            "code-fragments",
+            "dict-comprehension",
+            "exec",
+            "eval",
+            "single",
+            "generator",
+            "lambda",
+            "list-comprehension",
+            "set-comprehension",
+        ],
+        **case_sensitive,
+    ),
+)
+@click.version_option(version=__version__)
+@click.option("--asm/--no-asm", "-a", default=False)
+@click.option("--asm++/--no-asm++", "-A", "asm_plus", default=False)
+@click.option("--grammar/--no-grammar", "-g", default=False)
+@click.option("--tree/--no-tree", "-t", default=False)
+@click.option("--tree++/--no-tree++", "-T", "tree_plus", default=False)
+@click.option(
+    "--output",
+    "-o",
+    "outfile",
+    type=click.Path(
+        exists=True, file_okay=True, dir_okay=True, writable=True, resolve_path=True
+    ),
+    required=False,
+)
+@click.option(
+    "--start-offset",
+    "start_offset",
+    default=0,
+    help="start decompilation at offset; default is 0 or the starting offset.",
+)
+@click.version_option(version=__version__)
+@click.option(
+    "--stop-offset",
+    "stop_offset",
+    default=-1,
+    help="stop decomplation when seeing an offset greater or equal to this; default is "
+    "-1 which indicates no stopping point.",
+)
+@click.argument("files", nargs=-1, type=click.Path(readable=True), required=True)
+def main(
+    code_format,
+    asm: bool,
+    asm_plus: bool,
+    grammar,
+    tree,
+    tree_plus,
+    outfile,
+    start_offset: int,
+    stop_offset: int,
+    files,
+):
+    """Decompile all code objects of a certain format."""
+    decompile_format_type(
+        code_format,
+        asm,
+        asm_plus,
+        grammar,
+        tree,
+        tree_plus,
+        outfile,
+        start_offset,
+        stop_offset,
+        files,
+    )
     return
 
 
