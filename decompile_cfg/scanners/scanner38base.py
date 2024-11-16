@@ -216,7 +216,7 @@ class Scanner38Base(Scanner):
         cfg, self.insts = build_and_analyze_control_flow(
             co,
             graph_options=graph_options,
-            code_version_tuple=(3, 8),
+            code_version_tuple=self.version,
             func_or_code_timestamp=timestamp,
             func_or_code_name=name,
             )

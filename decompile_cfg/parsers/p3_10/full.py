@@ -116,6 +116,8 @@ class Python3_10ParserFull(Python3_10LambdaParser, Python3_10FullCustom):
         stmts_return_value ::= stmts BB_START RETURN_VALUE
         stmts_return_value ::= stmts
 
+        stmts_return_value ::= branch_op_return BB_START NOT_FALLEN_INTO_BLOCK POP_TOP (16)
+
         # The junk after stmts is to append an implied "return None" when no "return"
         # is explicitly given
         stmts_return_value ::= stmts BB_START LOAD_CONST RETURN_VALUE
@@ -154,6 +156,8 @@ class Python3_10ParserFull(Python3_10LambdaParser, Python3_10FullCustom):
 
         expr_stmt ::= expr POP_TOP
         expr_stmt ::= branch_op POP_TOP
+        expr_stmt ::= and_or BB_START pop_return_expr
+        expr_stmt ::= branch_op_return BB_START NOT_FALLEN_INTO_BLOCK POP_TOP
 
         expr_stmt ::= expr_return bb_start_opt POP_TOP
         expr_stmt ::= branch_op_expr BB_START POP_TOP
@@ -163,7 +167,6 @@ class Python3_10ParserFull(Python3_10LambdaParser, Python3_10FullCustom):
         # This section is in 3.10+ only.
         expr_stmt        ::= return_expr_stmt
 
-        return_expr_stmt ::= branch_op
         return_expr_stmt ::= branch_op_return
 
         expr ::= branch_op_return

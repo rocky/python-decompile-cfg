@@ -145,6 +145,7 @@ class TreeTransform(GenericASTTraversal, object):
             self.str_with_template = self.str_with_template_for_later
         if isinstance(self.showast, dict) and self.showast.get(phase, False):
             print_fn(f"""\n# ---- {phase_name}:\n """)
+            from trepan.api import debug; debug()
             maybe_show_tree(self, tree)
 
     def preorder(self, node=None):

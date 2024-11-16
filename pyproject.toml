@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "setuptools>=71.04",
+    "setuptools",
 ]
 
 build-backend = "setuptools.build_meta"
@@ -20,13 +20,13 @@ dependencies = [
 readme = "README.rst"
 license = {text = "GPL"}
 keywords = ["Python bytecode", "bytecode", "disassembler"]
+requires-python = ">=3.8"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",

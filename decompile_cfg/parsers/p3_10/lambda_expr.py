@@ -63,20 +63,13 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         # there is something in control-flow that is intermittent.
         and_parts         ::= expr_jifop BB_START expr BB_END
 
-        # "and_or" is a sequence of "and"s followed by an "or".
-        # What makes the "and" part of an "and_or" different from
-        # "and_parts" is that "expr_pjif" is used instead of "expr_jifop".
-        # Notice the similarity with "and".
-
-        #  and_or          ::= and_or_parts BB_START expr BB_END
-
         # "and_or_parts" is the "and" portion of "and_or" before the "or".
-        and_or_part     ::= and1
+        and_or_part     ::= and
 
         and_or_parts    ::= and_or_part
-        and_or_parts    ::= expr_pjif BB_START and_or_parts BLOCK_END_JOIN
+        and_or_parts    ::= expr_pjif BB_START and_or_parts
 
-        and_or          ::= and_or_parts BB_START expr block_end_join
+        and_or1         ::= and_or_parts BB_START expr
 
         # "and1" is like "and" and hooks into higher levels.
         # It also is used in "and_or".
@@ -132,6 +125,9 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         or1                 ::= or_parts_pjit expr
 
         # and_or is (a and ...) or y
+        and_or              ::= and_parts
+                                BB_START
+                                expr_jitop
 
         # An and_or followed by an expr
         and_or_expr         ::= and_parts
@@ -139,6 +135,10 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
                                 expr_jitop
                                 BB_START expr BB_END
 
+        and_or_expr_return   ::= and_parts
+                                BB_START
+                                expr_jitop
+                                BB_START expr RETURN_VALUE BB_END
 
 
         ## In cases where we have some sort of logic optimization the
@@ -827,6 +827,9 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         branch_op ::= and
         branch_op ::= and BB_START
 
+        branch_op ::= and_or
+        branch_op ::= and_or1
+
         branch_op ::= and_or_expr1
         branch_op ::= and_or_expr1 BB_START
 
@@ -868,7 +871,8 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         branch_op_part ::= or_parts_pjit block_end
 
         # A branch op followed by an expr
-        branch_op_expr ::= and_or_expr
+        branch_op_expr        ::= and_or_expr
+        branch_op_expr_return ::= and_or_expr_return
 
         # FIXME: the below is to work around test_grammar expecting a "call" to be
         # on the LHS because it is also somewhere on in a rule.
@@ -989,7 +993,7 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
 
         return_expr      ::= branch_op_return
         branch_op_return ::= branch_op pop_return_expr
-                             BB_START NOT_FALLEN_INTO_BLOCK POP_TOP
+
 
         pop_return_expr  ::= POP_TOP LOAD_CONST RETURN_VALUE BB_END
 
