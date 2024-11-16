@@ -213,7 +213,7 @@ class Scanner38Base(Scanner):
         if name.endswith(">"):
            name = name[:-1]
 
-        cfg, self.insts = build_and_analyze_control_flow(
+        _, self.insts = build_and_analyze_control_flow(
             co,
             graph_options=graph_options,
             code_version_tuple=self.version,

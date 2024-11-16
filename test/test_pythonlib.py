@@ -6,7 +6,7 @@ test_pythonlib.py -- compile, decompile, and verify Python libraries
 
 Usage-Examples:
 
-  # decompile, and verify the first 100 python 3.7 byte-compiled files
+  # decompile, and verify the first 100 python 3.9 byte-compiled files
   test_pythonlib.py --3.9 --syntax-verify
 
   # Same as above longer decompile up to 2100
@@ -14,6 +14,11 @@ Usage-Examples:
 
   # Same as above but compile the base set first
   test_pythonlib.py --3.9 --syntax-verify --max=2100 --compile
+
+  # decompile, and verify the first 100 python 3.9 byte-compiled files
+  # but stop on the first error
+  test_pythonlib.py --3.9 --first-error
+
 
 Adding own test-trees:
 
@@ -63,14 +68,14 @@ test_options = {
 }
 
 for vers in ("3.8", "3.9", "3.10"):
-    bytecode = "bytecode_%s" % vers
-    key = "bytecode-%s" % vers
+    bytecode = f"bytecode_{vers}"
+    key = f"bytecode-{vers}"
     test_options[key] = (bytecode, PYC, bytecode, vers)
-    bytecode = "bytecode_%s_run" % vers
-    key = "bytecode-%s/run" % vers
+    bytecode = f"bytecode_{vers}_run"
+    key = f"bytecode-{vers}/run"
     test_options[key] = (bytecode, PYC, bytecode, vers)
-    key = "%s" % vers
-    pythonlib = "python%s" % vers
+    key = f"{vers}"
+    pythonlib = f"python{vers}"
     if isinstance(vers, float) and vers >= 3.0:
         pythonlib = os.path.join(pythonlib, "__pycache__")
     test_options[key] = (os.path.join(lib_prefix, pythonlib), PYOC, pythonlib, vers)
@@ -82,7 +87,7 @@ def help():
     print(
         """Usage-Examples:
 
-  # compile, decompile and verify short tests for Python 3.7:
+  # compile, decompile and verify short tests for Python 3.8:
   test_pythonlib.py --bytecode-3.8 --syntax-verify --compile
 
   # decompile all of Python's installed lib files
@@ -173,13 +178,18 @@ def do_tests(src_dir, obj_patterns, target_dir, opts):
     print("Output directory: ", target_dir)
     try:
         _, _, failed_files, failed_verify = main(
-            src_dir, target_dir, files, [], do_verify=opts["do_verify"]
+            src_dir,
+            target_dir,
+            files,
+            [],
+            do_verify=opts["do_verify"],
+            stop_on_first_error=opts["stop_on_first_error"],
         )
         if failed_files != 0:
             sys.exit(2)
         elif failed_verify:
             parent_dir = os.path.dirname(target_dir)
-            print("Verify failed, keeping %s" % parent_dir)
+            print(f"Verify failed, keeping {parent_dir}")
             sys.exit(3)
 
     except (KeyboardInterrupt, OSError):
@@ -187,7 +197,7 @@ def do_tests(src_dir, obj_patterns, target_dir, opts):
         sys.exit(1)
     if test_opts["rmtree"]:
         parent_dir = os.path.dirname(target_dir)
-        print("Everything good, removing %s" % parent_dir)
+        print(f"Everything good, removing {parent_dir}")
         shutil.rmtree(parent_dir)
 
 
@@ -202,19 +212,20 @@ if __name__ == "__main__":
         sys.argv[1:],
         "",
         [
-            "start-with=",
-            "verify-run",
-            "syntax-verify",
             "all",
+            "compile",
+            "coverage",
             "dict-comprehension",
             "generator",
             "lambda",
             "list-comprehension",
-            "set-comprehension",
-            "compile",
-            "coverage",
             "no-rm",
             "run",
+            "set-comprehension",
+            "start-with=",
+            "first-error",
+            "syntax-verify",
+            "verify-run",
         ]
         + test_options_keys,
     )
@@ -222,12 +233,13 @@ if __name__ == "__main__":
         help()
 
     test_opts = {
+        "compile_type": "exec",
+        "coverage": False,
         "do_compile": False,
         "do_verify": None,
-        "start_with": None,
+        "stop_on_first_error": False,
         "rmtree": True,
-        "coverage": False,
-        "compile_type": "exec",
+        "start_with": None,
     }
 
     test_opts["rmtree"] = True
@@ -261,6 +273,8 @@ if __name__ == "__main__":
                 test_dirs.append(test_options[val])
         elif opt == "--coverage":
             test_opts["coverage"] = True
+        elif opt in ("--first-error"):
+            test_opts["stop_on_first_error"] = True
         else:
             help()
             pass
@@ -268,7 +282,7 @@ if __name__ == "__main__":
 
     if test_opts["coverage"]:
         os.environ["SPARK_PARSER_COVERAGE"] = (
-            "/tmp/spark-grammar-python-lib%s.cover" % test_dirs[0][-1]
+            f"/tmp/spark-grammar-python-lib{test_dirs[0][-1]}.cover"
         )
 
     last_compile_version = None
@@ -276,7 +290,7 @@ if __name__ == "__main__":
         if os.path.isdir(src_dir):
             checked_dirs.append([src_dir, pattern, target_dir])
         else:
-            print("Can't find directory %s. Skipping" % src_dir, file=sys.stderr)
+            print(f"Can't find directory {src_dir}. Skipping", file=sys.stderr)
             continue
         last_compile_version = compiled_version
         pass

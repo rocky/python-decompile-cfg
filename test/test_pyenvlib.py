@@ -5,8 +5,9 @@ test_pyenvlib -- decompile and verify Python libraries
 
 Usage-Examples:
 
-  test_pyenvlib.py --3.7.8 --syntax-verify	# decompile and verify python lib 3.7.8
-  test_pyenvlib.py --3.7.8 --max 10	# decompile first 10 of 3.7.8
+  test_pyenvlib.py --3.7.8 --syntax-verify # decompile and verify python lib 3.7.8
+  test_pyenvlib.py --3.7.8 --max 10        # decompile first 10 of 3.7.8
+  test_pyenvlib.py --3.7.8 -x       	   # stop after first error
 
 Adding own test-trees:
 
@@ -17,13 +18,16 @@ Step 2: Run the test:
 	  test_pyenvlib --mylib --syntax-verify # decompile verify 'mylib'
 """
 
-from __future__ import print_function
-
-import os, time, re, shutil, sys
+import os
+import re
+import shutil
+import sys
+import time
 from fnmatch import fnmatch
 
-from decompile_cfg import main
 import xdis.magics as magics
+
+from decompile_cfg import main
 
 # ----- configure this for your needs
 
@@ -66,6 +70,7 @@ for vers in TEST_VERSIONS:
         if vers == "native":
             short_vers = os.path.basename(sys.path[-1])
             from xdis.version_info import version_tuple_to_str
+
             version = version_tuple_to_str(end=2)
             PYC = f"*.cpython-{version}.pyc"
             test_options[vers] = (sys.path[-1], PYC, short_vers)
@@ -122,7 +127,7 @@ def do_tests(
         if len(files) > max_files:
             # print("Number of files %d - truncating to last 200" % len(files))
             print(
-                "Number of files %d - truncating to first %s" % (len(files), max_files)
+                f"Number of files {len(files)} - truncating to first {max_files}"
             )
             files = files[:max_files]
 
@@ -135,11 +140,13 @@ def do_tests(
 
 
 if __name__ == "__main__":
-    import getopt, sys
+    import getopt
+    import sys
 
     do_coverage = do_verify = False
     test_dirs = []
     start_with = None
+    stop_after_first_error = False
 
     test_options_keys = list(test_options.keys())
     test_options_keys.sort()
@@ -147,12 +154,14 @@ if __name__ == "__main__":
         sys.argv[1:],
         "",
         [
-            "start-with=",
-            "verify-run",
-            "syntax-verify",
-            "max=",
-            "coverage",
             "all",
+            "coverage",
+            "exit-first",
+            "max=",
+            "start-with=",
+            "syntax-verify",
+            "verify-run",
+            "x",
         ]
         + test_options_keys,
     )
@@ -177,9 +186,11 @@ if __name__ == "__main__":
             vers = "all"
             for val in test_options_keys:
                 test_dirs.append(test_options[val])
+        elif opt in ("-x", "exit-first"):
+            stop_after_first_error = True
 
     if do_coverage:
-        os.environ["SPARK_PARSER_COVERAGE"] = "/tmp/spark-grammar-%s.cover" % vers
+        os.environ["SPARK_PARSER_COVERAGE"] = f"/tmp/spark-grammar-{vers}.cover"
 
     failed = 0
     for src_dir, pattern, target_dir in test_dirs:
@@ -195,8 +206,10 @@ if __name__ == "__main__":
                 do_verify,
                 test_options["max="],
             )
+            if stop_after_first_error and failed > 0:
+                break
         else:
-            print("### Path %s doesn't exist; skipping" % src_dir)
+            print(f"### Path {src_dir} doesn't exist; skipping")
             pass
         pass
     sys.exit(failed)
