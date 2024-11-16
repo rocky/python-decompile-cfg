@@ -64,6 +64,7 @@ class Token:
         pattr=None,
         offset=-1,
         linestart=None,
+        is_jump_target=False,
         op=None,
         has_arg=None,
         opc=None,
@@ -84,6 +85,7 @@ class Token:
         self.pattr = pattr
         self.offset = f"{offset}_{offset+2}" if has_extended_arg else offset
         self.linestart = linestart
+        self.is_jump_target = is_jump_target
         self.basic_block = basic_block
         self.dominator = dominator
         if has_arg is False:
@@ -154,6 +156,9 @@ class Token:
                 if self.linestart
                 else (" " * (9 + len(line_prefix)))
             )
+
+        prefix += ">>" if self.is_jump_target else "  "
+
         offset_opname = "%8s  %-17s" % (self.offset, self.kind)
 
         if not self.has_arg:
