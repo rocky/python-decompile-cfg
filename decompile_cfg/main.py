@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2023 Rocky Bernstein <rocky@gnu.org>
+# Copyright (C) 2018-2024 Rocky Bernstein <rocky@gnu.org>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -69,7 +69,7 @@ def decompile(
     showasm=None,
     showast={},
     timestamp=None,
-    showgrammar=False,
+    grammar=dict(PARSER_DEFAULT_DEBUG),
     source_encoding=None,
     code_objects={},
     source_size=None,
@@ -125,9 +125,6 @@ def decompile(
     if source_size:
         write("# Size of source mod 2**32: %d bytes" % source_size)
 
-    grammar = dict(PARSER_DEFAULT_DEBUG)
-    if showgrammar:
-        grammar["reduce"] = True
     debug_opts = {"asm": showasm, "tree": showast, "grammar": grammar}
 
     try:
@@ -141,7 +138,7 @@ def decompile(
                 out,
                 showasm,
                 showast,
-                showgrammar,
+                grammar,
                 code_objects=code_objects,
                 is_pypy=is_pypy,
             )
@@ -174,7 +171,7 @@ def decompile(
         raise pysource.SourceWalkerError(str(e))
 
 
-def compile_file(source_path: str) -> str:
+def compile_file(source_path: str, compile_mode="exec") -> str:
     if source_path.endswith(".py"):
         basename = source_path[:-3]
     else:
@@ -186,7 +183,7 @@ def compile_file(source_path: str) -> str:
         bytecode_path = "%s-%s.pyc" % (basename, version_tuple_to_str())
 
     print("compiling %s to %s" % (source_path, bytecode_path))
-    py_compile.compile(source_path, bytecode_path, "exec")
+    py_compile.compile(source_path, bytecode_path, compile_mode)
     return bytecode_path
 
 
@@ -195,10 +192,18 @@ def decompile_file(
     outstream: Optional[TextIO] = None,
     showasm: Optional[str] = None,
     showast={},
-    showgrammar=False,
+    grammar= {
+        "rules": False,
+        "transition": False,
+        "reduce": False,
+        "errorstack": "full",
+        "context": True,
+        "dups": False,
+    },
     source_encoding=None,
     mapstream=None,
     do_fragments=False,
+    compile_mode="exec",
     start_offset=0,
     stop_offset=-1,
 ) -> Any:
@@ -224,7 +229,7 @@ def decompile_file(
                     showasm,
                     showast,
                     timestamp,
-                    showgrammar,
+                    grammar,
                     source_encoding,
                     code_objects=code_objects,
                     is_pypy=is_pypy,
@@ -243,7 +248,7 @@ def decompile_file(
                 showasm,
                 showast,
                 timestamp,
-                showgrammar,
+                grammar,
                 source_encoding,
                 code_objects=code_objects,
                 source_size=source_size,
@@ -251,7 +256,7 @@ def decompile_file(
                 magic_int=magic_int,
                 mapstream=mapstream,
                 do_fragments=do_fragments,
-                compile_mode="exec",
+                compile_mode=compile_mode,
                 start_offset=start_offset,
                 stop_offset=stop_offset,
             )
@@ -292,6 +297,15 @@ def main(
     verify_failed_files = 0
     current_outfile = outfile
     linemap_stream = None
+
+    grammar = {
+        "rules": False,
+        "transition": False,
+        "reduce": showgrammar,
+        "errorstack": "full",
+        "context": True,
+        "dups": False,
+    }
 
     for source_path in source_files:
         compiled_files.append(compile_file(source_path))
@@ -340,10 +354,11 @@ def main(
                 outstream,
                 showasm,
                 showast,
-                showgrammar,
+                grammar,
                 source_encoding,
                 linemap_stream,
                 do_fragments,
+                "exec",  # compile_mode,
                 start_offset,
                 stop_offset,
             )

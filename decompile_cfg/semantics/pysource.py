@@ -694,9 +694,10 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                         )
                     else:
                         try:
-                            node[tup[0]] in tup[1]
+                            assert node[tup[0]] in tup[1]
                         except:
                             from trepan.api import debug; debug()
+
                         assert node[tup[0]] in tup[1], (
                             f"at {node.kind}[{tup[0]}], expected to be in '{tup[1]}' "
                             f"node; got '{node[tup[0]].kind}'"
@@ -1136,6 +1137,7 @@ def code_deparse(
     # store final output stream for case of error
     scanner = get_scanner(version, is_pypy=is_pypy, show_asm=debug_opts["asm"])
 
+    is_lambda=is_lambda_mode(compile_mode)
     tokens, customize = scanner.ingest(
         co, code_objects=code_objects, show_asm=debug_opts["asm"]
     )
@@ -1171,14 +1173,14 @@ def code_deparse(
     )
 
     is_top_level_module = co.co_name == "<module>"
-    if compile_mode == "eval":
+    if compile_mode in ("eval", "single"):
         deparsed.hide_internal = False
     deparsed.compile_mode = compile_mode
     deparsed.ast = deparsed.build_ast(
         tokens,
         customize,
         co,
-        is_lambda=is_lambda_mode(compile_mode),
+        is_lambda=is_lambda,
         is_top_level_module=is_top_level_module,
     )
 

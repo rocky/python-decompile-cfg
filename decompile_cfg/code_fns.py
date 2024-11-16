@@ -42,6 +42,7 @@ from decompile_cfg.semantics.pysource import (
     TREE_DEFAULT_DEBUG,
     code_deparse,
 )
+from decompile_cfg.main import decompile_file
 
 
 def disco_deparse(
@@ -227,6 +228,29 @@ def decompile_all_fragments(
     )
 
 
+def decompile_eval(
+    filename: str,
+    outstream=None,
+    showasm=None,
+    showast: dict = TREE_DEFAULT_DEBUG,
+    showgrammar: dict = PARSER_DEFAULT_DEBUG,
+    start_offset=0,
+    stop_offset=-1,
+) -> Optional[bool]:
+    """
+    decompile file using "eval" compilation mode
+    """
+    return decompile_file(
+        filename,
+        outstream,
+        showasm,
+        showast,
+        showgrammar,
+        start_offset=start_offset,
+        stop_offset=stop_offset,
+        compile_mode="eval",
+    )
+
 def decompile_generators(
     filename: str,
     outstream=None,
@@ -310,7 +334,6 @@ def decompile_list_comprehensions(
 
 def decompile_set_comprehensions(
     filename: str,
-    code_type,
     outstream=None,
     showasm=None,
     showast=TREE_DEFAULT_DEBUG,
@@ -335,6 +358,29 @@ def decompile_set_comprehensions(
         stop_offset=stop_offset,
     )
 
+
+def decompile_single(
+    filename: str,
+    outstream=None,
+    showasm=None,
+    showast: dict = TREE_DEFAULT_DEBUG,
+    showgrammar: dict = PARSER_DEFAULT_DEBUG,
+    start_offset=0,
+    stop_offset=-1,
+) -> Optional[bool]:
+    """
+    decompile file using "single" compilation mode
+    """
+    return decompile_file(
+        filename,
+        outstream,
+        showasm,
+        showast,
+        showgrammar,
+        start_offset=start_offset,
+        stop_offset=stop_offset,
+        compile_mode="single",
+    )
 
 def _test() -> None:
     """Simple test program to disassemble a file."""

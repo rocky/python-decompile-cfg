@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # Mode: -*- python -*-
 #
-# Copyright (c) 2015-2016, 2018, 2020-2022 by Rocky Bernstein <rb@dustyfeet.com>
+# Copyright (c) 2015-2016, 2018, 2020-2022, 2024
+# by Rocky Bernstein <rb@dustyfeet.com>
 #
 import click
 import os
@@ -10,11 +11,13 @@ import sys
 from xdis.version_info import version_tuple_to_str
 from decompile_cfg.code_fns import (
     decompile_all_fragments,
+    decompile_eval,
     decompile_dict_comprehensions,
     decompile_generators,
     decompile_lambda_fns,
     decompile_list_comprehensions,
     decompile_set_comprehensions,
+    decompile_single,
 )
 from decompile_cfg.main import decompile_file
 from decompile_cfg.version import __version__
@@ -39,6 +42,8 @@ PATTERNS = ("*.pyc", "*.pyo")
             "code-fragments",
             "dict-comprehension",
             "exec",
+            "eval",
+            "single",
             "generator",
             "lambda",
             "list-comprehension",
@@ -104,18 +109,22 @@ def main(
 
     if code_format == "code-fragments":
         decompile_fn = decompile_all_fragments
+    elif code_format == "exec":
+        decompile_fn = decompile_file
+    elif code_format == "eval":
+        decompile_fn = decompile_eval
     elif code_format == "generator":
         decompile_fn = decompile_generators
-    elif code_format == "lambda":
-        decompile_fn = decompile_lambda_fns
     elif code_format == "dict-comprehension":
         decompile_fn = decompile_dict_comprehensions
+    elif code_format == "lambda":
+        decompile_fn = decompile_lambda_fns
     elif code_format == "list-comprehension":
         decompile_fn = decompile_list_comprehensions
     elif code_format == "set-comprehension":
         decompile_fn = decompile_set_comprehensions
-    elif code_format == "exec":
-        decompile_fn = decompile_file
+    elif code_format == "single":
+        decompile_fn = decompile_single
     else:
         print(f"Unexpected code_format {code_format}")
         return 1

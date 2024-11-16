@@ -196,7 +196,7 @@ class Scanner38Base(Scanner):
             assert j == len(tokens)
             return j
 
-        graph_options = "all"
+        graph_options = "all" if show_asm is not None else None
 
         co_path = co.co_filename
         if osp.exists(co_path):
@@ -212,6 +212,7 @@ class Scanner38Base(Scanner):
             name = name[1:]
         if name.endswith(">"):
            name = name[:-1]
+
         cfg, self.insts = build_and_analyze_control_flow(
             co,
             graph_options=graph_options,

@@ -563,7 +563,7 @@ class NonterminalActions:
         else:
             template = (
                 "%|%p\n",
-                (0, ("expr", "expr_return", "return_expr_stmt"),
+                (0, ("branch_op_expr", "expr", "expr_return", "return_expr_stmt"),
                  PRECEDENCE["named_expr"] - 1),
             )
         self.template_engine(template, node)
@@ -889,27 +889,27 @@ class NonterminalActions:
 
     n_return_expr_or_cond = n_expr
 
-    # Python 3.x can have be dead code as a result of its optimization?
-    # So we'll add a # at the end of the return lambda so the rest is ignored
-    def n_return_expr_lambda(self, node: SyntaxTree):
-        # Understand where non-pseudo instructions lie.
-        opt_start = 1 if node[0].kind in ("dom_start_opt", "dom_start") else 0
-        opt_end = 1 if node[-1].kind == "bb_doms_end" else 0
+    # # Python 3.x can have be dead code as a result of its optimization?
+    # # So we'll add a # at the end of the return lambda so the rest is ignored
+    # def n_return_expr_lambda(self, node: SyntaxTree):
+    #     # Understand where non-pseudo instructions lie.
+    #     opt_start = 1 if node[0].kind in ("dom_start_opt", "dom_start") else 0
+    #     opt_end = 1 if node[-1].kind == "bb_doms_end" else 0
 
-        if node[0] in ("if_exp_call_lambda", "if_exp_dead_code", "genexpr_func_async"):
-            self.preorder(node[0])
-            self.prune()
-        elif 2 <= len(node) - opt_start - opt_end <= 3:
-            self.preorder(node[1])
-            self.prune()
-        else:
-            if len(node) - opt_start - opt_end >= 4:
-                assert (
-                    len(node) == 4 + opt_start
-                    and node[2 + opt_start].kind == "return_value"
-                )
-            self.preorder(node[opt_start])
-            self.prune()
+    #     if node[0] in ("if_exp_call_lambda", "if_exp_dead_code", "genexpr_func_async"):
+    #         self.preorder(node[0])
+    #         self.prune()
+    #     elif 2 <= len(node) - opt_start - opt_end <= 3:
+    #         self.preorder(node[1])
+    #         self.prune()
+    #     else:
+    #         if len(node) - opt_start - opt_end >= 4:
+    #             assert (
+    #                 len(node) == 4 + opt_start
+    #                 and node[2 + opt_start].kind == "return_value"
+    #             )
+    #         self.preorder(node[opt_start])
+    #         self.prune()
 
     def n_return_if_stmt(self, node: SyntaxTree):
         if self.params["is_lambda"]:
