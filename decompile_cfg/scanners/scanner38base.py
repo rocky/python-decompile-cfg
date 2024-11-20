@@ -172,7 +172,7 @@ class Scanner38Base(Scanner):
         # self.varargs_ops = frozenset(self.opc.hasvargs)
         return
 
-    def ingest(self, co, classname=None, code_objects={}, show_asm=None):
+    def ingest(self, code, show_asm=None) -> tuple:
         """
         Pick out tokens from an decompile_cfg code object, and transform them,
         returning a list of decompyle-ng Token's.
@@ -198,23 +198,23 @@ class Scanner38Base(Scanner):
 
         graph_options = "all" if show_asm is not None else None
 
-        co_path = co.co_filename
+        co_path = code.co_filename
         if osp.exists(co_path):
             stat = os.stat(co_path)
             timestamp = stat.st_mtime
         else:
             timestamp = None
 
-        name = co.co_name
+        name = code.co_name
         if name == "<module>":
-            name = osp.basename(co.co_filename)
+            name = osp.basename(code.co_filename)
         if name.startswith("<"):
             name = name[1:]
         if name.endswith(">"):
            name = name[:-1]
 
         _, self.insts = build_and_analyze_control_flow(
-            co,
+            code,
             graph_options=graph_options,
             code_version_tuple=self.version,
             func_or_code_timestamp=timestamp,
@@ -224,21 +224,21 @@ class Scanner38Base(Scanner):
         if not show_asm:
             show_asm = self.show_asm
 
-        bytecode = self.build_instructions(co)
+        bytecode = self.build_instructions(code)
 
         if show_asm in ("both", "before"):
             print("\n# ---- before tokenization:")
             bytecode.disassemble_bytes(
-                co.co_code,
-                varnames=co.co_varnames,
-                names=co.co_names,
-                constants=co.co_consts,
+                code.co_code,
+                varnames=code.co_varnames,
+                names=code.co_names,
+                constants=code.co_consts,
                 cells=bytecode._cell_names,
                 line_starts=bytecode._linestarts,
                 asm_format="extended",
-                filename = co.co_filename,
+                filename = code.co_filename,
                 show_source=True,
-                first_line_number = co.co_firstlineno
+                first_line_number = code.co_firstlineno
             )
 
         # "customize" is in the process of going away here
@@ -327,8 +327,8 @@ class Scanner38Base(Scanner):
                 elif isinstance(const, str):
                     opname = "LOAD_STR"
                 else:
-                    if isinstance(inst.arg, int) and inst.arg < len(co.co_consts):
-                        argval, _ = _get_const_info(inst.arg, co.co_consts)
+                    if isinstance(inst.arg, int) and inst.arg < len(code.co_consts):
+                        argval, _ = _get_const_info(inst.arg, code.co_consts)
                     # Why don't we use _ above for "pattr" rather than "const"?
                     # This *is* a little hoaky, but we have to coordinate with
                     # other parts like n_LOAD_CONST in pysource.py for example.

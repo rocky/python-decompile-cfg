@@ -71,7 +71,7 @@ class Code:
         for i in dir(co):
             if i.startswith("co_"):
                 setattr(self, i, getattr(co, i))
-        self._tokens, self._customize = scanner.ingest(co, classname, show_asm=show_asm)
+        self._tokens, self._customize = scanner.ingest(co, show_asm=show_asm)
 
 
 class Scanner(ABC):
@@ -187,7 +187,7 @@ class Scanner(ABC):
             return False
         return offset < self.get_target(offset)
 
-    def ingest(self, co, classname=None, code_objects={}, show_asm=None):
+    def ingest(self, bytecode, show_asm=None) -> tuple:
         """
         Code to tokenize disassembly. Subclasses must implement this.
         """

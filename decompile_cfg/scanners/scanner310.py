@@ -37,12 +37,12 @@ class Scanner310(Scanner38Base):
 
     pass
 
-    # def ingest(self, bytecode, classname=None, code_objects={}, show_asm=None) -> tuple:
+    # def ingest(self, code, show_asm=None) -> tuple:
     #     """
     #     Create "tokens" the bytecode of an Python code object. See doc in parent class.
     #     """
     #     tokens, customize = super(Scanner39, self).ingest(
-    #         bytecode, classname, code_objects, show_asm
+    #         code, show_asm
     #     )
 
 
