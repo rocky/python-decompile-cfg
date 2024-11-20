@@ -206,8 +206,12 @@ class Scanner38Base(Scanner):
             timestamp = None
 
         name = code.co_name
-        if name == "<module>":
-            name = osp.basename(code.co_filename)
+        file_part = osp.basename(code.co_filename)
+        if file_part.endswith(".py"):
+            file_part = file_part[:-len(".py")]
+
+        if name == "<lambda>":
+            name = f"lambda:{'-'.join(code.co_varnames)}"
         if name.startswith("<"):
             name = name[1:]
         if name.endswith(">"):
@@ -219,6 +223,7 @@ class Scanner38Base(Scanner):
             code_version_tuple=self.version,
             func_or_code_timestamp=timestamp,
             func_or_code_name=name,
+            file_part=file_part,
             )
 
         if not show_asm:
