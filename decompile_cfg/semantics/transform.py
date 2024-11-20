@@ -30,6 +30,7 @@ from decompile_cfg.semantics.consts import RETURN_NONE, ASSIGN_DOC_STRING
 # do everything by default.
 STRIPPED_NODES = (
     "and_compare_chained_return",
+    "and",
     "and_or",
     "and_or_expr",
     "and_or_expr1",
@@ -95,7 +96,6 @@ STRIPPED_NODES = (
 
 # Whereever we see these nodes, they will be removed.
 DELETED_NODES = (
-    "bb_end_start",
     "bb_start_opt",
     "block_end_joins",
     "block_join_end_final",

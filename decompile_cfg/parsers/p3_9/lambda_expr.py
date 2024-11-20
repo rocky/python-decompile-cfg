@@ -39,22 +39,19 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         # "and" is the final reduction that hooks into the higher level
         # levels of the grammar.
+
         and               ::= and_parts
-        and               ::= and_parts BLOCK_END_JOIN
+        and               ::= and_part
+
         expr_jifop_and    ::= expr_jifop BB_START and BLOCK_END_JOIN
         expr_jifop_and    ::= expr_jifop BB_START expr_jifop_and BLOCK_END_JOIN
 
         # And "and_part" is an "expr" that is followed by a BB_END because there
         # is a jump to the instruction after that "expr"
 
-        and_part          ::= expr POP_JUMP_IF_FALSE BB_END
-
-        # "and_parts" is basically an "and". Each nesting of "and_parts" adds a
-        # BLOCK_END_JOIN.
-        # And by doing such, we are proper keeping track and nesting.
-
-        and_parts         ::= and_part
-        and_parts         ::= and_parts BB_START and_part
+        and_part          ::= expr_jifop BB_START expr BB_END BLOCK_END_FALLTHROUGH_JOIN
+        and_parts         ::= expr_jifop BB_START and_part BLOCK_END_JUMP_JOIN
+        and_parts         ::= expr_jifop BB_START and_parts BLOCK_END_JUMP_JOIN
         and_parts         ::= expr_jifop BB_START and_parts
 
         and_parts         ::= or_and_part BB_START expr BB_END
@@ -309,9 +306,9 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         compare_chained_return ::= expr
                                    compare_chained_middle_return
-                                   BLOCK_END_JOIN BB_START NOT_FALLEN_INTO_BLOCK
+                                   NOT_FALLEN_INTO_BLOCK BB_START
                                    ROT_TWO POP_TOP
-                                   RETURN_VALUE BB_END BLOCK_END_JOIN
+                                   RETURN_VALUE BB_END
 
         # FIXME: simplify the compare_chain1 recursion?
         compare_chained_middle       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
