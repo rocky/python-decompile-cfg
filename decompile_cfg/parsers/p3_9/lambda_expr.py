@@ -34,7 +34,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
     """
     Python 3.9 lambda grammar rules
     """
-    def p_branch_ops(self, args):
+    def p_branch_ops(self, _):
         """
 
         # "and" is the final reduction that hooks into the higher level
@@ -46,16 +46,23 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         expr_jifop_and    ::= expr_jifop BB_START and BLOCK_END_JOIN
         expr_jifop_and    ::= expr_jifop BB_START expr_jifop_and BLOCK_END_JOIN
 
-        # And "and_part" is an "expr" that is followed by a BB_END because there
-        # is a jump to the instruction after that "expr"
-
+        # This appears in chained "and"s
         and_part          ::= expr_jifop BB_START expr BB_END BLOCK_END_FALLTHROUGH_JOIN
         and_parts         ::= expr_jifop BB_START and_part BLOCK_END_JUMP_JOIN
         and_parts         ::= expr_jifop BB_START and_parts BLOCK_END_JUMP_JOIN
-        and_parts         ::= expr_jifop BB_START and_parts
 
         and_parts         ::= or_and_part BB_START expr BB_END
 
+
+        # This appears in "and .. or"
+        and_part_ao       ::= expr_pjif BB_START expr
+        and_or            ::= and_part_ao jitop
+                              BLOCK_END_FALLTHROUGH_JOIN
+                              BB_START
+                              expr
+                              BB_END
+                              BLOCK_END_FALLTHROUGH_JOIN
+                              BLOCK_END_JUMP_JOIN
 
         and_or_parts    ::= and_or_part
         and_or_parts    ::= expr_pjif BB_START and_or_parts BLOCK_END_JOIN
@@ -214,7 +221,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         """
 
-    def p_chained(self, args):
+    def p_chained(self, _):
         """
         chained_parts        ::= chained_part+
 
@@ -300,41 +307,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                                            compare_chained
         """
 
-    # Dominator and basic block pseudo operations needed
-    # to assist control flow
-    def p_dom(self, args):
-        """
-        dom_end            ::= BB_END DOM_END
-
-        # bb_end_start can appear before loops and
-        # after jumps
-        bb_end_start       ::= BB_END BB_START
-        bb_end_start_opt   ::= bb_end_start?
-
-        bb_doms_end        ::= BB_END doms_end
-        bb_doms_end_opt    ::= bb_doms_end?
-
-        block_end            ::= BB_END
-        block_end            ::= block_join_end_final
-        block_join_end_final ::= BB_END BLOCK_END_JOIN BLOCK_END_JOIN_NO_ARG
-        block_join_end_final ::= BB_END BLOCK_END_JOIN_NO_ARG
-        block_join_end_final ::= BLOCK_END_JOIN_NO_ARG
-
-        # FIXME: remove this
-        # Not ideal since we lose track of the counts.
-        block_end_joins     ::= BLOCK_END_JOIN+
-
-        doms_end           ::= DOM_END+
-        dom_end_start_opt  ::= dom_end_start?
-        doms_end_start_opt ::= bb_doms_end dom_start
-
-        bb_end_start          ::= BB_END dom_start
-
-        # In contrast to bb_ends, a block_end can include dominator regions.
-        block_end        ::= bb_end_start_opt
-        """
-
-    def p_conditionals(self, args):
+    def p_conditionals(self, _):
         """
         expr_pjif                  ::= expr POP_JUMP_IF_FALSE BB_END
         expr_pjif_loop             ::= expr for_jump_pop_iff
@@ -354,7 +327,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         expr_pjift                 ::= expr pjump_ift
         """
 
-    def p_comprehension(self, args):
+    def p_comprehension(self, _):
         """
         # comp_body is the body of some sort of list, dict, set, or generator
         # comprehension. The body is what adds to the accumulated collection
@@ -589,7 +562,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         """
 
-    def p_comprehension_dict(self, args):
+    def p_comprehension_dict(self, _):
         """ "
         dict_comp_body ::= expr expr MAP_ADD
 
@@ -611,7 +584,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         """
 
-    def p_comprehension_list(self, args):
+    def p_comprehension_list(self, _):
         """
         lc_body         ::= expr doms_end_start_opt LIST_APPEND
         lc_body         ::= expr dom_end_start_opt LIST_APPEND
@@ -665,7 +638,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         list_if_or_not ::= or1 POP_JUMP_IF_TRUE_LOOP bb_end_start_opt list_iter
         """
 
-    def p_comprehension_set(self, args):
+    def p_comprehension_set(self, _):
         """
         comp_iter     ::= comp_body
         comp_iter     ::= comp_body BLOCK_END_JOIN
@@ -673,7 +646,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         comp_body     ::= gen_comp_body
         """
 
-    def p_expr(self, args):
+    def p_expr(self, _):
         """
         # expressions going to terminal symbols
         expr ::= LOAD_DEREF
@@ -743,8 +716,8 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         branch_op ::= and
         branch_op ::= and BB_START
 
-        branch_op ::= and_or_expr1
-        branch_op ::= and_or_expr1 BB_START
+        branch_op ::= and_or
+        branch_op ::= and_or BB_START
 
         branch_op ::= and1 BB_START
 
@@ -839,7 +812,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         """
 
     # Conditional jumps with dominator information included
-    def p_jump_conditional(self, args):
+    def p_jump_conditional(self, _):
         """
         for_jump_pop_iff   ::= JUMP_FOR POP_JUMP_IF_FALSE_LOOP BB_END
         for_jump_pop_ift   ::= JUMP_FOR POP_JUMP_IF_TRUE_LOOP BB_END
@@ -868,7 +841,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         """
 
     # Unconditional jumps
-    def p_jump_unconditional(self, args):
+    def p_jump_unconditional(self, _):
         """
         for_jump_unconditional ::= for_loop_unconditional
         for_loop_unconditional ::= JUMP_LOOP JUMP_ABSOLUTE BB_END
@@ -878,7 +851,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         jf_doms_end_start      ::= JUMP_FORWARD bb_doms_end_start
         """
 
-    def p_lambda(self, args):
+    def p_lambda(self, _):
         """
         # return_expr is a return value used inside a lambda
 
@@ -889,8 +862,6 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         return_expr               ::= if_else_lambda_return
 
         # This is wrong and control_flow may need fixing.
-        block_end_joins           ::= BLOCK_END_JOIN+
-        return_expr               ::= expr RETURN_VALUE BB_END block_end_joins
 
         return_expr               ::= if_exp_and_return
         return_expr               ::= expr return_value
@@ -1029,7 +1000,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
                               return_expr_lambda
         """
 
-    def p_no_fallthrough(self, args):
+    def p_no_fallthrough(self, _):
         """
         # short-circuit expressions that have RETURN_VALUEs at the end
         # (e.g. return 1 < i < n) may need NOT_FALLEN_INTO_BLOCK
@@ -1040,7 +1011,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         return_value              ::= NOT_FALLEN_INTO_BLOCK RETURN_VALUE
         """
 
-    def p_store(self, args):
+    def p_store(self, _):
         """
         store           ::= STORE_DEREF
         store           ::= STORE_FAST

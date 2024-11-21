@@ -228,7 +228,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         """
 
-    def p_chained(self, args):
+    def p_chained(self, _):
         """
         chained_parts        ::= chained_part+
 
@@ -314,7 +314,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                            compare_chained
         """
 
-    def p_conditionals(self, args):
+    def p_conditionals(self, _):
         """
         expr_pjif                  ::= expr POP_JUMP_IF_FALSE BB_END
         expr_pjif_loop             ::= expr for_jump_pop_iff
@@ -334,7 +334,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         expr_pjift                 ::= expr pjump_ift
         """
 
-    def p_comprehension(self, args):
+    def p_comprehension(self, _):
         """
         # comp_body is the body of some sort of list, dict, set, or generator
         # comprehension. The body is what adds to the accumulated collection
@@ -569,7 +569,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         """
 
-    def p_comprehension_dict(self, args):
+    def p_comprehension_dict(self, _):
         """ "
         dict_comp_body ::= expr expr MAP_ADD
 
@@ -591,7 +591,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         """
 
-    def p_comprehension_list(self, args):
+    def p_comprehension_list(self, _):
         """
         lc_body         ::= expr doms_end_start_opt LIST_APPEND
         lc_body         ::= expr dom_end_start_opt LIST_APPEND
@@ -645,7 +645,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         list_if_or_not ::= or1 POP_JUMP_IF_TRUE_LOOP bb_end_start_opt list_iter
         """
 
-    def p_comprehension_set(self, args):
+    def p_comprehension_set(self, _):
         """
         comp_iter     ::= comp_body
         comp_iter     ::= comp_body BLOCK_END_JOIN
@@ -653,7 +653,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         comp_body     ::= gen_comp_body
         """
 
-    def p_expr(self, args):
+    def p_expr(self, _):
         """
         # expressions going to terminal symbols
         expr ::= LOAD_DEREF
@@ -812,7 +812,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         """
 
     # Conditional jumps with dominator information included
-    def p_jump_conditional(self, args):
+    def p_jump_conditional(self, _):
         """
         for_jump_pop_iff   ::= JUMP_FOR POP_JUMP_IF_FALSE_LOOP BB_END
         for_jump_pop_ift   ::= JUMP_FOR POP_JUMP_IF_TRUE_LOOP BB_END
@@ -840,7 +840,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         """
 
     # Unconditional jumps
-    def p_jump_unconditional(self, args):
+    def p_jump_unconditional(self, _):
         """
         for_jump_unconditional ::= for_loop_unconditional
         for_loop_unconditional ::= JUMP_LOOP JUMP_ABSOLUTE BB_END
@@ -850,7 +850,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         jf_doms_end_start      ::= JUMP_FORWARD bb_doms_end_start
         """
 
-    def p_lambda(self, args):
+    def p_lambda(self, _):
         """
         # return_expr is a return value used inside a lambda
 
@@ -997,7 +997,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                               return_expr_lambda
         """
 
-    def p_no_fallthrough(self, args):
+    def p_no_fallthrough(self, _):
         """
         # short-circuit expressions that have RETURN_VALUEs at the end
         # (e.g. return 1 < i < n) may need NOT_FALLEN_INTO_BLOCK
@@ -1008,7 +1008,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         return_value              ::= NOT_FALLEN_INTO_BLOCK RETURN_VALUE
         """
 
-    def p_store(self, args):
+    def p_store(self, _):
         """
         store           ::= STORE_DEREF
         store           ::= STORE_FAST
