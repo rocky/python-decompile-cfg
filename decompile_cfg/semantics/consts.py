@@ -1,4 +1,4 @@
-#  Copyright (c) 2017-2023 by Rocky Bernstein
+#  Copyright (c) 2017-2024 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -248,12 +248,6 @@ TABLE_DIRECT = {
     "UNARY_NOT":                ( "not ", ),
     "UNARY_POSITIVE":           ( "+",),
 
-    "and1": (
-        "%c and %c",
-        (0, "expr_pjif"),
-        (1, "expr_jitop"),
-    ),
-
     "and_or": (
         "%c or %p",
         (0, ("expr_pjif", "and_or_part")),
@@ -279,13 +273,6 @@ TABLE_DIRECT = {
         (0, "expr_pjif"),
         (2, "expr_jitop"),
         (-1, "expr"),
-        ),
-
-    "and_or_expr1": (
-        "%c and %c or %c",
-        (0, "expr_pjif"),
-        (1, "expr_jitop"),
-        (2, "and"),
         ),
 
     "and_part":
@@ -782,22 +769,17 @@ TABLE_DIRECT = {
     # function_def_async
     "mkfuncdeco0":  	        ( "%|def %c\n", (0, "mkfunc") ),
 
-    "or": (
-        "%c or %c",
-        (0, ("expr_jitop", "expr_pjit")),
-        (-1, ("expr", "expr_jifop") )
-        ),
-    "or1": (
-        "%c or %c",
-        (0, "or_parts_pjit"),
-        (1, "expr")
+    "or_part": (
+        "%p or %p",
+        (0, ("expr_jitop", "expr_pjit"), PRECEDENCE["or"]),
+        (-1, ("expr", "expr_jifop"), PRECEDENCE["or"])
         ),
 
-    "or3": (
-        "%c or %c",
-        (0,  "and1"),
-        (2,  ("and_or_expr")),
-    ),
+    "or_parts": (
+        "%p or %p",
+        (0, ("expr_jitop", "expr_pjit"), PRECEDENCE["or"]),
+        (-1, ("or_part", "or_parts"), PRECEDENCE["or"])
+        ),
 
     # Single or part before an "and". It doesn't include the "and"
     "or_and": (

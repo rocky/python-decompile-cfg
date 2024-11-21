@@ -76,7 +76,6 @@ class PythonBaseParser(GenericASTBuilder):
             "kwargs",
             "lists",
             "or_and_parts",
-            "or_parts",
             "stmts",
         ]
         self.collect = frozenset(nt_list)

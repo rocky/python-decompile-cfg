@@ -72,56 +72,14 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         and_or_parts    ::= and_or_part
         and_or_parts    ::= expr_pjif BB_START and_or_parts BLOCK_END_JOIN
 
-        # This is wrong - we should not need this and use only the above.
-        # there is something in control-flow that is intermittent.
-        and_or_parts    ::= expr_pjif BB_START and_or_parts
+        or                ::= or_parts
+        or                ::= or_part
 
-        # "and1" is like "and" and hooks into higher levels.
-        # It also is used in "and_or".
-        and1            ::= expr_pjif
-                            BB_START
-                            expr_jitop
-                            BLOCK_END_JOIN
+        or_part           ::= expr_jitop BB_START expr BB_END
+                              BLOCK_END_FALLTHROUGH_JOIN
 
-        # This is wrong - we should not need this and use only the above.
-        # there is something in control-flow that is intermittent.
-        and1            ::= expr_pjif
-                            BB_START
-                            expr_jitop
-
-        or3            ::= and1 BB_START and_or_expr BLOCK_END_JOIN
-
-        # Outer "or"s that contain other "or" will not have a BB_END before
-        # BLOCK_END_JOIN
-        or              ::= expr_jitop
-                            BB_START
-                            expr
-                            BLOCK_END_JOIN
-
-        # This is wrong - we should not need this and use only the above.
-        # there is something in control-flow that is intermittent.
-        or              ::= expr_jitop
-                            BB_START
-                            expr
-
-        or              ::= expr_pjit
-                            BB_START
-                            expr_jifop
-                            BLOCK_END_JOIN
-
-        or_part_pjit         ::= expr_pjit
-        or_parts_pjit        ::= expr_pjit BB_START or_part_pjit
-
-
-        or_part_pjit_true_loop  ::= expr_pjit_loop
-        or_parts_pjit_true_loop ::= or_part_pjit_true_loop+
-
-        # FIXME: something may be fishy here.
-        # We probably need a reduction rule to distinguish the false and true jumps.
-        or_part_pjit_false_loop  ::= expr_pjif_loop
-        or_parts_pjit_false_loop ::= or_part_pjit_false_loop+
-
-        or1                 ::= or_parts_pjit expr
+        or_parts          ::= expr_jitop BB_START or_part BLOCK_END_JUMP_JOIN
+        or_parts          ::= expr_jitop BB_START or_parts BLOCK_END_JUMP_JOIN
 
         # and_or is (a and ...) or y
 

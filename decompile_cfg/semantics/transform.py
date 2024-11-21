@@ -80,6 +80,8 @@ STRIPPED_NODES = (
     "jitop",
     "list_for",
     "or",
+    "or_part",
+    "or_parts",
     "or_and_part",
     "or_and_parts",
     "or_ands",
