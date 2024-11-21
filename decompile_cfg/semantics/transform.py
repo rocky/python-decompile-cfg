@@ -36,9 +36,8 @@ STRIPPED_NODES = (
     "and_or_expr1",
     "and_or_parts",
     "and_part",
+    "and_part_ao",
     "and_parts",
-    "and_parts_return",
-    "and1",
     "async_for_loop",
     "async_iter",
     "bb_end_start",
@@ -600,18 +599,6 @@ class TreeTransform(GenericASTTraversal, object):
                 pass
             pass
         return node
-
-    def n_lambda_start(self, node: SyntaxTree) -> SyntaxTree:
-        """Here strip off extraneous nodes in lambda_start"""
-
-        assert node[0] == "BB_START"
-        assert node[-1] in ("block_end", "BLOCK_END_JOIN_NO_ARG")
-        new_node = copy(node)
-        del new_node[0]
-        del new_node[-1]
-        new_node.transofrmed_by = "n_lambda_start"
-        del node
-        return new_node
 
     # def n_list_if_or(self, list_if_node):
     #     # If we chain to another list_if, we should drop the "if"

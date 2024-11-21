@@ -46,14 +46,22 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         expr_jifop_and    ::= expr_jifop BB_START and BLOCK_END_JOIN
         expr_jifop_and    ::= expr_jifop BB_START expr_jifop_and BLOCK_END_JOIN
 
-        # And "and_part" is an "expr" that is followed by a BB_END because there
-        # is a jump to the instruction after that "expr"
-
+        # This appears in chained "and"s
         and_part          ::= expr_jifop BB_START expr BB_END BLOCK_END_FALLTHROUGH_JOIN
         and_parts         ::= expr_jifop BB_START and_part BLOCK_END_JUMP_JOIN
         and_parts         ::= expr_jifop BB_START and_parts BLOCK_END_JUMP_JOIN
 
         and_parts         ::= or_and_part BB_START expr BB_END
+
+        # This appears in "and .. or"
+        and_part_ao       ::= expr_pjif BB_START expr
+        and_or            ::= and_part_ao jitop
+                              BLOCK_END_FALLTHROUGH_JOIN
+                              BB_START
+                              expr
+                              BB_END
+                              BLOCK_END_FALLTHROUGH_JOIN
+                              BLOCK_END_JUMP_JOIN
 
         # "and_or" is a sequence of "and"s followed by an "or".
         # What makes the "and" part of an "and_or" different from
@@ -304,40 +312,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         compare_chained37_false        ::= expr
                                            compare_chained
-        """
-
-    # Dominator and basic block pseudo operations needed
-    # to assist control flow
-    def p_dom(self, args):
-        """
-        dom_end            ::= BB_END DOM_END
-
-        # bb_end_start can appear before loops and
-        # after jumps
-        bb_end_start       ::= BB_END BB_START
-        bb_end_start_opt   ::= bb_end_start?
-
-        bb_doms_end        ::= BB_END doms_end
-        bb_doms_end_opt    ::= bb_doms_end?
-
-        block_end            ::= BB_END
-        block_end            ::= block_join_end_final
-        block_join_end_final ::= BB_END BLOCK_END_JOIN BLOCK_END_JOIN_NO_ARG
-        block_join_end_final ::= BB_END BLOCK_END_JOIN_NO_ARG
-        block_join_end_final ::= BLOCK_END_JOIN_NO_ARG
-
-        # FIXME: remove this
-        # Not ideal since we lose track of the counts.
-        block_end_joins     ::= BLOCK_END_JOIN+
-
-        doms_end           ::= DOM_END+
-        dom_end_start_opt  ::= dom_end_start?
-        doms_end_start_opt ::= bb_doms_end dom_start
-
-        bb_end_start          ::= BB_END dom_start
-
-        # In contrast to bb_ends, a block_end can include dominator regions.
-        block_end        ::= bb_end_start_opt
         """
 
     def p_conditionals(self, args):
@@ -749,8 +723,8 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         branch_op ::= and
         branch_op ::= and BB_START
 
-        branch_op ::= and_or_expr1
-        branch_op ::= and_or_expr1 BB_START
+        branch_op ::= and_or
+        branch_op ::= and_or BB_START
 
         branch_op ::= and1 BB_START
 
@@ -887,8 +861,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         return_expr               ::= if_else_lambda_return
 
         # This is wrong and control_flow may need fixing.
-        block_end_joins           ::= BLOCK_END_JOIN+
-        return_expr               ::= expr RETURN_VALUE BB_END block_end_joins
         return_expr               ::= if_exp_and_return
         return_expr               ::= expr return_value
         return_expr               ::= if_exp_return

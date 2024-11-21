@@ -112,7 +112,7 @@ class Python3_8ParserFull(Python3_8LambdaParser, Python3_8FullCustom):
         # pysource.py in trying to "hide" instructions. When that is removed
         # the below might be simplified.
 
-        stmts_return_value ::= stmts RETURN_VALUE block_end
+        stmts_return_value ::= stmts RETURN_VALUE
         stmts_return_value ::= stmts BB_START RETURN_VALUE
         stmts_return_value ::= stmts
 
