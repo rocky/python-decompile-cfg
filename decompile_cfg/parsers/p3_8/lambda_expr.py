@@ -55,10 +55,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         and_parts         ::= or_and_part BB_START expr BB_END
 
-        # This is wrong - we should not need this and use only the above.
-        # there is something in control-flow that is intermittent.
-        and_parts         ::= expr_jifop BB_START expr BB_END
-
         # "and_or" is a sequence of "and"s followed by an "or".
         # What makes the "and" part of an "and_or" different from
         # "and_parts" is that "expr_pjif" is used instead of "expr_jifop".

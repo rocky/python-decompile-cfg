@@ -56,63 +56,20 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         and_parts         ::= or_and_part BB_START expr BB_END
 
-        # This is wrong - we should not need this and use only the above.
-        # there is something in control-flow that is intermittent.
-        and_parts         ::= expr_jifop BB_START expr BB_END
-
-        # "and_or" is a sequence of "and"s followed by an "or".
-        # What makes the "and" part of an "and_or" different from
-        # "and_parts" is that "expr_pjif" is used instead of "expr_jifop".
-        # Notice the similarity with "and".
-
-        #  and_or          ::= and_or_parts BB_START expr BB_END
-
-        # "and_or_parts" is the "and" portion of "and_or" before the "or".
-        and_or_part     ::= and1
 
         and_or_parts    ::= and_or_part
         and_or_parts    ::= expr_pjif BB_START and_or_parts BLOCK_END_JOIN
 
         and_or          ::= and_or_parts BB_START expr block_end_join
 
-        # "and1" is like "and" and hooks into higher levels.
-        # It also is used in "and_or".
-        and1            ::= expr_pjif
-                            BB_START
-                            expr_jitop
-                            BLOCK_END_JOIN
+        or                ::= or_parts
+        or                ::= or_part
 
-        # This is wrong - we should not need this and use only the above.
-        # there is something in control-flow that is intermittent.
-        and1            ::= expr_pjif
-                            BB_START
-                            expr_jitop
+        or_part           ::= expr_jitop BB_START expr BB_END
+                              BLOCK_END_FALLTHROUGH_JOIN
 
-        # This is less than ideal because we lose track of the proper
-        # number of BLOCK_END_JOINs that should apear at the target
-        # jumps.  To regain this, we need to count these in reduction
-        # rule. Sigh.  and_parts_pjif ::= and_part_pjif+
-        # and_parts_jifop ::= and_part_jifop+
-
-        or3            ::= and1 BB_START and_or_expr BLOCK_END_JOIN
-
-        # Outer "or"s that contain other "or" will not have a BB_END before
-        # BLOCK_END_JOIN
-        or              ::= expr_jitop
-                            BB_START
-                            expr
-                            BLOCK_END_JOIN
-
-        # This is wrong - we should not need this and use only the above.
-        # there is something in control-flow that is intermittent.
-        or              ::= expr_jitop
-                            BB_START
-                            expr
-
-        or              ::= expr_pjit
-                            BB_START
-                            expr_jifop
-                            BLOCK_END_JOIN
+        or_parts          ::= expr_jitop BB_START or_part BLOCK_END_JUMP_JOIN
+        or_parts          ::= expr_jitop BB_START or_parts BLOCK_END_JUMP_JOIN
 
         or_part_pjit         ::= expr_pjit
         or_parts_pjit        ::= expr_pjit BB_START or_part_pjit
