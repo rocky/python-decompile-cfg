@@ -71,20 +71,6 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         or_parts          ::= expr_jitop BB_START or_part BLOCK_END_JUMP_JOIN
         or_parts          ::= expr_jitop BB_START or_parts BLOCK_END_JUMP_JOIN
 
-        or_part_pjit         ::= expr_pjit
-        or_parts_pjit        ::= expr_pjit BB_START or_part_pjit
-
-
-        or_part_pjit_true_loop  ::= expr_pjit_loop
-        or_parts_pjit_true_loop ::= or_part_pjit_true_loop+
-
-        # FIXME: something may be fishy here.
-        # We probably need a reduction rule to distinguish the false and true jumps.
-        or_part_pjit_false_loop  ::= expr_pjif_loop
-        or_parts_pjit_false_loop ::= or_part_pjit_false_loop+
-
-        or1                 ::= or_parts_pjit expr
-
         # and_or is (a and ...) or y
 
         # An and_or followed by an expr

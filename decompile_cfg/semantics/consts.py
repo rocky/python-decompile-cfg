@@ -883,6 +883,8 @@ TABLE_DIRECT = {
     "raise_stmt3":	    ( "%|raise %c, %c, %c\n", 0, 1, 2),
 #    "return":	        ( "%|return %c\n", 0),
 
+    "removed_stmt":     ("%|# There was a statement here that was optimized away.\n",),
+
     "ret_and":        	("%c and %c", 0, 2),
 
     "return_if_stmt":	("return %c\n", 0),

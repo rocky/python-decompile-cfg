@@ -1,4 +1,4 @@
-#  Copyright (c) 2017-2023 Rocky Bernstein
+#  Copyright (c) 2017-2024 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -130,7 +130,9 @@ class Python3_10ParserFull(Python3_10LambdaParser, Python3_10FullCustom):
         # semantic action code removing LOAD_CONST RETURN_VALUE
         stmts_return_value ::= stmts BB_START
 
-        pass ::=
+        # Code that does not do anything, like a stray expression,
+        # can get changed into a NOP.
+        removed_stmt ::= NOP
 
         stmts_opt ::= stmts
         stmts_opt ::= pass
@@ -200,6 +202,7 @@ class Python3_10ParserFull(Python3_10LambdaParser, Python3_10FullCustom):
         stmt ::= ifstmt_branch
 
         stmt ::= last_stmt
+        stmt ::= removed_stmt
 
         stmt ::= set_comp_func
 
@@ -246,6 +249,7 @@ class Python3_10ParserFull(Python3_10LambdaParser, Python3_10FullCustom):
         delete ::= DELETE_GLOBAL
 
         stmt   ::= return
+        stmt   ::= pass
 
         return ::= return_expr
 
