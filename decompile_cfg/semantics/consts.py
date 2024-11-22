@@ -259,7 +259,7 @@ TABLE_DIRECT = {
     "and_part":
     (
         "%p and %p",
-        (0,  ("expr_jifop",), PRECEDENCE["and"]),
+        (0,  ("expr_jifop", "or_part_oa"), PRECEDENCE["and"]),
         (-1,  ("expr", "or_part"), PRECEDENCE["and"]),
     ),
 
@@ -809,10 +809,16 @@ TABLE_DIRECT = {
         (-1, "expr"),
     ),
 
-    "or_and_part": (
+    "or_and_part_ao": (
         "%c or %p",
         (0, ("expr_pjit")),
-        (1, ("expr_jifop", "or_and_parts"), PRECEDENCE["or"]),
+        (1, ("expr_jifop",), PRECEDENCE["or"]),
+    ),
+
+    "or_part_oa": (
+        "%c or %p",
+        (0, ("expr_pjit")),
+        (1, ("expr_jifop",), PRECEDENCE["or"]),
     ),
 
     # Only when we have do not have a single retuction to or_and_part

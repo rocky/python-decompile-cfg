@@ -56,6 +56,14 @@ class NonterminalActions:
             )
             self.template_engine(template, node)
             self.prune()
+        elif node[0] == "or_part_oa":
+            template = (
+                "(%c) and %p",
+                (0, ("or_part_oa",)),
+                (-1, ("expr", "or_part"), PRECEDENCE["and"]),
+            )
+            self.template_engine(template, node)
+            self.prune()
         else:
             self.default(node)
 

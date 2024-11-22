@@ -49,11 +49,13 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         # This appears in chained "and"s
         and_part          ::= expr_jifop BB_START expr BB_END BLOCK_END_FALLTHROUGH_JOIN
         and_part          ::= expr_jifop BB_START or_part BLOCK_END_JUMP_JOIN
+        and_part          ::= or_part_oa BB_START expr BB_END
+                              BLOCK_END_FALLTHROUGH_JOIN BLOCK_END_JUMP_JOIN
 
         and_parts         ::= expr_jifop BB_START and_part BLOCK_END_JUMP_JOIN
         and_parts         ::= expr_jifop BB_START and_parts BLOCK_END_JUMP_JOIN
 
-        and_parts         ::= or_and_part BB_START expr BB_END
+        and_parts         ::= or_and_part_ao BB_START expr BB_END
 
         # This appears in "and .. or"
         and_part_ao       ::= expr_pjif BB_START expr
@@ -110,18 +112,11 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         # or_and is (a or ...) and y
 
-        or_and_part    ::= expr_pjit BB_START expr_jifop BLOCK_END_JOIN
+        or_and_part_ao ::= expr_pjit BB_START expr_jifop BLOCK_END_JOIN
+        or_part_oa     ::= expr_pjit BB_START expr_jifop BLOCK_END_FALLTHROUGH_JOIN
 
-        or_and_parts   ::= or_and_part
-        or_and_parts   ::= expr_pjit BB_START or_and_parts BLOCK_END_JOIN
-
-        or_ands        ::= or_and_parts BB_START expr BLOCK_END_JOIN
-
-        or_ands        ::= or_parts_pjit
-                           BB_START
-                           expr_jifop
-                           BLOCK_END_JOIN BB_START
-                           branch_op
+        or_and         ::= or_part_oa BB_START expr
+                           BLOCK_END_FALLTHROUGH_JOIN BLOCK_JUMP_JOIN
 
         if_exp_dead_code   ::= return_expr_lambda
                                bb_end_start
@@ -721,6 +716,8 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         # What distinguishes these kinds of Boolean expressions from other kinds of
         # expressions, even from those that return True and False (like "is" and "in")
         # is that they have basic block and dominator pseudo instructions.
+        # Therefore there will always be a jump or fallthrough a new block
+        # after the code.
 
         branch_op ::= and
         branch_op ::= and BB_START
@@ -728,22 +725,15 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         branch_op ::= and_or
         branch_op ::= and_or BB_START
 
-        branch_op ::= and1 BB_START
-
         branch_op ::= compare
         branch_op ::= compare BB_START
 
         branch_op ::= expr_jifop_and
         branch_op ::= expr_jifop_and BB_START
 
-        branch_op ::= or
         branch_op ::= or BB_START
 
-        # This is weird one; investigate and fix
-        branch_op ::= or_and_part BB_START
-
-        branch_op ::= or_ands
-        branch_op ::= or_ands BB_START
+        branch_op ::= or_and BB_START
 
         branch_op ::= or1 block_end
 
