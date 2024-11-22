@@ -34,7 +34,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
     """
     Python 3.8 lambda grammar rules
     """
-    def p_branch_ops(self, args):
+    def p_branch_ops(self, _):
         """
 
         # "and" is the final reduction that hooks into the higher level
@@ -48,6 +48,8 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         # This appears in chained "and"s
         and_part          ::= expr_jifop BB_START expr BB_END BLOCK_END_FALLTHROUGH_JOIN
+        and_part          ::= expr_jifop BB_START or_part BLOCK_END_JUMP_JOIN
+
         and_parts         ::= expr_jifop BB_START and_part BLOCK_END_JUMP_JOIN
         and_parts         ::= expr_jifop BB_START and_parts BLOCK_END_JUMP_JOIN
 
@@ -77,16 +79,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                               BLOCK_END_FALLTHROUGH_JOIN
                               BLOCK_END_JUMP_JOIN
 
-
-        # "and_or" is a sequence of "and"s followed by an "or".
-        # What makes the "and" part of an "and_or" different from
-        # "and_parts" is that "expr_pjif" is used instead of "expr_jifop".
-        # Notice the similarity with "and".
-
-        #  and_or          ::= and_or_parts BB_START expr BB_END
-
-        # "and_or_parts" is the "and" portion of "and_or" before the "or".
-        and_or_part     ::= and1
 
         and_or_parts    ::= and_or_part
         and_or_parts    ::= expr_pjif BB_START and_or_parts BLOCK_END_JOIN
@@ -793,6 +785,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         constant ::= LOAD_CONST
         constant ::= LOAD_STR
 
+        # We have this form when "comp_iter" contains
         # a "comp_if" ("if" condition on a comprehension) at the
         # end.
         genexpr_func      ::= LOAD_ARG
@@ -876,6 +869,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         return_expr               ::= if_else_lambda_return
 
         # This is wrong and control_flow may need fixing.
+
         return_expr               ::= if_exp_and_return
         return_expr               ::= expr return_value
         return_expr               ::= if_exp_return

@@ -254,20 +254,36 @@ TABLE_DIRECT = {
         (-1, "expr", PRECEDENCE["or"]),
         ),
 
+    # We have an n_action for the case were the last
+    # child is an "or". Here we need parenthesis.
+    "and_part":
+    (
+        "%p and %p",
+        (0,  ("expr_jifop",), PRECEDENCE["and"]),
+        (-1,  ("expr", "or_part"), PRECEDENCE["and"]),
+    ),
+
     # Note: "and_or_parts" can has only one child in the innermost and.
     # This is handled by n_and_or_parts
     "and_part_ao": (
-        "%c and %p",
-        (0, ("expr_pjif",)),
+        "%p and %p",
+        (0, ("expr_pjif",), PRECEDENCE["and"]),
         (1, ("expr",), PRECEDENCE["and"]),
         ),
 
 
+    "and_parts":
+    (
+        "%p and %p",
+        (0,  ("expr_jifop", ), PRECEDENCE["and"]),
+        (-1,  ("and_part", "and_parts"), PRECEDENCE["and"]),
+    ),
+
     # Note: "and_or_parts" can has only one child in the innermost and.
     # This is handled by n_and_or_parts
     "and_parts_ao": (
-        "%c and %p",
-        (0, ("expr_pjif",)),
+        "%p and %p",
+        (0, ("expr_pjif",), PRECEDENCE["and"]),
         (1, ("and_part_ao", "and_parts_ao"), PRECEDENCE["and"]),
         ),
 
@@ -275,9 +291,9 @@ TABLE_DIRECT = {
     # Note: "and_or_parts" can has only one child in the innermost and.
     # This is handled by n_and_or_parts
     "and_or_parts": (
-        "%c and %c",
-        (0, ("expr_pjif", "and_or_part")),
-        (1, ("and_or_parts", "and_or_part")),
+        "%p and %p",
+        (0, ("expr_pjif", "and_or_part"), PRECEDENCE["and"]),
+        (1, ("and_or_parts", "and_or_part"), PRECEDENCE["and"]),
         ),
 
     "and_or_and": (
@@ -292,20 +308,6 @@ TABLE_DIRECT = {
         (2, "expr_jitop"),
         (-1, "expr"),
         ),
-
-    "and_part":
-    (
-        "%p and %p",
-        (0,  ("expr_jifop",), PRECEDENCE["and"]),
-        (-1,  ("expr",), PRECEDENCE["and"]),
-    ),
-
-    "and_parts":
-    (
-        "%p and %p",
-        (0,  ("expr_jifop", ), PRECEDENCE["and"]),
-        (-1,  ("and_part", "and_parts"), PRECEDENCE["and"]),
-    ),
 
     "and_part_pjif": (
         "and %p",

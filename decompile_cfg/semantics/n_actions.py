@@ -45,6 +45,20 @@ class NonterminalActions:
     node is the subtree of the parse tree the that nonterminal name as the root.
     """
 
+    def n_and_part(self, node: SyntaxTree):
+        # We need this to add parens around the or when
+        # have an or_part because "and" takes precedence.
+        if node[1] == "or_part":
+            template = (
+                "%p and (%p)",
+                (0, ("expr_jifop",), PRECEDENCE["and"]),
+                (-1, ("or_part",), PRECEDENCE["or"]),
+            )
+            self.template_engine(template, node)
+            self.prune()
+        else:
+            self.default(node)
+
     def n_alias(self, node: SyntaxTree):
         if self.version <= (2, 1):
             if len(node) == 2:
