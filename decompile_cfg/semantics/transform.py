@@ -82,6 +82,7 @@ STRIPPED_NODES = (
     "or",
     "or_part",
     "or_parts",
+    "or_and",
     "or_and_part",
     "or_part_oa",
     "or_and_parts",

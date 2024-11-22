@@ -55,7 +55,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         and_parts         ::= expr_jifop BB_START and_part BLOCK_END_JUMP_JOIN
         and_parts         ::= expr_jifop BB_START and_parts BLOCK_END_JUMP_JOIN
 
-        and_parts         ::= or_and_part_ao BB_START expr BB_END
+        and_parts         ::= or_part_ao BB_START expr BB_END
 
         # This appears in "and .. or"
         and_part_ao       ::= expr_pjif BB_START expr
@@ -110,13 +110,16 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         #                   expr_pjif
         #                   expr_pjit
 
-        # or_and is (a or ...) and y
+        # "or" portion when combined with an "and" either as the left or right
+        # operand
 
-        or_and_part_ao ::= expr_pjit BB_START expr_jifop BLOCK_END_JOIN
+        or_part_ao     ::= expr_pjit BB_START expr_jifop BLOCK_END_JOIN
         or_part_oa     ::= expr_pjit BB_START expr_jifop BLOCK_END_FALLTHROUGH_JOIN
 
         or_and         ::= or_part_oa BB_START expr
                            BLOCK_END_FALLTHROUGH_JOIN BLOCK_JUMP_JOIN
+
+        or_and         ::= expr_jitop BB_START and_part BLOCK_END_JUMP_JOIN
 
         if_exp_dead_code   ::= return_expr_lambda
                                bb_end_start

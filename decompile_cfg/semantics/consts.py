@@ -801,15 +801,13 @@ TABLE_DIRECT = {
         (-1, ("or_part", "or_parts"), PRECEDENCE["or"])
         ),
 
-    # Single or part before an "and". It doesn't include the "and"
     "or_and": (
-        "%c or (%c and %c)",
-        (0, "expr_pjit"),
-        (1, "expr_jifop"),
-        (-1, "expr"),
+        "%c or (%c)",
+        (0, ("expr_pjit", "expr_jitop")),
+        (-1, ("expr", "and_part")),
     ),
 
-    "or_and_part_ao": (
+    "or_part_ao": (
         "%c or %p",
         (0, ("expr_pjit")),
         (1, ("expr_jifop",), PRECEDENCE["or"]),
