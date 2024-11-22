@@ -55,13 +55,28 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         # This appears in "and .. or"
         and_part_ao       ::= expr_pjif BB_START expr
-        and_or            ::= and_part_ao jitop
+                              jitop
                               BLOCK_END_FALLTHROUGH_JOIN
+
+        and_parts_ao      ::= expr_pjif BB_START and_part_ao
+        and_parts_ao      ::= expr_pjif BB_START and_parts_ao BLOCK_END_JUMP_JOIN
+
+
+        and_or            ::= and_part_ao
                               BB_START
                               expr
                               BB_END
                               BLOCK_END_FALLTHROUGH_JOIN
                               BLOCK_END_JUMP_JOIN
+
+        and_or            ::= and_parts_ao
+                              BLOCK_END_JUMP_JOIN
+                              BB_START
+                              expr
+                              BB_END
+                              BLOCK_END_FALLTHROUGH_JOIN
+                              BLOCK_END_JUMP_JOIN
+
 
         # "and_or" is a sequence of "and"s followed by an "or".
         # What makes the "and" part of an "and_or" different from
