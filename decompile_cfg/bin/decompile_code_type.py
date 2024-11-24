@@ -95,14 +95,6 @@ def decompile_format_type(
     if tree_plus:
         tree = True
     show_ast = {"before": tree, "after": tree_plus}
-    grammar = {
-        "rules": False,
-        "transition": False,
-        "reduce": grammar,
-        "errorstack": "full",
-        "context": True,
-        "dups": False,
-    }
 
     success = 0
     skipped = 0
