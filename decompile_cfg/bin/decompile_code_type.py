@@ -95,7 +95,7 @@ def decompile_format_type(
     if tree_plus:
         tree = True
     show_ast = {"before": tree, "after": tree_plus}
-    show_grammar = {
+    grammar = {
         "rules": False,
         "transition": False,
         "reduce": grammar,
@@ -124,7 +124,7 @@ def decompile_format_type(
                                 filepath,
                                 outfile,
                                 showasm=asm_opt,
-                                showgrammar=show_grammar,
+                                showgrammar=grammar,
                                 showast=show_ast,
                                 start_offset=start_offset,
                                 stop_offset=stop_offset,
@@ -147,7 +147,7 @@ def decompile_format_type(
                         filename,
                         outfile,
                         showasm=asm_opt,
-                        showgrammar=show_grammar,
+                        showgrammar=grammar,
                         showast=show_ast,
                         start_offset=start_offset,
                         stop_offset=stop_offset,

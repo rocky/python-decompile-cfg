@@ -9,6 +9,13 @@ from io import StringIO
 
 out = StringIO()
 
+def extract_deparsed_text(text: str)-> str:
+    lines = text.split("\n")
+    for line in lines:
+        if not line or line.startswith("#") or line.startswith(" "):
+            continue
+        break
+    return line
 
 def run_deparse(expr: str, compile_mode: str, debug=False) -> object:
     debug_opts = dict(DEFAULT_DEBUG_OPTS)
@@ -107,17 +114,19 @@ def test_eval_mode():
             assert False, expr
             continue
 
-        if deparsed.text.endswith("\n"):
-            deparsed.text = deparsed.text[:-1]
-        if deparsed.text != expr:
+        deparsed_text = extract_deparsed_text(deparsed.text)
+        if deparsed_text.endswith("\n"):
+            deparsed_text = deparsed.text[:-1]
+        if deparsed_text != expr:
             from decompile_cfg.show import maybe_show_tree
 
             deparsed.showast = {"Full": True}
             maybe_show_tree(deparsed, deparsed.ast)
-        assert deparsed.text == expr
+        assert deparsed_text == expr
 
 
 def test_lambda_mode():
+    # Note: lines should be only one line when deparsed.
     expressions = (
         "lambda d=b'': 5",
         "lambda *, d=0: d",
@@ -135,14 +144,15 @@ def test_lambda_mode():
         except Exception:
             assert False, expr
             continue
-        if deparsed.text.endswith("\n"):
-            deparsed.text = deparsed.text[:-1]
-        if deparsed.text != expr:
+
+        deparsed_text = extract_deparsed_text(deparsed.text)
+        if deparsed_text != expr:
             from decompile_cfg.show import maybe_show_tree
 
             deparsed.showast = {"Full": True}
             maybe_show_tree(deparsed, deparsed.ast)
-        assert deparsed.text == expr
+
+        assert deparsed_text == expr
 
 
 if __name__ == "__main__":

@@ -635,8 +635,8 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                 index = entry[arg]
                 if isinstance(index, tuple):
                     if isinstance(index[1], str):
-                        # if node[index[0]] != index[1]:
-                        #     from trepan.api import debug; debug()
+                        node[index[0]] != index[1]
+
                         assert (
                             node[index[0]] == index[1]
                         ), "at %s[%d], expected '%s' node; got '%s'" % (
@@ -693,10 +693,10 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                             node[index].kind,
                         )
                     else:
-                        try:
-                            assert node[tup[0]] in tup[1]
-                        except:
-                            from trepan.api import debug; debug()
+                        # try:
+                        #     assert node[tup[0]] in tup[1]
+                        # except:
+                        #     from trepan.api import debug; debug()
 
                         assert node[tup[0]] in tup[1], (
                             f"at {node.kind}[{tup[0]}], expected to be in '{tup[1]}' "

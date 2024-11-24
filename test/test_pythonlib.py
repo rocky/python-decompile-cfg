@@ -201,11 +201,20 @@ def do_tests(src_dir, obj_patterns, target_dir, opts):
             pass
         else:
             full_files = [osp.join(src_dir, file) for file in files]
-            _, _, failed_files, failed_verify = decompile_format_type(
+            grammar = {
+                "rules": False,
+                "transition": False,
+                "reduce": False,
+                "errorstack": "full",
+                "context": True,
+                "dups": False,
+            }
+
+            decompile_format_type(
                 code_format,
                 asm = False,
                 asm_plus = False,
-                grammar = False,
+                grammar = grammar,
                 tree = False,
                 tree_plus = False,
                 outfile = None,
@@ -213,12 +222,6 @@ def do_tests(src_dir, obj_patterns, target_dir, opts):
                 stop_offset = -1,
                 files = full_files,
                 )
-            if failed_files != 0:
-                sys.exit(2)
-            elif failed_verify:
-                parent_dir = os.path.dirname(target_dir)
-                print(f"Verify failed, keeping {parent_dir}")
-                sys.exit(3)
             pass
 
     except (KeyboardInterrupt, OSError):

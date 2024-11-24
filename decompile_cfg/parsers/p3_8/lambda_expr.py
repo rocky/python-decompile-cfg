@@ -136,12 +136,26 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         if_exp        ::= if_exp_jump_false
         if_exp        ::= if_exp_jump_true
 
-        if_exp_jump_false ::= expr
-                              POP_JUMP_IF_FALSE
-                              bb_end_start_opt
-                              expr
-                              jf_bb_end_start
-                              expr
+        if_exp_return            ::= if_exp_jump_false_return
+        if_exp_jump_false_return ::= expr_pjif
+                                     BB_START
+                                     return_expr
+                                     NOT_FALLEN_INTO_BLOCK
+                                     BB_START
+                                     return_expr
+
+        and_part_expr            ::= expr_pjif
+                                     BB_START
+                                     expr
+                                     pjif
+
+        if_exp_jump_false_return ::= and_part_expr
+                                     BB_START
+                                     return_expr
+                                     NOT_FALLEN_INTO_BLOCK
+                                     BLOCK_END_JUMP_JOIN
+                                     BB_START
+                                     return_expr
 
         if_exp_jump_true  ::= expr
                               POP_JUMP_IF_TRUE
@@ -321,7 +335,8 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
     def p_conditionals(self, _):
         """
-        expr_pjif                  ::= expr POP_JUMP_IF_FALSE BB_END
+        pjif                       ::= POP_JUMP_IF_FALSE BB_END
+        expr_pjif                  ::= expr pjif
         expr_pjif_loop             ::= expr for_jump_pop_iff
         expr_pjif_loop             ::= expr loop_jump_pop_iff
         expr_pjit                  ::= expr POP_JUMP_IF_TRUE BB_END
@@ -858,7 +873,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         return_expr               ::= expr RETURN_VALUE
         return_expr               ::= expr RETURN_VALUE BB_END
         return_expr               ::= expr_return
-        return_expr               ::= if_exp_lambda
+        return_expr               ::= if_exp_return
         return_expr               ::= if_else_lambda_return
 
         # This is wrong and control_flow may need fixing.

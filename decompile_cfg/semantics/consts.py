@@ -263,6 +263,13 @@ TABLE_DIRECT = {
         (-1,  ("expr", "or_part"), PRECEDENCE["and"]),
     ),
 
+    "and_part_expr":
+    (
+        "%p and %p",
+        (0,  ("expr_pjif",), PRECEDENCE["and"]),
+        (1,  ("expr",), PRECEDENCE["and"]),
+    ),
+
     # Note: "and_or_parts" can has only one child in the innermost and.
     # This is handled by n_and_or_parts
     "and_part_ao": (
@@ -751,10 +758,10 @@ TABLE_DIRECT = {
     "if_exp_true":      ( "%p if 1 else %c", (0, "expr", 27), 4 ),
     "if_exp_ret":       ( "%p if %p else %p", (2, 27), (0, 27), (-1, 27) ),
 
-    "if_exp_return": (
+    "if_exp_jump_false_return": (
         "%c if %c else %c",
         (1, "return_expr"),
-        (0, ("expr_pjif")),
+        (0, ("expr_pjif", "and_part_expr")),
         (-1, "return_expr"),
     ),
 

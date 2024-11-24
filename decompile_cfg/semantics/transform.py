@@ -37,6 +37,7 @@ STRIPPED_NODES = (
     "and_or_parts",
     "and_part",
     "and_part_ao",
+    "and_part_expr",
     "and_parts_ao",
     "and_parts",
     "async_for_loop",
@@ -75,6 +76,7 @@ STRIPPED_NODES = (
     "genexpr_func_async",
     "if_else_lambda_return",
     "if_exp_and_return",
+    "if_exp_jump_false_return",
     "ifstmt",
     "jifop",
     "jitop",
@@ -99,7 +101,6 @@ STRIPPED_NODES = (
 
 # Whereever we see these nodes, they will be removed.
 DELETED_NODES = (
-    "bb_start_opt",
     "block_end_joins",
     "block_join_end_final",
 )

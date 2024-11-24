@@ -19,7 +19,6 @@ Grammar Customization rules for Python 3.8's Lambda expression grammar.
 from decompile_cfg.parsers.p3_8.base import Python3_8BaseParser
 from decompile_cfg.parsers.parse_heads import ParserError, nop_func
 from decompile_cfg.parsers.reduce_check.and_check import and_ok
-from decompile_cfg.parsers.reduce_check.if_exp_check import if_exp_ok
 from decompile_cfg.parsers.reduce_check.comp_if_check import comp_if_ok
 from decompile_cfg.parsers.reduce_check.gen_comp_check import gen_comp_ok
 from decompile_cfg.parsers.reduce_check.list_if_not_check import list_if_not_seems_ok
@@ -1188,7 +1187,6 @@ class Python3_8LambdaCustom(Python3_8BaseParser):
 
         self.reduce_check_table = {
             "and1": and_ok,
-            "if_exp": if_exp_ok,
             "comp_if": comp_if_ok,
             "comp_if_not": comp_if_ok,
             "gen_comp_func": gen_comp_ok,
