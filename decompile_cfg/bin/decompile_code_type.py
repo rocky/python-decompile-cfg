@@ -139,7 +139,7 @@ def decompile_format_type(
                         filename,
                         outfile,
                         showasm=asm_opt,
-                        showgrammar=grammar,
+                        grammar=grammar,
                         showast=show_ast,
                         start_offset=start_offset,
                         stop_offset=stop_offset,
@@ -229,11 +229,20 @@ def main(
     files,
 ):
     """Decompile all code objects of a certain format."""
+    grammar_dict = {
+        "rules": False,
+        "transition": False,
+        "reduce": grammar,
+        "errorstack": "full",
+        "context": True,
+        "dups": False,
+    }
+
     decompile_format_type(
         code_format,
         asm,
         asm_plus,
-        grammar,
+        grammar_dict,
         tree,
         tree_plus,
         outfile,

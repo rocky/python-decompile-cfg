@@ -256,7 +256,7 @@ def decompile_generators(
     outstream=None,
     showasm=None,
     showast=TREE_DEFAULT_DEBUG,
-    showgrammar=PARSER_DEFAULT_DEBUG,
+    grammar=PARSER_DEFAULT_DEBUG,
     start_offset: int = 0,
     stop_offset: int = -1,
 ) -> Optional[bool]:
@@ -272,7 +272,7 @@ def decompile_generators(
         outstream,
         showasm,
         showast,
-        showgrammar,
+        grammar,
         start_offset,
         stop_offset,
     )
@@ -282,7 +282,7 @@ def decompile_lambda_fns(
     filename: str,
     outstream=None,
     showasm=None,
-    showgrammar: dict = PARSER_DEFAULT_DEBUG,
+    grammar: dict = PARSER_DEFAULT_DEBUG,
     showast: dict = TREE_DEFAULT_DEBUG,
     start_offset=0,
     stop_offset=-1,
@@ -299,7 +299,7 @@ def decompile_lambda_fns(
         outstream,
         showasm,
         showast,
-        showgrammar,
+        grammar,
         start_offset=start_offset,
         stop_offset=stop_offset,
     )
@@ -310,7 +310,7 @@ def decompile_list_comprehensions(
     outstream=None,
     showasm=None,
     showast: dict = TREE_DEFAULT_DEBUG,
-    showgrammar: dict = PARSER_DEFAULT_DEBUG,
+    grammar: dict = PARSER_DEFAULT_DEBUG,
     start_offset=0,
     stop_offset=-1,
 ) -> Optional[bool]:
@@ -326,7 +326,7 @@ def decompile_list_comprehensions(
         outstream,
         showasm,
         showast,
-        showgrammar,
+        grammar,
         start_offset=start_offset,
         stop_offset=stop_offset,
     )
@@ -337,7 +337,7 @@ def decompile_set_comprehensions(
     outstream=None,
     showasm=None,
     showast=TREE_DEFAULT_DEBUG,
-    showgrammar=PARSER_DEFAULT_DEBUG,
+    grammar=PARSER_DEFAULT_DEBUG,
     start_offset: int = 0,
     stop_offset: int = -1,
 ) -> Optional[bool]:
@@ -353,7 +353,7 @@ def decompile_set_comprehensions(
         outstream,
         showasm,
         showast,
-        showgrammar,
+        grammar,
         start_offset=start_offset,
         stop_offset=stop_offset,
     )
@@ -364,7 +364,7 @@ def decompile_single(
     outstream=None,
     showasm=None,
     showast: dict = TREE_DEFAULT_DEBUG,
-    showgrammar: dict = PARSER_DEFAULT_DEBUG,
+    grammar: dict = PARSER_DEFAULT_DEBUG,
     start_offset=0,
     stop_offset=-1,
 ) -> Optional[bool]:
@@ -376,7 +376,7 @@ def decompile_single(
         outstream,
         showasm,
         showast,
-        showgrammar,
+        grammar,
         start_offset=start_offset,
         stop_offset=stop_offset,
         compile_mode="single",
