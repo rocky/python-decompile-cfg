@@ -29,5 +29,5 @@ jobs:
         pip install -e .[dev]
     - name: Test decompile-cfg
       run: |
-        # make check
-        pytest pytest
+        # pytest pytest # for reduced checking
+        make check
