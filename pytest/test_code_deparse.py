@@ -32,6 +32,8 @@ def run_deparse(expr: str, compile_mode: str, debug=False) -> object:
             ord("%"): "P",
             ord("["): "B",
             ord("]"): "b",
+            ord("'"): "Q",
+            ord('"'): "q",
         }
     )
 
@@ -94,16 +96,16 @@ def test_single_mode() -> None:
 
 def test_eval_mode():
     expressions = [
-#       "1",
-        "i and j or k",
-        "j % 4",
-        "k == 1 or k == 2",
+       "1",
+       "j % 4",
     ]
 
     # FIXME:
     if PYTHON_VERSION_TRIPLE < (3, 10):
         expressions += [
             "i and (j or k)",
+            "i and j or k",
+            "k == 1 or k == 2",
         ]
 
     for expr in expressions:
@@ -134,8 +136,8 @@ def test_lambda_mode():
         "lambda y: 0 <= x < 10",
         # Below, we need parenthsesis to be syntactically correct
         "lambda: (yield from f())",
-        # "lambda x: 1 if x < 2 else 3",
-        # "lambda n: True if n >= 95 and n & 1 else False",
+        "lambda x: 1 if x < 2 else 3",
+        "lambda n: True if n >= 95 and n & 1 else False",
     )
 
     for expr in expressions:
@@ -157,5 +159,5 @@ def test_lambda_mode():
 
 if __name__ == "__main__":
     test_eval_mode()
-    # test_lambda_mode()
-    # test_single_mode()
+    test_lambda_mode()
+    test_single_mode()

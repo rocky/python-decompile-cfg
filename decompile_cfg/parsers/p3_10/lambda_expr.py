@@ -80,6 +80,11 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
                               BLOCK_END_FALLTHROUGH_JOIN
                               BLOCK_END_JUMP_JOIN
 
+        and_or_return     ::= and_part_ao
+                              BB_START
+                              expr
+
+
         or                ::= or_parts
         or                ::= or_part
 
@@ -136,6 +141,27 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         # Don't confuse with comprehension if's
         if_exp        ::= if_exp_jump_false
         if_exp        ::= if_exp_jump_true
+
+        if_exp_return            ::= if_exp_jump_false_return
+        if_exp_jump_false_return ::= expr_pjif
+                                     BB_START
+                                     return_expr
+                                     NOT_FALLEN_INTO_BLOCK
+                                     BB_START
+                                     return_expr
+
+        and_part_expr            ::= expr_pjif
+                                     BB_START
+                                     expr
+                                     pjif
+
+        if_exp_jump_false_return ::= and_part_expr
+                                     BB_START
+                                     return_expr
+                                     NOT_FALLEN_INTO_BLOCK
+                                     BLOCK_END_JUMP_JOIN
+                                     BB_START
+                                     return_expr
 
         if_exp_jump_false ::= expr
                               POP_JUMP_IF_FALSE
@@ -322,7 +348,8 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
 
     def p_conditionals(self, _):
         """
-        expr_pjif                  ::= expr POP_JUMP_IF_FALSE BB_END
+        pjif                       ::= POP_JUMP_IF_FALSE BB_END
+        expr_pjif                  ::= expr pjif
         expr_pjif_loop             ::= expr for_jump_pop_iff
         expr_pjif_loop             ::= expr loop_jump_pop_iff
         expr_pjit                  ::= expr POP_JUMP_IF_TRUE BB_END
@@ -756,10 +783,10 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         branch_op ::= and BB_START
 
         branch_op ::= and_or
-        branch_op ::= and_or1
-
-        branch_op ::= and_or
         branch_op ::= and_or BB_START
+
+        branch_op ::= and_or_return
+        branch_op ::= and_or_return BB_START
 
         branch_op ::= compare
         branch_op ::= compare BB_START
@@ -890,12 +917,13 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
 
     def p_lambda(self, _):
         """
+        return_const              ::= LOAD_CONST RETURN_VALUE BB_END
         # return_expr is a return value used inside a lambda
 
         return_expr               ::= expr RETURN_VALUE
         return_expr               ::= expr RETURN_VALUE BB_END
         return_expr               ::= expr_return
-        return_expr               ::= if_exp_lambda
+        return_expr               ::= if_exp_return
         return_expr               ::= if_else_lambda_return
 
         # This is used in eval/expr variations. Perhaps it should be
@@ -913,10 +941,19 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         or_return ::= or pop_return_expr
 
         return_expr      ::= branch_op_return
+        return_expr_eval  ::= branch_op_return_eval BB_START
+
         branch_op_return ::= branch_op pop_return_expr
+        branch_op_return ::= and_or_return pop_return_expr
+                             NOT_FALLEN_INTO_BLOCK
+
+        # This is for eval mode only?
+        branch_op_return_eval ::= and_or_return RETURN_VALUE
+                                  BB_END NOT_FALLEN_INTO_BLOCK
 
 
-        pop_return_expr  ::= POP_TOP LOAD_CONST RETURN_VALUE BB_END
+
+        pop_return_expr  ::= POP_TOP return_const
 
         # No BB_END at end. Should we rename this?
         expr_jifop_and ::= expr_jifop BB_START expr_jifop_and
@@ -950,8 +987,7 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
 
         return_expr             ::= gen_comp_func
                                     BB_START
-                                    LOAD_CONST
-                                    RETURN_VALUE
+                                    return_const
 
         return_expr             ::= set_comp
                                     BB_START
@@ -971,9 +1007,7 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
 
         return_expr             ::= genexpr_func
                                     BB_START
-                                    LOAD_CONST
-                                    RETURN_VALUE
-                                    block_join_end_final
+                                    return_const
 
         return_expr             ::= expr RETURN_VALUE BB_END
         return_expr             ::= branch_op_expr BB_START RETURN_VALUE BB_END

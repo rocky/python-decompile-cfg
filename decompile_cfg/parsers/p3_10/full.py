@@ -168,10 +168,10 @@ class Python3_10ParserFull(Python3_10LambdaParser, Python3_10FullCustom):
         #################
         # This section is in 3.10+ only.
         expr_stmt        ::= return_expr_stmt
+        expr_stmt        ::= branch_op_return
 
         return_expr_stmt ::= branch_op_return
-
-        expr ::= branch_op_return
+                             BB_START POP_TOP LOAD_CONST RETURN_VALUE
 
         #################
 
@@ -1183,6 +1183,9 @@ class Python3_10ParserFull(Python3_10LambdaParser, Python3_10FullCustom):
         discard_top        ::= ROT_TWO POP_TOP
         discard_tops       ::= discard_top+
         pop_tops           ::= POP_TOP+
+
+        return_stmt        ::= return_expr
+                               POP_TOP
 
         return             ::= return_expr
                                discard_tops RETURN_VALUE

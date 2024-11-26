@@ -254,6 +254,12 @@ TABLE_DIRECT = {
         (-1, "expr", PRECEDENCE["or"]),
         ),
 
+    "and_or_return": (
+        "%c or %p",
+        (0, ("and_part_ao", "and_parts_ao")),
+        (-1, "expr", PRECEDENCE["or"]),
+        ),
+
     # We have an n_action for the case were the last
     # child is an "or". Here we need parenthesis.
     "and_part":

@@ -41,11 +41,14 @@ def customize_for_version3_10(self):
             "await_expr": ("await %p", (1, PRECEDENCE["await_expr"] - 1)),
             "branch_op_return": (
                 "%c",
-                (0, ("branch_op", "or_return")),
+                (0, ("and_or_return", "branch_op", "or_return")),
             ),
             "or_return": (
                 "%c",
                 (0, "or"),
+            ),
+            "return_expr_stmt": (
+                "%c", 0,
             ),
             "yield_from": ("yield from %c", (1, "expr")),
         }

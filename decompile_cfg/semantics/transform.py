@@ -92,6 +92,7 @@ STRIPPED_NODES = (
     "pjump_iff_loop",
     "return_expr",
     "return_expr_lambda",
+    "return_expr_stmt",
     "set_comp_func",
     "set_for",
     "set_afor2",

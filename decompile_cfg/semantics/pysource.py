@@ -987,6 +987,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         is_lambda=False,
         noneInNames=False,
         is_top_level_module=False,
+        compile_mode="exec"
     ):
         # FIXME: DRY with fragments.py
 
@@ -1027,7 +1028,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         # FIXME: do we need to remove this here or can we consolidate
         # this with the below where we remove "return"
         # Also return DOM_START BB_START and BB_END DOM_END
-        if self.hide_internal:
+        if self.hide_internal and compile_mode == "exec":
             assert tokens[0] == "BB_START"
             del tokens[0]
             if tokens[-1] == "BLOCK_END_JOIN_NO_ARG":
@@ -1182,6 +1183,7 @@ def code_deparse(
         co,
         is_lambda=is_lambda,
         is_top_level_module=is_top_level_module,
+        compile_mode=compile_mode,
     )
 
     #### XXX workaround for profiling
