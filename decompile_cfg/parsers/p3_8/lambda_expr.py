@@ -48,6 +48,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         # This appears in chained "and"s
         and_part          ::= expr_jifop BB_START expr BB_END BLOCK_END_FALLTHROUGH_JOIN
+        and_part          ::= expr_jifop BB_START expr
         and_part          ::= expr_jifop BB_START or_part BLOCK_END_JUMP_JOIN
         and_part          ::= or_part_oa BB_START expr BB_END
                               BLOCK_END_FALLTHROUGH_JOIN BLOCK_END_JUMP_JOIN
@@ -257,9 +258,9 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         compare_chained        ::= expr
                                    compare_chained_middle
-                                   BB_START SIBLING_BLOCK
+                                   SIBLING_BLOCK BB_START
                                    ROT_TWO POP_TOP
-                                   BB_END BLOCK_END_JOIN
+                                   BB_END BLOCK_END_FALLTHROUGH_JOIN
 
         compare_chained        ::= expr chained_parts
         compare_chained        ::= compare_chained37_false
@@ -282,13 +283,30 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         compare_chained_return ::= expr
                                    compare_chained_middle_return
+                                   NOT_FALLEN_INTO_BLOCK
+                                   BLOCK_END_JUMP_JOIN
+                                   BB_START ROT_TWO POP_TOP
+                                   BB_END BLOCK_END_FALLTHROUGH_JOIN
+                                   BB_START RETURN_VALUE BB_END
+
+        compare_chained_return ::= expr
+                                   compare_chained_middle_return
+                                   NOT_FALLEN_INTO_BLOCK
+                                   BLOCK_END_JUMP_JOIN
+                                   BB_START ROT_TWO POP_TOP
+                                   BB_END BLOCK_END_FALLTHROUGH_JOIN
+                                   BLOCK_END_JUMP_JOIN BB_START RETURN_VALUE BB_END
+
+        compare_chained_return ::= expr
+                                   compare_chained_middle_return
                                    NOT_FALLEN_INTO_BLOCK BB_START
                                    ROT_TWO POP_TOP
                                    RETURN_VALUE BB_END
 
         # FIXME: simplify the compare_chain1 recursion?
-        compare_chained_middle       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
+        compare_chained_middle ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
                                    BB_START compare_chained_middle BLOCK_END_JOIN
+
 
         compare_chained_middle       ::= expr DUP_TOP ROT_THREE COMPARE_OP jifop
                                    BB_START compare_chained_right BLOCK_END_JOIN
