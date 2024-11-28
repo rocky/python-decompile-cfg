@@ -91,7 +91,7 @@ Python.
 #         the second item is the nonterminal name and the precedence is given last.
 #
 #     %C  evaluate/travers children recursively, with sibling children separated by the
-#         given string.  It needs a 3-tuple: a starting node, the maximimum
+#         given string.  It needs a 3-tuple: a starting node, the maximum
 #         value of an end node, and a string to be inserted between sibling children
 #
 #     %,  Append ',' if last %C only printed one item. This is mostly for tuples
@@ -99,12 +99,12 @@ Python.
 #         other tuples. The specifier takes no arguments
 #
 #     %P  same as %C but sets operator precedence.  Its argument is a 4-tuple:
-#         the node low and high indices, the separator, a string the precidence
+#         the node low and high indices, the separator, a string the precedence
 #         value, an integer.
 #
 #     %D Same as `%C` this is for left-recursive lists like kwargs where goes
 #         to epsilon at the beginning. It needs a 3-tuple: a starting node, the
-#         maximimum value of an end node, and a string to be inserted between
+#         maximum value of an end node, and a string to be inserted between
 #         sibling children. If we were to use `%C` an extra separator with an
 #         epsilon would appear at the beginning.
 #
@@ -119,7 +119,7 @@ Python.
 #     %[N]{EXPR} Python eval(EXPR) in context of node[N]. Takes no arguments
 #
 #     %[N]{%X} evaluate/recurse on child node[N], using specifier %X.
-#     %X can be one of the above, e.g. %c, %p, etc. Takes the arguemnts
+#     %X can be one of the above, e.g. %c, %p, etc. Takes the arguments
 #     that the specifier uses.
 #
 #     %% literal '%'. Takes no arguments.
@@ -201,6 +201,12 @@ class SourceWalkerError(Exception):
 
 
 class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
+    """
+    Class to traverse a Parse Tree of the bytecode instruction built from parsing to
+    produce some sort of source text.
+    The Parse tree may be turned an Abstract Syntax tree as an intermediate step.
+    """
+
     stacked_params = ("f", "indent", "is_lambda", "_globals")
 
     def __init__(
@@ -215,15 +221,15 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         linestarts={},
         tolerate_errors=False,
     ):
-        """`version' is the Python version (a float) of the Python dialect
+        """`version' is the Python version of the Python dialect
         of both the syntax tree and language we should produce.
 
         `out' is IO-like file pointer to where the output should go. It
-        whould have a getvalue() method.
+        would have a getvalue() method.
 
         `scanner' is a method to call when we need to scan tokens. Sometimes
         in producing output we will run across further tokens that need
-        to be scaned.
+        to be scanned.
 
         If `showast' is True, we print the syntax tree.
 
@@ -231,13 +237,13 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
 
         For `lambda`, the grammar that can be used in lambda
         expressions is used.  Otherwise, it is the compile mode that
-        was used to create the Syntax Tree and specifies a gramar
+        was used to create the Syntax Tree and specifies a grammar
         variant within a Python version to use.
 
         `is_pypy` should be True if the Syntax Tree was generated for PyPy.
 
         `linestarts` is a dictionary of line number to bytecode offset. This
-        can sometimes assist in determinte which kind of source-code construct
+        can sometimes assist in determining which kind of source-code construct
         to use when there is ambiguity.
 
         """
@@ -592,15 +598,16 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         self.write(")")
 
     def template_engine(self, entry, startnode):
-        """The format template interpetation engine.  See the comment at the
-        beginning of this module for the how we interpret format
+        """The format template interpretation engine.  See the comment at the
+        beginning of this module for how we interpret format
         specifications such as %c, %C, and so on.
         """
 
         # print("-----")
-        # print(startnode)
+        # print(startnode.kind)
         # print(entry[0])
         # print('======')
+
         fmt = entry[0]
         arg = 1
         i = 0
@@ -817,47 +824,47 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                 # Right now, some of this is here, and some in that.
 
                 if v == 0:
-                    str = "%c(%C"  # '%C' is a dummy here ...
-                    p2 = (0, 0, None)  # .. because of the None in this
+                    template_str = "%c(%C"  # '%C' is a dummy here ...
+                    p2 = (0, 0, None)  # because of the None in this
                 else:
-                    str = "%c(%C, "
+                    template_str = "%c(%C, "
                     p2 = (1, -2, ", ")
                 if op == "CALL_FUNCTION_VAR":
                     # Python 3.5 only puts optional args (the VAR part)
-                    # lowest down the stack
+                    # the lowest down the stack
                     if self.version == (3, 5):
-                        if str == "%c(%C, ":
+                        if template_str == "%c(%C, ":
                             entry = ("%c(*%C, %c)", 0, p2, -2)
-                        elif str == "%c(%C":
+                        elif template_str == "%c(%C":
                             entry = ("%c(*%C)", 0, (1, 100, ""))
                     elif self.version == (3, 4):
                         # CALL_FUNCTION_VAR's top element of the stack contains
                         # the variable argument list
                         if v == 0:
-                            str = "%c(*%c)"
-                            entry = (str, 0, -2)
+                            template_str = "%c(*%c)"
+                            entry = (template_str, 0, -2)
                         else:
-                            str = "%c(%C, *%c)"
-                            entry = (str, 0, p2, -2)
+                            template_str = "%c(%C, *%c)"
+                            entry = (template_str, 0, p2, -2)
                     else:
-                        str += "*%c)"
-                        entry = (str, 0, p2, -2)
+                        template_str += "*%c)"
+                        entry = (template_str, 0, p2, -2)
                 elif op == "CALL_FUNCTION_KW":
-                    str += "**%c)"
-                    entry = (str, 0, p2, -2)
+                    template_str += "**%c)"
+                    entry = (template_str, 0, p2, -2)
                 elif op == "CALL_FUNCTION_VAR_KW":
-                    str += "*%c, **%c)"
+                    template_str += "*%c, **%c)"
                     # Python 3.5 only puts optional args (the VAR part)
-                    # lowest down the stack
+                    # the lowest down the stack
                     na = v & 0xFF  # positional parameters
                     if self.version == (3, 5) and na == 0:
                         if p2[2]:
                             p2 = (2, -2, ", ")
-                        entry = (str, 0, p2, 1, -2)
+                        entry = (template_str, 0, p2, 1, -2)
                     else:
                         if p2[2]:
                             p2 = (1, -3, ", ")
-                        entry = (str, 0, p2, -3, -2)
+                        entry = (template_str, 0, p2, -3, -2)
                     pass
                 else:
                     assert False, "Unhandled CALL_FUNCTION %s" % op
@@ -1041,8 +1048,17 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                     # Python 3.4's classes can add a "return None" which is
                     # invalid syntax.
                     load_const = tokens[-2]
-                    if load_const.kind == "LOAD_CONST":
-                        if is_top_level_module or load_const.pattr is None:
+                    # We should have:
+                    #   LOAD_CONST None
+                    # with *no* line number associated the token.
+                    # A line number on the token or a non-None
+                    # token value a token based on user source
+                    # text.
+                    if (load_const.kind == "LOAD_CONST"
+                        and load_const.linestart is None
+                        and load_const.attr is None
+                        or is_top_level_module):
+                            # Delete LOAD_CONST (None) RETURN_VALUE
                             del tokens[-2:]
             if len(tokens) == 0:
                 return PASS_RETURN_VALUE
