@@ -48,13 +48,16 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
 
         # This appears in chained "and"s
         and_part          ::= expr_jifop BB_START expr BB_END BLOCK_END_FALLTHROUGH_JOIN
-        and_part          ::= expr_jifop BB_START expr
         and_part          ::= expr_jifop BB_START or_part BLOCK_END_JUMP_JOIN
         and_part          ::= or_part_oa BB_START expr BB_END
                               BLOCK_END_FALLTHROUGH_JOIN BLOCK_END_JUMP_JOIN
 
         and_parts         ::= expr_jifop BB_START and_part BLOCK_END_JUMP_JOIN
         and_parts         ::= expr_jifop BB_START and_parts BLOCK_END_JUMP_JOIN
+
+        and_return        ::= expr_jifop BB_START expr_return
+        expr_return       ::= and_return
+
 
         and_parts         ::= or_part_ao BB_START expr BB_END
 
@@ -262,6 +265,13 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                    ROT_TWO POP_TOP
                                    BB_END BLOCK_END_FALLTHROUGH_JOIN
 
+        compare_chained        ::= expr
+                                   compare_chained_middle
+                                   SIBLING_BLOCK BB_START
+                                   ROT_TWO POP_TOP
+                                   BB_END BLOCK_END_FALLTHROUGH_JOIN
+                                   BLOCK_END_JUMP_JOIN
+
         compare_chained        ::= expr chained_parts
         compare_chained        ::= compare_chained37_false
         compare_chained        ::= expr compare_chained_middlea_37
@@ -286,7 +296,6 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                    NOT_FALLEN_INTO_BLOCK
                                    BLOCK_END_JUMP_JOIN
                                    BB_START ROT_TWO POP_TOP
-                                   BB_END BLOCK_END_FALLTHROUGH_JOIN
                                    BB_START RETURN_VALUE BB_END
 
         compare_chained_return ::= expr
@@ -294,8 +303,8 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                    NOT_FALLEN_INTO_BLOCK
                                    BLOCK_END_JUMP_JOIN
                                    BB_START ROT_TWO POP_TOP
-                                   BB_END BLOCK_END_FALLTHROUGH_JOIN
-                                   BLOCK_END_JUMP_JOIN BB_START RETURN_VALUE BB_END
+                                   BB_END BLOCK_END_FALLTHROUGH_JOIN BLOCK_END_JUMP_JOIN
+                                   BB_START RETURN_VALUE BB_END
 
         compare_chained_return ::= expr
                                    compare_chained_middle_return

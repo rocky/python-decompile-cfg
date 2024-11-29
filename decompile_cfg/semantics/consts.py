@@ -260,8 +260,6 @@ TABLE_DIRECT = {
         (-1, "expr", PRECEDENCE["or"]),
         ),
 
-    # We have an n_action for the case were the last
-    # child is an "or". Here we need parenthesis.
     "and_part":
     (
         "%p and %p",
@@ -326,6 +324,13 @@ TABLE_DIRECT = {
         "and %p",
         (0, "expr_pjif", PRECEDENCE["and"]),
         ),
+
+    "and_return":
+    (
+        "%p and %p",
+        (0,  ("expr_jifop", ), PRECEDENCE["and"]),
+        (-1,  ("expr_return",), PRECEDENCE["and"]),
+    ),
 
     "assign": (
         "%|%c = %p\n",

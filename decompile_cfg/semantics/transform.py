@@ -40,6 +40,7 @@ STRIPPED_NODES = (
     "and_part_expr",
     "and_parts_ao",
     "and_parts",
+    "and_return",
     "async_for_loop",
     "async_iter",
     "bb_end_start",
