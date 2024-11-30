@@ -131,6 +131,7 @@ Python.
 
 import sys
 
+from typing import Optional
 from xdis import COMPILER_FLAG_BIT, iscode
 from xdis.version_info import PYTHON_VERSION_TRIPLE
 
@@ -159,6 +160,7 @@ from decompile_cfg.semantics.consts import (
     MAP,
     MAP_DIRECT,
     NAME_MODULE,
+    NO_PARENTHESIS_EVER,
     NONE,
     PASS_RETURN_VALUE,
     PRECEDENCE,
@@ -211,7 +213,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
 
     def __init__(
         self,
-        version,
+        version: tuple,
         out,
         scanner,
         showast=TREE_DEFAULT_DEBUG,
@@ -267,25 +269,32 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
             show_ast=showast,
             str_with_template=self.str_with_template,
         )
-        self.ERROR = None
-        self.ast_errors = []
-        self.classes = []
-        self.currentclass = None
-        self.debug_parser = dict(debug_parser)
 
-        self.line_number = 1
-        self.linestarts = linestarts
-        self.mod_globs = set()
-        self.param_stack = []
-        self.params = params
-        self.pending_newlines = 0
-        self.prec = 100
-        self.return_none = False
-        self.showast = showast
         # FIXME: have p.insts update in a better way
         # modularity is broken here
         self.p.insts = scanner.insts
+
+        self.ERROR = None
+        self.ast_errors = []
+        self.classes = []
+        self.compile_mode = compile_mode
+        self.currentclass = None
+        self.debug_parser = dict(debug_parser)
+        self.is_module = False
+        self.is_pypy = is_pypy
+        self.line_number = 1
+        self.linestarts = linestarts
+        self.mod_globs = set()
+        self.name = None
         self.offset2inst_index = scanner.offset2inst_index
+        self.param_stack = []
+        self.params = params
+        self.pending_newlines = 0
+        self.prec = NO_PARENTHESIS_EVER
+        self.return_none = False
+        self.showast = showast
+        self.source_linemap = {}
+        self.version = version
 
         # This is in Python 2.6 on. It changes the way
         # strings get interpreted. See n_LOAD_CONST
@@ -303,7 +312,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         self.in_format_string = None
 
         # hide_internal suppresses displaying the additional instructions that sometimes
-        # exist in code but but were not written in the source code.
+        # exist in code but were not written in the source code.
         # An example is:
         # __module__ = __name__
         self.hide_internal = True
@@ -314,12 +323,18 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         customize_for_version(self, is_pypy, version)
         return
 
+    def maybe_show_tree(self, tree, phase):
+        phase_name = "parse_tree" if phase == "before" else "transformed_tree"
+        if self.showast.get(phase, False):
+            self.println(f"""\n# ---- {phase_name}:\n""" + " ")
+            maybe_show_tree(self, tree)
+
     def str_with_template(self, tree):
         stream = sys.stdout
         stream.write(self.str_with_template1(tree, "", None))
         stream.write("\n")
 
-    def str_with_template1(self, tree, indent, sibNum=None) -> str:
+    def str_with_template1(self, tree, indent: str, sibNum=None) -> str:
         rv = str(tree.kind)
 
         if sibNum is not None:
@@ -369,9 +384,9 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
             i += 1
         return rv
 
-    def indent_if_source_nl(self, line_number, indent):
+    def indent_if_source_nl(self, line_number: int, indent_spaces: str):
         if line_number != self.line_number:
-            self.write("\n" + self.indent + INDENT_PER_LEVEL[:-1])
+            self.write("\n" + indent_spaces + INDENT_PER_LEVEL[:-1])
         return self.line_number
 
     f = property(
@@ -584,8 +599,8 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                     sep = line_separator
                     pass
             pass
-        elif node.kind in "dict_comp_async":
-            # Handled this condition above
+        elif node == "dict_comp_async":
+            # Handled this condition above.
             pass
         else:
             if node[0] == "LOAD_STR":
@@ -642,8 +657,6 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                 index = entry[arg]
                 if isinstance(index, tuple):
                     if isinstance(index[1], str):
-                        node[index[0]] != index[1]
-
                         assert (
                             node[index[0]] == index[1]
                         ), "at %s[%d], expected '%s' node; got '%s'" % (
@@ -995,7 +1008,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         noneInNames=False,
         is_top_level_module=False,
         compile_mode="exec"
-    ):
+    ) -> GenericASTTraversal:
         # FIXME: DRY with fragments.py
 
         assert isinstance(tokens[0], Token)
@@ -1016,7 +1029,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
                 parse_tree = python_parser.parse(p, tokens, customize, is_lambda)
                 self.customize(customize)
 
-            except AssertionError as e:
+            except (heads.ParserError, AssertionError) as e:
                 raise ParserError(e, tokens, self.p.debug["reduce"])
 
             transform_tree = self.treeTransform.transform(
@@ -1027,7 +1040,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
             return transform_tree
 
         # The bytecode for the end of the main routine has a "return
-        # None". However you can't issue a "return" statement in
+        # None". However, you can't issue a "return" statement in
         # main. So as the old cigarette slogan goes: I'd rather switch
         # (the token stream) than fight (with the grammar to not emit
         # "return None").
@@ -1066,7 +1079,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
         # Build a parse tree from a tokenized and massaged disassembly.
         try:
             # FIXME: have p.insts update in a better way
-            # modularity is broken here.
+            # Modularity is broken here.
             p_insts = self.p.insts
             self.p.insts = self.scanner.insts
             self.p.offset2inst_index = self.scanner.offset2inst_index
@@ -1076,7 +1089,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
             )
 
             self.p.insts = p_insts
-        except (heads.ParserError, AssertionError) as e:
+        except (ParserError, AssertionError) as e:
             raise ParserError(e, tokens, self.p.debug["reduce"])
 
         checker(parse_tree, False, self.ast_errors)
@@ -1129,7 +1142,7 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
 def code_deparse(
     co,
     out=sys.stdout,
-    version=None,
+    version: Optional[tuple] = None,
     debug_opts=DEFAULT_DEBUG_OPTS,
     code_objects={},
     compile_mode="exec",
@@ -1137,7 +1150,7 @@ def code_deparse(
     walker=SourceWalker,
     start_offset: int = 0,
     stop_offset: int = -1,
-):
+) -> Optional[SourceWalker]:
     """
     ingests and deparses a given code block 'co'. If version is None,
     we will use the current Python interpreter version.
@@ -1221,9 +1234,10 @@ def code_deparse(
         expected_start = None
 
     if expected_start:
-        assert (
-            deparsed.ast == expected_start
-        ), f"Should have parsed grammar start to '{expected_start}'; got: {deparsed.ast.kind}"
+        assert deparsed.ast == expected_start, (
+            f"Should have parsed grammar start to '{expected_start}'; "
+            f"got: {deparsed.ast.kind}"
+        )
     # save memory
     del tokens
 
@@ -1307,7 +1321,7 @@ def deparse_code2str(
 if __name__ == "__main__":
 
     def deparse_test(co):
-        "This is a docstring"
+        """This is a docstring"""
         s = deparse_code2str(co)
         print(s)
         return
