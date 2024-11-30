@@ -38,7 +38,7 @@ def customize_for_version(self, is_pypy, version):
         ########################
         # Without PyPy
         #######################
-        TABLE_DIRECT.update(
+        self.TABLE_DIRECT.update(
             {
                 # "assert" and "assert_expr" are added via transform rules.
                 "assert": ("%|assert %c\n", 0),
@@ -57,7 +57,7 @@ def customize_for_version(self, is_pypy, version):
         )
 
     if version >= (3, 2):
-        TABLE_DIRECT.update(
+        self.TABLE_DIRECT.update(
             {
                 "del_deref_stmt": ("%|del %c\n", 0),
                 "DELETE_DEREF": ("%{pattr}", 0),

@@ -21,7 +21,7 @@ import re
 # Python 3.8 changes
 #######################
 
-from decompile_cfg.semantics.consts import NO_PARENTHESIS_EVER, PRECEDENCE, TABLE_DIRECT
+from decompile_cfg.semantics.consts import NO_PARENTHESIS_EVER, PRECEDENCE
 from decompile_cfg.semantics.customize37 import FSTRING_CONVERSION_MAP
 from decompile_cfg.semantics.helper import escape_string, strip_quotes
 
@@ -32,7 +32,7 @@ def customize_for_version3_8(self):
     #             'forelselaststmtc tryfinally38'.split():
     #     del TABLE_DIRECT[lhs]
 
-    TABLE_DIRECT.update(
+    self.TABLE_DIRECT.update(
         {
             "and_compare_chained_return": (
                 "%c %c",

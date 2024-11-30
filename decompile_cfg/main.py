@@ -40,12 +40,15 @@ from decompile_cfg.version import __version__
 # from decompile_cfg.linenumbers import line_number_mapping
 
 def _get_outstream(outfile: str) -> Any:
-    dir = osp.dirname(outfile)
+    """
+    Return an opened output file descriptor for ``outfile``.
+    """
+    dir_name = osp.dirname(outfile)
     failed_file = outfile + "_failed"
     if osp.exists(failed_file):
         os.remove(failed_file)
     try:
-        os.makedirs(dir)
+        os.makedirs(dir_name)
     except OSError:
         pass
     return open(outfile, mode="w", encoding="utf-8")
@@ -69,7 +72,7 @@ def decompile(
     showasm=None,
     showast={},
     timestamp=None,
-    grammar=dict(PARSER_DEFAULT_DEBUG),
+    showgrammar=False,
     source_encoding=None,
     code_objects={},
     source_size=None,
@@ -124,6 +127,10 @@ def decompile(
         write(f"# Compiled at: {datetime.datetime.fromtimestamp(timestamp)}")
     if source_size:
         write("# Size of source mod 2**32: %d bytes" % source_size)
+
+    grammar = dict(PARSER_DEFAULT_DEBUG)
+    if showgrammar:
+        grammar["reduce"] = True
 
     debug_opts = {"asm": showasm, "tree": showast, "grammar": grammar}
 

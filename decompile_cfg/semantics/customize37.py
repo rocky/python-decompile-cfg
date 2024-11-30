@@ -1,4 +1,4 @@
-#  Copyright (c) 2019-2023 by Rocky Bernstein
+#  Copyright (c) 2019-2024 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -21,12 +21,7 @@ from xdis import co_flags_is_async, iscode
 
 from decompile_cfg.parsers.treenode import SyntaxTree
 from decompile_cfg.scanners.tok import Token
-from decompile_cfg.semantics.consts import (
-    INDENT_PER_LEVEL,
-    PRECEDENCE,
-    TABLE_DIRECT,
-    TABLE_R,
-)
+from decompile_cfg.semantics.consts import INDENT_PER_LEVEL, PRECEDENCE
 from decompile_cfg.semantics.helper import escape_string, flatten_list, strip_quotes
 
 
@@ -65,7 +60,7 @@ def customize_for_version3_7(self):
     PRECEDENCE["dict_unpack"]      =   0  # **{...}
 
     # fmt: on
-    TABLE_DIRECT.update(
+    self.TABLE_DIRECT.update(
         {
             "and_or_expr": (
                 "%c and %c or %c",
@@ -370,7 +365,7 @@ def customize_for_version3_7(self):
         }
     )
 
-    TABLE_R.update(
+    self.TABLE_R.update(
         {
             "CALL_FUNCTION_EX": ("%c(*%P)", 0, (1, 2, ", ", 100)),
             # Not quite right

@@ -20,7 +20,6 @@
 from xdis import iscode, co_flags_is_async
 
 from decompile_cfg.scanner import Code
-from decompile_cfg.semantics.consts import TABLE_DIRECT
 from decompile_cfg.semantics.customize37 import customize_for_version3_7
 from decompile_cfg.semantics.customize38 import customize_for_version3_8
 from decompile_cfg.semantics.customize39 import customize_for_version3_9
@@ -29,7 +28,9 @@ from decompile_cfg.semantics.helper import is_lambda_mode
 
 
 def customize_for_version3(self, version):
-    TABLE_DIRECT.update(
+    #######################
+    # fmt: off
+    self.TABLE_DIRECT.update(
         {
             "comp_for": (" for %c in %c", (2, "store"), (0, "expr")),
             "except_cond2": ("%|except %c as %c:\n", (1, "expr"), (5, "store")),
@@ -46,6 +47,8 @@ def customize_for_version3(self, version):
             "withasstmt": ("%|with %c as %c:\n%+%c%-", 0, 2, 3),
         }
     )
+    # fmt: on
+    #######################
 
     assert version >= (3, 7)
 
@@ -180,7 +183,7 @@ def customize_for_version3(self, version):
 
     self.listcomp_closure3 = listcomp_closure3
 
-    TABLE_DIRECT.update(
+    self.TABLE_DIRECT.update(
         {
             "c_tryelsestmt": (
                 "%|try:\n%+%c%-%c%|else:\n%+%c%-",
@@ -192,7 +195,7 @@ def customize_for_version3(self, version):
         }
     )
 
-    TABLE_DIRECT.update({"LOAD_CLASSDEREF": ("%{pattr}",)})
+    self.TABLE_DIRECT.update({"LOAD_CLASSDEREF": ("%{pattr}",)})
 
     if version >= (3, 7):
         customize_for_version3_7(self)

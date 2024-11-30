@@ -1,4 +1,4 @@
-#  Copyright (c) 2019-2023 by Rocky Bernstein
+#  Copyright (c) 2019-2024 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -23,14 +23,13 @@ Isolate Python 3.10 version-specific semantic actions here.
 from spark_parser.ast import GenericASTTraversalPruningException
 from decompile_cfg.semantics.consts import (
     PRECEDENCE,
-    TABLE_DIRECT,
 )
 
 
 def customize_for_version3_10(self):
     # Note there are async dictionary expressions are like await expr's
     # the below is just the default version
-    TABLE_DIRECT.update(
+    self.TABLE_DIRECT.update(
         {
             "and_parts_return":
             (
