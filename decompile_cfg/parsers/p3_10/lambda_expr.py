@@ -270,9 +270,16 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
 
         compare_chained        ::= expr
                                    compare_chained_middle
-                                   BB_START SIBLING_BLOCK
+                                   SIBLING_BLOCK BB_START
                                    ROT_TWO POP_TOP
-                                   BB_END BLOCK_END_JOIN
+                                   BB_END BLOCK_END_FALLTHROUGH_JOIN
+
+        compare_chained        ::= expr
+                                   compare_chained_middle
+                                   SIBLING_BLOCK BB_START
+                                   ROT_TWO POP_TOP
+                                   BB_END BLOCK_END_FALLTHROUGH_JOIN
+                                   BLOCK_END_JUMP_JOIN
 
         compare_chained        ::= expr chained_parts
         compare_chained        ::= compare_chained37_false
@@ -292,6 +299,21 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
                                    BB_START NOT_FALLEN_INTO_BLOCK
                                    ROT_TWO POP_TOP
                                    RETURN_VALUE BB_END
+
+        compare_chained_return ::= expr
+                                   compare_chained_middle_return
+                                   NOT_FALLEN_INTO_BLOCK
+                                   BLOCK_END_JUMP_JOIN
+                                   BB_START ROT_TWO POP_TOP
+                                   RETURN_VALUE BB_END
+
+        compare_chained_return ::= expr
+                                   compare_chained_middle_return
+                                   NOT_FALLEN_INTO_BLOCK
+                                   BLOCK_END_JUMP_JOIN
+                                   BB_START ROT_TWO POP_TOP
+                                   BB_END BLOCK_END_FALLTHROUGH_JOIN BLOCK_END_JUMP_JOIN
+                                   BB_START RETURN_VALUE BB_END
 
         compare_chained_return ::= expr
                                    compare_chained_middle_return

@@ -296,7 +296,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                                    NOT_FALLEN_INTO_BLOCK
                                    BLOCK_END_JUMP_JOIN
                                    BB_START ROT_TWO POP_TOP
-                                   BB_START RETURN_VALUE BB_END
+                                   RETURN_VALUE BB_END
 
         compare_chained_return ::= expr
                                    compare_chained_middle_return
