@@ -549,7 +549,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         comp_for       ::= expr gen_comp_body for_jump_unconditional block_end
 
         # Used in for loops (not async)
-        for_loop        ::= BB_START BREAK_FOR LOOP FOR_ITER BB_END
+        for_loop        ::= LOOP BB_START FOR_ITER BB_END
 
         for_iter        ::= BB_END
                             for_loop
@@ -597,6 +597,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
                           BB_START
                           store
                           comp_iter
+                          for_jump_unconditional
 
         # FIXME: the BLOCK_END_JOIN may need to be part of something else
         set_comp_func ::= BUILD_SET_0
@@ -875,7 +876,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         pjump_iff          ::= pjump_iff_forward
         pjump_iff          ::= pjump_iff_loop
         pjump_iff_forward  ::= POP_JUMP_IF_FALSE dom_end_start_opt
-        pjump_iff_loop     ::= JUMP_LOOP POP_JUMP_IF_FALSE_LOOP BB_END
+        pjump_iff_loop     ::= POP_JUMP_IF_FALSE_LOOP BB_END
 
         pjump_ift          ::= POP_JUMP_IF_TRUE
         pjump_ift          ::= for_jump_pop_ift
@@ -938,7 +939,7 @@ class Python3_8LambdaParser(Python3_8LambdaCustom, PythonParserLambda):
         return_expr             ::= set_comp_func
                                     BB_START
                                     RETURN_VALUE
-                                    block_join_end_final
+                                    BB_END
 
         return_expr             ::= set_comp_func
                                     BLOCK_END_JOIN

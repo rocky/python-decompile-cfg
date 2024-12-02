@@ -1,4 +1,4 @@
-#  Copyright (c) 2022-2023 by Rocky Bernstein
+#  Copyright (c) 2022-2024 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -697,7 +697,8 @@ class ComprehensionMixin:
 
         if tree == "set_comp_func":
             # Handle nested comp_for iterations.
-            comp_iter = tree[-1]
+            last_node = tree[-1]
+            comp_iter = tree[-2] if last_node == "for_jump_unconditional" else tree[-1]
             if comp_iter == "comp_iter_outer":
                 comp_iter = comp_iter[0]
             assert comp_iter in ("comp_iter", "await_expr")
