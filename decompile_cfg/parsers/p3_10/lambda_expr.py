@@ -433,9 +433,12 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         comp_and_part   ::= comp_and_part comp_and_part
         comp_and        ::= comp_and_part expr
 
-        comp_or_part    ::= expr_pjit BB_START
+        comp_or_part    ::= expr_pjit
         comp_or         ::= comp_or_part expr_pjit
-        comp_or         ::= comp_or BB_START expr
+        comp_or         ::= comp_or_part BB_START expr
+        comp_or         ::= comp_or_part BB_START
+                            NOP BB_END BLOCK_END_FALLTHROUGH_JOIN BB_START
+                            expr
 
         comp_if_end     ::= JUMP_FOR JUMP_ABSOLUTE BB_END
                             BLOCK_END_JOIN
@@ -608,7 +611,9 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         # one may be a continue - sometimes classifies a JUMP_LOOP
         # as a CONTINUE. The two are kind of the same in a comprehension.
 
+        comp_expr      ::= comp_or
         set_comp_body  ::= expr SET_ADD
+        set_comp_body  ::= comp_expr SET_ADD
 
         list_comp_body ::= LOAD_FAST LIST_APPEND
 
@@ -1016,13 +1021,11 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
                                     BB_START
                                     RETURN_VALUE
                                     BB_END
-                                    BLOCK_END_JOIN_NO_ARG
 
         return_expr             ::= set_comp_func
                                     BB_START
                                     RETURN_VALUE
                                     BB_END
-                                    BLOCK_END_JOIN_NO_ARG
 
         return_expr             ::= set_comp_func
                                     BLOCK_END_JOIN
