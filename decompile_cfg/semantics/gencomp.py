@@ -527,6 +527,12 @@ class ComprehensionMixin:
                 assert n[0] == "list_if_compare"
                 n = n[-1]
                 assert n == "list_iter"
+            elif n in ("list_if_chained",):
+                #  list_if_chained ::= list_if_compare ... list_iter
+                if_nodes.append(n[0])
+                assert n[0] == "list_if_compare"
+                n = n[-1]
+                assert n == "list_iter"
             elif n in (
                 "comp_if",
                 "comp_if_and",
@@ -542,6 +548,8 @@ class ComprehensionMixin:
                 for n in reversed(n):
                     if n.kind in ("comp_body", "comp_iter"):
                         break
+                if n.kind not in ("comp_body", "comp_iter"):
+                    breakpoint()
                 assert n.kind in ("comp_body", "comp_iter")
 
             elif n in (

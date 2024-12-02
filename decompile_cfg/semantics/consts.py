@@ -424,26 +424,19 @@ TABLE_DIRECT = {
 
     # Note: Adding "if" is handled inside the
     # comprehension
-    "comp_if_or": (
-        "%p or %p",
-        (0, ("expr_pjit", "or_parts_pjit", "or_parts_pjit_true_loop",
-             "or_parts_pjit_false_loop"),
-         PRECEDENCE["or"] ),
-        (1, "expr", PRECEDENCE["or"] ),
-        ),
 
     # ""if" folded inside comprehension
     "comp_if_or2": (
         "%p or %p",
         (0, "compare", PRECEDENCE["or"] ),
         (1, "compare_chained37_false", PRECEDENCE["or"] ),
-        ),
+    ),
 
     "comp_and": (
         "%p and %p",
         (0, ("comp_and", "comp_and_part"), PRECEDENCE["and"] ),
         (-1, ("expr", "expr_pjit"), PRECEDENCE["and"] ),
-        ),
+    ),
 
     "comp_and_part_transformed": (
         "%p and",
@@ -453,7 +446,7 @@ TABLE_DIRECT = {
     "comp_or": (
         "%p or %p",
         (0, ("comp_or", "comp_or_part"), PRECEDENCE["or"] ),
-        (-1, ("expr", "expr_pjit"), PRECEDENCE["or"] ),
+        (1, ("comp_or", "expr", "expr_pjit"), PRECEDENCE["or"] ),
         ),
 
     # Note: Adding "if" is handled inside the
@@ -465,7 +458,7 @@ TABLE_DIRECT = {
         ),
 
     "comp_if_not": (
-        " if not %p%c",
+        "if not %p",
          (0, "expr", PRECEDENCE["unary_not"]), -1
          ),
 
