@@ -423,8 +423,9 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
 
         # There can be no BLOCK_END_JOIN in a genxpr_func.
         # Here the return is implicit via a StopIterationException
-        comp_if         ::= expr_pjiff BB_START
-                            comp_iter
+        # FIXME note above as grammar symbol
+        # comp_if         ::= expr_pjiff BB_START
+        #                    comp_iter
 
         comp_if         ::= expr_pjif_loop BB_START
                             comp_iter BLOCK_END_JOIN
@@ -440,9 +441,11 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
                             NOP BB_END BLOCK_END_FALLTHROUGH_JOIN BB_START
                             expr
 
-        comp_if_end     ::= JUMP_FOR JUMP_ABSOLUTE BB_END
-                            BLOCK_END_JOIN
-                            BLOCK_END_JOIN
+        comp_or         ::= comp_or_part BB_START comp_or
+                            BLOCK_END_FALLTHROUGH_JOIN BLOCK_END_JUMP_JOIN
+
+        comp_or         ::= comp_or_part BB_START comp_or_part
+        comp_or_part    ::= expr_pjit
 
         comp_if_or3     ::= comp_or
                             for_jump_pop_iff
@@ -459,14 +462,9 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
                             comp_body
                             comp_if_end
 
-        comp_if_or      ::= expr_pjit
-                            BB_START
-                            expr
-                            JUMP_FOR
-                            POP_JUMP_IF_FALSE_LOOP
-                            BB_END BLOCK_END_JOIN
+        comp_if_or      ::= comp_or
                             BB_START comp_body
-                            comp_if_end
+
 
         # We have a bunch of these comp_if_<logic expression>
         # because the logic operation bleeds into the
@@ -508,8 +506,8 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         # We might be able to do this in the grammar but it is a bit
         # too pervasive and involved.
 
-        comp_if_not     ::= expr_pjift comp_iter
-        comp_if         ::= expr_pjift comp_iter
+        # comp_if_not     ::= expr_pjift BB_START comp_iter
+        comp_if         ::= expr_pjift BB_START comp_iter
 
         # Note the similarity with above "comp_if_not"
         # the following was noticed with an "or True".
@@ -545,7 +543,6 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
                           BLOCK_END_JOIN BLOCK_END_JOIN
         comp_iter     ::= comp_if_and
         comp_iter     ::= comp_if_or2
-        comp_iter     ::= comp_if_or3
         comp_iter     ::= comp_if_or_not
         comp_iter     ::= comp_if_not
         comp_iter     ::= comp_if_not_and
@@ -927,7 +924,7 @@ class Python3_10LambdaParser(Python3_10LambdaCustom, PythonParserLambda):
         pjump_iff_forward  ::= POP_JUMP_IF_FALSE dom_end_start_opt
         pjump_iff_loop     ::= POP_JUMP_IF_FALSE_LOOP BB_END
 
-        pjump_ift          ::= POP_JUMP_IF_TRUE
+        pjump_ift          ::= POP_JUMP_IF_TRUE BB_END
         pjump_ift          ::= for_jump_pop_ift
 
         """

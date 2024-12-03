@@ -42,6 +42,14 @@ def customize_for_version3_10(self):
                 "%c",
                 (0, ("and_or_return", "branch_op", "or_return")),
             ),
+            # 3.10 adds NOP in node[1] so we have to use -1
+            # To get at the right operand of "comp_or"
+            "comp_or": (
+                "%p or %p",
+                (0, ("comp_or", "comp_or_part"), PRECEDENCE["or"] ),
+                (-1, ("comp_or", "expr", "expr_pjit"), PRECEDENCE["or"] ),
+            ),
+
             "or_return": (
                 "%c",
                 (0, "or"),
