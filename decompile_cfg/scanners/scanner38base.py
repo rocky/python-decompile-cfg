@@ -220,6 +220,7 @@ class Scanner38Base(Scanner):
         _, self.insts = build_and_analyze_control_flow(
             code,
             graph_options=graph_options,
+            opc=self.opc,
             code_version_tuple=self.version,
             func_or_code_timestamp=timestamp,
             func_or_code_name=name,
