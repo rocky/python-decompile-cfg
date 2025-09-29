@@ -832,9 +832,9 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
 
             if k.startswith("CALL_METHOD"):
                 # This happens in PyPy and Python 3.7+
-                self.TABLE_R[k] = ("%c(%P)", (0, "expr"), (1, -1, ", ", 100))
+                self.TABLE_R[k] = ("%c(%P)", (0, ("arg", "expr")), (1, -1, ", ", 100))
             elif self.version >= (3, 6) and k.startswith("CALL_FUNCTION_KW"):
-                self.TABLE_R[k] = ("%c(%P)", (0, "expr"), (1, -1, ", ", 100))
+                self.TABLE_R[k] = ("%c(%P)", (0, ("arg", "expr")), (1, -1, ", ", 100))
             elif op == "CALL_FUNCTION":
                 self.TABLE_R[k] = (
                     "%c(%P)",
