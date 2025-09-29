@@ -1,4 +1,4 @@
-#  Copyright (c) 2020-2024 Rocky Bernstein
+#  Copyright (c) 2020-2025 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -535,8 +535,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         # Used in for loops (not async)
         for_loop        ::= LOOP BB_START FOR_ITER BB_END
 
-        for_iter        ::= BB_END
-                            for_loop
+        for_iter        ::= for_loop
 
         # Can occur when no trailing "if"
         gen_comp_body   ::= expr
@@ -627,6 +626,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
     def p_comprehension_list(self, _):
         """
+        lc_body         ::= expr LIST_APPEND
         lc_body         ::= expr doms_end_start_opt LIST_APPEND
         lc_body         ::= expr dom_end_start_opt LIST_APPEND
         lc_body         ::= branch_op bb_end_start LIST_APPEND
@@ -641,6 +641,11 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         list_iter       ::= list_if_or
         list_iter       ::= list_if_or_not
         list_iter       ::= lc_body
+
+        list_for        ::= expr_or_arg
+                            BB_END for_iter
+                            BB_START store list_iter
+                            JUMP_FOR JUMP_ABSOLUTE BB_END
 
         set_iter        ::= set_for
         set_iter        ::= list_if_and_or
@@ -718,6 +723,9 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         expr ::= unary_op
         expr ::= yield
         expr ::= yield_from
+
+        expr_or_arg ::= LOAD_ARG
+        expr_or_arg ::= expr
 
         expr_return ::= compare_return
         expr_return ::= and_compare_chained_return
