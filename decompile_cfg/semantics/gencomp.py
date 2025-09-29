@@ -1,4 +1,4 @@
-#  Copyright (c) 2022-2024 by Rocky Bernstein
+#  Copyright (c) 2022-2025 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -415,6 +415,8 @@ class ComprehensionMixin:
         elif node == "list_comp" and tree[0] == "expr":
             tree = tree[0][0]
             n = tree[iter_index]
+        elif self.is_pypy and node == "list_comp" and tree[2] == "list_iter":
+            pass
         elif (
             node == "set_comp"
             and tree[2 if self.version >= (3, 10) else 1] == "set_iter"
@@ -520,7 +522,7 @@ class ComprehensionMixin:
                                 pass
                             break
                         pass
-                n = n[3]
+                n = n[2] if self.is_pypy and n[2] == "list_iter" else n[3]
             elif n in ("list_if_chained",):
                 #  list_if_chained ::= list_if_compare ... list_iter
                 if_nodes.append(n[0])
@@ -633,7 +635,7 @@ class ComprehensionMixin:
 
         elif len(node) > 3 and node[3] == "get_iter":
             collection_node_index = 3
-            collection_node = node[3][0]
+            collection_node = node[collection_node_index][0]
             assert collection_node == "expr"
         elif collection_node is None:
             collection_node_index = -3
@@ -678,7 +680,7 @@ class ComprehensionMixin:
         # Here is where we handle nested list iterations which
         # includes their corresponding "if" conditions.
         if tree in ("list_comp", "set_comp"):
-            list_iter = tree[2 if self.version >= (3, 10) else 1]
+            list_iter = tree[2 if self.version >= (3, 10) or self.is_pypy else 1]
             assert list_iter in ("list_iter", "set_iter", "set_for")
             list_for = list_iter[0]
             if list_for in ("list_for", "set_for"):
@@ -686,7 +688,7 @@ class ComprehensionMixin:
                 #    list_for ::= _  for_iter expr_or_arg store list_iter ...
                 # or
                 #    set_for ::= _   set_iter expr_or_arg store set_iter ...
-                list_iter_inner = list_for[3]
+                list_iter_inner = list_for[2 if self.is_pypy else 3]
                 assert list_iter_inner in ("list_iter", "set_iter")
                 # If we have set_comp_body, we've done this above.
                 if list_iter_inner[0] == "list_if_or":

@@ -26,11 +26,11 @@ be used as a superclass in other grammars, such as a full grammar for Python 3.1
 
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 
-from decompile_cfg.parsers.p3_9.lambda_custom import Python3_9LambdaCustom
+from decompile_cfg.parsers.p3_9pypy.lambda_custom import PyPy3_9LambdaCustom
 from decompile_cfg.parsers.parse_heads import PythonParserLambda, PythonBaseParser
 
 
-class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
+class PyPy3_9LambdaParser(PyPy3_9LambdaCustom, PythonParserLambda):
     """
     Python 3.9 lambda grammar rules
     """
@@ -371,7 +371,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         expr_pjift                 ::= expr pjump_ift
         """
 
-    def p_comprehension(self, _):
+    def p_pypy39comprehension(self, _):
         """
         # comp_body is the body of some sort of list, dict, set, or generator
         # comprehension. The body is what adds to the accumulated collection
@@ -624,14 +624,16 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         """
 
-    def p_comprehension_list(self, _):
+    def p_pypy39comprehension_list(self, _):
         """
         lc_body         ::= expr LIST_APPEND
         lc_body         ::= expr doms_end_start_opt LIST_APPEND
         lc_body         ::= expr dom_end_start_opt LIST_APPEND
         lc_body         ::= branch_op bb_end_start LIST_APPEND
 
-        list_comp      ::= BUILD_LIST_0 list_iter
+        list_comp      ::= LOAD_ARG
+                           BUILD_LIST_FROM_ARG
+                           list_iter
 
         list_iter       ::= list_for
         list_iter       ::= list_if
@@ -642,8 +644,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         list_iter       ::= list_if_or_not
         list_iter       ::= lc_body
 
-        list_for        ::= expr_or_arg
-                            BB_END for_iter
+        list_for        ::= BB_END for_iter
                             BB_START store list_iter
                             JUMP_FOR JUMP_ABSOLUTE BB_END
 
@@ -856,7 +857,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         """
 
     # Conditional jumps with dominator information included
-    def p_jump_conditional(self, _):
+    def p_pypy39jump_conditional(self, _):
         """
         for_jump_pop_iff   ::= JUMP_FOR POP_JUMP_IF_FALSE_LOOP BB_END
         for_jump_pop_ift   ::= JUMP_FOR POP_JUMP_IF_TRUE_LOOP BB_END
@@ -885,7 +886,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         """
 
     # Unconditional jumps
-    def p_jump_unconditional(self, _):
+    def p_pypy39jump_unconditional(self, _):
         """
         for_jump_unconditional ::= for_loop_unconditional
         for_loop_unconditional ::= JUMP_LOOP JUMP_ABSOLUTE BB_END
@@ -895,7 +896,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         jf_doms_end_start      ::= JUMP_FORWARD bb_doms_end_start
         """
 
-    def p_lambda(self, _):
+    def p_pypy39lambda(self, _):
         """
         # return_expr is a return value used inside a lambda
 
@@ -1085,7 +1086,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         PythonBaseParser.__init__(
             self, start_symbol=start_symbol, debug_parser=debug_parser
         )
-        Python3_9LambdaCustom.__init__(self)
+        PyPy3_9LambdaCustom.__init__(self)
 
     def customize_grammar_rules(self, tokens, customize):
         self.customize_grammar_rules_lambda3_9(tokens, customize)
@@ -1099,7 +1100,7 @@ if __name__ == "__main__":
     # Note that the start_symbol from parse_heads is "lambda_start"
     # which is the same thing surrounded by dominator information.
     # But that doesn't appear here.
-    p = Python3_9LambdaParser(start_symbol="lambda_start")
+    p = PyPy3_9LambdaParser(start_symbol="lambda_start")
     modified_tokens = set(
         """JUMP_LOOP CONTINUE BB_END BB_START DOM_END DOM_START""".split()
     )

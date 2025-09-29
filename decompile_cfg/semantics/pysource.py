@@ -1066,6 +1066,10 @@ class SourceWalker(GenericASTTraversal, NonterminalActions, ComprehensionMixin):
             del tokens[0]
             if tokens[-1] == "BLOCK_END_JOIN_NO_ARG":
                 del tokens[-1]
+
+            # FIXME: Remove this after fixing:
+            # pytest/test_build_const_key_map.py
+            # Grammar also needs adjusting.
             if tokens[-1] == "BB_END":
                 del tokens[-1]
 

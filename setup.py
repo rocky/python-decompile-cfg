@@ -1,9 +1,55 @@
 #!/usr/bin/env python
-
 """Setup script for the 'decompile-cfg' distribution."""
 
-from setuptools import setup, find_packages
+import sys
 
-setup(
-    packages=find_packages(),
+import setuptools
+
+from __pkginfo__ import (
+    __version__,
+    author,
+    author_email,
+    classifiers,
+    entry_points,
+    install_requires,
+    license,
+    long_description,
+    modname,
+    py_modules,
+    short_desc,
+    web,
+    zip_safe,
+)
+
+SYS_VERSION = sys.version_info[0:2]
+if SYS_VERSION < (3, 7):
+    mess = f"\nThis package is not supported for Python version {sys.version[0:3]}."
+    mess += "\nFor earlier versions, use uncompyle6."
+    print(mess)
+    raise Exception(mess)
+
+setuptools.setup(
+    author=author,
+    author_email=author_email,
+    classifiers=classifiers,
+    description=short_desc,
+    # entry_points=entry_points,
+    entry_points={
+        "console_scripts": [
+            "decompile-cfg=decompile_cfg.bin.decompile:main_bin",
+            "decompile-cfg-code=decompile_cfg.bin.decompile_code_type:main",
+            "decompile-cfg-tokens=decompile_cfg.bin.decompile_tokens:main",
+        ]
+    },
+    install_requires=install_requires,
+    license=license,
+    long_description=long_description,
+    name=modname,
+    packages=setuptools.find_packages(),
+    py_modules=py_modules,
+    test_suite="nose.collector",
+    url=web,
+    tests_require=["nose>=1.0"],
+    version=__version__,
+    zip_safe=zip_safe,
 )
