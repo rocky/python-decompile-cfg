@@ -28,7 +28,7 @@ from decompile_cfg.parsers.reduce_check.or_check import or_ok
 from spark_parser.spark import rule2str
 
 
-class Python3_9LambdaCustom(Python3_9BaseParser):
+class PyPy3_9LambdaCustom(Python3_9BaseParser):
     def __init__(self):
         self.new_rules = set()
         self.customized = {}

@@ -1,4 +1,4 @@
-#  Copyright (c) 2017-2023 Rocky Bernstein
+#  Copyright (c) 2017-2023 2025 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -27,17 +27,17 @@ conflicts with classes are smooshed together.
 """
 
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
-from decompile_cfg.parsers.p3_9.lambda_expr import Python3_9LambdaParser
-from decompile_cfg.parsers.p3_9.full_custom import Python3_9FullCustom
+from decompile_cfg.parsers.p3_9pypy.lambda_expr import PyPy3_9LambdaParser
+from decompile_cfg.parsers.p3_9pypy.full_custom import PyPy3_9FullCustom
 
 
-class Python3_9ParserFull(Python3_9LambdaParser, Python3_9FullCustom):
+class PyPy3_9ParserFull(PyPy3_9LambdaParser, PyPy3_9FullCustom):
     def __init__(
         self,
         start_symbol: str="stmts_return_value",
         debug_parser:dict=PARSER_DEFAULT_DEBUG
     ):
-        Python3_9LambdaParser.__init__(self, start_symbol, debug_parser)
+        PyPy3_9LambdaParser.__init__(self, start_symbol, debug_parser)
         self.customized = {}
 
     def customize_grammar_rules(self, tokens, customize):
@@ -1325,7 +1325,7 @@ def info(args):
     # Check grammar
     import sys
 
-    p = Python3_9ParserFull()
+    p = PyPy3_9ParserFull()
     if len(args) > 0:
         arg = args[0][:2]
         if arg != (3, 9):
@@ -1340,7 +1340,7 @@ if __name__ == "__main__":
     # Check grammar
     from decompile_cfg.parsers.dump import dump_and_check
 
-    p = Python3_8ParserFull(start_symbol="stmts_return_value")
+    p = PyPy3_9ParserFull(start_symbol="stmts_return_value")
     modified_tokens = set(
         """JUMP_LOOP CONTINUE
            LOAD_GENEXPR LOAD_ASSERT LOAD_SETCOMP LOAD_DICTCOMP LOAD_CLASSNAME

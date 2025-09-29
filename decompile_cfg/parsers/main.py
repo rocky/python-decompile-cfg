@@ -43,6 +43,14 @@ from decompile_cfg.parsers.p3_9.heads import (
     Python3_9ParserSingle,
 )
 
+from decompile_cfg.parsers.p3_9pypy.heads import (
+    PyPy3_9ParserEval,
+    PyPy3_9ParserExec,
+    PyPy3_9ParserExpr,
+    PyPy3_9ParserLambda,
+    PyPy3_9ParserSingle,
+)
+
 from decompile_cfg.parsers.p3_10.heads import (
     Python3_10ParserLambda,
     Python3_10ParserEval,
@@ -105,19 +113,32 @@ def get_python_parser(
             p = Python3_8ParserSingle(debug_parser=debug_parser)
 
     elif version == (3, 9):
-
-        if compile_mode == "exec":
-            p = Python3_9ParserExec(debug_parser=debug_parser)
-        elif compile_mode == "single":
-            p = Python3_9ParserSingle(debug_parser=debug_parser)
-        elif compile_mode == "lambda":
-            p = Python3_9ParserLambda(debug_parser=debug_parser)
-        elif compile_mode == "eval":
-            p = Python3_9ParserEval(debug_parser=debug_parser)
-        elif compile_mode == "expr":
-            p = Python3_9ParserExpr(debug_parser=debug_parser)
+        if is_pypy:
+            if compile_mode == "exec":
+                p = PyPy3_9ParserExec(debug_parser=debug_parser)
+            elif compile_mode == "single":
+                p = PyPy3_9ParserSingle(debug_parser=debug_parser)
+            elif compile_mode == "lambda":
+                p = PyPy3_9ParserLambda(debug_parser=debug_parser)
+            elif compile_mode == "eval":
+                p = PyPy3_9ParserEval(debug_parser=debug_parser)
+            elif compile_mode == "expr":
+                p = PyPy3_9ParserExpr(debug_parser=debug_parser)
+            else:
+                p = PyPy3_9ParserSingle(debug_parser=debug_parser)
         else:
-            p = Python3_9ParserSingle(debug_parser=debug_parser)
+            if compile_mode == "exec":
+                p = Python3_9ParserExec(debug_parser=debug_parser)
+            elif compile_mode == "single":
+                p = Python3_9ParserSingle(debug_parser=debug_parser)
+            elif compile_mode == "lambda":
+                p = Python3_9ParserLambda(debug_parser=debug_parser)
+            elif compile_mode == "eval":
+                p = Python3_9ParserEval(debug_parser=debug_parser)
+            elif compile_mode == "expr":
+                p = Python3_9ParserExpr(debug_parser=debug_parser)
+            else:
+                p = Python3_9ParserSingle(debug_parser=debug_parser)
 
     elif version == (3, 10):
 

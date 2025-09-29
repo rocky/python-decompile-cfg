@@ -26,11 +26,11 @@ be used as a superclass in other grammars, such as a full grammar for Python 3.1
 
 from spark_parser import DEFAULT_DEBUG as PARSER_DEFAULT_DEBUG
 
-from decompile_cfg.parsers.p3_9.lambda_custom import Python3_9LambdaCustom
+from decompile_cfg.parsers.p3_9pypy.lambda_custom import PyPy3_9LambdaCustom
 from decompile_cfg.parsers.parse_heads import PythonParserLambda, PythonBaseParser
 
 
-class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
+class PyPy3_9LambdaParser(PyPy3_9LambdaCustom, PythonParserLambda):
     """
     Python 3.9 lambda grammar rules
     """
@@ -1085,7 +1085,7 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
         PythonBaseParser.__init__(
             self, start_symbol=start_symbol, debug_parser=debug_parser
         )
-        Python3_9LambdaCustom.__init__(self)
+        PyPy3_9LambdaCustom.__init__(self)
 
     def customize_grammar_rules(self, tokens, customize):
         self.customize_grammar_rules_lambda3_9(tokens, customize)
@@ -1099,7 +1099,7 @@ if __name__ == "__main__":
     # Note that the start_symbol from parse_heads is "lambda_start"
     # which is the same thing surrounded by dominator information.
     # But that doesn't appear here.
-    p = Python3_9LambdaParser(start_symbol="lambda_start")
+    p = PyPy3_9LambdaParser(start_symbol="lambda_start")
     modified_tokens = set(
         """JUMP_LOOP CONTINUE BB_END BB_START DOM_END DOM_START""".split()
     )

@@ -14,12 +14,12 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from decompile_cfg.parsers.parse_heads import PythonBaseParser, nop_func
-from decompile_cfg.parsers.p3_9.lambda_custom import Python3_9LambdaCustom
+from decompile_cfg.parsers.p3_9pypy.lambda_custom import PyPy3_9LambdaCustom
 from decompile_cfg.parsers.reduce_check.ifelsestmt_check import ifelsestmt_ok
 from decompile_cfg.parsers.reduce_check.ifstmt_check import ifstmt_ok
 from decompile_cfg.parsers.reduce_check import joined_str_ok
 
-class Python3_9FullCustom(Python3_9LambdaCustom, PythonBaseParser):
+class PyPy3_9FullCustom(PyPy3_9LambdaCustom, PythonBaseParser):
     def add_make_function_rule(self, rule, opname, attr, customize):
         """Python 3.3 added a an addtional LOAD_STR before MAKE_FUNCTION and
         this has an effect on many rules.
