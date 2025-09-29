@@ -1340,7 +1340,7 @@ if __name__ == "__main__":
     # Check grammar
     from decompile_cfg.parsers.dump import dump_and_check
 
-    p = Python3_8ParserFull(start_symbol="stmts_return_value")
+    p = Python3_9ParserFull(start_symbol="stmts_return_value")
     modified_tokens = set(
         """JUMP_LOOP CONTINUE
            LOAD_GENEXPR LOAD_ASSERT LOAD_SETCOMP LOAD_DICTCOMP LOAD_CLASSNAME

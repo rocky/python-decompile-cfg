@@ -813,7 +813,7 @@ class NonterminalActions:
                 # there isn't an iter_index at the top level
                 list_iter_index = None
             else:
-                list_iter_index = 1
+                list_iter_index = 3 if self.is_pypy else 1
             self.comprehension_walk_newer(node, list_iter_index, 0)
         self.write("]")
         self.prune()
