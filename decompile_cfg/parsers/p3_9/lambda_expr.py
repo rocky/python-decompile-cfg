@@ -893,6 +893,12 @@ class Python3_9LambdaParser(Python3_9LambdaCustom, PythonParserLambda):
 
         return_expr               ::= expr RETURN_VALUE
         return_expr               ::= expr RETURN_VALUE BB_END
+
+        # FIXME: Decompile semantics is swallowing the BB_END afte
+        # RETURN-VALUE.
+        return_expr               ::= expr BB_START RETURN_VALUE
+
+        return_expr               ::= expr_return
         return_expr               ::= expr_return
         return_expr               ::= if_exp_return
         return_expr               ::= if_else_lambda_return
