@@ -1,5 +1,6 @@
 #!/bin/bash
 PACKAGE=decompile-cfg
+TOP_DIR=decompile_cfg
 
 # FIXME put some of the below in a common routine
 function finish {
@@ -10,7 +11,7 @@ cd $(dirname ${BASH_SOURCE[0]})
 decompile_cfg_38_make_owd=$(pwd)
 trap finish EXIT
 
-if ! source ./pyenv-versions ; then
+if ! source ./pyenv-3.8-3.10-versions ; then
     exit $?
 fi
 
@@ -19,13 +20,17 @@ if ! source ./setup-python-3.8.sh ; then
 fi
 
 cd ..
-source $PACKAGE/version.py
+source $TOP_DIR/version.py
 echo $__version__
 
 for pyversion in $PYVERSIONS; do
     echo --- $pyversion ---
     if [[ ${pyversion:0:4} == "pypy" ]] ; then
 	echo "$pyversion - PyPy does not get special packaging"
+	continue
+    fi
+    if [[ ${pyversion:0:6} == "pyston" ]] ; then
+	echo "$pyversion - Pyston does not get special packaging"
 	continue
     fi
     if ! pyenv local $pyversion ; then
@@ -38,7 +43,7 @@ for pyversion in $PYVERSIONS; do
     first_two=$(echo $pyversion | cut -d'.' -f 1-2 | sed -e 's/\.//')
     rm -fr build
     python setup.py bdist_egg bdist_wheel
-    mv -v dist/${PACKAGE}-$__version__-{py3,py$first_two}-none-any.whl
+    mv -v dist/${TOP_DIR}-$__version__-{py2.py3,py$first_two}-none-any.whl
     echo === $pyversion ===
 done
 
