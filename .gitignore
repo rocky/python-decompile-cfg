@@ -12,6 +12,7 @@
 /.python-version
 /.tox
 /.venv*
+/ChangeLog-spell-corrected
 /README
 /__pkginfo__.pyc
 /decompile_cfg.egg-info
