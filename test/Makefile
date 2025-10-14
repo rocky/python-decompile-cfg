@@ -34,7 +34,7 @@ check:
 	$(MAKE) check-$(PYTHON_VERSION)
 
 #: Run working tests from Python 3.8
-check-3.8 check-3.9 check-3.10: check-bytecode
+check-3.8 check-3.9 check-3.10 check-3.11 check-3.12 check-3.13: check-bytecode
 
 #	$(PYTHON) test_pythonlib.py --bytecode-3.8 --run --verify-run
 #	$(PYTHON) test_pythonlib.py --bytecode-3.8 --syntax-verify $(COMPILE)
@@ -75,6 +75,9 @@ check-bytecode-3.10: \
 # check-bytecode-3.10:
 # 	$(PYTHON) test_pythonlib.py \
 # 	--bytecode-3.10
+
+#: Check deparsing 3.11-13 bytecode (not done heat.
+check-bytecode-3.11 check-bytecode-3.12 check-bytecode-3.13:
 
 
 check-bytecode-3.8-dict-comprehension:

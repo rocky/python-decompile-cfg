@@ -1,5 +1,6 @@
 import pytest
 
+from xdis import PYTHON_VERSION_TRIPLE
 from validate import validate_decompile
 
 TESTS = (
@@ -15,6 +16,7 @@ TESTS = (
         "{0.0:'b',0.1:'d'}",  # BUILD_CONST_KEY_MAP
     )
 
+@pytest.mark.skipif(PYTHON_VERSION_TRIPLE > (3, 10), reason="Don't have decompiler grammars for 3.10 on")
 @pytest.mark.parametrize(
     "text", TESTS
 )

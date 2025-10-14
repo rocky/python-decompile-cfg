@@ -49,9 +49,10 @@ def decompile_format_type(
     version_tuple = sys.version_info[0:2]
     if not ((3, 8) <= version_tuple <= (3, 10)):
         print(
-            f"Note: {program} can decompile only bytecode from up to Python 3.8"
+            f"Note: {program} can decompile only bytecode from up to Python 3.10"
             f"""\n\tYou have version: {version_tuple_to_str()}."""
         )
+        return
 
     # FIXME is there a "click" way to do this?
     if code_format is None:

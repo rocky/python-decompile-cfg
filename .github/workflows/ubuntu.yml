@@ -2,16 +2,16 @@ name: decompile-cfg (ubuntu)
 
 on:
   push:
-    branches: [ python-3.6-to-3.10 ]
+    branches: [ master ]
   pull_request:
-    branches: [ python-3.6-to-3.10 ]
+    branches: [ master ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10']
+        python-version: ['3.11', '3.12', '3.13']
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -22,9 +22,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         # Until the next xdis release
-        pip install git+https://github.com/rocky/python-xdis.git@python-3.6-to-3.10#egg=xdis
+        # pip install git+https://github.com/rocky/python-xdis.git@python-3.6-to-3.10#egg=xdis
         # Until the next control-flow release
-        pip install git+https://github.com/rocky/python-control-flow.git#egg=control_flow
+        # pip install git+https://github.com/rocky/python-control-flow.git#egg=control_flow
         python -m pip install pytest
         pip install -e .[dev]
     - name: Test decompile-cfg

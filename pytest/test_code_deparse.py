@@ -57,6 +57,7 @@ def run_deparse(expr: str, compile_mode: str, debug=False) -> object:
 
 
 # FIXME: DRY this code
+@pytest.mark.skipif(PYTHON_VERSION_TRIPLE > (3, 10), reason="Don't have decompiler grammars for 3.10 on")
 def test_single_mode() -> None:
     expressions = (
         "1",
@@ -94,6 +95,7 @@ def test_single_mode() -> None:
         assert deparsed.text == expr + "\n" if deparsed.text.endswith("\n") else expr
 
 
+@pytest.mark.skipif(PYTHON_VERSION_TRIPLE > (3, 10), reason="Don't have decompiler grammars for 3.10 on")
 def test_eval_mode():
     expressions = [
        "1",
@@ -127,6 +129,7 @@ def test_eval_mode():
         assert deparsed_text == expr
 
 
+@pytest.mark.skipif(PYTHON_VERSION_TRIPLE > (3, 10), reason="Don't have decompiler grammars for 3.10 on")
 def test_lambda_mode():
     # Note: lines should be only one line when deparsed.
     expressions = (

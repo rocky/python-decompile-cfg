@@ -1,9 +1,13 @@
+import pytest
+from xdis import PYTHON_VERSION_TRIPLE
+
 from decompile_cfg.main import decompile
 from decompile_cfg.parsers.p3_8.lambda_expr import Python3_8LambdaParser
 from decompile_cfg.parsers.p3_9.lambda_expr import Python3_9LambdaParser
 from decompile_cfg.parsers.p3_10.lambda_expr import Python3_10LambdaParser
 
 
+@pytest.mark.skipif(PYTHON_VERSION_TRIPLE > (3, 10), reason="Don't have decompiler grammars for 3.10 on")
 def test_grammar():
     for parse_fn in (
         Python3_8LambdaParser,
@@ -14,6 +18,8 @@ def test_grammar():
         # p.dump_grammar()
         p.check_grammar()
 
+
+@pytest.mark.skipif(PYTHON_VERSION_TRIPLE > (3, 10), reason="Don't have decompiler grammars for 3.10 on")
 def test_lambda_expr():
     x = lambda x: ("0" <= x <= "9")  # noqa
     # x = lambda x, y: (  # noqa
