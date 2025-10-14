@@ -3,7 +3,7 @@
 """Setup script for the 'decompile-cfg' distribution."""
 
 import sys
-from setuptools import setup
+from setuptools import find_packages, setup
 
 from __pkginfo__ import (
     __version__,
@@ -20,8 +20,6 @@ from __pkginfo__ import (
     web,
     zip_safe,
 )
-
-import sys
 
 major = sys.version_info[0]
 minor = sys.version_info[1]
@@ -41,5 +39,22 @@ if major != 3 or not 8 <= minor < 10:
 #!/usr/bin/env python
 """Setup script for the 'decompyle3' distribution."""
 
-
-setup()
+setup(
+    author=author,
+    author_email=author_email,
+    classifiers=classifiers,
+    description=short_desc,
+    # entry_points=entry_points,
+    entry_points=entry_points,
+    install_requires=install_requires,
+    license=license,
+    long_description=long_description,
+    name=modname,
+    packages=find_packages(),
+    py_modules=py_modules,
+    test_suite="nose.collector",
+    url=web,
+    tests_require=["nose>=1.0"],
+    version=__version__,
+    zip_safe=zip_safe,
+)
