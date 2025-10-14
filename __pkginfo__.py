@@ -49,7 +49,7 @@ author = "Rocky Bernstein"
 author_email = "rb@dustyfeet.com"
 entry_points = {
     "console_scripts": [
-        "decompile-cfg=decomple_cfg.bin.decompile:main_bin",
+        "decompile-cfg=decompile_cfg.bin.decompile:main_bin",
         "decompile-cfg-code=decompile_cfg.bin.decompile_code_type:main",
         "decompile-cfg-tokenize=decompile_cfg.bin.decompile_tokens:main",
     ]
