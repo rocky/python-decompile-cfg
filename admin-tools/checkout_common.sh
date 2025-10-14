@@ -2,13 +2,13 @@
 export PATH=$HOME/.pyenv/bin/pyenv:$PATH
 bs=${BASH_SOURCE[0]}
 mydir=$(dirname $bs)
-fulldir=$(readlink -f $mydir)
+decompile_cfg_fulldir=$(readlink -f $mydir)
 
 function setup_version {
     local repo=$1
     version=$2
     echo Running setup $version on $repo ...
-    (cd ../$repo && . ./admin-tools/setup-${version}.sh)
+    (cd ${decompile_cfg_fulldir}/../$repo && . ./admin-tools/setup-${version}.sh)
     return $?
 }
 
