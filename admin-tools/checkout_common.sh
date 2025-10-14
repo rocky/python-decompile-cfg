@@ -8,7 +8,7 @@ function setup_version {
     local repo=$1
     version=$2
     echo Running setup $version on $repo ...
-    (cd ${decompile_cfg_fulldir}/../$repo && . ./admin-tools/setup-${version}.sh)
+    (cd ${decompile_cfg_fulldir}/../../$repo && . ./admin-tools/setup-${version}.sh)
     return $?
 }
 
