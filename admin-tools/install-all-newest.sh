@@ -19,7 +19,7 @@ if [[ ! $__version__ ]] ; then
     exit 1
 fi
 
-cd ../dist/
+cd ${decompile_cfg_fulldir}/../dist/
 
 install_check_command="decompile-cfg --version"
 install_file="decompile-cfg-${__version__}.tar.gz"
