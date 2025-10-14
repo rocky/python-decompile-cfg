@@ -48,8 +48,8 @@ for pyversion in $PYVERSIONS; do
 done
 
 python ./setup.py sdist
-tarball=dist/${PACKAGE}-${__version__}.tar.gz
+tarball=dist/${TOP_DIR}-${__version__}.tar.gz
 if [[ -f $tarball ]]; then
-    mv -v $tarball dist/${PACKAGE}_38-${__version__}.tar.gz
+    mv -v $tarball dist/${TOP_DIR}_38-${__version__}.tar.gz
 fi
 finish
