@@ -2,16 +2,16 @@ name: decompile-cfg (ubuntu)
 
 on:
   push:
-    branches: [ master ]
+    branches: [ python-3.8-to-3.10 ]
   pull_request:
-    branches: [ master ]
+    branches: [ python-3.8-to-3.10 ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.11', '3.12', '3.13']
+        python-version: ['3.8', '3.9', '3.10']
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -21,11 +21,23 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        # Until the next xdis release
-        # pip install git+https://github.com/rocky/python-xdis.git@python-3.6-to-3.10#egg=xdis
-        # Until the next control-flow release
-        # pip install git+https://github.com/rocky/python-control-flow.git#egg=control_flow
         python -m pip install pytest
+        # Until the next xdis release
+        pip install git+https://github.com/rocky/python-xdis.git@python-3.6-to-3.10#egg=xdis
+        # XDIS_URL=$(curl -s https://api.github.com/repos/rocky/python-xdis/releases/latest \
+        #   | python -c "import sys,json; j=json.load(sys.stdin); assets=j.get('assets',[]); print(next((a.get('browser_download_url') for a in assets if a.get('name','').startswith('xdis_36-') and a.get('name','').endswith('.tar.gz')), ''))")
+        # if [ -z "$XDIS_URL" ]; then
+        #   echo "ERROR: no xdis_36-*.tar.gz asset found on the latest release"; exit 1
+        # fi
+        # python -m pip install "$XDIS_URL"
+        # Until the next control-flow release
+        pip install git+https://github.com/rocky/python-control-flow.git@python-3.8-to-3.10#egg=python-control_flow
+        # CONTROL_FLOW_URL=$(curl -s https://api.github.com/repos/rocky/python-control-flow/releases/latest \
+        #   | python -c "import sys,json; j=json.load(sys.stdin); assets=j.get('assets',[]); print(next((a.get('browser_download_url') for a in assets if a.get('name','').startswith('python-control-flow_38-') and a.get('name','').endswith('.tar.gz')), ''))")
+        # if [ -z "$CONTROL_FLOW_URL" ]; then
+        #   echo "ERROR: no python-control-flow_38-*.tar.gz asset found on the latest release"; exit 1
+        # fi
+        # python -m pip install "$CONTROL_FLOW_URL"
         pip install -e .[dev]
     - name: Test decompile-cfg
       run: |
