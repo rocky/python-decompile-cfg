@@ -9,9 +9,9 @@ Introduction
 ------------
 
 *decompile-cfg* translates Python bytecode back into equivalent Python
-source code. It accepts Python version 3.8 - 3.10 bytecode for now.
+source code. It accepts Python version 3.8 to 3.10 bytecode for now.
 
-For decompilation of older Python bytecode, see decompyle3_ and uncomple6_.
+For decompilation of older Python bytecode, see decompyle3_ and uncompyle6_.
 
 Why this?
 ---------
@@ -25,12 +25,13 @@ Over the years, more code optimization, specifically around handling jumps, has 
 from code patterns. This was noticed as far back as Python 2.4 (2004), but since this is a difficult problem, so far it hasn't been tackled
 in a satisfactory way.
 
-The initial attempt to fix this problem was to add markers in the
-instruction stream, initially this was a ``COME_FROM`` instruction, and then use that in pattern detection.
+The initial attempt to fix to this problem was to add markers in the
+instruction stream, initially this was a ``COME_FROM`` instruction, and
+then use that in pattern detection.
 
 Over the years, I've extended that to be more specific, so
 ``COME_FROM_LOOP`` and ``COME_FROM_WITH`` were added. And I added checks
-at grammar-reduce time to try to make sure jumps match with
+at grammar-reduce time to make try to make sure jumps match with
 supposed ``COME_FROM`` targets.
 
 However, all of this is complicated, not robust, and has greatly slowed
@@ -77,20 +78,18 @@ files it can read have been tested on Python bytecodes from versions
 Installation
 ------------
 
-*If you are using Python 3.11 or later*, you can install from PyPI using the name ``xasm``::
+*If you are using Python 3.11 or later*, you can install from PyPI using the name ``decompile-cfg``::
 
     pip install decompile-cfg
 
 A GNU makefile is also provided so ``make install`` (possibly as root or
 sudo) will do the steps above.
 
-*If you are using Python before 3.11*, do not install using PyPI, but instead install using a file in the `GitHub Releases section <https://github.com/rocky/python-xasm/releases>`_. Older Python used to use `easy_install <https://python101.pythonlibrary.org/chapter29_pip.html#using-easy-install>`_. But this is no longer supported in PyPi or newer Python versions. And vice versa, *poetry* nor *pip*, (the newer ways) are not supported on older Pythons.
+*If you are using Python before 3.11*, do not install using PyPI, but instead install using a file in the `GitHub Releases section <https://github.com/rocky/python-decompile-cfg/releases>`_.
 
-If the Python version you are running xasm is between Python 3.8 through 3.10, use a tarball called xasm_38-*x.y.z*.tar.gz.
+If the Python version you are running xasm is between Python 3.8 through 3.10, use a tarball called decompile_cfg_38-*x.y.z*.tar.gz.
 
-If the Python version you are running xasm is 3.11 or later, use a file called xasm-*x.y.z*.tar.gz.
-
-Similarly, a tarball with or without the underscore *xx*,  e.g., xasm_38-*x.y.z*.tar.gz works only from Python 3.11 or greater.
+If the Python version you are running xasm is 3.11 or later, use a file called decomile_cfg-*x.y.z*.tar.gz.
 
 Rationale for using Git Branches
 ++++++++++++++++++++++++++++++++
