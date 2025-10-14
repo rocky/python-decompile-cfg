@@ -23,13 +23,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install pytest
         # Until the next xdis release
-        pip install git+https://github.com/rocky/python-xdis.git@python-3.6-to-3.10#egg=xdis
-        # XDIS_URL=$(curl -s https://api.github.com/repos/rocky/python-xdis/releases/latest \
-        #   | python -c "import sys,json; j=json.load(sys.stdin); assets=j.get('assets',[]); print(next((a.get('browser_download_url') for a in assets if a.get('name','').startswith('xdis_36-') and a.get('name','').endswith('.tar.gz')), ''))")
-        # if [ -z "$XDIS_URL" ]; then
-        #   echo "ERROR: no xdis_36-*.tar.gz asset found on the latest release"; exit 1
-        # fi
-        # python -m pip install "$XDIS_URL"
+        # pip install git+https://github.com/rocky/python-xdis.git@python-3.6-to-3.10#egg=xdis
         # Until the next control-flow release
         pip install git+https://github.com/rocky/python-control-flow.git@python-3.8-to-3.10#egg=python-control_flow
         # CONTROL_FLOW_URL=$(curl -s https://api.github.com/repos/rocky/python-control-flow/releases/latest \
