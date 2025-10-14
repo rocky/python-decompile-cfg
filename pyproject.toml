@@ -54,4 +54,5 @@ decompile-cfg-tokenize = "decompile_cfg.bin.decompile_cfg_tokens:main"
 version = {attr = "decompile_cfg.version.__version__"}
 
 [tool.setuptools.packages.find]
-include = ["decompile_cfg"]  # Include all subpackages
+# Include all subpackages
+include = ["decompile_cfg"]
