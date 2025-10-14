@@ -11,37 +11,33 @@ Introduction
 *decompile-cfg* translates Python bytecode back into equivalent Python
 source code. It accepts Python version 3.8 - 3.10 bytecode for now.
 
-For decompilation of older Python bytecode see decompyle3_ and uncomple6_.
+For decompilation of older Python bytecode, see decompyle3_ and uncomple6_.
 
 Why this?
 ---------
 
 Decompyle3 and uncompyle6 are awesome, but they still have a
-fundamental problem in the way it handles control flow. In the early
-days of Python when there was little optimization and code was
-generated in a very template-oriented way, figuring out control
-flow-structures could be done by simply looking at code patterns.
+fundamental problem in the way they handle control flow. In the early
+days of Python, when there was little optimization and the code was
+generated in a very template-oriented way, figuring out control flow structures could be done by simply looking at code patterns.
 
-Over the years more code optimization, specifically around handling
-jumps has made it harder to support detecting control flow strictly
-from code patterns. This was noticed as far back as Python 2.4 (2004)
-but since this is a difficult problem, so far it hasn't been tackled
+Over the years, more code optimization, specifically around handling jumps, has made it harder to support detecting control flow strictly
+from code patterns. This was noticed as far back as Python 2.4 (2004), but since this is a difficult problem, so far it hasn't been tackled
 in a satisfactory way.
 
-The initial attempt to fix to this problem was to add markers in the
-instruction stream, initially this was a ``COME_FROM`` instruction, and
-then use that in pattern detection.
+The initial attempt to fix this problem was to add markers in the
+instruction stream, initially this was a ``COME_FROM`` instruction, and then use that in pattern detection.
 
 Over the years, I've extended that to be more specific, so
 ``COME_FROM_LOOP`` and ``COME_FROM_WITH`` were added. And I added checks
-at grammar-reduce time to make try to make sure jumps match with
+at grammar-reduce time to try to make sure jumps match with
 supposed ``COME_FROM`` targets.
 
-However all of this is complicated, not robust, has greatly slowed
+However, all of this is complicated, not robust, and has greatly slowed
 down deparsing and is not really tenable.
 
 It is clear that even this isn't enough. Control flow needs to be
-addressed by using dominators which the python-control-flow_ project
+addressed by using dominators, which the python-control-flow_ project
 can give.
 
 So far, this seems to hold promise of finally solving such problems.
@@ -49,11 +45,11 @@ So far, this seems to hold promise of finally solving such problems.
 Another change here is to more flexibly decompile smaller pieces of
 code, and modularize the grammar better.
 
-Right now you can deparse a lambda expression using a subset grammar
+Right now, you can deparse a lambda expression using a subset grammar
 of the full Python grammar. We should also be able to do that with other
-code objects such as comprehensions and generators.
+code objects, such as comprehensions and generators.
 
-In the future we hope to also be able to hanlde contigous sections of
+In the future, we hope to also be able to handle contiguous sections of
 code smaller than a code object. In particular, constructs that are
 found inside a single dominator region. A looping structure is
 something that might be easily identified.
@@ -63,11 +59,11 @@ segregate subsets of the grammar. And this also drives us towards
 redoing the grammar more or less from scratch to simplify it and try
 to match Python's AST better.
 
-Recall that when this code was first created there was no such thing
+Recall that when this code was first created, there was no such thing
 as a Python AST.  So using this to guide the grammar was
-impossible. We had tried prevously to match up nonterminal names when
-possible, changing CamelCase to snake_case. However with Python 3's
-AST, a reexamination and rewriting of the entire underlying grammar is
+impossible. We had tried previously to match up nonterminal names when
+possible, changing CamelCase to snake_case. However, with Python 3's
+AST, a reexamination and rewriting of the entire underlying grammar, is
 warranted.
 
 
@@ -145,7 +141,7 @@ properly. Handling pathologically long lists of expressions or
 statements is slow. We don't handle Cython_ or MicroPython_ which don't use bytecode.
 
 There are numerous bugs in decompilation. And that's true for every
-other CPython decompiler I have encountered, even the ones that
+other CPython decompilers I have encountered, even the ones that
 claimed to be "perfect" on some particular version like 2.4.
 
 As Python progresses decompilation also gets harder because the
@@ -165,7 +161,7 @@ dozens of known problems that are pretty well isolated and that could
 be solved if one were to put in the time to do so. The problem is that
 there aren't that many people who have been working on bug fixing.
 
-You may run across a bug, that you want to report. Please do so. But
+You may run across a bug that you want to report. Please do so. But
 be aware that it might not get my attention for a while. If you
 sponsor or support the project in some way, I'll prioritize your
 issues above the queue of other things I might be doing instead.
