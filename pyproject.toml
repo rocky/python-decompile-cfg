@@ -47,8 +47,8 @@ dev = [
 
 [project.scripts]
 decompile-cfg = "decompile_cfg.bin.decompile:main_bin"
-decompile-code = "decompile_cfg.bin.decompile_code_type:main"
-decompile-tokenize = "decompile_cfg.bin.decompile_cfg_tokens:main"
+decompile-cfg-code = "decompile_cfg.bin.decompile_code_type:main"
+decompile-cfg-tokenize = "decompile_cfg.bin.decompile_cfg_tokens:main"
 
 [tool.setuptools.dynamic]
 version = {attr = "decompile_cfg.version.__version__"}

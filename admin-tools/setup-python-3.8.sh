@@ -13,8 +13,7 @@ mydir=$(dirname $bs)
 cd $mydir
 fulldir=$(readlink -f $mydir)
 . ./checkout_common.sh
-cd $fulldir/..
-(cd $fulldir/.. && \
+(cd $fulldir/../.. && \
      setup_version python-spark python-3.6 && \
      setup_version python-xdis python-3.6 )
 
