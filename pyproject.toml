@@ -11,6 +11,7 @@ name = "decompile-cfg"
 description = "Python cross-version byte-code library and disassembler"
 dependencies = [
     "click",
+    "python-control-flow",
     "spark-parser >= 1.8.9, < 1.9.2",
     "xdis >= 6.1.0, < 6.3",
 ]

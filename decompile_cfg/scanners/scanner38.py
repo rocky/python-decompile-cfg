@@ -1,4 +1,4 @@
-#  Copyright (c) 2019, 2021-2022 by Rocky Bernstein
+#  Copyright (c) 2019, 2021-2022, 2025 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,6 +19,9 @@ things easier for decompilation.
 
 This sets up opcodes Python's 3.8.
 """
+
+# exec() imports this, but in 3.13+ we need to import it explicitly.
+import xdis.opcodes.opcode_38 as opcode_38 # noqa
 
 # bytecode verification, verify(), uses JUMP_OPs from here
 from xdis.opcodes import opcode_38 as opc

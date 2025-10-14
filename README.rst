@@ -1,5 +1,5 @@
 decompile-cfg
-============
+=============
 
 A native Python cross-version decompiler and fragment decompiler.
 A reworking of decompyle3_.
@@ -9,9 +9,9 @@ Introduction
 ------------
 
 *decompile-cfg* translates Python bytecode back into equivalent Python
-source code. It accepts Python version 3.8 bytecode.
+source code. It accepts Python version 3.8 - 3.10 bytecode for now.
 
-For decompilation of older Python bytecode see decompyle3_.
+For decompilation of older Python bytecode see decompyle3_ and uncomple6_.
 
 Why this?
 ---------
@@ -29,13 +29,13 @@ but since this is a difficult problem, so far it hasn't been tackled
 in a satisfactory way.
 
 The initial attempt to fix to this problem was to add markers in the
-instruction stream, initially this was a `COME_FROM` instruction, and
+instruction stream, initially this was a ``COME_FROM`` instruction, and
 then use that in pattern detection.
 
 Over the years, I've extended that to be more specific, so
-`COME_FROM_LOOP` and `COME_FROM_WITH` were added. And I added checks
+``COME_FROM_LOOP`` and ``COME_FROM_WITH`` were added. And I added checks
 at grammar-reduce time to make try to make sure jumps match with
-supposed `COME_FROM` targets.
+supposed ``COME_FROM`` targets.
 
 However all of this is complicated, not robust, has greatly slowed
 down deparsing and is not really tenable.
@@ -74,23 +74,32 @@ warranted.
 Requirements
 ------------
 
-The code here can be run on Python versions 3.7 or later. The bytecode
+The code here can be run on Python versions 3.8 or later. The bytecode
 files it can read have been tested on Python bytecodes from versions
-3.8.
+3.8 to 3.10. But we have a far-from-complete grammar for any of these.
 
 Installation
 ------------
 
-This uses setup.py, so it follows the standard Python routine:
+*If you are using Python 3.11 or later*, you can install from PyPI using the name ``xasm``::
 
-::
+    pip install decompile-cfg
 
-    pip install -e .  # set up to run from source tree
-                      # Or if you want to install instead
-    python setup.py install # may need sudo
-
-A GNU makefile is also provided so :code:`make install` (possibly as root or
+A GNU makefile is also provided so ``make install`` (possibly as root or
 sudo) will do the steps above.
+
+*If you are using Python before 3.11*, do not install using PyPI, but instead install using a file in the `GitHub Releases section <https://github.com/rocky/python-xasm/releases>`_. Older Python used to use `easy_install <https://python101.pythonlibrary.org/chapter29_pip.html#using-easy-install>`_. But this is no longer supported in PyPi or newer Python versions. And vice versa, *poetry* nor *pip*, (the newer ways) are not supported on older Pythons.
+
+If the Python version you are running xasm is between Python 3.8 through 3.10, use a tarball called xasm_38-*x.y.z*.tar.gz.
+
+If the Python version you are running xasm is 3.11 or later, use a file called xasm-*x.y.z*.tar.gz.
+
+Similarly, a tarball with or without the underscore *xx*,  e.g., xasm_38-*x.y.z*.tar.gz works only from Python 3.11 or greater.
+
+Rationale for using Git Branches
+++++++++++++++++++++++++++++++++
+
+It is currently impractical to have one Python source code of this complexity and with this many features that can run both Python 3.8 and Python 3.13+. The languages have drifted so much, and packaging is vastly different.
 
 Running Tests
 -------------

@@ -1,4 +1,4 @@
-#  Copyright (c) 2016, 2018-2022, 2024 by Rocky Bernstein
+#  Copyright (c) 2016, 2018-2022, 2024-2025 by Rocky Bernstein
 #  Copyright (c) 2005 by Dan Pascu <dan@windowmaker.org>
 #  Copyright (c) 2000-2002 by hartmut Goebel <h.goebel@crazy-compilers.com>
 #  Copyright (c) 1999 John Aycock
@@ -38,6 +38,15 @@ from xdis import (
 )
 
 from decompile_cfg.scanners.tok import Token
+
+# FIXME: revise so we don't need this.
+# exec() imports this, but in 3.13+ we need to import it explicitly.
+import xdis.opcodes.opcode_38 as opcode_38 # noqa
+
+# exec() imports this, but in 3.13+ we need to import it explicitly.
+import xdis.opcodes.opcode_38 as opcode_38 # noqa
+
+
 
 # The byte code versions we support.
 # Note: these all have to be tuples
@@ -565,7 +574,7 @@ def get_scanner(version: Union[str, tuple], is_pypy=False, show_asm=None) -> Sca
                 )
             else:
                 exec(
-                    f"import decompyle3.scanners.scanner{v_str} as scan",
+                    f"import decompile_cfg.scanners.scanner{v_str} as scan",
                     locals(),
                     globals(),
                 )
@@ -592,4 +601,4 @@ if __name__ == "__main__":
     from xdis.version_info import PYTHON_VERSION_TRIPLE
 
     scanner = get_scanner(PYTHON_VERSION_TRIPLE, IS_PYPY, True)
-    tokens, customize = scanner.ingest(my_co, {}, show_asm="after")
+    tokens, customize = scanner.ingest(my_co, show_asm="after")

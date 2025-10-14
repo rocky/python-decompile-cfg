@@ -1,4 +1,4 @@
-#  Copyright (c) 2019, 2021-2023 by Rocky Bernstein
+#  Copyright (c) 2019, 2021-2023, 2025 by Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -20,8 +20,12 @@ things easier for decompilation.
 This sets up opcodes Python's 3.9.
 """
 
+# FIXME: revise so we don't need this.
+# exec() imports this, but in 3.13+ we need to import it explicitly.
+import xdis.opcodes.opcode_39 as opcode_39 # noqa
+
 # bytecode verification, verify(), uses JUMP_OPs from here
-from xdis.opcodes import opcode_38 as opc
+from xdis.opcodes import opcode_39 as opc
 
 from decompile_cfg.scanners.scanner38 import Scanner38Base
 

@@ -1,4 +1,4 @@
-#  Copyright (c) 2015-2022 by Rocky Bernstein
+#  Copyright (c) 2015-2022, 2025 by Rocky Bernstein
 #  Copyright (c) 2005 by Dan Pascu <dan@windowmaker.org>
 #  Copyright (c) 2000-2002 by hartmut Goebel <h.goebel@crazy-compilers.com>
 #
@@ -36,7 +36,7 @@ from typing import Tuple
 
 # Get all the opcodes into globals
 import xdis.opcodes.opcode_38 as op3
-from control_flow.build_control_flow import build_and_analyze_control_flow
+from python_control_flow.build_control_flow import build_and_analyze_control_flow
 from xdis import iscode
 from xdis.bytecode import _get_const_info
 from xdis.version_info import version_tuple_to_str
@@ -505,7 +505,7 @@ if __name__ == "__main__":
 
         co = inspect.currentframe().f_code  # type: ignore
 
-    if (3, 8) <= PYTHON_VERSION_TRIPLE[:2] < (3, 10):
+    if (3, 8) <= PYTHON_VERSION_TRIPLE[:2] < (3, 11):
         tokens, customize = Scanner38Base(PYTHON_VERSION_TRIPLE).ingest(
             co, show_asm="both"
         )
@@ -514,7 +514,7 @@ if __name__ == "__main__":
 
     if unsupported_version:
         print(
-            "Need to be Python 3.8..3.9 to demo; "
+            "Need to be Python 3.8 to 3.10 to demo; "
             f"I am version {version_tuple_to_str()}."
         )
     pass
