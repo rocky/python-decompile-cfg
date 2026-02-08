@@ -13,7 +13,7 @@ dependencies = [
     "click",
     "python-control-flow",
     "spark-parser >= 1.8.9, < 1.9.2",
-    "xdis >= 6.1.0, < 6.3",
+    "xdis > 6.2.0",
 ]
 readme = "README.rst"
 license = "GPL-3.0-or-later"
