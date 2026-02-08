@@ -27,7 +27,8 @@ from types import ModuleType
 from typing import Optional, Union
 from array import array
 from collections import namedtuple
-from xdis.version_info import IS_PYPY, version_tuple_to_str
+from xdis.op_imports import get_opcode_module
+from xdis.version_info import IS_PYPY, PythonImplementation, version_tuple_to_str
 from xdis import (
     Bytecode,
     canonic_python_version,
@@ -85,11 +86,8 @@ class Scanner(ABC):
         self.opc = ModuleType("uninitialized")
 
         if version[:2] in PYTHON_VERSIONS:
-            v_str = f"""opcode_{version_tuple_to_str(version, start=0, end=2, delimiter="")}"""
-            if is_pypy:
-                v_str += "pypy"
-            exec(f"""from xdis.opcodes import {v_str}""")
-            exec(f"self.opc = {v_str}")
+            python_implementation = PythonImplementation.PYPY if is_pypy else PythonImplementation.CPython
+            self.opc = get_opcode_module(version, python_implementation)
         else:
             raise TypeError(
                 f"{version_tuple_to_str(version)} is not a Python version I know about"
