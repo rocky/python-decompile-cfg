@@ -1,4 +1,4 @@
-#  Copyright (c) 2015-2022, 2025 by Rocky Bernstein
+#  Copyright (c) 2015-2022, 2026 by Rocky Bernstein
 #  Copyright (c) 2005 by Dan Pascu <dan@windowmaker.org>
 #  Copyright (c) 2000-2002 by hartmut Goebel <h.goebel@crazy-compilers.com>
 #
@@ -35,7 +35,7 @@ import sys
 from typing import Tuple
 
 # Get all the opcodes into globals
-import xdis.opcodes.opcode_38 as op3
+import xdis.opcodes.opcode_3x.opcode_38 as op3
 from python_control_flow.build_control_flow import build_and_analyze_control_flow
 from xdis import iscode
 from xdis.bytecode import _get_const_info

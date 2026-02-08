@@ -1,4 +1,4 @@
-#  Copyright (c) 2016, 2018-2022, 2024-2025 by Rocky Bernstein
+#  Copyright (c) 2016, 2018-2022, 2024-2026 by Rocky Bernstein
 #  Copyright (c) 2005 by Dan Pascu <dan@windowmaker.org>
 #  Copyright (c) 2000-2002 by hartmut Goebel <h.goebel@crazy-compilers.com>
 #  Copyright (c) 1999 John Aycock
@@ -37,16 +37,8 @@ from xdis import (
     next_offset,
 )
 
+
 from decompile_cfg.scanners.tok import Token
-
-# FIXME: revise so we don't need this.
-# exec() imports this, but in 3.13+ we need to import it explicitly.
-import xdis.opcodes.opcode_38 as opcode_38 # noqa
-
-# exec() imports this, but in 3.13+ we need to import it explicitly.
-import xdis.opcodes.opcode_38 as opcode_38 # noqa
-
-
 
 # The byte code versions we support.
 # Note: these all have to be tuples
